@@ -1,0 +1,28 @@
+District AI for Android
+Copyright 2026 Distronode Corporation
+
+This product includes software developed by Distronode Corporation, licensed
+under the Apache License, Version 2.0. The full licence text is in LICENSE.
+
+Two sets of third-party files are included in this repository as their
+projects intend:
+
+  - The Geist typeface (Geist-Regular, Geist-SemiBold and Geist-Bold, as
+    core/core-designsystem/src/main/res/font/geist_*.ttf), Copyright 2024
+    Vercel, in collaboration with basement.studio, licensed under the SIL Open
+    Font License, Version 1.1 (https://openfontlicense.org). The notice that
+    ships with the app is core/core-designsystem/src/main/res/raw/license_geist.txt.
+
+  - The Gradle Wrapper (gradlew, gradlew.bat and gradle/wrapper/), Copyright
+    2015 the original authors, licensed under the Apache License, Version 2.0.
+
+The app depends on a number of third-party libraries, resolved at build time
+from Maven repositories. They keep their own licences, which are declared by
+the artifacts listed in gradle/libs.versions.toml and the gradle.lockfile of
+each module, and are not restated here.
+
+"District AI" and "Distronode" are trademarks of Distronode Corporation. The
+names, logos and app icon are not licensed under the Apache License; a
+distributed build must use its own name, icon and applicationId. Nothing in
+this repository claims endorsement by, or affiliation with, Google, LiveKit,
+Sentry or any other vendor whose SDK or service the app uses.

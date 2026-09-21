@@ -1,0 +1,29 @@
+<!--
+  The status-bar icon for every notification this app posts.
+
+  ⛔ A DEDICATED, FLAT-WHITE, OPAQUE-ALPHA-ONLY VECTOR RATHER THAN `ic_launcher_foreground`.
+     Android renders a notification's small icon as a MASK: every non-transparent pixel becomes the
+     system's accent colour and everything else is dropped. A launcher foreground is drawn for a
+     coloured background and carries interior detail in colour rather than in alpha, so masked it
+     collapses into a solid blob — which is why "the notification icon is a white square" is the
+     single most common notification bug. This shape is drawn in alpha only, so what the mask keeps
+     is what was intended.
+
+  ⚠️ 24dp AND VIEWPORT 24, which is the size the platform actually rasterises a small icon at.
+     Scaling a 108dp launcher asset down produces soft edges in a mask that has no anti-aliasing to
+     recover them.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+    <!--
+      A handset outline: legible at 24dp, and distinguishable from the system's own telephony icon
+      because it is a rounded rectangle rather than a receiver.
+    -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7,2h10c1.1,0 2,0.9 2,2v16c0,1.1 -0.9,2 -2,2H7c-1.1,0 -2,-0.9 -2,-2V4c0,-1.1 0.9,-2 2,-2zM7,5v13h10V5H7zM10.5,19.5h3v1h-3z" />
+</vector>

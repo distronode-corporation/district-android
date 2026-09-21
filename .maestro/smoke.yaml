@@ -1,0 +1,91 @@
+# District AI, Android smoke flow.
+#
+# Drives the SHIPPED debug APK on an emulator against the app-store demo account and
+# proves the six screens a reviewer opens first: sign-in, console home, contacts, a
+# contact's DGI dossier, billing, and settings.
+#
+# Run it with scripts/smoke-emulator.sh, which boots the AVD, installs the APK, checks the
+# APK's package against the appId below, passes the credentials in, and collects the JUnit
+# report and the screenshots under build/smoke/:
+#
+#   DISTRICT_SMOKE_EMAIL=... DISTRICT_SMOKE_PASSWORD=... scripts/smoke-emulator.sh --build --avd <name>
+#
+# Nothing in CI runs it. It needs an emulator and, for anything past the launch leg, the
+# demo account's credentials, neither of which the CI job has, so it is a local check.
+#
+# ⛔ READ-ONLY ON THE PRODUCT. Every step is a read or a navigation. Nothing here
+# creates, edits or deletes a row, and elements are addressed by IDENTITY
+# (`district-*` handles, or a contact's own name) and NEVER by index, because an index
+# sweep can open "Add contact" on a live workspace. Nothing in `.maestro/` taps `district-contacts-add`, and the one
+# session-scoped write in the flow, sign out, at the very end, is one of the things
+# the flow exists to prove.
+#
+# ⛔ CREDENTIALS COME FROM THE ENVIRONMENT AND ARE NEVER COMMITTED. smoke-emulator.sh passes
+# them to Maestro with `-e` and writes them nowhere. With either variable unset this flow
+# runs the launch leg, takes its screenshot, and STOPS: a green run with no credentials
+# proves the app boots and renders its sign-in screen, which is worth having and is NOT the
+# same claim as a green authenticated run. `smoke-emulator.sh` prints which of the two ran.
+#
+# ⛔ THE APP ID CARRIES `.debug`, AND GETTING THIS WRONG FAILS AS "ELEMENT NOT FOUND".
+# `build-logic/.../district.android.application.gradle.kts` sets
+# `applicationIdSuffix = ".debug"`, so the debug APK installs as
+# `com.distronode.districtai.debug` while `app/build.gradle.kts` reads
+# `com.distronode.districtai`. A flow naming the un-suffixed id launches nothing, and
+# the first assertion reports a missing element rather than a missing app.
+# ⚠️ It is a LITERAL here on purpose: Maestro interpolates `${...}` in selectors and
+# conditions, but the `appId` field is resolved before the flow's own `env:` block, so a
+# variable default silently does not apply. `smoke-emulator.sh` reads the package name
+# out of the APK (with aapt2) and refuses to run if it disagrees with this line.
+#
+# ⚠️ SELECTORS ARE `text:`, NOT `id:`, AND THAT IS MEASURED RATHER THAN ASSUMED.
+# The app's stable handles are Compose `contentDescription` values (the
+# `district-*` constants next to each screen). Maestro's Android driver maps
+# `contentDescription` onto `accessibilityText`, and its `text:` predicate matches
+# `text` OR `accessibilityText`, while `id:` matches `resource-id`. Dumped from
+# `maestro hierarchy` against this app on API 35: every Compose node's `resource-id` is
+# the EMPTY STRING, and `district-sign-in-root` / `district-sign-in-action` appear as
+# `accessibilityText`. So an `id:` selector here matches nothing, and Compose only
+# publishes a testTag as a resource-id under `testTagsAsResourceId`, which this app does
+# not set.
+#
+# ⚠️ `permissions: all: allow` IS LOAD-BEARING, NOT TIDINESS. On a clean install the
+# app raises the API-33 POST_NOTIFICATIONS dialog on first launch, which takes focus
+# (`GrantPermissionsActivity`) and hides the sign-in screen behind it, so without the
+# grant the first assertion fails on a healthy app.
+appId: com.distronode.districtai.debug
+name: District AI smoke
+env:
+  DISTRICT_SMOKE_EMAIL: ""
+  DISTRICT_SMOKE_PASSWORD: ""
+  # The contact opened on the dossier leg, BY NAME. A list row renders its display name
+  # as visible text, so a seeded name is a stable identity; the alternative is "the
+  # first row", which is an index by another spelling.
+  DISTRICT_SMOKE_CONTACT: ""
+  # Asserted on the billing card. Parameterised rather than hardcoded so a demo account
+  # moved to another tier fails with a diff instead of being quietly wrong.
+  DISTRICT_SMOKE_PLAN: "Studio"
+---
+# ⛔ `clearState` MAKES THE RUN DETERMINISTIC, AND WITHOUT IT THE FLOW IS A COIN TOSS.
+# A leftover session from an earlier run lands on the console instead of the sign-in
+# screen, so the first assertion fails on a perfectly healthy app. It clears this app's
+# own data on the emulator and touches nothing server-side.
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+
+- assertVisible:
+    text: "district-sign-in-root"
+- takeScreenshot: 01-sign-in
+
+# Both legs carry the SAME condition rather than one calling the other, so a reader can
+# see from this file alone what a credential-less run does and does not cover.
+- runFlow:
+    when:
+      true: ${DISTRICT_SMOKE_EMAIL !== "" && DISTRICT_SMOKE_PASSWORD !== ""}
+    file: subflows/sign-in.yaml
+
+- runFlow:
+    when:
+      true: ${DISTRICT_SMOKE_EMAIL !== "" && DISTRICT_SMOKE_PASSWORD !== ""}
+    file: subflows/tour.yaml

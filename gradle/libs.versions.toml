@@ -1,0 +1,366 @@
+# Version catalog — the single source of truth for every dependency version.
+#
+# ⛔ EXACT VERSIONS ONLY. No ranges, no `+`, no `latest.release`. A range makes the
+# build non-reproducible: two runs of the same commit can resolve different code,
+# which defeats both the dependency lockfile and any SBOM generated from it.
+#
+# ⛔ EDITING A VERSION HERE DOES NOTHING UNTIL THE LOCKFILE IS REGENERATED, AND IT
+# FAILS SILENTLY. Dependency locking applies the locked version as a `strictly`
+# constraint, so a bump here is quietly overridden rather than rejected. Measured:
+# setting androidxCore to 1.18.0 against a lockfile pinning 1.19.0 produced
+# `androidx.core:core-ktx:1.18.0 -> 1.19.0` and a GREEN build — no warning, no error,
+# and no upgrade. After changing any version, run the command under "Regenerating the
+# lockfiles" in build.gradle.kts:
+#
+#   ./gradlew :app:dependencies :core:core-auth:dependencies :core:core-data:dependencies \
+#       :core:core-designsystem:dependencies :core:core-media:dependencies \
+#       :core:core-model:dependencies :core:core-network:dependencies \
+#       --write-locks --no-configuration-cache
+#
+# and commit every module's gradle.lockfile in the same change. If a bump seems to have
+# had no effect, this is why. (Every module by path: a bare `./gradlew dependencies` reports
+# on the root project only and locks nothing. The note in build.gradle.kts says why.)
+#
+# ⚠️ THE MEASUREMENT ABOVE IS A DOWNGRADE, AND AN UPGRADE BEHAVES DIFFERENTLY: it is not
+# silent. Raising okhttp from 5.4.0 to 5.5.0 here without regenerating fails resolution with
+# "Cannot find a version of 'com.squareup.okhttp3:okhttp' that satisfies the version
+# constraints ... {strictly 5.4.0} ... Dependency version enforced by Dependency Locking".
+# So a Dependabot pull request that edits only this file goes RED until the lockfiles move
+# with it.
+#
+# ⚠️ Every version below was resolved from the upstream metadata and was the latest
+# *stable* when chosen. Pre-release versions were available and were deliberately
+# NOT taken: AGP 9.4.0-alpha08, Kotlin 2.4.20-RC, Robolectric 4.17-beta-2,
+# lifecycle 2.12.0-alpha01. Re-check before bumping; do not bump one
+# of agp/kotlin/composeCompiler without the others.
+
+[versions]
+# ── Build tooling ────────────────────────────────────────────────────────────
+agp = "9.4.1"
+
+# ⛔ KOTLIN IS PINNED TO WHAT AGP BUNDLES, NOT TO THE NEWEST RELEASE, AND THAT IS
+# DELIBERATE. AGP 9.0 introduced *built-in Kotlin*: the `org.jetbrains.kotlin.android`
+# plugin is no longer applied (applying it is a hard error against the new DSL), and
+# AGP carries a runtime dependency on a specific KGP — 2.2.10 for AGP 9.4.1 (and for
+# 9.3.1 before it), confirmed from its POM on 2026-09-25. Kotlin 2.4.20 was available
+# and was NOT taken.
+#
+# Forcing a newer Kotlin means a `buildscript { classpath(...) }` override in the
+# root build file, which puts a KGP on the classpath that AGP was not tested
+# against, and the Compose compiler plugin then has to match the *effective*
+# compiler rather than this number. That skew fails at compile time in the best case
+# and miscompiles Compose in the worst.
+#
+# ⛔ THEREFORE: bumping `kotlin` is not an independent decision. Bump `agp` first,
+# read its POM for the KGP it depends on, and move `kotlin` and `composeCompiler`
+# to that value together.
+kotlin = "2.2.10"
+# ⛔ Must equal `kotlin` above. Since Kotlin 2.0 the Compose compiler ships as a
+# Kotlin compiler plugin, versioned in lockstep with the compiler itself.
+composeCompiler = "2.2.10"
+
+# ── SDK levels ───────────────────────────────────────────────────────────────
+# ⛔ compileSdk AND targetSdk DIFFER ON PURPOSE. They are not the same knob and
+# they are driven by two unrelated forces:
+#
+#   compileSdk 37: forced by the DEPENDENCIES. androidx.core:core-ktx 1.19.1 (through
+#     androidx.core:core 1.19.1, as with 1.19.0 before it) and
+#     Compose BOM 2026.08.00 (androidx.compose.ui:ui-android 1.12.0) both declare
+#     an AAR metadata minCompileSdk of 37, so a build at 36 fails outright with
+#     "requires libraries and applications that depend on it to compile against
+#     version 37 or later". Compiling against a newer SDK changes no runtime
+#     behaviour; it only widens the API surface available at compile time.
+#
+#   targetSdk 36 — forced by GOOGLE PLAY. From 2026-08-31 new apps and app updates
+#     must target Android 16 (API 36) to be submitted. targetSdk is the runtime
+#     behaviour opt-in, so raising it is a product decision requiring a behaviour
+#     review, not a dependency bump.
+#
+# ⚠️ Do not "tidy" these to the same number in either direction. Lowering compileSdk
+# breaks the build; raising targetSdk opts the app into runtime behaviour changes
+# nobody has reviewed.
+#
+# ⚠️ ANDROID NOW HAS MINOR API LEVELS, and the SDK package ids carry them:
+# `platforms;android-37.0`, `android-37.1`, `android-36.1`. There is no
+# `platforms;android-37`, so `sdkmanager --install "platforms;android-37"` fails
+# with "Failed to find package". The Gradle DSL still takes the major integer.
+compileSdk = "37"
+targetSdk = "36"
+# minSdk 26 is the floor for PhoneAccount.CAPABILITY_SELF_MANAGED, which the
+# Telecom integration depends on. Do not lower it without dropping self-managed
+# calls; do not raise it without checking the install base.
+minSdk = "26"
+
+# ── AndroidX / Compose ───────────────────────────────────────────────────────
+androidxCore = "1.19.1"
+androidxActivity = "1.13.0"
+# ⛔ A FLOOR, NOT A DEPENDENCY. Nothing in this app declares fragment; it arrives through
+# firebase-messaging, whose play-services-basement and play-services-base 18.9.0 declare
+# fragment 1.1.0, and that old version is what Google Play's SDK Index flagged as outdated.
+# The only reader of this number is the `constraints { }` block in app/build.gradle.kts,
+# which says why a constraint was chosen over a dependency.
+androidxFragment = "1.9.1"
+# ⛔ THERE IS DELIBERATELY NO androidx.security:security-crypto ENTRY. It was evaluated and
+# rejected: EncryptedSharedPreferences and its schemes are deprecated as CLASSES (not merely
+# the nested enums), compiler-confirmed, and the package summary names javax.crypto with
+# AndroidKeyStore as the successor — which is what KeystoreTokenStore uses directly, from the
+# platform, with no dependency at all. An entry sat here unused for a while with a comment
+# arguing the opposite case; it was removed so nobody re-adds the dependency on the strength
+# of a stale rationale.
+androidxBrowser = "1.10.0"
+# ⛔ MUST match coroutinesTest below. A core/test version skew produces
+# "module was compiled with an incompatible version of Kotlin" style failures, or worse,
+# a TestDispatcher that does not control the dispatcher the code under test actually uses.
+kotlinxCoroutines = "1.11.0"
+# Backports java.time and friends onto minSdk 26.
+desugarJdkLibs = "2.1.5"
+androidxLifecycle = "2.11.0"
+# BOM governs every androidx.compose.* artifact version; those get no explicit
+# version below, by design.
+composeBom = "2026.09.00"
+# ⚠️ ONE VERSION FOR paging-runtime AND paging-compose. They drifted apart historically
+# (paging-compose sat on its own 1.x line), which is why a stale guide will show two
+# versions — they have shared this one since 3.3.0 and 3.5.1 is the latest stable for
+# both, confirmed from the Google Maven metadata. Do not reintroduce a
+# separate pagingCompose version.
+androidxPaging = "3.5.1"
+# ⚠️ Navigation 2.10.2, the latest STABLE of the Navigation 2 line, resolved from the Google
+# Maven metadata on 2026-09-26. Its runtime asks for kotlin-stdlib 2.1.20 and lifecycle 2.11.0,
+# both satisfied here. Navigation 3 (androidx.navigation3) exists, has stable releases by now
+# (1.2.0 in the same metadata), and is deliberately NOT taken: its back stack is a different
+# model that would have to be relearned, so moving to it is a migration, not a version bump.
+#
+# ⛔ Two destinations are not navigation, but the app has many with a real back stack
+# (overview, call log, call detail), and hand-rolling that means owning system back, deep links
+# and process-death restoration by hand, which is where the bugs live rather than in the library.
+androidxNavigation = "2.10.2"
+
+# ── Test ─────────────────────────────────────────────────────────────────────
+junit = "4.13.2"
+robolectric = "4.17"
+androidxTestExtJunit = "1.3.0"
+# ⛔ MUST match kotlinxCoroutines above.
+coroutinesTest = "1.11.0"
+
+# ── Serialization ────────────────────────────────────────────────────────────
+# ⛔ The serialization COMPILER PLUGIN is versioned with Kotlin (it is a Kotlin
+# compiler plugin), so it uses `kotlin` above and must not get its own version. The
+# RUNTIME library (kotlinx-serialization-json) versions independently.
+kotlinxSerializationJson = "1.11.0"
+
+# ── Networking ───────────────────────────────────────────────────────────────
+# okhttp 5.x. ⚠️ The MockWebServer artifact was RENAMED in 5.x: it is now
+# `mockwebserver3-junit4`, not `mockwebserver`, and shares okhttp's version.
+okhttp = "5.5.0"
+
+# ── Coverage ─────────────────────────────────────────────────────────────────
+# Kover, not Jacoco. Jacoco instruments bytecode and miscounts Kotlin's generated
+# members — inline functions, default-argument synthetics, `when` exhaustiveness
+# branches — so a Kotlin project measured with Jacoco reports a number that moves
+# when the compiler changes rather than when the tests do. Kover is Kotlin-aware and
+# is what the Kotlin toolchain ships for this.
+#
+# ⚠️ 0.9.9 is the latest stable (0.8.x is the previous line and its DSL differs —
+# `koverReport { }` was replaced by `kover { reports { } }`, so a 0.8-era snippet does
+# not compile here).
+#
+# ⚠️ Kover instruments classes as they load into the JVM during unit tests, so it
+# changes how the tests execute. That is the documented cost of on-the-fly coverage
+# and the reason a coverage run is not free — see the CI note about it sharing one
+# Gradle invocation with the plain test task.
+kover = "0.9.9"
+
+# ── Static analysis ──────────────────────────────────────────────────────────
+# detekt 1.23.8 is the latest stable (2.x is alpha). ⚠️ detekt 1.23.x embeds its own
+# Kotlin 1.9 compiler frontend for PARSING, independent of the project's Kotlin
+# 2.2.10. That is normal and supported, but it means a brand-new Kotlin syntax
+# feature can make detekt fail to parse a file that compiles fine — if that happens,
+# the fix is a detekt upgrade, not a code change.
+detekt = "1.23.8"
+
+livekit = "2.29.0"
+
+# ── Push ─────────────────────────────────────────────────────────────────────
+# ⛔ THE MESSAGING ARTIFACT ONLY, AND DELIBERATELY NO FIREBASE BOM. A BoM would
+# pin every Firebase library this project might ever add, which is exactly the
+# breadth that makes a dependency-scanning finding arrive for code nobody uses —
+# and the SBOM gate cannot tell a shipped artifact from an unused one (see the
+# bouncycastle note in build.gradle.kts). One coordinate, one version, one entry.
+#
+# ⛔ AND THERE IS DELIBERATELY NO `com.google.gms:google-services` PLUGIN ENTRY.
+# That plugin exists only to turn a `google-services.json` into generated
+# resources, and this app initialises Firebase BY HAND in DistrictApplication —
+# see the ⛔ there for why (CI has no cloud credentials to fetch the file, and the
+# build deliberately does not depend on a committed one). Adding the
+# plugin would reintroduce a build-time file dependency that nothing needs.
+#
+# ⚠️ 25.1.3 is the latest stable, resolved from the Google Maven metadata on 2026-09-26.
+# firebase-common and the Play-services
+# dependencies arrive transitively; none of them is declared here, because a
+# transitive coordinate declared explicitly is a second place to forget to bump.
+firebaseMessaging = "25.1.3"
+
+# ── Crash reporting ──────────────────────────────────────────────────────────
+# ⚠️ 8.58.0 is the latest stable `io.sentry:sentry-android-core` (and `io.sentry:sentry`),
+# resolved from the Maven Central metadata on 2026-09-26. It is also the exact
+# `io.sentry:sentry` version the 6.23.0 Gradle plugin below carries as a runtime dependency
+# (read from that plugin's POM), so the two lines move together: a plugin newer than the SDK
+# uploads a mapping keyed to a UUID the SDK does not report.
+#
+# ⛔ `sentry-android-core`, NOT THE `sentry-android` AGGREGATOR, AND THE OBVIOUS REASON
+# FOR PREFERRING THE AGGREGATOR IS FALSE. It is easy to assume `-core` is the SDK minus
+# the ANR watchdog and that ANRs therefore need the umbrella artifact. Checked against
+# the real 8.53.0 AAR rather than assumed: `ANRWatchDog`, `AnrIntegration`,
+# `AnrV2Integration`, `ApplicationNotResponding` and `SentryAndroid.init` itself are all
+# INSIDE `sentry-android-core`. Crash + ANR — the entire brief for this integration — is
+# exactly what this one artifact provides.
+#
+# What the aggregator adds on top is `sentry-android-ndk` (native crash reporting, whose
+# .so files ship per ABI for an app with no native code of its own) and
+# `sentry-android-replay` (session replay, which is per-event billed ingest). Both are
+# declined. ⛔ And emphatically NOT `sentry-android-timber`, `-fragment`, `-navigation`
+# or `-compose`: each is a separate coordinate and each would widen the SBOM for
+# instrumentation this app has decided not to pay for.
+#
+# ⚠️ IT STILL BRINGS ONE NON-OBVIOUS THIRD-PARTY COORDINATE, AND DEPENDENCY SCANNING WILL
+# SURFACE IT: `com.abovevacant:epitaph:0.1.1`, a 31 KB MIT-licensed Android tombstone
+# protobuf decoder with two published releases and a single maintainer. It is declared by
+# Sentry's OWN published POM and Gradle module metadata (verified against Maven Central,
+# not inferred), so it is an upstream choice rather than anything this build resolved
+# oddly. `io.sentry.android.core.internal.tombstone.TombstoneParser` references it
+# directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
+# reporter is a worse outcome than the coordinate. With no native code here it parses
+# nothing.
+sentry = "8.58.0"
+
+# ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
+# renames every class in the release build, so a crash report without the mapping is a
+# stack of obfuscated names — and the mapping is not committed and is regenerated per
+# build (see scripts/verify-release-minification.sh). The plugin is what associates a
+# build with its mapping, by generating a UUID, packaging it as an asset, and uploading
+# the mapping under the same UUID.
+#
+# ⛔ ITS TWO DEFAULT BEHAVIOURS ARE BOTH TURNED OFF IN app/build.gradle.kts, AND BOTH
+# WOULD BREAK SOMETHING HERE. `autoInstallation` injects `io.sentry:sentry-android` at
+# a version the PLUGIN chooses, which would make this catalog stop being the single
+# source of truth and silently disagree with the lockfiles; `tracingInstrumentation`
+# rewrites bytecode to add performance spans, which is ingest this account is not
+# paying for. See the `sentry { }` block for the rest.
+sentryGradlePlugin = "6.23.0"
+
+# ── Forced transitive versions ───────────────────────────────────────────────
+# ⛔ NO LIBRARY ENTRY USES THIS, AND THAT IS DELIBERATE. bouncycastle is never declared
+# here; it arrives transitively (AGP's Lint tool, Robolectric, and AGP itself on the Gradle
+# plugin classpath) and is FORCED to this version in three places that cannot share one
+# Kotlin `val`: every module's configurations and the root build's own plugin classpath
+# (both in build.gradle.kts), and build-logic/convention/build.gradle.kts, which is a
+# separate build. This entry is the one number all three read. bcprov, bcpkix and bcutil
+# move as a set, never below 1.85, the lowest version that clears their advisories: read the
+# bouncycastle note in build.gradle.kts before changing it.
+bouncyCastle = "1.86"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+# ⚠️ Used ONLY as a dependency constraint in app/build.gradle.kts, never as `implementation`.
+androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "androidxFragment" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "androidxPaging" }
+# `collectAsLazyPagingItems`, plus the LoadState plumbing the list screen renders.
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "androidxPaging" }
+# ⚠️ paging-common is a TRANSITIVE dependency of paging-runtime and is declared explicitly only
+# for the TEST classpath: PagingSource.load() is exercised directly rather than through a Pager,
+# which needs no Android runtime and no androidx.paging:paging-testing artifact.
+androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "androidxPaging" }
+# `viewModel(factory = …)` from a composable.
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+# ⛔ Provides collectAsStateWithLifecycle, which is what a StateFlow must be collected with.
+# The plain `collectAsState` keeps collecting while the app is in the BACKGROUND, so a screen
+# nobody can see goes on refreshing and re-rendering — on a phone that is wasted battery and
+# wasted mobile data, and for a polling screen it is a request every interval forever.
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+
+# Compose — versions come from the BOM.
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+# ⚠️ Version comes from the BOM like every other androidx.compose.* artifact, so no
+# version.ref here. Needed explicitly by core-designsystem: material3 pulls foundation
+# in transitively, but a module whose whole job is layout primitives should declare the
+# layout library it compiles against rather than inherit it from a component library.
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+# MockWebServer speaks real HTTP over a real socket, so the status-code mapping in
+# NativeAuthApi is verified against actual responses rather than a mocked client.
+okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver3-junit4", version.ref = "okhttp" }
+livekit-android = { group = "io.livekit", name = "livekit-android", version.ref = "livekit" }
+# ⛔ Resolves from `google()`, which settings.gradle.kts already lists — no new
+# repository, and emphatically not the JitPack entry, whose content filter admits
+# exactly one module. See the note above for why there is no BoM and no plugin.
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+# Crash + ANR reporting. ⛔ Declared HERE rather than left to the Sentry Gradle plugin's
+# `autoInstallation`, which would pick its own version behind this catalog's back — see the
+# note on `sentryGradlePlugin` above. ⛔ `-core`, deliberately: see the `sentry` version note
+# for what the umbrella artifact adds and why both additions are declined.
+sentry-android-core = { group = "io.sentry", name = "sentry-android-core", version.ref = "sentry" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+# Chrome Custom Tabs. ⛔ The login MUST use this rather than a WebView: a WebView would be
+# refused by Google's OAuth policy for embedded user-agents, and would put this app between the
+# user and their Google password.
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
+
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+
+# Referenced by build-logic so the convention plugins can apply these by type.
+# ⛔ detekt-formatting IS ktlint. It wraps the ktlint rule engine as detekt rules, so
+# this single dependency covers the formatting lane the CI verify stage would
+# otherwise need a separate pinned ktlint CLI for. Do not add a second ktlint
+# invocation alongside it — two formatters with independently-versioned rule sets
+# disagree, and the disagreement surfaces as an unfixable lint failure.
+detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
+
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+compose-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "composeCompiler" }
+# ⚠️ Needed on build-logic's compile classpath because district.android.base applies
+# Kover in its `plugins { }` block, and a precompiled script plugin can only apply a
+# plugin whose implementation it compiles against. The MARKER artifact
+# (org.jetbrains.kotlinx.kover:...gradle.plugin) is what `id(...)` resolves at runtime;
+# this coordinate is the implementation jar the Kotlin compiler needs at build time.
+kover-gradlePlugin = { group = "org.jetbrains.kotlinx", name = "kover-gradle-plugin", version.ref = "kover" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+# Applied to the ROOT project only from here. Every Android module gets it through
+# district.android.base instead, so a new module is covered the moment it exists rather
+# than when someone remembers to add it — see the note in that convention plugin.
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+# ⛔ There is deliberately NO `kotlin-android` entry. AGP 9 compiles Kotlin itself
+# (built-in Kotlin, on by default) and applying org.jetbrains.kotlin.android
+# alongside the new DSL fails the build outright with
+# "The 'org.jetbrains.kotlin.android' plugin is no longer required for Kotlin
+# support since AGP 9.0." Do not add it back.
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "composeCompiler" }
+# Versioned with `kotlin`, not independently — see the note above.
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+# ⚠️ APPLIED IN app/build.gradle.kts, NOT IN A CONVENTION PLUGIN, and that is a deliberate
+# exception to this project's "conventions apply plugins" rule. A precompiled script plugin can
+# only apply a plugin whose implementation is on build-logic's compile classpath (see the
+# `kover-gradlePlugin` note above for the same mechanic), and the Sentry plugin is needed by
+# exactly one module — the only one that produces a release artifact with a mapping file. Putting
+# it in build-logic would add a plugin jar to the classpath of every module to serve one.
+sentry-android = { id = "io.sentry.android.gradle", version.ref = "sentryGradlePlugin" }

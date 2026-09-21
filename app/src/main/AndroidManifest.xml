@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Permission surface is deliberately minimal and stays that way.
+
+      ⛔ DO NOT ADD READ_SMS or RECEIVE_SMS. The inbox reads messages from the
+         District AI platform API, never from the device. Those are restricted
+         permissions available only to a default SMS handler, and requesting them
+         would trigger a Play policy review this app cannot pass.
+      ⛔ DO NOT ADD READ_CONTACTS. The Google and Outlook contact importers run
+         server-side.
+      ⛔ DO NOT ADD location permissions. Nothing in the product needs them.
+
+      RECORD_AUDIO and CAMERA landed with multi-party rooms. MANAGE_OWN_CALLS landed
+      with the outbound softphone and is the whole of the "calling" surface — see its
+      own note below for why the foreground-service permissions did NOT come with it.
+      Every addition here costs a Play Data Safety declaration and, for foreground
+      service types, a demo video.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      Multi-party rooms.
+
+      ⛔ BOTH ARE RUNTIME PERMISSIONS AND BOTH ARE OPTIONAL TO THE FEATURE. A room is joinable
+         with neither: no camera is audio-only attendance, and no microphone is listen-only
+         attendance — which is exactly the seat the server gives a `viewer` regardless, since
+         its token carries canPublish:false. The room screen degrades in two directions rather
+         than refusing to open, and says on screen which control is off and why.
+      ⛔ DECLARED HERE, REQUESTED AT THE ROOM. The request is made by the ACTIVE_ROOM
+         destination immediately before it connects — never at launch. A permission dialog with
+         no visible reason is the one users deny permanently.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!--
+      ⛔ `required="false"` ON ALL THREE, AND THIS IS A DISTRIBUTION DECISION RATHER THAN A
+         FORMALITY. Declaring CAMERA in <uses-permission> makes Play IMPLY
+         `android.hardware.camera` as REQUIRED unless it is declared optional here — which would
+         hide this app from every Chromebook, tablet and TV without one, for a feature that
+         works fine without a camera. `camera.any` and `camera.autofocus` are implied the same
+         way. The app must check availability at runtime rather than assume; the room already
+         does, because it treats a denied camera as an ordinary way to attend.
+    -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <!--
+      ⚠️ Same reasoning for the microphone: RECORD_AUDIO implies `android.hardware.microphone`
+         as required, and a listen-only participant needs none.
+    -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!--
+      The outbound softphone.
+
+      ⛔ MANAGE_OWN_CALLS IS AN INSTALL-TIME ("normal") PERMISSION, NOT A RUNTIME ONE, and
+         confusing the two is how a Telecom integration ends up with a request dialog that can
+         never appear. Nothing asks the user for this; it is granted at install and it is what
+         lets this app register a SELF-MANAGED PhoneAccount and call TelecomManager.placeCall.
+         The only runtime permission the softphone needs is RECORD_AUDIO, declared above.
+      ⛔ IT IS NOT CALL_PHONE AND MUST NOT BECOME IT. CALL_PHONE places calls on the CELLULAR
+         network through the default dialer — a second, real, billed call while this app is
+         already connected over SIP — and it is a runtime permission in the restricted Phone
+         group that Play scrutinises. MANAGE_OWN_CALLS says the opposite thing: this app manages
+         its own calls and wants the OS merely to know one is happening.
+
+      ⚠️ THE FOREGROUND-SERVICE PERMISSIONS ARRIVED WITH INBOUND CALLING, EXACTLY AS THIS NOTE
+         SAID THEY WOULD — see the block below. The reasoning that kept them out is unchanged and
+         still describes the OUTBOUND path: a call dialled from the in-call screen is screen-on by
+         construction and needs nothing to keep the process alive. An ANSWERED INBOUND call is the
+         case the note was reserving them for: the user puts the phone to their ear, the Activity
+         stops, and a process with no foreground service is one Android is entitled to freeze
+         mid-conversation.
+    -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+
+    <!--
+      Inbound calling: the foreground service, and the notification that rings.
+
+      ⛔ FOUR PERMISSIONS AND EACH ONE IS LOAD-BEARING; NONE IS A PAIR WITH ANOTHER.
+         FOREGROUND_SERVICE is the API 28 base grant. FOREGROUND_SERVICE_PHONE_CALL and
+         FOREGROUND_SERVICE_MICROPHONE are the API 34 per-TYPE grants, and Android 14 requires the
+         app to HOLD the permission matching every type its service declares — a service typed
+         `phoneCall|microphone` while holding only the first throws the moment the mic is used.
+         POST_NOTIFICATIONS is the API 33 runtime permission without which nothing this app posts
+         is visible at all.
+      ⛔ FOREGROUND_SERVICE_PHONE_CALL COSTS A PLAY DEMO VIDEO AT REVIEW and a written
+         justification for MANAGE_OWN_CALLS alongside it. That is a Console obligation this
+         declaration creates, not an optional follow-up.
+      ⛔ AND THE MICROPHONE TYPE IS NOT REDUNDANT WITH RECORD_AUDIO. RECORD_AUDIO is permission to
+         use the microphone at all; FOREGROUND_SERVICE_MICROPHONE is permission to keep using it
+         while the app is in the background, which is the whole point of the service.
+      ⚠️ POST_NOTIFICATIONS IS DECLARED HERE AND REQUESTED AT THE FIRST POST-SIGN-IN LANDING, never
+         at launch — the same rule RECORD_AUDIO follows at the room and at the dialler. A denial is
+         not fatal: `notify` becomes a silent no-op, the Telecom connection still rings and the call
+         is still answerable from the OS's own call surfaces.
+      ⛔ THERE IS DELIBERATELY NO USE_FULL_SCREEN_INTENT. Its auto-grant requires the app's core
+         functionality to be calling, and a nineteen-section business dashboard will not clear that
+         bar — so on Android 14+ a full-screen intent would be DEMOTED to the heads-up notification
+         this app draws anyway, and the app would carry a permission it was refused for nothing. The
+         heads-up Answer/Decline path is the guaranteed one, and it is the one that is built.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+         ⛔ REMOVED, NOT DECLARED, AND IT IS NOT OURS TO BEGIN WITH. The LiveKit SDK's
+         own manifest contributes FOREGROUND_SERVICE_MEDIA_PROJECTION and a
+         ScreenCaptureService through manifest merging, so a release bundle asks for
+         screen capture even though this app has no screen sharing: nothing in the
+         Kotlin tree references screenCapture, mediaProjection or screenShare, and
+         nothing ever starts that service.
+         ⚠️ THE COST OF LEAVING IT IS NOT THEORETICAL. Play requires a written
+         justification and usually a demo video for every foreground service type, and
+         media projection is among the types it scrutinises hardest — so an unused
+         dependency permission turns into describing a feature that does not exist.
+         ⚠️ VERIFY ON THE BUILT AAB, NEVER ON THIS FILE. A merge rule that silently
+         matches nothing looks identical to one that works; the only honest check is
+         dumping the merged manifest out of the bundle.
+         🔑 If screen sharing is ever built, delete both rules rather than working
+         around them.
+    -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"
+        tools:node="remove" />
+
+    <!--
+      ⚠️ OPTIONAL, for the same distribution reason the camera is. Play infers hardware features
+         from the permission set, and a "calling" app that required telephony hardware would
+         vanish from every tablet and Chromebook — devices on which this softphone works
+         perfectly, because it places calls over the data network and never touches the radio.
+    -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <!--
+      ⛔ WITHOUT THIS, `CustomTabsLauncher.browserPackage` RETURNS NULL ON EVERY DEVICE RUNNING
+         API 30 OR LATER, AND IT FAILS SILENTLY. Package visibility filtering hides every other
+         installed app from `resolveActivity` unless it is declared here, so the probe would find
+         no browser, `launchExternally` would report "no browser" on a phone that has three, and
+         the marketplace hand-off would show an error instead of opening the web page.
+      ⛔ AND THE REASON A BROWSER HAS TO BE NAMED AT ALL IS App Links: this app is a verified
+         handler for `https://[www.]distronode.com/dashboard/district...`, so an IMPLICIT
+         ACTION_VIEW for one of those URLs resolves back into this app rather than out to a
+         browser. See the ⛔ in CustomTabsLauncher's header.
+      ⚠️ BOTH SCHEMES, BECAUSE THE PROBE IS `http://`. A browser's catch-all filter declares http
+         and https separately, and a queries entry has to match the filter it is asking about.
+         Neither entry can match this app: its own web filter is https-only and is bound to two
+         named hosts with a path prefix.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".DistrictApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DistrictAI"
+        tools:targetApi="36"
+        xmlns:tools="http://schemas.android.com/tools">
+
+        <!--
+          ⛔ SENTRY'S OWN ContentProvider MUST BE TOLD NOT TO INITIALISE THE SDK, AND WITHOUT THIS
+             LINE IT INITIALISES IT **BEFORE** `Application.onCreate` WITH NO DSN. This is not a
+             theory: `sentry-android-core-8.53.0.aar` declares
+             `io.sentry.android.core.SentryInitProvider` in its own manifest, the merger adds it
+             here, and a ContentProvider's `onCreate` runs before the Application's. It calls
+             `SentryAndroid.init` reading configuration from manifest meta-data — of which this app
+             publishes none — so the SDK comes up ARMED AND POINTED NOWHERE, and
+             `DistrictSentry.initialize` then re-initialises it a second time a moment later.
+          ⛔ ON A DEVICE THE DOUBLE INIT IS SILENT: crashes still report, because the second init
+             wins. The costs are a wasted provider init on every cold start and a window in which
+             events would have gone to a DSN-less client.
+          ⚠️ NO UNIT TEST GUARDS THIS LINE. Under Robolectric `Sentry.isEnabled()` reads true
+             whatever this meta-data says, so `DistrictSentryGuardTest` asserts the return value of
+             `DistrictSentry.initialize` instead (see the note there), and deleting this line would
+             leave it green. Treat this meta-data as reviewed-by-hand.
+          ⚠️ `SentryPerformanceProvider` (the sibling provider, initOrder 200) IS DELIBERATELY LEFT
+             IN PLACE. It is not gated by this flag — it collects app-start timings — and it is
+             what lets an ANR report say whether the ANR happened during startup. Removing it with
+             `tools:node="remove"` would trade a real ANR diagnostic for a few milliseconds, and
+             tracing being off means nothing it collects is billed.
+        -->
+        <meta-data
+            android:name="io.sentry.auto-init"
+            android:value="false" />
+
+        <!--
+          ⛔ `launchMode="singleTask"` IS REQUIRED FOR THE LOGIN CALLBACK, not a preference.
+          The PKCE callback arrives as a fresh VIEW intent from the system browser. Under the
+          default `standard` mode that would create a SECOND MainActivity instance on top of the
+          existing one, and the new instance's NativeLoginFlow would have no pending attempt —
+          so `completeLogin` would return NoAttemptInProgress and login would fail every time,
+          with nothing obviously wrong. singleTask routes the intent to the LIVE instance via
+          onNewIntent, where the in-memory verifier still exists.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.DistrictAI"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+              The native login callback.
+
+              ⚠️ A CUSTOM SCHEME IS CLAIMABLE BY ANY APP ON THE DEVICE, which is exactly why the
+              flow does not trust it: PKCE makes an intercepted code useless, and the `state`
+              check refuses a callback this app did not start. The verified App Link form
+              (https://www.distronode.com/auth/native/callback) is stronger and is already
+              allowlisted server-side, but it cannot be verified until Play holds the app
+              signing key, so it can only be adopted after the first upload. Both forms are in
+              NATIVE_REDIRECT_ALLOWLIST, so switching needs no server change.
+            -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="auth"
+                    android:scheme="districtai" />
+            </intent-filter>
+
+            <!--
+              Android App Links: a dashboard URL opens the app instead of a browser tab.
+
+              ⛔ `autoVerify="true"` IS A REQUEST, NOT A GRANT, AND IT FAILS CLOSED. At install the
+                 OS fetches https://<each host>/.well-known/assetlinks.json and checks that a
+                 statement names THIS package with the SHA-256 of the certificate that ACTUALLY
+                 signed the installed app. If the statement is missing, unreachable, served as
+                 anything but application/json, or reached through a redirect, verification fails
+                 and every link here opens in a browser exactly as it does today. Nothing breaks;
+                 the feature simply does not switch on. That is why this can ship before the Play
+                 Console entry exists.
+              ⛔ THE STATEMENT LIST IS ALREADY LIVE AND IS STILL INCOMPLETE. The server half is
+                 the server's `/.well-known/assetlinks.json` route, which publishes TWO
+                 statements: the release package against the UPLOAD key, and
+                 `com.distronode.districtai.debug` against a development debug key. The debug
+                 statement is what makes on-device verification testable NOW. ⛔ But Play App
+                 Signing RE-SIGNS every upload with a key Google holds, so an app installed FROM
+                 PLAY is signed by a certificate that appears nowhere in that file yet — its
+                 SHA-256 must be read from Console → Setup → App integrity → App signing and
+                 APPENDED (not substituted) after the first upload. Until then, verification works
+                 for sideloaded builds and fails for Play installs.
+
+              ⛔ THE PATH SCOPE IS `/dashboard/district` AND MUST NOT BE WIDENED. A `pathPrefix`
+                 claim is a promise to HANDLE every URL it matches, and a claimed URL the app
+                 cannot render is a dead end the user cannot escape by pressing back — worse than
+                 a browser tab. Everything under this prefix resolves to a real destination or to
+                 the overview (see AppLinkResolver); nothing else is claimed. In particular the
+                 apex marketing pages, `/pricing`, `/blog` and — importantly — `/auth/...` are NOT
+                 claimed, so the native login callback keeps arriving through the custom scheme
+                 above and cannot be swallowed by this filter.
+              ⚠️ BOTH HOSTS, AND `distronode.com` IS NOT REDUNDANT WITH `www.`. Android matches the
+                 host literally, with no notion that one redirects to the other, so a link shared
+                 as the apex form would open a browser without this entry. Each host is verified
+                 independently and each must serve the statement list without a redirect — the
+                 route handler's own header documents why the apex does.
+              ⛔ `distronode.ca` IS DELIBERATELY ABSENT. It is a separate registrable domain with
+                 its own zone and its own canonical-host rules, so claiming it needs a statement
+                 list published on THAT host too; adding the host here without that would just be
+                 a filter that never verifies. It is deferred until that list exists.
+              ⚠️ `android:scheme="https"` ONLY. An `http` entry would let a downgraded link claim
+                 the app, and App Links verification only ever applies to https.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="distronode.com" />
+                <data android:host="www.distronode.com" />
+                <data android:pathPrefix="/dashboard/district" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          The self-managed ConnectionService behind the softphone.
+
+          ⛔ `android:permission` HERE IS A REQUIREMENT ON THE BINDER, NOT A PERMISSION THIS APP
+             HOLDS, and that inversion is the whole point of the line. BIND_TELECOM_CONNECTION_
+             SERVICE is signature-level and only the platform holds it, so this declaration says
+             "only the OS may bind me" — which is what stops another installed app binding this
+             service and driving this app's calls. Omitting it does not merely weaken the
+             service: Telecom refuses to use a ConnectionService that does not require it, and
+             every placeCall fails with nothing in the app to point at.
+          ⛔ `exported="true"` IS REQUIRED FOR THE SAME REASON AND IS NOT A WEAKENING. The
+             binder is a different process (the system's), so an unexported service is
+             unreachable by the only caller that is allowed to reach it. The permission above is
+             what makes exporting safe.
+          ⚠️ The intent action is the framework's fixed contract; Telecom discovers the service
+             by querying for it, not from the PhoneAccountHandle's ComponentName alone.
+        -->
+        <service
+            android:name=".telecom.DistrictConnectionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
+        </service>
+
+        <!--
+          FCM's entry point into this app.
+
+          ⛔ MANIFEST-DECLARED AND `exported="false"`. The system binds this through the Play
+             Services messaging library running IN THIS PROCESS, not across a process boundary, so
+             it needs no export — and exporting it would let any app on the device deliver a
+             synthetic push, which on the incoming-call branch means making this phone ring.
+          ⛔ THE ACTION IS THE SDK'S FIXED CONTRACT. `FirebaseMessaging` discovers the handler by
+             querying for exactly this intent filter; a service without it is never called and the
+             failure is complete silence rather than an error.
+          ⚠️ NO `google-services` PLUGIN AND NO google-services.json ANYWHERE IN THIS BUILD.
+             Firebase is initialised by hand in DistrictApplication; see DistrictFirebase for the
+             three reasons.
+        -->
+        <service
+            android:name=".push.DistrictFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!--
+          The foreground service that keeps the process alive for the duration of an answered call.
+
+          ⛔ `foregroundServiceType="phoneCall|microphone"` AND BOTH HALVES ARE REQUIRED ON API 34+.
+             `phoneCall` is what this is; `microphone` is what it does, because the media engine
+             publishes an audio track the whole time. Declaring only one of them either throws when
+             the mic is used or misdescribes a telephone call to the reviewer who has to approve it.
+          ⛔ `exported="false"`: it is started by this app and by nothing else. An exported call
+             service is a way for another app to put a "call in progress" notification on screen.
+          ⚠️ Its manifest type must stay in step with the two FOREGROUND_SERVICE_* permissions
+             above; Android 14 checks the pair at start time, not at install.
+        -->
+        <service
+            android:name=".call.CallForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall|microphone" />
+
+        <!--
+          The Decline button on the ringing notification.
+
+          ⛔ `exported="false"` AND ADDRESSED BY COMPONENT. The action string is this app's own, but
+             an implicit broadcast would be delivered to any app that registered for it — and, on
+             API 26+, would not reach a manifest-registered receiver at all, so the feature would
+             fail in the ordinary case and leak the call id in the exotic one.
+          ⚠️ A BROADCAST RATHER THAN AN ACTIVITY BECAUSE DECLINING HAS NOTHING TO SHOW. Answering
+             does, which is why that action names MainActivity directly.
+        -->
+        <receiver
+            android:name=".call.IncomingCallActionReceiver"
+            android:exported="false" />
+        <!--
+             ⛔ The LiveKit SDK's screen-capture service, removed for the reason on the
+             FOREGROUND_SERVICE_MEDIA_PROJECTION rule above. Removing the permission
+             alone would leave a declared service whose type the app has no grant for.
+             ⚠️ `tools:ignore="MissingClass"` IS REQUIRED AND IS NOT A SUPPRESSION OF A
+             REAL PROBLEM. lint resolves `android:name` against the DEBUG classpath and
+             fails with MissingClass because it cannot see this class; the node exists
+             here only to be deleted at merge time, so "the class is missing" is the
+             intended end state rather than a defect. Without it `lintDebug` errors and
+             fails the build.
+        -->
+        <service
+            android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
+            tools:node="remove"
+            tools:ignore="MissingClass" />
+
+    </application>
+
+</manifest>

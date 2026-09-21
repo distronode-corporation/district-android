@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Adaptive icon background: the Ledger palette's dark background token, kept in step by
+      hand with DistrictColors.BACKGROUND, because a resource XML cannot read a Compose
+      token. This is the palette's second definition; move both or neither. Source of truth
+      is the web design system's token stylesheet.
+
+      NOTE: a double hyphen is illegal inside an XML comment and aapt fails
+      mergeDebugResources on it, so never spell a CSS custom property name here.
+    -->
+    <color name="ic_launcher_background">#0E1C1F</color>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      API 29+ override so the launch window follows the system dark-mode setting.
+      `Theme.DeviceDefault.DayNight` was added in API 29 and is the only DayNight
+      platform theme; since it has no NoActionBar variant, the action bar is removed
+      with explicit items instead.
+
+      Below API 29 the values/ baseline applies. Dark mode was not a user-controllable
+      system setting before 29, so there is nothing lost there.
+    -->
+    <style name="Theme.DistrictAI" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
+    </style>
+</resources>

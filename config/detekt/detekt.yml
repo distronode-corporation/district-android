@@ -1,0 +1,91 @@
+# detekt configuration — layered ON TOP of detekt's shipped defaults
+# (buildUponDefaultConfig = true), so this file holds only deliberate deviations.
+# Everything not mentioned here keeps detekt's default behaviour, and a detekt upgrade
+# brings its new rules with it rather than being frozen out.
+
+build:
+  # ⛔ Zero tolerance. A "max issues" budget means the lint gate passes while the count
+  # creeps toward the ceiling, and the day it crosses, the failure is attributed to
+  # whoever happened to add the last one. Fail on the first finding instead.
+  maxIssues: 0
+
+config:
+  # Fail the build if this file references a rule that no longer exists — otherwise a
+  # detekt upgrade silently drops a rule we thought we were enforcing.
+  validation: true
+
+formatting:
+  # These come from detekt-formatting, which is the ktlint rule engine.
+  active: true
+  # ktlint's import ordering disagrees with the IDE's default for Android projects
+  # often enough to be noise rather than signal; the rest of the formatting rules stay.
+  ImportOrdering:
+    active: false
+  # Compose composable functions are PascalCase by convention, which ktlint's
+  # function-naming rule reads as a violation. This is the single most common false
+  # positive in a Compose codebase.
+  FunctionNaming:
+    active: false
+
+naming:
+  FunctionNaming:
+    active: true
+    # Same Compose exemption as above, expressed for detekt's own naming rule:
+    # @Composable functions are intentionally PascalCase.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Za-z0-9]*'
+
+style:
+  # Explicit `return@label` and similar are clearer than detekt's preference here in
+  # coroutine-heavy code, which this project is.
+  #
+  # ⚠️ RAISED FROM 4, AND FOR A SPECIFIC REASON. Fail-closed auth code is written as a chain
+  # of early-return guards — "no session, return; token expired, return; refresh rejected,
+  # return" — because that is the form in which the safety of each branch is checkable at a
+  # glance. TokenRefreshCoordinator.accessToken and KeystoreTokenStore.read both landed at 5.
+  # Collapsing them into a single exit point means nesting, and nested conditionals in
+  # credential handling are how a branch quietly stops being fail-closed.
+  #
+  # excludeGuardClauses stops counting the leading guards specifically, which is the precise
+  # semantic wanted; the raised max covers elvis-style `?: return null` chains that detekt
+  # does not classify as guard clauses.
+  ReturnCount:
+    active: true
+    max: 6
+    excludeGuardClauses: true
+  # The codebase deliberately carries long explanatory comments (see any file header).
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+    excludeCommentStatements: true
+  # ⛔ @Preview COMPOSABLES ARE NOT DEAD CODE. They are private by convention and
+  # invoked by Android Studio's preview renderer, never from Kotlin, so detekt sees
+  # every single one as an unused private function. Left unconfigured this rule fails
+  # the build once per preview — measured: :app:detekt failed on
+  # PlaceholderScreenPreview the first time it ran.
+  #
+  # Scoped to @Preview ONLY, deliberately. Adding 'Composable' here would also hide a
+  # genuinely unreachable private composable, which IS dead code worth reporting.
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated: ['Preview']
+
+complexity:
+  # Compose screen functions legitimately nest deeply in layout code.
+  LongMethod:
+    active: true
+    threshold: 80
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    ignoreAnnotated: ['Composable']
+
+exceptions:
+  # `catch (t: Throwable)` is sometimes the correct thing on a fail-closed auth path,
+  # which this project has several of. Kept active so each use is a deliberate suppress
+  # rather than invisible.
+  TooGenericExceptionCaught:
+    active: true

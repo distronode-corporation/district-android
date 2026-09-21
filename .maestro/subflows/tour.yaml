@@ -1,0 +1,102 @@
+# The signed-in tour: console home → contacts → a contact's dossier → billing →
+# settings → sign out.
+#
+# ⛔ READ-ONLY, AND THE ONE EXCEPTION IS DELIBERATE. Every step below is a read or a
+# navigation except the final sign-out, which this flow exists to prove and
+# which is scoped to the demo account's own session. Nothing creates, edits or deletes a
+# row. In particular this file never taps `district-contacts-add`,
+# `district-contact-detail-rename`, `district-contact-detail-delete` or
+# `district-contact-detail-enrich`, the first opens a create dialog on a live
+# workspace, the last spends an enrichment credit.
+#
+# ⛔ ADDRESSED BY IDENTITY, NEVER BY INDEX. `district-*` handles come from the
+# `const val ...DESCRIPTION` blocks beside each screen, so a renamed handle breaks the
+# Kotlin and this file together rather than leaving a selector that silently matches
+# something else. The one row this flow opens is named by `DISTRICT_SMOKE_CONTACT`.
+#
+# ⚠️ `back` IS THE SYSTEM BACK BUTTON, WHICH THIS APP'S NAV HANDLES. Each detail screen
+# is a `DistrictTopBar` destination with an `onBack`, and system back is wired to the
+# same pop. Asserting the screen we landed on after every `back` is what stops a missed
+# pop from being discovered three steps later as a confusing "element not found".
+appId: com.distronode.districtai.debug
+---
+# ── Console home ────────────────────────────────────────────────────────────────
+- assertVisible:
+    text: "district-overview-root"
+- takeScreenshot: 04-console-home
+
+# ── Contacts ────────────────────────────────────────────────────────────────────
+- tapOn:
+    text: "district-overview-open-contacts"
+- extendedWaitUntil:
+    visible:
+      text: "district-contacts-root"
+    timeout: 30000
+- takeScreenshot: 05-contacts
+
+# ── One contact, BY NAME, and its DGI dossier ───────────────────────────────────
+# ⚠️ The name is the row's own visible title (ContactsScreen.kt:193), not a handle, so
+# this is the one selector in the flow that depends on seeded data. A demo workspace
+# whose contact was renamed fails HERE, which is the right place for it to fail.
+- tapOn:
+    text: ${DISTRICT_SMOKE_CONTACT}
+- extendedWaitUntil:
+    visible:
+      text: "district-contact-detail-root"
+    timeout: 30000
+# ⛔ THE DOSSIER SECTION, NOT THE SCREEN. `district-contact-detail-root` renders for any
+# contact; the dossier is the DGI payload and is the thing this leg exists to prove.
+- assertVisible:
+    text: "district-contact-detail-dossier"
+- takeScreenshot: 06-contact-dossier
+
+- back
+- assertVisible:
+    text: "district-contacts-root"
+- back
+- assertVisible:
+    text: "district-overview-root"
+
+# ── Billing ─────────────────────────────────────────────────────────────────────
+- tapOn:
+    text: "district-overview-open-billing"
+- extendedWaitUntil:
+    visible:
+      text: "district-billing-root"
+    timeout: 30000
+- assertVisible:
+    text: "district-billing-plan"
+# ⚠️ The tier is the RAW WIRE VALUE (BillingPlanCards.kt:73 prints
+# `billing.subscriptionTier` untouched, and a null tier renders "no plan" rather than an
+# invented "Free"). So this asserts the string the row actually holds.
+- assertVisible:
+    text: ${DISTRICT_SMOKE_PLAN}
+- takeScreenshot: 07-billing
+
+- back
+- assertVisible:
+    text: "district-overview-root"
+
+# ── Settings, and out ───────────────────────────────────────────────────────────
+- tapOn:
+    text: "district-overview-open-settings"
+- extendedWaitUntil:
+    visible:
+      text: "district-settings-root"
+    timeout: 30000
+- assertVisible:
+    text: "district-settings-sign-out"
+- takeScreenshot: 08-settings
+
+# ⚠️ NO CONFIRMATION STEP, AND THAT IS THE APP'S BEHAVIOUR RATHER THAN AN OMISSION.
+# `SettingsScreen.kt:96-101` wires the row straight to `onSignOut`; there is no dialog to
+# dismiss. A flow that waited for one would hang until its timeout.
+- tapOn:
+    text: "district-settings-sign-out"
+# The sign-out is server-side (it revokes the refresh-token family through the revoke
+# outbox), so the budget covers a round trip, not just a navigation.
+- extendedWaitUntil:
+    visible:
+      text: "district-sign-in-root"
+    timeout: 45000
+- takeScreenshot: 09-signed-out

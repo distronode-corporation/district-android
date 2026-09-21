@@ -1,0 +1,139 @@
+name: CI
+
+# One Linux job, because that is the whole of what this repository's CI is for: prove that a
+# commit builds, lints, passes its unit tests, holds its coverage floors and survives R8. It
+# builds nothing that ships. Release builds are made and signed on a maintainer's machine, so no
+# workflow here holds a signing key, a store credential or a Sentry token, and none references a
+# secret at all. That is also what lets a pull request from a fork run the same job unchanged.
+#
+# No emulator job: the Maestro smoke flow in .maestro/ needs a device and a demo account, and it
+# is run by hand.
+#
+# Third-party actions run only if the organisation's Actions policy lists them (it allows
+# GitHub-owned actions plus an explicit allowlist, and requires every action to be pinned to a
+# commit SHA). An action missing from that list fails the run at startup with no jobs and no
+# error in the API, which is how gradle/actions/setup-gradle first failed here. Add the entry
+# before adding the action.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege at the top level, so a job added later starts read-only instead of inheriting
+# the repository's default token scope. Nothing here writes.
+permissions:
+  contents: read
+
+# Per event and ref. Only pull requests cancel a run in flight: a superseded pull request run is
+# waste, but a superseded run on main is the record of that commit, so it finishes.
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nothing after checkout talks to GitHub, so the token is not left in .git/config for
+          # every later step (and every Gradle plugin) to read.
+          persist-credentials: false
+
+      # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
+      # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Caches the Gradle user home between runs and validates gradle/wrapper/gradle-wrapper.jar
+      # against Gradle's published checksums before anything executes it.
+      #
+      # ⚠️ `cache-provider: basic`, not the action's default. The default ("enhanced") is a
+      # proprietary caching library with its own terms for private repositories; `basic` is the
+      # MIT-licensed wrapper over the standard Actions cache, which is all this build needs.
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-provider: basic
+
+      # compileSdk is 37 (gradle/libs.versions.toml). Installed explicitly rather than left to
+      # AGP's on-demand download so that a missing package fails here, by name, instead of midway
+      # through configuration. The package id carries the minor version: there is no
+      # `platforms;android-37`. The `test -d` lines are there because sdkmanager has been seen to
+      # print "Failed to find package" and still exit 0.
+      - name: Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+          test -d "$ANDROID_HOME/platforms/android-37.0"
+          test -d "$ANDROID_HOME/build-tools/37.0.0"
+
+      # detekt (with ktlint's rules through detekt-formatting), Android Lint on the debug variant,
+      # every module's unit tests (Robolectric and Compose included), then the debug APK. One
+      # invocation, because splitting it multiplies Gradle's configuration cost for no extra
+      # signal: a failure is already attributed to the exact task.
+      - name: detekt, lint, unit tests, debug APK
+        run: ./gradlew detekt lintDebug testDebugUnitTest assembleDebug --no-daemon
+
+      # ⛔ PROVE THE TESTS RAN. A Gradle test task that discovers nothing reports success, so a
+      # green step above is not evidence that anything was tested. Every module's results are
+      # summed, not just app/'s: most of the tests live in the core modules, and an app-only count
+      # would still pass if every one of those stopped running.
+      #
+      # ⚠️ Deliberately BEFORE the coverage step. With zero tests the coverage floors fail too,
+      # but as a coverage regression; running this first makes that case fail with its real name.
+      - name: Zero-tests guard
+        run: |
+          total=0
+          files=0
+          while IFS= read -r f; do
+            # sed stops itself at the first <testsuite> line (`q`), rather than piping into
+            # `head -1`: a pipe that closes early SIGPIPEs its writer, which fails the whole
+            # step the day this runs under `shell: bash` (-o pipefail).
+            n=$(sed -n '/<testsuite[^>]*tests="/{s/.*<testsuite[^>]*tests="\([0-9][0-9]*\)".*/\1/p;q;}' "$f")
+            files=$((files + 1))
+            if [ -n "$n" ]; then total=$((total + n)); fi
+          done < <(find . -path '*/build/test-results/*' -name '*.xml')
+          echo "unit tests executed: $total, across $files result files"
+          if [ "$total" -eq 0 ]; then
+            echo "::error::Zero unit tests executed. A test task that discovers nothing reports success, so this is a silent loss of coverage, not a pass."
+            exit 1
+          fi
+
+      # The aggregate line and branch floors in build.gradle.kts. Root-qualified: each module also
+      # owns a rule-less koverVerify that passes trivially, so the unqualified name would run six
+      # no-ops beside the one task that matters. koverLog prints the aggregate number.
+      - name: Coverage floors
+        run: ./gradlew :koverLog :koverVerify --no-daemon
+
+      # assembleDebug does not minify, so every R8 problem is invisible to the steps above. This
+      # builds the release variant, UNSIGNED (no signing variables are set, which the build treats
+      # as a supported state), with no Sentry token (so no mapping upload is attempted), and
+      # checks that every referenced @Serializable model kept its serializer.
+      - name: Release minification
+        run: scripts/verify-release-minification.sh
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-reports
+          path: |
+            **/build/test-results/**/*.xml
+            **/build/reports/tests/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload lint and detekt results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lint-results
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/reports/lint-results-*.xml
+            **/build/reports/detekt/
+          if-no-files-found: warn
+          retention-days: 14

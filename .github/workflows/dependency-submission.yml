@@ -1,0 +1,88 @@
+name: Dependency submission
+
+# ⛔ WITHOUT THIS WORKFLOW, DEPENDABOT ALERTS COVER NO GRADLE DEPENDENCY AT ALL. GitHub's
+# dependency graph reads no Gradle file: not build.gradle.kts, not the version catalog, not the
+# gradle.lockfile of any module. The only way Gradle dependencies reach the graph is through the
+# dependency submission API, and so "0 Dependabot alerts" would otherwise mean "nothing was
+# looked at", not "nothing is vulnerable".
+#
+# gradle/actions/dependency-submission runs the build with the GitHub Dependency Graph Gradle
+# Plugin injected, resolves every configuration of every project (the app's and each core
+# module's compile and runtime classpaths, their test classpaths, AGP's lint classpath and the
+# build-logic plugin classpath), and submits the result for the commit it ran on. It compiles
+# nothing and runs no tests. Nothing is filtered out: the lockfiles hold test and lint-tool
+# coordinates too (see "Forced patch versions for build-only CVEs" in build.gradle.kts), and a
+# vulnerable build-only dependency is still worth an alert.
+#
+# ⚠️ The Gradle plugin classpaths are in the graph as well: the root build's buildscript
+# `classpath` and build-logic's configurations. Neither is locked, and AGP 9.4.1 brings
+# bouncycastle 1.80.2 onto both, so each carries its own force to the catalog's `bouncyCastle`
+# version, 1.86 (the top of build.gradle.kts, and build-logic/convention/build.gradle.kts).
+# Measured with this action's own init scripts when that version was 1.85: no org.bouncycastle
+# below 1.85 anywhere in the graph. A new plugin that
+# drags in an older version of something is reported the same way, so keep those forces in step.
+#
+# Action pins follow ci.yml: allowlisted, full commit SHA, `# vX.Y.Z` naming that SHA's version.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Nothing at the top level; the one job below asks for the one scope it needs.
+permissions: {}
+
+# Only the newest commit's graph matters, so a newer push cancels an older submission that is
+# still in flight.
+concurrency:
+  group: dependency-submission-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    name: Submit Gradle dependencies
+    # ⛔ SKIPPED WHILE THE REPOSITORY IS PRIVATE, like the analysis in codeql.yml: the graph it
+    # feeds drives Dependabot alerts on the public repository, and there is nothing to gain from
+    # running it before then. Once the repository is public it runs on every push to main.
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # Nothing else here writes.
+    permissions:
+      contents: write # the dependency submission API requires it
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The submission uses the action's own `github-token` input, not .git/config.
+          persist-credentials: false
+
+      # JDK 21, as in ci.yml. AGP 9 needs a JDK of at least 17 to run at all.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Same SDK step as ci.yml, for the same reason: resolving the Android configurations runs
+      # AGP's configuration phase, and a missing package should fail here, by name, rather than
+      # be left to AGP's on-demand download.
+      - name: Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+          test -d "$ANDROID_HOME/platforms/android-37.0"
+          test -d "$ANDROID_HOME/build-tools/37.0.0"
+
+      # The same gradle/actions release as ci.yml's setup-gradle. This action does the
+      # setup-gradle work itself, so the two inputs that ci.yml relies on are spelled out:
+      #
+      # ⚠️ `cache-provider: basic`, for the licensing reason given in ci.yml.
+      # ⚠️ `validate-wrappers: true`. setup-gradle checks gradle-wrapper.jar against Gradle's
+      #   published checksums by default; this action does NOT (its default is false), and it
+      #   executes the wrapper, so the check is turned on here.
+      #
+      # `generate-and-submit` sends the graph to the API and skips the default extra copy as a
+      # workflow artifact, which nothing reads.
+      - uses: gradle/actions/dependency-submission@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-provider: basic
+          validate-wrappers: true
+          dependency-graph: generate-and-submit

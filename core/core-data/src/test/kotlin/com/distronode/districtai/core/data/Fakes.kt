@@ -1,0 +1,1165 @@
+package com.distronode.districtai.core.data
+
+import com.distronode.districtai.core.model.AiDraftRequest
+import com.distronode.districtai.core.model.AiDraftResponse
+import com.distronode.districtai.core.model.DraftDeleteResponse
+import com.distronode.districtai.core.model.DraftListResponse
+import com.distronode.districtai.core.model.DraftResponse
+import com.distronode.districtai.core.model.DraftSaveRequest
+import com.distronode.districtai.core.model.MediaUploadResponse
+import com.distronode.districtai.core.model.MessageDraft
+import com.distronode.districtai.core.model.UploadedMedia
+import com.distronode.districtai.core.model.AnalyticsRange
+import com.distronode.districtai.core.model.AnalyticsResponse
+import com.distronode.districtai.core.model.ClearIntelResponse
+import com.distronode.districtai.core.model.DeviceListResponse
+import com.distronode.districtai.core.model.StripeBilling
+import com.distronode.districtai.core.model.WorkspaceBilling
+import com.distronode.districtai.core.model.WorkspaceBillingResponse
+import com.distronode.districtai.core.model.DeviceRevokeResponse
+import com.distronode.districtai.core.model.CallAnswerResponse
+import com.distronode.districtai.core.model.DialResponse
+import com.distronode.districtai.core.model.PushRegistrationResponse
+import com.distronode.districtai.core.model.EnrichResponse
+import com.distronode.districtai.core.model.NumberSearchResponse
+import com.distronode.districtai.core.model.OwnedNumbersResponse
+import com.distronode.districtai.core.model.MarkReadResponse
+import com.distronode.districtai.core.model.MarkReadRequest
+import com.distronode.districtai.core.model.UsageHistoryResponse
+import com.distronode.districtai.core.model.UsageResponse
+import com.distronode.districtai.core.model.SchedulingEnableResponse
+import com.distronode.districtai.core.model.SchedulingHandOffResponse
+import com.distronode.districtai.core.model.SchedulingStatusResponse
+import com.distronode.districtai.core.model.SendMessageResponse
+import com.distronode.districtai.core.model.SendMessageRequest
+import com.distronode.districtai.core.model.UnreadCountResponse
+import com.distronode.districtai.core.model.TimelineResponse
+import com.distronode.districtai.core.model.ConversationsResponse
+import com.distronode.districtai.core.model.CallDetailResponse
+import com.distronode.districtai.core.model.ContactDetailResponse
+import com.distronode.districtai.core.model.ContactListResponse
+import com.distronode.districtai.core.model.ContactMutationResponse
+import com.distronode.districtai.core.model.CallSummary
+import com.distronode.districtai.core.model.CallTranscriptResponse
+import com.distronode.districtai.core.model.HqConfirmRequest
+import com.distronode.districtai.core.model.HqConfirmResponse
+import com.distronode.districtai.core.model.HqPromptRequest
+import com.distronode.districtai.core.model.HqPromptResponse
+import com.distronode.districtai.core.model.DirectoryPatchRequest
+import com.distronode.districtai.core.model.KnowledgeCreateRequest
+import com.distronode.districtai.core.model.KnowledgeCreateResponse
+import com.distronode.districtai.core.model.KnowledgeDeleteResponse
+import com.distronode.districtai.core.model.KnowledgeListResponse
+import com.distronode.districtai.core.model.KnowledgeModePatchRequest
+import com.distronode.districtai.core.model.KnowledgeModeResponse
+import com.distronode.districtai.core.model.MemberAddRequest
+import com.distronode.districtai.core.model.MemberListResponse
+import com.distronode.districtai.core.model.MemberMutationResponse
+import com.distronode.districtai.core.model.MemberRoleRequest
+import com.distronode.districtai.core.model.MeetingDetail
+import com.distronode.districtai.core.model.MeetingSummary
+import com.distronode.districtai.core.model.MessagingAccountRequest
+import com.distronode.districtai.core.model.MessagingAccountSaveResponse
+import com.distronode.districtai.core.model.MessagingChannelDefaultRequest
+import com.distronode.districtai.core.model.MessagingChannelDefaultResponse
+import com.distronode.districtai.core.model.MessagingDefaultRequest
+import com.distronode.districtai.core.model.MessagingDefaultResponse
+import com.distronode.districtai.core.model.MessagingDeleteRequest
+import com.distronode.districtai.core.model.MessagingMetaRequest
+import com.distronode.districtai.core.model.MessagingMetaResponse
+import com.distronode.districtai.core.model.MessagingResponse
+import com.distronode.districtai.core.model.MessagingTestRequest
+import com.distronode.districtai.core.model.MessagingTestResponse
+import com.distronode.districtai.core.model.RoomTokenResponse
+import com.distronode.districtai.core.model.RenameResponse
+import com.distronode.districtai.core.model.WorkspaceMember
+import com.distronode.districtai.core.model.WorkspaceRenameRequest
+import com.distronode.districtai.core.model.RoutingRulesRequest
+import com.distronode.districtai.core.model.OverviewResponse
+import com.distronode.districtai.core.model.PersonaPatchRequest
+import com.distronode.districtai.core.model.ToolsPatchRequest
+import com.distronode.districtai.core.model.WorkspaceConfig
+import com.distronode.districtai.core.model.WorkspaceConfigResponse
+import com.distronode.districtai.core.model.WorkspaceConfigSaveResponse
+import com.distronode.districtai.core.model.WorkspaceListResponse
+import com.distronode.districtai.core.model.CampaignStatus
+import com.distronode.districtai.core.model.CampaignStatusResponse
+import com.distronode.districtai.core.model.WorkflowListResponse
+import com.distronode.districtai.core.model.WorkflowRunsResponse
+import com.distronode.districtai.core.model.WorkflowToggleResponse
+import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.MessagingApi
+import com.distronode.districtai.core.network.CampaignPauseRequest
+import com.distronode.districtai.core.network.SchedulingEnableRequest
+import com.distronode.districtai.core.network.SchedulingHandOffRequest
+import com.distronode.districtai.core.network.SchedulingApi
+import com.distronode.districtai.core.network.PushApi
+import com.distronode.districtai.core.network.InboundCallApi
+import com.distronode.districtai.core.network.ClearIntelRequest
+import com.distronode.districtai.core.network.CreateContactRequest
+import com.distronode.districtai.core.network.DeviceRevokeRequest
+import com.distronode.districtai.core.network.CallAnswerRequest
+import com.distronode.districtai.core.network.DialRequest
+import com.distronode.districtai.core.network.PushTokenRegisterRequest
+import com.distronode.districtai.core.network.DistrictApi
+import com.distronode.districtai.core.network.WorkflowToggleRequest
+import com.distronode.districtai.core.network.EnrichRequest
+import com.distronode.districtai.core.network.RoomTokenRequest
+import com.distronode.districtai.core.network.UpdateContactRequest
+
+/** In-memory [WorkspaceSelectionStore]. The production one is SharedPreferences-backed. */
+internal class FakeSelectionStore(private var selected: String? = null) : WorkspaceSelectionStore {
+    override fun selectedWorkspaceId(): String? = selected
+
+    override fun setSelectedWorkspaceId(workspaceId: String?) {
+        selected = workspaceId
+    }
+}
+
+/**
+ * A [DistrictApi] that answers with whatever it was constructed with.
+ *
+ * ⚠️ Records the `workspaceId` it was asked for, because "did the repository actually send the
+ * ACTIVE workspace" is the assertion that matters most — omitting it is not an error, it just
+ * silently reports on whichever workspace the server picks.
+ */
+/**
+ * ⚠️ `open` so a test needing one bespoke endpoint can subclass and override just that one, instead of
+ * every fake in the module having to grow a stub each time an endpoint is added. There are 19 more
+ * dashboard sections to build, so that churn adds up.
+ */
+internal open class FakeDistrictApi(
+    /**
+     * ⛔ THE MESSAGING SLICE, DELEGATED RATHER THAN INLINED, BECAUSE THIS CLASS CROSSED detekt's
+     * `LargeClass` CEILING once it carried the five messaging writes. `MessagingApi by`
+     * satisfies the composed interface exactly as an inline stub did; a test reaches the recorders
+     * and the settable results through this property (`messagingApi.messagingSaves`).
+     *
+     * ⚠️ A CONSTRUCTOR PARAMETER ONLY BECAUSE KOTLIN'S DELEGATION REQUIRES THE EXPRESSION AT
+     * CONSTRUCTION. It is defaulted, so no existing `FakeDistrictApi()` call site changes — and it is the one
+     * exception to the "mutable properties, not constructor parameters" note below, which is about
+     * the LongParameterList ceiling and is unaffected by a single defaulted argument.
+     */
+    val messagingApi: FakeMessagingApi = FakeMessagingApi(),
+    /**
+     * ⛔ THE BOOKING-PAGES SLICE, DELEGATED FOR THE SAME `LargeClass` REASON [messagingApi] IS. A
+     * test reaches its recorders and settable results through this property
+     * (`schedulingApi.schedulingEnables`).
+     */
+    val schedulingApi: FakeSchedulingApi = FakeSchedulingApi(),
+    /**
+     * ⛔ THE INBOUND-CALL AND PUSH SLICE, DELEGATED FOR THE SAME `LargeClass` REASON — and it is
+     * the shape `TestDistrictApi` in the app module already had. Reach its recorders through this
+     * property (`pushApi.answerRequests`).
+     */
+    val pushApi: FakeInboundPushApi = FakeInboundPushApi(),
+) : DistrictApi,
+    MessagingApi by messagingApi,
+    SchedulingApi by schedulingApi,
+    InboundCallApi by pushApi,
+    PushApi by pushApi {
+
+    // ⚠️ MUTABLE PROPERTIES, NOT CONSTRUCTOR PARAMETERS. As a constructor this hit detekt's
+    // LongParameterList ceiling at nine, two sections in — and seventeen sections remain, each adding
+    // endpoints. Properties set with `apply {}` scale without the signature growing.
+    // ⚠️ `success = true` ON THE DEFAULTS, LIKE EVERY SIBLING BELOW. The DTO default is `false`
+    // because the wire format defaults everything, but a fake standing in for a WELL-FORMED
+    // server response has to affirm the envelope or every repository now rejects it as contract
+    // drift. A test that wants the drift case sets `success = false` explicitly, which is also
+    // the only way that intent is readable at the call site.
+    var workspaceListResult: ApiResult<WorkspaceListResponse> =
+        ApiResult.Success(WorkspaceListResponse(success = true))
+    var overviewResult: ApiResult<OverviewResponse> = ApiResult.Success(OverviewResponse(success = true))
+    var callsResult: ApiResult<List<CallSummary>> = ApiResult.Success(emptyList())
+    var detailResult: ApiResult<CallDetailResponse> = ApiResult.Success(CallDetailResponse(success = true))
+    var transcriptResult: ApiResult<CallTranscriptResponse> =
+        ApiResult.Success(CallTranscriptResponse(success = true, transcript = "a transcript"))
+    var recordingResult: ApiResult<String> =
+        ApiResult.Success("https://recordings.example.test/presigned")
+    var contactsResult: ApiResult<ContactListResponse> =
+        ApiResult.Success(ContactListResponse(success = true))
+    var contactResult: ApiResult<ContactDetailResponse> =
+        ApiResult.Success(ContactDetailResponse(success = true))
+    var mutationResult: ApiResult<ContactMutationResponse> =
+        ApiResult.Success(ContactMutationResponse(success = true))
+
+    var requestedWorkspaceIds: MutableList<String?> = mutableListOf()
+        private set
+
+    /** (workspaceId, callId) pairs, so tenant scoping on the per-call reads can be asserted. */
+    var callReads: MutableList<Pair<String, String>> = mutableListOf()
+        private set
+
+    override suspend fun workspaceList(): ApiResult<WorkspaceListResponse> = workspaceListResult
+
+    override suspend fun contacts(workspaceId: String, limit: Int, offset: Int) =
+        contactsResult
+
+    /**
+     * ⚠️ COUNTED, because the dossier poll's whole contract is about HOW MANY times this is
+     * called: once per interval while an enrichment is in flight, and not at all afterwards. A
+     * poll that failed to terminate looks identical in state and is only visible here.
+     */
+    var contactRequestCount: Int = 0
+        private set
+
+    override suspend fun contact(workspaceId: String, contactId: String): ApiResult<ContactDetailResponse> {
+        contactRequestCount += 1
+        return contactResult
+    }
+
+    override suspend fun createContact(request: CreateContactRequest) = mutationResult
+
+    /**
+     * ⚠️ RECORDED, because `contacts/update` is a wholesale replace and the BODY is the whole
+     * contract: a request that omits a column the row holds clears it. See ContactsUpdateRepositoryTest.
+     */
+    val contactUpdates: MutableList<UpdateContactRequest> = mutableListOf()
+
+    override suspend fun updateContact(request: UpdateContactRequest): ApiResult<ContactMutationResponse> {
+        contactUpdates += request
+        return mutationResult
+    }
+
+    override suspend fun deleteContact(workspaceId: String, contactId: String) = mutationResult
+
+    override suspend fun overview(workspaceId: String?): ApiResult<OverviewResponse> {
+        requestedWorkspaceIds += workspaceId
+        return overviewResult
+    }
+
+    override suspend fun calls(
+        workspaceId: String,
+        limit: Int,
+        offset: Int,
+    ): ApiResult<List<CallSummary>> = callsResult
+
+    override suspend fun callDetail(
+        workspaceId: String,
+        callId: String,
+    ): ApiResult<CallDetailResponse> {
+        callReads += workspaceId to callId
+        return detailResult
+    }
+
+    override suspend fun callTranscript(
+        workspaceId: String,
+        callId: String,
+    ): ApiResult<CallTranscriptResponse> {
+        callReads += workspaceId to callId
+        return transcriptResult
+    }
+
+    override suspend fun callRecordingUrl(
+        workspaceId: String,
+        callId: String,
+    ): ApiResult<String> {
+        callReads += workspaceId to callId
+        return recordingResult
+    }
+
+    // ── Inbox ────────────────────────────────────────────────────────────────
+    // ⚠️ Defaults are WELL-FORMED envelopes for the same reason as every sibling above: a fake
+    // standing in for a healthy server has to affirm `success`, or a repository rejects it as
+    // contract drift. A test wanting the drift case sets it false explicitly.
+    var conversationsResult: ApiResult<ConversationsResponse> =
+        ApiResult.Success(ConversationsResponse(success = true))
+    var timelineResult: ApiResult<TimelineResponse> =
+        ApiResult.Success(TimelineResponse(success = true))
+    var unreadCountResult: ApiResult<UnreadCountResponse> =
+        ApiResult.Success(UnreadCountResponse(success = true, count = 0, workspaceId = "ws-1"))
+    var sendResult: ApiResult<SendMessageResponse> =
+        ApiResult.Success(SendMessageResponse(success = true))
+    var markReadResult: ApiResult<MarkReadResponse> =
+        ApiResult.Success(MarkReadResponse(success = true))
+
+    /** Every send this fake was asked to make, so billable calls can be counted in a test. */
+    var sends: MutableList<SendMessageRequest> = mutableListOf()
+        private set
+
+    override suspend fun conversations(workspaceId: String): ApiResult<ConversationsResponse> {
+        requestedWorkspaceIds += workspaceId
+        return conversationsResult
+    }
+
+    /**
+     * Answers for a paged thread read, keyed by the `before` cursor the caller sent — null is the
+     * first, newest window.
+     *
+     * ⛔ A MAP RATHER THAN A QUEUE, AND THAT IS THE ASSERTION. A queue would hand page two to any
+     * second call, including one that echoed back the wrong cursor or none at all, which is
+     * exactly the paging bug worth catching. Keying on the cursor means a page is only served to a
+     * client that asked for it correctly. A `before` with no entry falls through to
+     * [timelineResult], so every existing test keeps its single-answer fake.
+     */
+    var timelinePages: MutableMap<String?, ApiResult<TimelineResponse>> = mutableMapOf()
+
+    /** Every `(before, beforeId)` this fake was asked for, in order, so a test can pin the pair. */
+    var timelineCursors: MutableList<Pair<String?, String?>> = mutableListOf()
+        private set
+
+    override suspend fun timeline(
+        workspaceId: String,
+        contactId: String?,
+        address: String?,
+        before: String?,
+        beforeId: String?,
+    ): ApiResult<TimelineResponse> {
+        timelineCursors += before to beforeId
+        return timelinePages[before] ?: timelineResult
+    }
+
+    override suspend fun unreadCount(workspaceId: String): ApiResult<UnreadCountResponse> =
+        unreadCountResult
+
+    override suspend fun sendMessage(request: SendMessageRequest): ApiResult<SendMessageResponse> {
+        sends += request
+        return sendResult
+    }
+
+    override suspend fun markRead(request: MarkReadRequest): ApiResult<MarkReadResponse> =
+        markReadResult
+
+    // ── Composer: media, drafts, AI generation (Task A1) ─────────────────────
+    // ⚠️ Same rule as every block above: the defaults are WELL-FORMED SUCCESSES. A composer fake
+    // that answered `success = false` by default would make every unrelated test that opens a
+    // thread fail on a draft restore it never asked about.
+    var uploadMediaResult: ApiResult<MediaUploadResponse> = ApiResult.Success(
+        MediaUploadResponse(
+            success = true,
+            media = UploadedMedia(
+                id = "media-1",
+                mimeType = "image/png",
+                sizeBytes = 3,
+                url = "https://www.distronode.test/api/media/media-1",
+            ),
+        ),
+    )
+    var draftResult: ApiResult<DraftResponse> = ApiResult.Success(DraftResponse(success = true))
+    var draftsResult: ApiResult<DraftListResponse> =
+        ApiResult.Success(DraftListResponse(success = true))
+    var saveDraftResult: ApiResult<DraftResponse>? = null
+    var deleteDraftResult: ApiResult<DraftDeleteResponse> =
+        ApiResult.Success(DraftDeleteResponse(success = true))
+    var generateDraftResult: ApiResult<AiDraftResponse> =
+        ApiResult.Success(AiDraftResponse(success = true, draft = "Happy to help — when suits you?"))
+
+    /** ⛔ Every draft PUT, so an autosave debounce can be counted rather than inferred. */
+    var draftSaves: MutableList<DraftSaveRequest> = mutableListOf()
+        private set
+
+    /** ⛔ Every draft DELETE, keyed by thread. A blank composer must produce one of these, not a PUT. */
+    var draftDeletes: MutableList<String> = mutableListOf()
+        private set
+
+    /** ⛔ Every generation, so a billable model call cannot be made twice by one tap unnoticed. */
+    var generations: MutableList<AiDraftRequest> = mutableListOf()
+        private set
+
+    /** The multipart uploads requested, with their bytes, so a retry can be told from a re-read. */
+    var uploads: MutableList<Triple<String, String, Int>> = mutableListOf()
+        private set
+
+    override suspend fun uploadMedia(
+        workspaceId: String,
+        fileName: String,
+        mimeType: String,
+        bytes: ByteArray,
+    ): ApiResult<MediaUploadResponse> {
+        uploads += Triple(fileName, mimeType, bytes.size)
+        return uploadMediaResult
+    }
+
+    override suspend fun draft(workspaceId: String, threadKey: String): ApiResult<DraftResponse> =
+        draftResult
+
+    /**
+     * ⛔ RECORDED, so "a viewer never asks for drafts" is assertable. The route excludes `viewer`
+     * server-side, and a client that called it anyway would fire a known 403 on every Inbox load.
+     */
+    var draftReads: MutableList<String> = mutableListOf()
+        private set
+
+    override suspend fun drafts(workspaceId: String): ApiResult<DraftListResponse> {
+        draftReads += workspaceId
+        return draftsResult
+    }
+
+    override suspend fun saveDraft(request: DraftSaveRequest): ApiResult<DraftResponse> {
+        draftSaves += request
+        // ⚠️ Echoes the request back by default, which is what the real route does. A test that
+        // needs a specific stored shape sets `saveDraftResult`.
+        return saveDraftResult ?: ApiResult.Success(
+            DraftResponse(
+                success = true,
+                draft = MessageDraft(
+                    threadKey = request.threadKey,
+                    body = request.body,
+                    subject = request.subject,
+                    mediaUrls = request.mediaUrls,
+                    updatedAt = "2026-08-18T12:00:00.000Z",
+                ),
+            ),
+        )
+    }
+
+    override suspend fun deleteDraft(
+        workspaceId: String,
+        threadKey: String,
+    ): ApiResult<DraftDeleteResponse> {
+        draftDeletes += threadKey
+        return deleteDraftResult
+    }
+
+    override suspend fun generateDraft(request: AiDraftRequest): ApiResult<AiDraftResponse> {
+        generations += request
+        return generateDraftResult
+    }
+
+    // ── District HQ (Task A7) ────────────────────────────────────────────────
+    var hqPromptResult: ApiResult<HqPromptResponse> =
+        ApiResult.Success(HqPromptResponse(success = true, answer = "You had 3 calls this week."))
+    var hqConfirmResult: ApiResult<HqConfirmResponse> =
+        ApiResult.Success(HqConfirmResponse(success = true, executed = true, tool = "update_persona"))
+
+    /** Every prompt turn, whole — the history it carried is the interesting half. */
+    val hqPrompts: MutableList<HqPromptRequest> = mutableListOf()
+
+    /** Every confirmed write. ⛔ One entry here is one real mutation in production. */
+    val hqConfirms: MutableList<HqConfirmRequest> = mutableListOf()
+
+    override suspend fun hqPrompt(request: HqPromptRequest): ApiResult<HqPromptResponse> {
+        hqPrompts += request
+        return hqPromptResult
+    }
+
+    override suspend fun hqConfirm(request: HqConfirmRequest): ApiResult<HqConfirmResponse> {
+        hqConfirms += request
+        return hqConfirmResult
+    }
+
+    // ── Analytics (Task A3) ──────────────────────────────────────────────────
+    var analyticsResult: ApiResult<AnalyticsResponse> =
+        ApiResult.Success(AnalyticsResponse(success = true))
+    var usageResult: ApiResult<UsageResponse> = ApiResult.Success(UsageResponse(success = true))
+    var usageHistoryResult: ApiResult<UsageHistoryResponse> =
+        ApiResult.Success(UsageHistoryResponse(success = true))
+
+    /**
+     * Every analytics window that was requested.
+     *
+     * ⚠️ RECORDS THE RANGE, NOT JUST THE WORKSPACE. An unrecognised `timeRange` is not an error
+     * server-side — it silently serves 7d — so "which window did we actually ask for" is the one
+     * thing about this call that cannot be checked by looking at the response.
+     */
+    val analyticsRequests: MutableList<Pair<String, AnalyticsRange>> = mutableListOf()
+
+    /** (workspaceId, months) for each history read, so the clamp argument stays assertable. */
+    val usageHistoryRequests: MutableList<Pair<String, Int>> = mutableListOf()
+
+    override suspend fun analytics(
+        workspaceId: String,
+        range: AnalyticsRange,
+    ): ApiResult<AnalyticsResponse> {
+        analyticsRequests += workspaceId to range
+        return analyticsResult
+    }
+
+    override suspend fun usage(workspaceId: String): ApiResult<UsageResponse> {
+        requestedWorkspaceIds += workspaceId
+        return usageResult
+    }
+
+    override suspend fun usageHistory(
+        workspaceId: String,
+        months: Int,
+    ): ApiResult<UsageHistoryResponse> {
+        usageHistoryRequests += workspaceId to months
+        return usageHistoryResult
+    }
+
+    // ── DGI and the number marketplace (Task A8) ─────────────────────────────
+    var enrichResult: ApiResult<EnrichResponse> =
+        ApiResult.Success(EnrichResponse(success = true, status = "pending"))
+    var clearIntelResult: ApiResult<ClearIntelResponse> =
+        ApiResult.Success(ClearIntelResponse(success = true))
+    var searchResult: ApiResult<NumberSearchResponse> =
+        ApiResult.Success(NumberSearchResponse(success = true))
+    var ownedResult: ApiResult<OwnedNumbersResponse> =
+        ApiResult.Success(OwnedNumbersResponse(success = true))
+
+    /**
+     * ⛔ EVERY ENRICH ATTEMPT, BECAUSE EACH ONE IS A BILLABLE MODEL RUN. A count here is a
+     * real-world claim about spend, which is why "the poll did not re-trigger enrichment" and
+     * "a viewer never reached the endpoint" are assertions about this list rather than about
+     * state.
+     */
+    val enrichRequests: MutableList<EnrichRequest> = mutableListOf()
+    val clearIntelRequests: MutableList<ClearIntelRequest> = mutableListOf()
+
+    /** Every search, WITH its filters — the blank-to-absent normalisation is only visible here. */
+    val searchRequests: MutableList<List<String?>> = mutableListOf()
+
+    override suspend fun enrichContact(request: EnrichRequest): ApiResult<EnrichResponse> {
+        enrichRequests += request
+        return enrichResult
+    }
+
+    override suspend fun clearContactIntel(
+        request: ClearIntelRequest,
+    ): ApiResult<ClearIntelResponse> {
+        clearIntelRequests += request
+        return clearIntelResult
+    }
+
+    override suspend fun searchNumbers(
+        workspaceId: String,
+        areaCode: String?,
+        country: String?,
+        type: String?,
+        provider: String?,
+    ): ApiResult<NumberSearchResponse> {
+        searchRequests += listOf(workspaceId, areaCode, country, type, provider)
+        return searchResult
+    }
+
+    override suspend fun ownedNumbers(workspaceId: String): ApiResult<OwnedNumbersResponse> {
+        requestedWorkspaceIds += workspaceId
+        return ownedResult
+    }
+
+    // ── Devices ──────────────────────────────────────────────────────────────
+    // ⚠️ NO `requestedWorkspaceIds` ENTRY FOR ANY OF THE THREE, and that is the contract rather
+    // than an omission: device management is ACCOUNT-scoped. None of these routes takes a
+    // workspace, so there is nothing to record and nothing a repository could get wrong there.
+    var devicesResult: ApiResult<DeviceListResponse> =
+        ApiResult.Success(DeviceListResponse(success = true))
+
+    /** ⚠️ One stub for both writes, because the two routes answer the identical shape. */
+    var deviceRevokeResult: ApiResult<DeviceRevokeResponse> =
+        ApiResult.Success(DeviceRevokeResponse(success = true, revoked = 1))
+
+    /** Every device call attempted, in order: `list`, `revoke:<id>` or `revoke-all`. */
+    val deviceCalls: MutableList<String> = mutableListOf()
+
+    override suspend fun devices(): ApiResult<DeviceListResponse> {
+        deviceCalls += "list"
+        return devicesResult
+    }
+
+    override suspend fun revokeDevice(
+        request: DeviceRevokeRequest,
+    ): ApiResult<DeviceRevokeResponse> {
+        deviceCalls += "revoke:${request.deviceId}"
+        return deviceRevokeResult
+    }
+
+    override suspend fun revokeAllDevices(): ApiResult<DeviceRevokeResponse> {
+        deviceCalls += "revoke-all"
+        return deviceRevokeResult
+    }
+
+    // ── Billing ──────────────────────────────────────────────────────────────
+    var workspaceBillingResult: ApiResult<WorkspaceBillingResponse> =
+        ApiResult.Success(WorkspaceBillingResponse(success = true, billing = WorkspaceBilling()))
+
+    /**
+     * ⚠️ THE DEFAULT IS A BARE HEALTHY OBJECT, NOT AN AFFIRMED ENVELOPE, and it is the one place
+     * this fake's convention differs from every sibling above. `GET /api/billing` sends no
+     * `success` key at all, so `StripeBilling()` IS a healthy empty account — there is no envelope
+     * for a repository to reject, and a test that wanted one to exist would be testing a rule the
+     * server does not follow.
+     */
+    var stripeBillingResult: ApiResult<StripeBilling> = ApiResult.Success(StripeBilling())
+
+    /**
+     * ⚠️ ONLY THE WORKSPACE READ RECORDS AN ID, and the asymmetry is the contract: `/api/billing`
+     * is CALLER-scoped and takes no workspace, so there is nothing to record and nothing a
+     * repository could get wrong there — the same note the device block above carries.
+     */
+    override suspend fun workspaceBilling(
+        workspaceId: String,
+    ): ApiResult<WorkspaceBillingResponse> {
+        requestedWorkspaceIds += workspaceId
+        return workspaceBillingResult
+    }
+
+    override suspend fun stripeBilling(): ApiResult<StripeBilling> = stripeBillingResult
+
+    // ── Workspace settings ───────────────────────────────────────────────────
+    //
+    // ⛔ THE TWO WRITES HERE RECORD THEIR REQUESTS, NOT JUST THEIR OUTCOMES, AND THAT IS THE WHOLE
+    // POINT OF THIS FAKE FOR THIS SECTION. `workspace/tools` replaces `toolConfig.allowedTools`
+    // wholesale, and `workspace/persona` merges only the keys it receives — so the interesting
+    // assertion is never "did it return success", it is WHAT WAS ON THE WIRE: the complete list in
+    // the order it was loaded, and nothing but the fields a human actually changed.
+    var workspaceConfigResult: ApiResult<WorkspaceConfigResponse> =
+        ApiResult.Success(WorkspaceConfigResponse(success = true, config = WorkspaceConfig()))
+    var savePersonaResult: ApiResult<WorkspaceConfigSaveResponse> =
+        ApiResult.Success(WorkspaceConfigSaveResponse(success = true))
+    var saveToolsResult: ApiResult<WorkspaceConfigSaveResponse> =
+        ApiResult.Success(WorkspaceConfigSaveResponse(success = true))
+
+    /** ⚠️ Counted so a save's mandatory RE-READ is visible — neither route echoes its write. */
+    val configRequests: MutableList<String> = mutableListOf()
+    val personaPatches: MutableList<PersonaPatchRequest> = mutableListOf()
+    val toolsPatches: MutableList<ToolsPatchRequest> = mutableListOf()
+
+    override suspend fun workspaceConfig(workspaceId: String): ApiResult<WorkspaceConfigResponse> {
+        configRequests += workspaceId
+        return workspaceConfigResult
+    }
+
+    override suspend fun savePersona(
+        request: PersonaPatchRequest,
+    ): ApiResult<WorkspaceConfigSaveResponse> {
+        personaPatches += request
+        return savePersonaResult
+    }
+
+    override suspend fun saveTools(
+        request: ToolsPatchRequest,
+    ): ApiResult<WorkspaceConfigSaveResponse> {
+        toolsPatches += request
+        return saveToolsResult
+    }
+
+    // ── Workspace settings: the two destructive arrays (A4b) ─────────────────
+    //
+    // ⛔ THE REQUESTS ARE RECORDED WHOLE, NOT COUNTED. Both routes REPLACE their stored array with
+    // exactly what arrives, so the only assertion worth making is what was on the wire — including
+    // whether an untouched row came back byte-identical, which a count could never show.
+    var saveDirectoryResult: ApiResult<WorkspaceConfigSaveResponse> =
+        ApiResult.Success(WorkspaceConfigSaveResponse(success = true))
+    var saveRoutingResult: ApiResult<WorkspaceConfigSaveResponse> =
+        ApiResult.Success(WorkspaceConfigSaveResponse(success = true))
+
+    val directoryPatches: MutableList<DirectoryPatchRequest> = mutableListOf()
+    val routingPatches: MutableList<RoutingRulesRequest> = mutableListOf()
+
+    override suspend fun saveDirectory(
+        request: DirectoryPatchRequest,
+    ): ApiResult<WorkspaceConfigSaveResponse> {
+        directoryPatches += request
+        return saveDirectoryResult
+    }
+
+    override suspend fun saveRoutingRules(
+        request: RoutingRulesRequest,
+    ): ApiResult<WorkspaceConfigSaveResponse> {
+        routingPatches += request
+        return saveRoutingResult
+    }
+
+    // ── Knowledge base and messaging (A4b) ───────────────────────────────────
+    var knowledgeListResult: ApiResult<KnowledgeListResponse> =
+        ApiResult.Success(KnowledgeListResponse(success = true))
+    var knowledgeCreateResult: ApiResult<KnowledgeCreateResponse> =
+        ApiResult.Success(KnowledgeCreateResponse(success = true))
+    var knowledgeDeleteResult: ApiResult<KnowledgeDeleteResponse> =
+        ApiResult.Success(KnowledgeDeleteResponse(success = true))
+    var knowledgeModeResult: ApiResult<KnowledgeModeResponse> =
+        ApiResult.Success(KnowledgeModeResponse(success = true, mode = "internal"))
+    var saveKnowledgeModeResult: ApiResult<KnowledgeModeResponse> =
+        ApiResult.Success(KnowledgeModeResponse(success = true, mode = "linked"))
+
+    /** ⚠️ Counted so "the list was re-read after the write" is checkable — both writes must. */
+    val knowledgeListRequests: MutableList<String> = mutableListOf()
+
+    /** ⛔ One entry here is one embedding run in production. A count is a claim about spend. */
+    val knowledgeCreates: MutableList<KnowledgeCreateRequest> = mutableListOf()
+
+    /** (workspaceId, documentId) — the parameter SPELLING is asserted at the HTTP layer. */
+    val knowledgeDeletes: MutableList<Pair<String, String>> = mutableListOf()
+    val knowledgeModePatches: MutableList<KnowledgeModePatchRequest> = mutableListOf()
+
+    override suspend fun knowledgeDocuments(
+        workspaceId: String,
+    ): ApiResult<KnowledgeListResponse> {
+        knowledgeListRequests += workspaceId
+        return knowledgeListResult
+    }
+
+    override suspend fun createDocument(
+        request: KnowledgeCreateRequest,
+    ): ApiResult<KnowledgeCreateResponse> {
+        knowledgeCreates += request
+        return knowledgeCreateResult
+    }
+
+    override suspend fun deleteDocument(
+        workspaceId: String,
+        documentId: String,
+    ): ApiResult<KnowledgeDeleteResponse> {
+        knowledgeDeletes += workspaceId to documentId
+        return knowledgeDeleteResult
+    }
+
+    override suspend fun knowledgeMode(workspaceId: String): ApiResult<KnowledgeModeResponse> =
+        knowledgeModeResult
+
+    override suspend fun saveKnowledgeMode(
+        request: KnowledgeModePatchRequest,
+    ): ApiResult<KnowledgeModeResponse> {
+        knowledgeModePatches += request
+        return saveKnowledgeModeResult
+    }
+
+    // ── Members and rename (A5) ──────────────────────────────────────────────
+    var memberListResult: ApiResult<MemberListResponse> =
+        ApiResult.Success(MemberListResponse(success = true))
+    var addMemberResult: ApiResult<MemberMutationResponse> = ApiResult.Success(
+        MemberMutationResponse(
+            success = true,
+            member = WorkspaceMember(email = "new@example.com", role = "client"),
+        ),
+    )
+    var changeRoleResult: ApiResult<MemberMutationResponse> = ApiResult.Success(
+        MemberMutationResponse(
+            success = true,
+            member = WorkspaceMember(email = "b@example.com", role = "agency"),
+        ),
+    )
+
+    /** ⚠️ NO `member` KEY, because the DELETE genuinely answers a bare `{success:true}`. */
+    var removeMemberResult: ApiResult<MemberMutationResponse> =
+        ApiResult.Success(MemberMutationResponse(success = true))
+    var renameResult: ApiResult<RenameResponse> =
+        ApiResult.Success(RenameResponse(success = true, name = "Renamed"))
+
+    /** ⚠️ Counted so "the roster was re-read after the write" is checkable — every write must. */
+    val memberListRequests: MutableList<String> = mutableListOf()
+    val memberAdds: MutableList<MemberAddRequest> = mutableListOf()
+    val memberRoleChanges: MutableList<MemberRoleRequest> = mutableListOf()
+
+    /** (workspaceId, email) — the DELETE carries both as QUERY parameters and no body. */
+    val memberRemovals: MutableList<Pair<String, String>> = mutableListOf()
+    val renameRequests: MutableList<WorkspaceRenameRequest> = mutableListOf()
+
+    override suspend fun members(workspaceId: String): ApiResult<MemberListResponse> {
+        memberListRequests += workspaceId
+        return memberListResult
+    }
+
+    override suspend fun addMember(
+        request: MemberAddRequest,
+    ): ApiResult<MemberMutationResponse> {
+        memberAdds += request
+        return addMemberResult
+    }
+
+    override suspend fun changeMemberRole(
+        request: MemberRoleRequest,
+    ): ApiResult<MemberMutationResponse> {
+        memberRoleChanges += request
+        return changeRoleResult
+    }
+
+    override suspend fun removeMember(
+        workspaceId: String,
+        email: String,
+    ): ApiResult<MemberMutationResponse> {
+        memberRemovals += workspaceId to email
+        return removeMemberResult
+    }
+
+    override suspend fun renameWorkspace(
+        request: WorkspaceRenameRequest,
+    ): ApiResult<RenameResponse> {
+        renameRequests += request
+        return renameResult
+    }
+
+    // ── Rooms and meetings ───────────────────────────────────────────────────
+    // ⚠️ THE DEFAULT TOKEN CARRIES NO GUEST INVITE — the VIEWER shape, not the common one. A test
+    // that cares about the invite has to opt in, so no test can accidentally assert against a link
+    // the server would have withheld.
+    var roomTokenResult: ApiResult<RoomTokenResponse> = ApiResult.Success(
+        RoomTokenResponse(success = true, token = "fake-jwt", url = "wss://livekit.example.test"),
+    )
+    var meetingsResult: ApiResult<List<MeetingSummary>> = ApiResult.Success(emptyList())
+    var meetingDetailResult: ApiResult<MeetingDetail> = ApiResult.Success(MeetingDetail())
+
+    val roomTokenRequests: MutableList<RoomTokenRequest> = mutableListOf()
+    val meetingsRequests: MutableList<String> = mutableListOf()
+
+    /** `<workspaceId>/<meetingId>`, so the tenant scoping of a detail read is assertable. */
+    val meetingDetailRequests: MutableList<String> = mutableListOf()
+
+    override suspend fun roomToken(request: RoomTokenRequest): ApiResult<RoomTokenResponse> {
+        roomTokenRequests += request
+        return roomTokenResult
+    }
+
+    override suspend fun meetings(workspaceId: String): ApiResult<List<MeetingSummary>> {
+        meetingsRequests += workspaceId
+        return meetingsResult
+    }
+
+    // ── The outbound softphone ───────────────────────────────────────────────
+    /**
+     * ⚠️ THE DEFAULT IS A REFUSAL, NOT A SUCCESS, WHICH IS THE OPPOSITE OF EVERY OTHER STUB HERE
+     * AND IS DELIBERATE. A fake that dialled successfully by default would let a test that never
+     * mentions dialling still walk the whole connect path — and this is the one route where "it
+     * quietly worked" is the wrong default, because in production it spends money. A test that
+     * cares about a placed call has to say so.
+     */
+    var dialResult: ApiResult<DialResponse> = ApiResult.HttpFailure(
+        status = 400,
+        message = "no dial stubbed",
+    )
+
+    /** Every dial attempted, in order — "did it dial exactly once" is read from this. */
+    val dialRequests: MutableList<DialRequest> = mutableListOf()
+
+    override suspend fun dial(request: DialRequest): ApiResult<DialResponse> {
+        dialRequests += request
+        return dialResult
+    }
+
+    override suspend fun meetingDetail(
+        workspaceId: String,
+        meetingId: String,
+    ): ApiResult<MeetingDetail> {
+        meetingDetailRequests += "$workspaceId/$meetingId"
+        return meetingDetailResult
+    }
+
+    // ── The automation monitor ───────────────────────────────────────────────
+    // ⚠️ Defaults are WELL-FORMED envelopes, like every sibling: a fake standing in for a healthy
+    // server has to affirm `success`, or the repository rejects it as contract drift.
+    var workflowsResult: ApiResult<WorkflowListResponse> =
+        ApiResult.Success(WorkflowListResponse(success = true))
+    var workflowRunsResult: ApiResult<WorkflowRunsResponse> =
+        ApiResult.Success(WorkflowRunsResponse(success = true))
+    var workflowToggleResult: ApiResult<WorkflowToggleResponse> =
+        ApiResult.Success(WorkflowToggleResponse(success = true))
+
+    /**
+     * ⛔ A REAL `campaign` OBJECT, NOT THE DTO'S NULL DEFAULT. The repository treats an absent one
+     * as contract drift rather than as an unconfigured campaign, so a fake that omitted it would
+     * make every test on this screen exercise the drift path.
+     */
+    var campaignStatusResult: ApiResult<CampaignStatusResponse> =
+        ApiResult.Success(CampaignStatusResponse(success = true, campaign = CampaignStatus()))
+
+    /** Which workspace each list read named, so "was it read once" is assertable. */
+    val workflowListRequests: MutableList<String> = mutableListOf()
+
+    /** `<workspaceId>/<workflowId>/<limit>/<offset>` per runs read — the paging is read from this. */
+    val workflowRunRequests: MutableList<String> = mutableListOf()
+
+    /** Every toggle attempted, so a viewer's gating is assertable as "never even called". */
+    val workflowToggles: MutableList<WorkflowToggleRequest> = mutableListOf()
+    val campaignStatusRequests: MutableList<String> = mutableListOf()
+
+    /** Every pause/resume attempted, so the merge-only body is assertable as sent. */
+    val campaignPauses: MutableList<CampaignPauseRequest> = mutableListOf()
+
+    /**
+     * ⛔ NULL MEANS "ECHO THE REQUEST BACK", WHICH IS WHAT THE REAL ROUTE DOES — it derives its
+     * reply from the object it merged. A fake that returned a FIXED campaign would let a caller
+     * which ignored the response pass every test.
+     */
+    var campaignPauseResult: ApiResult<CampaignStatusResponse>? = null
+
+    override suspend fun workflows(workspaceId: String): ApiResult<WorkflowListResponse> {
+        workflowListRequests += workspaceId
+        return workflowsResult
+    }
+
+    override suspend fun workflowRuns(
+        workspaceId: String,
+        workflowId: String,
+        limit: Int,
+        offset: Int,
+    ): ApiResult<WorkflowRunsResponse> {
+        workflowRunRequests += "$workspaceId/$workflowId/$limit/$offset"
+        return workflowRunsResult
+    }
+
+    override suspend fun setWorkflowActive(
+        request: WorkflowToggleRequest,
+    ): ApiResult<WorkflowToggleResponse> {
+        workflowToggles += request
+        return workflowToggleResult
+    }
+
+    override suspend fun campaignStatus(workspaceId: String): ApiResult<CampaignStatusResponse> {
+        campaignStatusRequests += workspaceId
+        return campaignStatusResult
+    }
+
+    override suspend fun setCampaignEnabled(
+        request: CampaignPauseRequest,
+    ): ApiResult<CampaignStatusResponse> {
+        campaignPauses += request
+        return campaignPauseResult ?: ApiResult.Success(
+            CampaignStatusResponse(
+                success = true,
+                campaign = CampaignStatus(infiniteSdrEnabled = request.infiniteSdrEnabled),
+            ),
+        )
+    }
+}
+
+/**
+ * The messaging fake, EXTRACTED FROM [FakeDistrictApi].
+ *
+ * ⛔ ITS OWN CLASS BECAUSE THE COMPOSED FAKE CROSSED detekt's `LargeClass` CEILING when the five
+ * messaging writes were added, and the healthy answer to a class that has grown too big is
+ * another class rather than a raised threshold — the same call `ContractFixtures` and
+ * `MembersDialogs` record. [FakeDistrictApi] keeps satisfying `MessagingApi` through interface DELEGATION, so
+ * nothing about which endpoints the fake covers has changed; only where they live.
+ *
+ * ⛔ THE WRITES RECORD THEIR REQUESTS, NOT A COUNT, BECAUSE THE BODY IS THE CONTRACT ON THIS
+ * SURFACE. Five operations share ONE path and are told apart only by an `action` string inside the
+ * JSON, and the upsert's blank-secret semantics live in which KEYS are present. A fake that only
+ * counted calls could not tell "kept the stored auth token" from "sent an empty one", which is the
+ * single most consequential difference this screen can produce.
+ */
+/**
+ * The booking-pages fake, EXTRACTED FROM [FakeDistrictApi].
+ *
+ * ⛔ ITS OWN CLASS BECAUSE THE COMPOSED FAKE IS AT detekt's `LargeClass` CEILING, and the healthy
+ * answer to a class that has grown too big is another class rather than a raised threshold — the
+ * same call [FakeMessagingApi] records. The composed fake keeps satisfying `SchedulingApi` through
+ * interface DELEGATION, so nothing about which endpoints it covers has changed; only where they
+ * live.
+ *
+ * ⛔ NEITHER READ DEFAULT AFFIRMS AN ENVELOPE, BECAUSE NEITHER ROUTE HAS ONE. Every sibling in the
+ * composed fake sets `success = true` so a repository does not reject a healthy fake as contract
+ * drift; these two answer `{eligible, canManage, tenant}` and `{ok, status, publicHost, error}`, so
+ * the equivalent "well-formed server" default is an ELIGIBLE workspace with no tenancy row — the
+ * ordinary state of every workspace before anybody presses Enable.
+ */
+internal class FakeSchedulingApi : SchedulingApi {
+
+    var schedulingStatusResult: ApiResult<SchedulingStatusResponse> =
+        ApiResult.Success(SchedulingStatusResponse(eligible = true, canManage = true))
+
+    /**
+     * ⛔ THE DEFAULT IS A REFUSAL, matching the dial fake and for the same class of reason.
+     * Provisioning creates a tenancy at a third party and a DNS record at another one; a fake that
+     * answered a cheerful 202 by default would let a test walk that path without ever saying it
+     * meant to.
+     */
+    var schedulingEnableResult: ApiResult<SchedulingEnableResponse> =
+        ApiResult.HttpFailure(status = 403, message = "no enable stubbed")
+
+    /**
+     * ⚠️ A PLAUSIBLE `Location`, NOT A BARE STRING. The repository refuses anything that is not
+     * https, so a fake answering "ok" would exercise the refusal path on every test that never
+     * mentioned the scheme.
+     */
+    var schedulingSsoResult: ApiResult<String> =
+        ApiResult.Success("https://acme-book.distronode.com/v1/auth/sso?token=stub")
+
+    val schedulingStatusRequests: MutableList<String> = mutableListOf()
+
+    /** Every enable attempted, whole. "Provisioned once, for the right workspace". */
+    val schedulingEnables: MutableList<SchedulingEnableRequest> = mutableListOf()
+
+    /** `<workspaceId>|<next>` per hand-off — the `next` is asserted from this. */
+    val schedulingSsoRequests: MutableList<String> = mutableListOf()
+
+    /**
+     * ⚠️ A URL ON THIS APP'S OWN WEBSITE HOST, for the reason [schedulingSsoResult] is a plausible
+     * `Location`: the repository refuses anything that is not https AND on the configured origin,
+     * so a fake answering "ok" would put every test that never mentioned a host on the refusal
+     * path without saying it meant to.
+     */
+    var schedulingHandOffResult: ApiResult<SchedulingHandOffResponse> = ApiResult.Success(
+        SchedulingHandOffResponse(
+            url = "https://www.distronode.com/dashboard/handoff?code=stub&next=%2Fdashboard",
+            expiresIn = 60,
+        ),
+    )
+
+    /** Every dashboard hand-off attempted, whole — the `next` is asserted from this. */
+    val schedulingHandOffs: MutableList<SchedulingHandOffRequest> = mutableListOf()
+
+    override suspend fun schedulingStatus(
+        workspaceId: String,
+    ): ApiResult<SchedulingStatusResponse> {
+        schedulingStatusRequests += workspaceId
+        return schedulingStatusResult
+    }
+
+    override suspend fun enableScheduling(
+        request: SchedulingEnableRequest,
+    ): ApiResult<SchedulingEnableResponse> {
+        schedulingEnables += request
+        return schedulingEnableResult
+    }
+
+    override suspend fun schedulingSsoTarget(
+        workspaceId: String,
+        next: String,
+    ): ApiResult<String> {
+        schedulingSsoRequests += "$workspaceId|$next"
+        return schedulingSsoResult
+    }
+
+    override suspend fun schedulingHandOff(
+        request: SchedulingHandOffRequest,
+    ): ApiResult<SchedulingHandOffResponse> {
+        schedulingHandOffs += request
+        return schedulingHandOffResult
+    }
+}
+
+/**
+ * The inbound-call and push slices of [FakeDistrictApi], as their own object.
+ *
+ * ⛔ SPLIT OUT BECAUSE `FakeDistrictApi` CROSSED detekt's `LargeClass` CEILING AGAIN when the
+ * scheduling slice landed — the same answer the messaging slice got, and the healthy one: another
+ * class rather than a raised threshold. The behaviour is identical to an inline stub; only the
+ * reach changes (`fake.pushApi.answerRequests`).
+ *
+ * ⚠️ IT MIRRORS `TestDistrictApi.FakeInboundPushApi` IN THE APP MODULE, WHICH WAS EXTRACTED FIRST
+ * AND FOR THE SAME REASON. The two fakes had drifted into different shapes for the same endpoints;
+ * this brings them back into line, so a reader moving between the two modules is not learning two
+ * conventions for one thing.
+ *
+ * ⚠️ ONE FAKE FOR TWO INTERFACES, unlike the production side where `HttpInboundCallApi` and
+ * `HttpPushApi` are separate classes. That split exists so a dialler screen cannot answer a call; a
+ * TEST fake has no such boundary to protect, and two objects would mean two properties for one
+ * feature.
+ */
+internal class FakeInboundPushApi : InboundCallApi, PushApi {
+    /**
+     * ⚠️ THE DEFAULT IS A REFUSAL, MATCHING [dialResult] AND FOR A RELATED REASON. Answering does
+     * not spend money, but it DOES write the server's rendezvous and put a microphone into a live
+     * customer conversation — so a test that never mentions answering must not walk that path by
+     * accident.
+     */
+    var answerResult: ApiResult<CallAnswerResponse> = ApiResult.HttpFailure(
+        status = 409,
+        message = "no answer stubbed",
+    )
+
+    /** Every answer attempted, as `callId/workspaceId` — "answered once, for the right call". */
+    val answerRequests: MutableList<String> = mutableListOf()
+
+    override suspend fun answerCall(
+        callId: String,
+        request: CallAnswerRequest,
+    ): ApiResult<CallAnswerResponse> {
+        answerRequests += "$callId/${request.workspaceId}"
+        return answerResult
+    }
+
+    /**
+     * ⚠️ THE PUSH DEFAULTS **DO** SUCCEED, unlike the two above, and the asymmetry is the point:
+     * registration is an idempotent upsert that costs nothing and rings nobody, so the interesting
+     * assertions are about ORDER and COUNT rather than about a path being walked by accident.
+     */
+    var pushRegisterResult: ApiResult<PushRegistrationResponse> =
+        ApiResult.Success(PushRegistrationResponse(success = true))
+
+    var pushUnregisterResult: ApiResult<PushRegistrationResponse> =
+        ApiResult.Success(PushRegistrationResponse(success = true))
+
+    /** Every token registered, in order. ⚠️ A rotation is two entries, not one. */
+    val pushRegisterRequests: MutableList<PushTokenRegisterRequest> = mutableListOf()
+
+    /** How many times this installation asked to be unregistered. */
+    var pushUnregisterCount: Int = 0
+
+    override suspend fun registerPushToken(
+        request: PushTokenRegisterRequest,
+    ): ApiResult<PushRegistrationResponse> {
+        pushRegisterRequests += request
+        return pushRegisterResult
+    }
+
+    override suspend fun unregisterPushToken(): ApiResult<PushRegistrationResponse> {
+        pushUnregisterCount += 1
+        return pushUnregisterResult
+    }
+}
+
+internal class FakeMessagingApi : MessagingApi {
+
+    var messagingResult: ApiResult<MessagingResponse> =
+        ApiResult.Success(MessagingResponse(success = true))
+    val messagingRequests: MutableList<String> = mutableListOf()
+
+    override suspend fun messaging(workspaceId: String): ApiResult<MessagingResponse> {
+        messagingRequests += workspaceId
+        return messagingResult
+    }
+
+    var saveAccountResult: ApiResult<MessagingAccountSaveResponse> =
+        ApiResult.Success(
+            MessagingAccountSaveResponse(
+                success = true,
+                accountId = "acct-new",
+                defaultAccountId = "acct-new",
+            ),
+        )
+    var setDefaultResult: ApiResult<MessagingDefaultResponse> =
+        ApiResult.Success(MessagingDefaultResponse(success = true, defaultAccountId = "acct-twilio"))
+    var setChannelDefaultResult: ApiResult<MessagingChannelDefaultResponse> =
+        ApiResult.Success(MessagingChannelDefaultResponse(success = true))
+    var deleteAccountResult: ApiResult<MessagingDefaultResponse> =
+        ApiResult.Success(MessagingDefaultResponse(success = true))
+    var saveCreatorCellResult: ApiResult<MessagingMetaResponse> =
+        ApiResult.Success(MessagingMetaResponse(success = true))
+    var testCredentialsResult: ApiResult<MessagingTestResponse> =
+        ApiResult.Success(MessagingTestResponse(success = true))
+
+    val messagingSaves: MutableList<MessagingAccountRequest> = mutableListOf()
+    val messagingDefaults: MutableList<MessagingDefaultRequest> = mutableListOf()
+    val messagingChannelDefaults: MutableList<MessagingChannelDefaultRequest> = mutableListOf()
+
+    /** ⛔ One entry is one account gone and its phone-number claims released. */
+    val messagingDeletes: MutableList<MessagingDeleteRequest> = mutableListOf()
+    val messagingMetaWrites: MutableList<MessagingMetaRequest> = mutableListOf()
+
+    /** ⛔ One entry is one authenticated carrier call from our origin IPs, capped at 10/min. */
+    val messagingTests: MutableList<MessagingTestRequest> = mutableListOf()
+
+    override suspend fun saveMessagingAccount(
+        request: MessagingAccountRequest,
+    ): ApiResult<MessagingAccountSaveResponse> {
+        messagingSaves += request
+        return saveAccountResult
+    }
+
+    override suspend fun setDefaultAccount(
+        request: MessagingDefaultRequest,
+    ): ApiResult<MessagingDefaultResponse> {
+        messagingDefaults += request
+        return setDefaultResult
+    }
+
+    override suspend fun setChannelDefault(
+        request: MessagingChannelDefaultRequest,
+    ): ApiResult<MessagingChannelDefaultResponse> {
+        messagingChannelDefaults += request
+        return setChannelDefaultResult
+    }
+
+    override suspend fun deleteMessagingAccount(
+        request: MessagingDeleteRequest,
+    ): ApiResult<MessagingDefaultResponse> {
+        messagingDeletes += request
+        return deleteAccountResult
+    }
+
+    override suspend fun saveCreatorCell(
+        request: MessagingMetaRequest,
+    ): ApiResult<MessagingMetaResponse> {
+        messagingMetaWrites += request
+        return saveCreatorCellResult
+    }
+
+    override suspend fun testMessagingCredentials(
+        request: MessagingTestRequest,
+    ): ApiResult<MessagingTestResponse> {
+        messagingTests += request
+        return testCredentialsResult
+    }
+}

@@ -1,0 +1,10 @@
+# No blank issues: everything goes through the structured bug report form or the links
+# below, which keeps the tracker to real, reproducible bugs.
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security vulnerability
+    url: https://github.com/distronode-corporation/district-android/security/advisories/new
+    about: Do not open a public issue. Report it privately here (see SECURITY.md).
+  - name: 💬 Account, billing and service support
+    url: https://www.distronode.com/support
+    about: Questions about your District AI account, workspace or the service itself. The issue tracker is for bugs in this app's code only.

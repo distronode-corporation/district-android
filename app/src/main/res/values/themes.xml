@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      LAUNCH THEME ONLY. Everything after the first frame is Compose, themed by
+      DistrictTheme, which does its own light/dark selection. This style governs the
+      window before Compose draws, so getting it wrong shows up as a flash of the
+      wrong colour rather than a broken UI.
+
+      Parent is a PLATFORM theme, not a Material Components one, so the app does not
+      need appcompat or the Material views library on its classpath purely to satisfy
+      an XML parent. NoActionBar because ComponentActivity provides no action bar and
+      inheriting one draws a stripe above the Compose content.
+
+      ⚠️ VERIFIED AGAINST android.jar, NOT ASSUMED. `Theme.DeviceDefault.DayNight`
+      exists but has NO `.NoActionBar` variant — the obvious-looking
+      `Theme.DeviceDefault.DayNight.NoActionBar` does not exist and fails resource
+      linking with "resource android:style/... not found". The DayNight parent is
+      also API 29+, so this baseline stays on the Light variant and values-v29/
+      overrides it. Confirmed by extracting android/R$style from the platform jar.
+    -->
+    <style name="Theme.DistrictAI" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
+    </style>
+</resources>

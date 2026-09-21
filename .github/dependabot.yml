@@ -1,0 +1,80 @@
+version: 2
+
+# Two ecosystems, because this repository has two kinds of pin that age independently.
+#
+# `github-actions`: every `uses:` in .github/workflows is pinned to a full commit SHA with a
+# `# vX.Y.Z` comment. That is right for supply-chain safety and wrong for noticing a security
+# fix, because a pinned SHA never moves on its own. Dependabot turns each pin into a pull
+# request and rewrites the SHA and the trailing version comment together. There is no setting
+# for that; it is built in, and it works only while the comment names the version the SHA
+# actually is. A comment that has drifted from its SHA is left stale, so edit a pin by hand in
+# the same `@<sha> # vX.Y.Z` shape, with both halves agreeing.
+#
+# `gradle`: the version catalog, gradle/libs.versions.toml.
+# Every configuration here is dependency-locked, and Dependabot regenerates the lockfiles of
+# every module in its pull request, so a Gradle pull request resolves as it stands. A red one
+# is a real failure of the upgrade, not a missing lockfile.
+#
+# The toolchain (AGP, Kotlin and the Compose compiler plugin, Robolectric, the Gradle wrapper)
+# is kept out of the weekly group. Those move together and can break the build together: AGP
+# 9.4.1, Kotlin 2.4.20 and Robolectric 4.17 arriving in one grouped pull request failed 11
+# DeskSupportRoutesTest cases with an IllegalAccessException inside Robolectric, and took the
+# routine bumps down with them. Each now arrives as its own pull request, and a toolchain
+# upgrade is done deliberately.
+#
+# protobuf majors are ignored. The runtime is forced in build.gradle.kts to the 3.25 line
+# that LiveKit and Firebase Messaging generate their code against; a 4.x runtime under that
+# code is unproven, and no unit test here parses a real LiveKit message.
+#
+# `cooldown` holds a version update back until the release is a week old, so a compromised
+# publish that is yanked within days never reaches a pull request here. It does not delay
+# SECURITY updates, which Dependabot opens as soon as an advisory lands.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      # One pull request for the routine bumps. A major version usually needs a workflow edit,
+      # so it is deliberately left on its own.
+      actions-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      # AGP, Kotlin and the Compose compiler move together (see the note at the top of
+      # libs.versions.toml), and so does the rest of AndroidX more often than not; one pull
+      # request per week is one lockfile regeneration per week.
+      gradle-minor:
+        update-types: [minor, patch]
+        exclude-patterns:
+          - "com.android*"
+          - "org.jetbrains.kotlin*"
+          - "org.robolectric*"
+          - "gradle-wrapper"
+    ignore:
+      # ⛔ KOTLIN FOLLOWS THE VERSION AGP BUNDLES, AND IS BUMPED BY HAND TOGETHER WITH AGP.
+      # Unlike the rest of the toolchain, it does not get its own pull request either: a Kotlin
+      # newer than AGP's is the skew the note in gradle/libs.versions.toml rules out, and
+      # Dependabot would propose one every week. The two patterns below cover the four names
+      # Dependabot used for Kotlin in this repository's first grouped pull request:
+      # org.jetbrains.kotlin:kotlin-gradle-plugin,
+      # org.jetbrains.kotlin:compose-compiler-gradle-plugin, and the plugin ids
+      # org.jetbrains.kotlin.plugin.compose and org.jetbrains.kotlin.plugin.serialization.
+      # ⚠️ Deliberately not `org.jetbrains.kotlin*`: that also matches `org.jetbrains.kotlinx`,
+      # which is kotlinx-coroutines, kotlinx-serialization and Kover, libraries that do not move
+      # with AGP. An ignore also suppresses SECURITY updates, so a wider pattern would silence
+      # those libraries' security fixes too.
+      - dependency-name: "org.jetbrains.kotlin:*"
+      - dependency-name: "org.jetbrains.kotlin.*"
+      - dependency-name: "com.google.protobuf:protobuf-javalite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.google.protobuf:protobuf-java"
+        update-types: ["version-update:semver-major"]

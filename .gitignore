@@ -1,0 +1,25 @@
+# Gradle and Kotlin build output, at any depth (build-logic has its own).
+build/
+.gradle/
+.kotlin/
+.cxx/
+
+# IDE state
+.idea/
+*.iml
+captures/
+.DS_Store
+
+# Machine-local SDK path. Every machine has its own; CI sets ANDROID_HOME instead.
+local.properties
+
+# Firebase's generated client config. The app initialises Firebase from constants in
+# DistrictFirebase.kt and does not apply the google-services plugin, so this file is never
+# needed; ignoring it stops a downloaded copy from being committed by accident.
+google-services.json
+
+# Signing material. Release builds are signed on a maintainer's machine, from outside the tree.
+*.jks
+*.keystore
+*.p12
+*.pepk

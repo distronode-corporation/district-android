@@ -1,0 +1,10 @@
+Geist (Geist-Regular.ttf, Geist-SemiBold.ttf, Geist-Bold.ttf)
+Copyright 2024 Vercel, in collaboration with basement.studio
+
+Licensed under the SIL Open Font License, Version 1.1 (OFL-1.1).
+Full license text: https://openfontlicense.org
+Source: https://github.com/vercel/geist-font (distributed via Google Fonts)
+
+These static TTFs are bundled as this app's typeface (res/font). The same
+files serve server-side image composition on the web, which cannot use the
+woff2 files a browser build produces.

@@ -1,0 +1,78 @@
+# The browser leg of the PKCE sign-in, driven end to end.
+#
+# ⛔ THIS IS THE FRAGILE HALF OF THE SMOKE FLOW, AND IT IS FRAGILE BY CONSTRUCTION
+# RATHER THAN BY SLOPPINESS. The app collects no credentials: `SignInScreen`'s own doc
+# says so, because the password and both SSO providers live on the server's login
+# surface and a native form could not reach them. So signing in means leaving the app,
+# driving a WEB page in a Custom Tab, and coming back over `districtai://auth`. Three
+# consequences a reader should know before debugging a red run:
+#
+#   1. The web page is addressed by its VISIBLE ENGLISH LABELS, because Chrome exposes
+#      an HTML input's label as accessibility text and does NOT expose its `id`
+#      attribute. The login page's `id="email"` / `id="pass"` are real and are
+#      unreachable from here. A copy change to the server's login page therefore
+#      breaks this flow, and nothing links the two.
+#   2. The labels below are the server's English copy: "Work Email", "Password", and
+#      the submit button "Enter platform". A device in French renders the French page
+#      and none of them match.
+#   3. The consent screen is NOT a redirect. The server's native hand-off page mints the
+#      code only on an explicit press, so "Continue to District AI" has to be tapped.
+#      That press is an anti-drive-by guard (a page cannot silently mint a code for an
+#      app); it is deliberate and will not be removed.
+#
+# ⛔ AN ACCOUNT WITH TOTP ENROLLED CANNOT COMPLETE THIS FLOW. The login page renders
+# a one-time-code field when the login route reports `mfaRequired`, and nothing here can
+# produce a code. The demo account must have no second factor; if one is ever enrolled,
+# this leg stops at "Two-step verification" and the flow fails there rather than
+# anywhere that names the real cause.
+#
+# ⚠️ EVERY WAIT IS AN `extendedWaitUntil`, NOT A `waitForAnimationToEnd`. The legs here
+# cross a process boundary and a real network, so the budget has to be generous and
+# explicit; a fixed sleep would be either flaky or slow, and this flow is both remote
+# and cold-started.
+appId: com.distronode.districtai.debug
+---
+- assertVisible:
+    text: "district-sign-in-action"
+- tapOn:
+    text: "district-sign-in-action"
+
+# Leg one: the app hands off to the browser. Waiting on the login HEADING rather than on
+# a field proves the page actually rendered, instead of matching a chrome affordance
+# that exists before the document does.
+- extendedWaitUntil:
+    visible:
+      text: "Login"
+    timeout: 45000
+- takeScreenshot: 02-browser-login
+
+- tapOn:
+    text: "Work Email"
+- inputText: ${DISTRICT_SMOKE_EMAIL}
+- tapOn:
+    text: "Password"
+- inputText: ${DISTRICT_SMOKE_PASSWORD}
+
+# ⚠️ The soft keyboard covers the submit button on a 1080x2400 screen once both fields
+# are filled. Hiding it is what makes the next tap land on the button rather than on the
+# keyboard, and the failure without it is a tap that silently does nothing.
+- hideKeyboard
+- tapOn:
+    text: "Enter platform"
+
+# Leg two: consent. See the ⛔ above, this is a press, not a redirect.
+- extendedWaitUntil:
+    visible:
+      text: "Continue to District AI"
+    timeout: 45000
+- takeScreenshot: 03-consent
+- tapOn:
+    text: "Continue to District AI"
+
+# Leg three: back in the app over the custom scheme, with the console rendered. This is
+# the assertion that proves the whole handshake, so it carries the longest budget: the
+# app exchanges the code, mints a session and then loads the overview over the network.
+- extendedWaitUntil:
+    visible:
+      text: "district-overview-root"
+    timeout: 60000

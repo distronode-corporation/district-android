@@ -1,0 +1,124 @@
+name: CodeQL
+
+# Code scanning, as a committed workflow ("advanced setup") rather than GitHub's default setup.
+# Default setup would build this repository its own way: it picks the JDK the Android plugin
+# recommends (17, not the 21 this build is developed and verified on), turns dependency
+# verification off, and runs `clean` then `assemble`, which is debug AND release with R8. That
+# is a different build from the one CI proves, and when it fails the Kotlin analysis fails with
+# it. Here the java-kotlin leg builds the debug APK the way CI does, on the same JDK, with the
+# same action pins and SDK step, so a red analysis points at CodeQL or the code, not at a
+# toolchain nobody else uses.
+#
+# Two languages. `actions` reads the workflow files themselves, with no build. `java-kotlin`
+# needs a real compilation: CodeQL's Kotlin extractor runs inside the compiler, and Kotlin has
+# no `none` build mode (with `none`, Kotlin files are left out of the database entirely).
+#
+# The action pins follow the rule in ci.yml: every third-party action must be on the
+# organisation's allowlist and pinned to a full commit SHA with a `# vX.Y.Z` comment that
+# names the version the SHA really is, so Dependabot can move both halves together.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly, so new queries in a CodeQL release are run against code that has not changed.
+    - cron: "23 5 * * 1"
+
+# Nothing at the top level. Each job asks for exactly what it needs, so a job added later
+# starts with no token scope at all instead of inheriting one.
+permissions: {}
+
+# Same rule as ci.yml: a superseded pull request run is cancelled, a run on main finishes.
+concurrency:
+  group: codeql-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    # ⛔ SKIPPED WHILE THE REPOSITORY IS PRIVATE. Code scanning is not available on a private
+    # repository of a Free-plan organisation, so the upload in the analyze step would fail every
+    # run. The guard makes this workflow inert until the repository is public, and then it runs
+    # on every event above without an edit (scheduled runs carry the repository in their event
+    # payload too). ⚠️ A job skipped at job level is never expanded into its matrix legs, so
+    # while private it reports ONE skipped check with the literal name
+    # `Analyze (${{ matrix.language }})`, not one per language.
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # `actions: read` lets the CodeQL action look up this workflow run through the API; GitHub's
+    # template marks it as needed only in private repositories, and it is read-only either way.
+    permissions:
+      security-events: write # upload the SARIF results
+      contents: read # check out the code
+      actions: read # read this workflow run's details
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The CodeQL action authenticates with its own `token` input, never with .git/config,
+          # so the token is not left behind for the build and every Gradle plugin to read.
+          persist-credentials: false
+
+      # The next three steps are ci.yml's, unchanged, and run only for the leg that compiles.
+      # They come BEFORE the CodeQL init step on purpose: init starts the tracer, and nothing
+      # that is not the build itself should run under it.
+
+      - if: matrix.build-mode == 'manual'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - if: matrix.build-mode == 'manual'
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-provider: basic
+
+      - name: Android SDK platform and build tools
+        if: matrix.build-mode == 'manual'
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+          test -d "$ANDROID_HOME/platforms/android-37.0"
+          test -d "$ANDROID_HOME/build-tools/37.0.0"
+
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # The security queries plus the lower-precision ones ("Extended" in default setup).
+          # Code quality queries are left out: this is a security gate, not a lint.
+          queries: security-extended
+
+      # The debug APK, as CI's `assembleDebug` builds it: every module's main sources, compiled
+      # for real, which is what the Kotlin extractor has to see.
+      #
+      # ⛔ `--no-build-cache` IS LOAD-BEARING. gradle.properties turns the build cache on, and
+      # setup-gradle restores the Gradle user home, build cache included, from earlier runs. A
+      # compile task served FROM-CACHE never starts the compiler, so the extractor sees nothing
+      # and the analysis fails with "detected code written in Java/Kotlin but could not process
+      # any of it". `--no-daemon` is for the same reason: a build handed to a daemon started
+      # before the tracer is invisible to it.
+      #
+      # ⚠️ The Kotlin daemon gets a bigger heap here than the 3g it inherits from
+      # org.gradle.jvmargs, because the extractor runs inside it and builds its database as it
+      # compiles, which takes considerably more memory than a plain compile. A public
+      # repository's standard Linux runner has 16 GB.
+      - name: Build the debug APK for the Kotlin extractor
+        if: matrix.build-mode == 'manual'
+        run: >-
+          ./gradlew assembleDebug --no-daemon --no-build-cache
+          -Pkotlin.daemon.jvmargs=-Xmx6g
+
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          category: "/language:${{ matrix.language }}"

@@ -1,0 +1,1532 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">District AI</string>
+    <string name="sign_in_subtitle">Sign in to your workspace.</string>
+    <string name="sign_in_action">Sign in</string>
+
+    <!-- Sign-in progress and failure. Resources rather than literals in MainActivity, so the one
+         screen every user sees first is localisable like the rest. -->
+    <string name="login_status_no_browser">No browser available — sign-in needs one.</string>
+    <string name="login_status_waiting">Waiting for sign-in to complete in the browser…</string>
+    <string name="login_status_did_not_complete">Sign-in did not complete. Tap Sign in to try again.</string>
+    <string name="login_status_completing">Completing sign-in…</string>
+    <!-- Deliberately blunt: this is the authorization-code-injection case. -->
+    <string name="login_status_refused">Sign-in refused: the response did not match this request.</string>
+    <string name="login_status_link_expired">That sign-in link has expired. Try again.</string>
+    <string name="login_status_expired">Sign-in expired. Please try again.</string>
+    <string name="login_status_rate_limited">Too many attempts. Wait a moment and retry.</string>
+    <string name="login_status_unreachable">Could not reach District AI. Check your connection.</string>
+    <!-- %1$s is the server's own reason, which is not translatable. -->
+    <string name="login_status_denied">Sign-in did not complete (%1$s).</string>
+
+    <!-- The shared failure mapping (FailureText). One home for the wording, as the mapping itself
+         is one home for the decision. -->
+    <string name="failure_signed_out">Your session has ended.</string>
+    <string name="failure_regions_degraded">A region is unreachable, so this could not be loaded. Your account has not changed.</string>
+    <string name="failure_offline">Could not reach District AI. Check your connection.</string>
+    <string name="failure_unexpected_response">District AI sent a response this version of the app does not understand. Updating the app should fix it.</string>
+    <!-- ⛔ Generic ON PURPOSE. A 5xx body can carry a raw Postgres or Prisma exception message,
+         which is internal schema detail the user can do nothing with. -->
+    <string name="failure_server">Something went wrong on our side. Please try again shortly.</string>
+
+    <!-- Overview: KPI tiles. Labels and captions match the web dashboard word for word so an
+         operator moving between the two reads the same thing. -->
+    <string name="overview_tile_total_calls">Total Calls Routed</string>
+    <string name="overview_tile_total_calls_caption">Cumulative</string>
+    <string name="overview_tile_weekly_calls">Weekly Call Volume</string>
+    <string name="overview_tile_weekly_calls_caption">Last 7 days</string>
+    <string name="overview_tile_contacts">Customer Contacts</string>
+    <string name="overview_tile_contacts_caption">CRM</string>
+    <string name="overview_tile_avg_duration">Avg Call Duration</string>
+    <string name="overview_tile_avg_duration_caption">Per call</string>
+
+    <!-- Overview: recent activity -->
+    <string name="overview_recent_activity">Recent Activity</string>
+    <string name="overview_recent_empty">Inbound and outbound calls will appear here as they happen.</string>
+    <string name="overview_no_caller_id">No caller ID</string>
+    <string name="overview_direction_inbound">Inbound</string>
+    <string name="overview_direction_outbound">Outbound</string>
+    <string name="overview_status_live">Live</string>
+    <string name="overview_badge_transferred">Transferred</string>
+    <string name="overview_badge_transfer_failed">Transfer failed</string>
+
+    <!-- Overview: workspace header and switcher -->
+    <string name="overview_switch_workspace">Switch workspace</string>
+    <string name="overview_workspace_region">Region: %1$s</string>
+    <string name="overview_role_viewer">Read-only access</string>
+
+    <!-- Overview: the distinct empty and failure states. Deliberately different wording for
+         each, because "you have no workspaces" is alarming and wrong when the real answer is
+         "we could not finish looking". -->
+    <string name="overview_none_title">No workspace found</string>
+    <string name="overview_none_body">This account is not linked to a District workspace yet. Please contact support.</string>
+    <string name="overview_billing_title">Subscription inactive</string>
+    <!-- Read-only billing: state the situation, offer no purchase path and name no destination.
+         ⛔ NAMING THE PLACE (e.g. "Manage billing at distronode.com") is what the anti-steering
+         half of App Store Guideline 3.1.1 forbids, and the copy matches the iOS client
+         (`ShellView.lapsed`) so the two stores read the same sentence. A reactivation is a
+         billing action, so no remedy can honestly be offered here at all. -->
+    <plurals name="overview_billing_body">
+        <item quantity="one">Your workspace does not have an active subscription.</item>
+        <item quantity="other">None of your %1$d workspaces has an active subscription.</item>
+    </plurals>
+    <string name="overview_unavailable_title">Could not load your workspace</string>
+    <string name="overview_workspaces_degraded">Your workspaces could not be listed because a region is unreachable. Your account has not changed.</string>
+    <string name="overview_degraded_regions">Affected regions: %1$s</string>
+    <string name="overview_partial_warning">Some workspaces could not be listed (%1$s unreachable). This list may be incomplete.</string>
+    <string name="overview_finish_setup_title">Finish setting up on the web</string>
+    <string name="overview_finish_setup_body">Your receptionist is not live yet. Pick your number, set up how it answers, and go live from the web dashboard.</string>
+    <string name="overview_finish_setup_action">Open the web dashboard</string>
+    <string name="overview_retry">Try again</string>
+    <string name="overview_signed_out_title">Please sign in again</string>
+    <string name="overview_signed_out_routine">Your session ended. Signing in again will restore it.</string>
+    <string name="overview_signed_out_body">Your session is no longer valid. Please sign in again.</string>
+    <string name="overview_sign_in_again">Sign in</string>
+    <string name="overview_loading">Loading your workspace</string>
+
+    <!-- Call log -->
+    <string name="call_log_title">Call log</string>
+    <string name="call_log_open">Call Logs</string>
+    <string name="call_log_failed">Could not load the call log.</string>
+
+    <!-- Call detail -->
+    <string name="call_detail_title">Call</string>
+    <string name="call_detail_back">Back</string>
+    <string name="call_detail_summary">AI summary</string>
+    <string name="call_detail_sentiment">Sentiment</string>
+    <string name="call_detail_disposition">Outcome</string>
+    <string name="call_detail_transfer">Transfer</string>
+    <string name="call_detail_follow_up">Follow-up sent</string>
+    <string name="call_detail_key_points">Key points</string>
+    <string name="call_detail_objections">Objections</string>
+    <string name="call_detail_topics">Topics</string>
+    <string name="call_detail_action_items">Action items</string>
+    <string name="call_detail_transcript">Transcript</string>
+    <string name="call_detail_transcript_show">Show transcript</string>
+    <string name="call_detail_transcript_absent">No transcript for this call.</string>
+    <string name="call_detail_recording_play">Play recording</string>
+    <string name="call_detail_recording_absent">No recording for this call.</string>
+    <string name="call_detail_recording_no_player">No app on this device can play the recording.</string>
+    <!-- Anything OTHER than "no player installed" — a SecurityException from a restrictive player,
+         a background-activity-start refusal. Silently discarding these made the tap do nothing. -->
+    <string name="call_detail_recording_launch_failed">Could not open the recording.</string>
+    <string name="call_detail_loading">Loading call</string>
+
+    <!-- Contacts -->
+    <string name="contacts_title">Contacts</string>
+    <string name="contacts_open">Contacts</string>
+    <string name="contacts_empty">Callers are added automatically as they come in.</string>
+    <string name="contacts_loading">Loading contacts</string>
+    <string name="contacts_unnamed">Unnamed contact</string>
+    <string name="contacts_no_contact_details">No phone or email</string>
+    <string name="contacts_total">%1$d contacts</string>
+    <string name="contacts_failed">Could not load contacts.</string>
+    <string name="contacts_read_only">Read-only access — editing is disabled.</string>
+
+    <!-- Contact detail -->
+    <string name="contact_detail_loading">Loading contact</string>
+    <string name="contact_detail_company">Company</string>
+    <string name="contact_detail_context">Latest context</string>
+    <string name="contact_detail_budget">Budget</string>
+    <string name="contact_detail_timeline">Timeline</string>
+    <string name="contact_detail_website">Website</string>
+    <string name="contact_detail_added">Added</string>
+    <string name="contact_detail_dossier">Intelligence dossier</string>
+    <!-- dgiStatus null means no dossier AND none queued: clear-intel resets it to NULL so nothing
+         re-crawls. It must not read as a job in progress. -->
+    <string name="contact_detail_dossier_none">No dossier for this contact.</string>
+    <string name="contact_detail_dossier_pending">Building dossier…</string>
+    <string name="contact_detail_dossier_failed">Dossier failed: %1$s</string>
+    <string name="contact_detail_rename">Rename</string>
+    <string name="contact_detail_rename_label">Contact name</string>
+    <string name="contact_detail_save">Save</string>
+    <string name="contact_detail_cancel">Cancel</string>
+    <string name="contact_detail_delete">Delete contact</string>
+    <string name="contact_detail_delete_confirm">Delete this contact? This cannot be undone.</string>
+    <string name="contact_detail_delete_confirmed">Delete</string>
+
+    <!-- Create contact -->
+    <string name="contact_create">Add contact</string>
+    <string name="contact_create_name">Name</string>
+    <string name="contact_create_phone">Phone number</string>
+    <string name="contact_create_email">Email</string>
+    <!-- Email-first: a contact needs one OR the other, not both. -->
+    <string name="contact_create_needs_one">Enter a phone number or an email address.</string>
+    <string name="contact_create_save">Add</string>
+    <string name="contact_create_saving">Adding…</string>
+
+    <!-- Settings / account.
+
+         ⛔ THE TWO ROWS BELOW ARE PLAY REQUIREMENTS, NOT FEATURES. Google's User Data policy
+         requires an in-app route to initiate account deletion for any app with accounts, and
+         reviewers probe for sign-out alongside it. -->
+    <string name="settings_title">Account</string>
+    <string name="settings_open">Account</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_sign_out_caption">Sign out of District AI on this device.</string>
+    <string name="settings_delete_account">Delete account</string>
+    <!-- Says "opens in your browser" because it does, and because deletion is irreversible: the
+         user should not be surprised by the hand-off mid-decision. -->
+    <string name="settings_delete_account_caption">Request deletion of your account and its data. Opens in your browser.</string>
+    <string name="settings_browser_missing">No browser available to open that page.</string>
+    <!-- The device-management row on the account screen. It sits in the SESSION card rather
+         than the account one because signing another device out ends a session, not an
+         account, and the account card's only row deletes everything. -->
+    <string name="settings_devices">Devices</string>
+    <string name="settings_devices_caption">See where you are signed in, and sign out a device you no longer have.</string>
+
+    <!-- ── Devices ─────────────────────────────────────────────────────────────
+         The read half of device management. Until it existed an account holding live
+         refresh tokens on three phones had no way to SEE them, which made the two revoke
+         routes unusable: a deviceId is client-generated and opaque, so this list is the
+         only place a user learns which ids exist. -->
+    <string name="devices_title">Devices</string>
+    <!-- "Last active", never "last used". The server stamps lastUsedAt only when a refresh
+         token ROTATES, so the value trails real use by up to ~10 minutes and stops moving
+         entirely on a device that is signed in but unopened. "Last used" would be a claim
+         the data cannot support. -->
+    <string name="devices_last_active">Last active %1$s</string>
+    <!-- A session that has never been refreshed has never been stamped, which is EVERY
+         session for its first ten minutes — including the one the user just created. An
+         empty line there would read as missing data rather than as a new sign-in. -->
+    <string name="devices_last_active_never">Signed in recently</string>
+    <!-- deviceName is optional on token exchange and is client-supplied free text, so it can
+         legitimately be absent. The raw deviceId is NOT shown as a fallback: it is an opaque
+         UUID that means nothing to a person and invites them to treat it as recognisable. -->
+    <string name="devices_unnamed">Unnamed device</string>
+    <string name="devices_unknown_platform">Unknown platform</string>
+    <!-- The marker on the row for the phone in the user's hand. Derived from the opaque
+         installation id, never from the name: two identical handsets on one account produce
+         two identical-looking rows, and losing this marker means signing out the device you
+         are holding while the lost one stays live. -->
+    <string name="devices_this_device">This device</string>
+    <string name="devices_sign_out_device">Sign out this device</string>
+    <string name="devices_sign_out_all">Sign out everywhere</string>
+    <string name="devices_confirm_sign_out">Sign out</string>
+    <string name="devices_confirm_device">Sign this device out? It will need to sign in again to use District AI.</string>
+    <!-- Its own wording because this one ends the session in the user's hand mid-tap, which
+         the generic sentence would not warn about. -->
+    <string name="devices_confirm_this_device">This is the device you are using. Signing it out will return you to the sign-in screen.</string>
+    <!-- Says "including this one" because the server's "all" genuinely means all: its route
+         declines to spare the caller, on the grounds that an "all" with a silent exception
+         is a control nobody can reason about. -->
+    <string name="devices_confirm_all">Sign out of District AI on every device, including this one?</string>
+    <!-- revoked:0 is a SUCCESS, not an error. It comes back for a device id the account does
+         not own (the route refuses to be a membership oracle over an opaque id space), for a
+         row another device already revoked, and for a chain that rotated between the list
+         read and the tap. The client cannot tell those apart and neither can the server, so
+         the honest thing to say is that the list has moved on. -->
+    <string name="devices_nothing_revoked">That device was already signed out. The list has been refreshed.</string>
+    <string name="devices_dismiss">Dismiss</string>
+    <string name="devices_failed">Could not list your devices</string>
+    <!-- An empty list is NOT an error and must not read as one: the server hides a chain that
+         is mid-rotation, so a single-device account genuinely sees zero rows for a moment
+         while perfectly signed in. -->
+    <string name="devices_empty_title">No other devices</string>
+    <string name="devices_empty_body">Nothing else is signed in to this account right now. A device that just signed in can take a few minutes to appear.</string>
+    <!-- Empty-state heading for the recent-activity list. The BODY string already
+         existed; a heading was added because an EmptyState reads as a failed load
+         without one. -->
+    <string name="overview_recent_empty_title">Nothing here yet</string>
+    <!-- EmptyState heading for the contacts list. The body string already existed;
+         a heading was added because an empty list without one reads as a failed load. -->
+    <string name="contacts_empty_title">No contacts yet</string>
+    <!-- The create action shown INSIDE the empty state, so an empty CRM is where the
+         first contact gets made rather than pointing at a control elsewhere. -->
+    <string name="contacts_create_action">Add a contact</string>
+    <!-- Stated up front because sign-in LEAVES the app: the PKCE flow opens the
+         server's own login page in the system browser, and a user not expecting
+         that reads the browser opening as a crash. -->
+    <string name="sign_in_browser_note">Opens your browser to sign in securely.</string>
+    <!-- Eyebrow section labels on the account screen. Two cards rather than one list,
+         because signing out and deleting an account have very different stakes. -->
+    <string name="settings_section_session">This device</string>
+    <string name="settings_section_account">Your account</string>
+    <!-- App-bar titles for the detail screens, so the SUCCESS path has a visible back control
+         and not only the failure states. -->
+    <string name="contact_detail_title">Contact</string>
+    <!-- The persistent navigation bar. Without it the only way to reach a top-level screen is an
+         inline link on the overview, and the Contacts one is below the fold. Text rather than
+         icons, matching the web nav and dashboard sidebar. -->
+    <string name="nav_overview">Overview</string>
+    <string name="nav_calls">Calls</string>
+    <string name="nav_contacts">Contacts</string>
+    <string name="nav_account">Account</string>
+    <!-- ── Inbox ─────────────────────────────────────────────────────────────
+         The unified Inbox: SMS and email folded into one thread per counterpart. -->
+    <string name="inbox_title">Inbox</string>
+    <string name="nav_inbox">Inbox</string>
+    <string name="inbox_empty_title">No conversations yet</string>
+    <string name="inbox_empty">Texts and emails from your customers will appear here.</string>
+    <!-- ⛔ Shown when the server's 500-message scan window was exhausted. The list is a
+         truncation, not the whole account, and saying so is the difference between an honest
+         partial list and implying the customer has nothing older. -->
+    <string name="inbox_partial">Showing recent conversations. Older, quieter threads are not listed.</string>
+    <string name="inbox_no_preview">No message body</string>
+    <string name="thread_empty_title">Nothing in this thread</string>
+    <string name="thread_empty">Messages and calls with this contact will appear here.</string>
+    <string name="thread_reply_label">Reply</string>
+    <string name="thread_send">Send</string>
+    <!-- ⚠️ A distinct label rather than a spinner: the send control is DISABLED while in flight
+         because each send is billable, so the button has to explain why it cannot be tapped. -->
+    <string name="thread_sending">Sending…</string>
+    <string name="thread_dismiss">Dismiss</string>
+    <!-- ⚠️ "Older messages" rather than "Load more": the thread only ever expands BACKWARDS, and
+         "more" reads as if it might fetch something new at the bottom. -->
+    <string name="thread_load_older">Older messages</string>
+    <!-- ⚠️ A distinct label rather than a spinner, matching Sending…/Attaching…: the control is
+         disabled while the page is in flight, so the button has to say why it cannot be tapped. -->
+    <string name="thread_load_older_loading">Loading older…</string>
+    <string name="thread_call">Call</string>
+    <string name="thread_call_missed">Missed call</string>
+    <plurals name="thread_attachments">
+        <item quantity="one">%1$d attachment</item>
+        <item quantity="other">%1$d attachments</item>
+    </plurals>
+    <!-- ── Composer: attachments, saved drafts, AI drafting (Task A1) ────────
+         ⛔ Every refusal below is CLIENT-AUTHORED and therefore a string resource. The
+         server's own refusals stay literal because only it knows them — see UiText. -->
+    <string name="thread_attach">Attach image</string>
+    <string name="thread_attaching">Attaching…</string>
+    <string name="thread_attachment_remove">Remove attachment</string>
+    <string name="thread_attach_too_many">You can attach up to 5 images to one message.</string>
+    <string name="thread_attach_unsupported">Only JPEG, PNG, GIF or WebP images can be attached.</string>
+    <string name="thread_attach_too_large">Attachments must be between 1 byte and 5MB.</string>
+    <string name="thread_attach_unreadable">That image could not be read. Try picking it again.</string>
+    <!-- ⚠️ "Draft" rather than "Generate": the operator is getting a starting point they will
+         edit, not a message that is about to go out. Each tap is a billed model call. -->
+    <string name="thread_ai_draft">Draft reply</string>
+    <string name="thread_ai_drafting">Drafting…</string>
+    <!-- The Inbox-list chip on a thread this operator has unsent text on. Drafts are
+         author-scoped server-side, so this never appears for a colleague's draft. -->
+    <string name="inbox_draft_badge">Draft</string>
+    <!-- Placeholder while an inbound attachment's bytes are being fetched, and the state a
+         failed fetch settles into. ⚠️ A failed image must not look like a missing one. -->
+    <string name="thread_image_loading">Loading image</string>
+    <string name="thread_image_failed">Image unavailable</string>
+    <!-- ── District HQ (Task A7) ─────────────────────────────────────────────
+         The agentic console. One route, two turns: a prompt runs the model, and a
+         confirm applies a change the operator explicitly approved. -->
+    <string name="hq_title">District HQ</string>
+    <!-- Named on the overview button the way the web console names it. -->
+    <string name="hq_open">Open District HQ</string>
+    <string name="hq_empty_title">Ask District HQ</string>
+    <!-- ⚠️ Names the four things the tool catalog can actually answer from. A vaguer
+         invitation ("ask me anything") sets up questions the tools cannot serve, and the
+         model is instructed to refuse rather than invent — so the empty state would be
+         generating its own dead ends. -->
+    <string name="hq_empty">Ask about your calls, contacts, the AI receptionist, or your knowledge base.</string>
+    <string name="hq_prompt_label">Ask</string>
+    <string name="hq_send">Send</string>
+    <!-- ⚠️ A label rather than a spinner, matching the reply box: the composer is disabled
+         while a turn runs, so something has to say why. -->
+    <string name="hq_thinking">Thinking…</string>
+    <string name="hq_confirm_title">Confirm this change</string>
+    <!-- ⛔ THE LOAD-BEARING SENTENCE. The answer above the card says a change was PROPOSED;
+         without this line a proposal reads as a completed action and the operator leaves
+         believing it was applied. -->
+    <string name="hq_confirm_note">Nothing has been changed yet.</string>
+    <string name="hq_confirm_apply">Confirm</string>
+    <string name="hq_confirm_dismiss">Dismiss</string>
+    <string name="hq_applying">Applying…</string>
+    <string name="hq_applied">Applied.</string>
+    <!-- ⛔ SAYS "NOT APPLIED", NOT "FAILED". The server answers success with executed:false
+         when it handled the request and declined the write (a view-only role, or a tool that
+         refused internally). Reporting that as an error would be wrong, and reporting it as
+         done would be worse. -->
+    <string name="hq_not_applied">That change was not applied.</string>
+
+    <!-- ── Analytics (Task A3) ───────────────────────────────────────────────
+         Telephony analytics over a selectable window, plus this month's metered usage.
+         Two unrelated server reads on one screen; either can fail without the other. -->
+    <string name="analytics_title">Analytics</string>
+    <!-- Named on the overview button the way the web dashboard names the destination. -->
+    <string name="analytics_open">Analytics</string>
+    <string name="analytics_range_7d">7 days</string>
+    <string name="analytics_range_30d">30 days</string>
+    <string name="analytics_range_90d">90 days</string>
+    <string name="analytics_loading">Loading analytics</string>
+
+    <!-- KPI tiles. Labels and captions match the web console word for word so an operator
+         moving between the two reads the same thing. -->
+    <string name="analytics_metric_total_calls">Total Calls</string>
+    <string name="analytics_metric_total_calls_caption">In this window</string>
+    <string name="analytics_metric_avg_duration">Avg Call Duration</string>
+    <!-- ⛔ Says COMPLETED because the server's average excludes failed and abandoned calls
+         from both the numerator and the denominator. "Per call" would be wrong. -->
+    <string name="analytics_metric_avg_duration_caption">Across completed sessions</string>
+    <string name="analytics_metric_conversion">Conversion Rate</string>
+    <string name="analytics_metric_conversion_caption">Of all dials</string>
+    <string name="analytics_metric_missed">Missed Calls</string>
+    <string name="analytics_metric_missed_caption">Never connected</string>
+    <string name="analytics_metric_abandoned">Abandoned</string>
+    <string name="analytics_metric_abandoned_caption">Caller hung up</string>
+    <!-- The server already rounds this to a whole percent; %% is a literal sign. -->
+    <string name="analytics_percent">%1$d%%</string>
+
+    <!-- Call-volume delta against the immediately preceding window of the same length. -->
+    <string name="analytics_delta_title">Call volume</string>
+    <string name="analytics_delta_counts">%1$d now, %2$d in the previous period</string>
+    <!-- ⛔ "New", NOT "0%". A null pct means there is no prior period to compare against, so
+         no percentage exists. Rendering it as zero tells a brand-new customer their volume
+         is flat during their first week. -->
+    <string name="analytics_delta_new">New — no previous period to compare</string>
+    <string name="analytics_delta_up">▲ %1$d%% vs the previous period</string>
+    <string name="analytics_delta_down">▼ %1$d%% vs the previous period</string>
+    <string name="analytics_delta_flat">No change vs the previous period</string>
+
+    <string name="analytics_trend_title">Call volume trend</string>
+    <!-- ⚠️ Shown when every bucket is zero. The series is never EMPTY — the server always
+         sends one point per bucket — so an all-zero window is what "no calls" looks like,
+         and an unlabelled flat chart would read as a broken renderer. -->
+    <string name="analytics_trend_empty">No calls in this window.</string>
+    <string name="analytics_trend_axis">%1$s to %2$s</string>
+    <string name="analytics_funnel_title">Conversion funnel</string>
+    <string name="analytics_sentiment_title">Sentiment</string>
+    <string name="analytics_sentiment_empty">No calls to analyse yet.</string>
+    <string name="analytics_failed">Could not load analytics.</string>
+
+    <!-- Metered usage. -->
+    <string name="analytics_usage_title">Usage this month</string>
+    <!-- ⛔ "Nothing recorded", NOT a row of zeros. `usage: null` means the month has no
+         metering rows at all, which is not the same claim as "you sent nothing" — and a
+         zero next to a billing label reads as a measurement. -->
+    <string name="analytics_usage_none">No usage has been recorded for this month yet.</string>
+    <string name="analytics_usage_failed">Could not load usage.</string>
+    <string name="analytics_usage_month">Month %1$s</string>
+    <string name="analytics_usage_sms_outbound">SMS sent</string>
+    <string name="analytics_usage_sms_inbound">SMS received</string>
+    <string name="analytics_usage_mms_outbound">MMS sent</string>
+    <string name="analytics_usage_whatsapp_outbound">WhatsApp sent</string>
+    <string name="analytics_usage_whatsapp_inbound">WhatsApp received</string>
+    <string name="analytics_usage_call_minutes_outbound">Outbound call minutes</string>
+    <string name="analytics_usage_call_minutes_inbound">Inbound call minutes</string>
+    <string name="analytics_usage_numbers">Phone numbers</string>
+    <!-- ⚠️ Says "tracked" because Tavus minutes are metered but deliberately excluded from
+         overage billing. Listing them unqualified beside billable metrics would imply a
+         charge that is not made. -->
+    <string name="analytics_usage_video_minutes">Video minutes (tracked)</string>
+
+    <!-- Metered usage over recent months — the web console's three-month trend. -->
+    <string name="analytics_history_title">Recent months</string>
+    <!-- ⛔ "Nothing recorded", NOT three rows of zeros. The server appends only months that had
+         metering rows, so an empty list means this workspace has never been metered at all —
+         which is a different claim from "you used nothing in those months". -->
+    <string name="analytics_history_none">No usage has been recorded in any recent month yet.</string>
+    <string name="analytics_history_failed">Could not load usage history.</string>
+    <!-- ⚠️ Says METERED because an absent direction contributes nothing to the total rather than
+         being asserted to have been zero. See sumMetered. -->
+    <string name="analytics_history_minutes">Metered call minutes</string>
+    <string name="analytics_history_messages">Messages</string>
+    <!-- ⛔ The dash is what an ABSENT metric renders as. A metric with no rows has no key on the
+         wire, which is not the same fact as one measured at zero, and a zero under a billing
+         label is the one that gets believed. -->
+    <string name="analytics_history_absent">—</string>
+    <string name="analytics_history_caption">Bars compare metered call minutes across these
+        months. A dash means nothing was metered for that channel.</string>
+
+    <!-- ══ Contact dossier (District Global Intelligence) ══════════════════ -->
+    <string name="contact_detail_dossier_ready">Dossier available</string>
+    <string name="contact_detail_company_name">Name</string>
+    <string name="contact_detail_company_domain">Domain</string>
+    <string name="contact_detail_company_industry">Industry</string>
+    <!-- ⛔ "Enrich" spends money: one external crawl plus one model run per tap. The label says
+         what will happen rather than "Refresh", which would imply a free re-read. -->
+    <string name="contact_detail_dossier_enrich">Run Global Intelligence</string>
+    <string name="contact_detail_dossier_clear">Clear dossier</string>
+    <!-- ⛔ Names the cost of undoing it. A bare "are you sure" hides the fact that getting the
+         dossier back means paying for another crawl and another model run. -->
+    <string name="contact_detail_clear_intel_confirm">Clear this contact\'s Global Intelligence
+        dossier? The contact, its phone number, email and timeline are kept. Getting the dossier
+        back means running enrichment again.</string>
+    <string name="contact_detail_clear_intel_confirmed">Clear dossier</string>
+
+    <!-- ══ Phone-number marketplace (read-only) ════════════════════════════ -->
+    <string name="marketplace_title">Phone numbers</string>
+    <string name="marketplace_open">Phone numbers</string>
+    <string name="marketplace_tab_owned">My numbers</string>
+    <string name="marketplace_tab_search">Search</string>
+    <string name="marketplace_area_code">Area code</string>
+    <string name="marketplace_country">Country</string>
+    <string name="marketplace_type_local">Local</string>
+    <string name="marketplace_type_toll_free">Toll-free</string>
+    <string name="marketplace_type_mobile">Mobile</string>
+    <string name="marketplace_search_action">Search available numbers</string>
+    <string name="marketplace_provider">Carrier: %1$s</string>
+    <string name="marketplace_number_meta">%1$s · %2$s</string>
+    <!-- ⛔ "Managed" means the line sits on Distronode\'s carrier account, not the workspace\'s —
+         so it is theirs to use and not to administer. -->
+    <string name="marketplace_managed">Managed by Distronode</string>
+    <!-- ⛔ Shown ABOVE the rows, never instead of them: the list is real but short. Names the
+         carrier so the operator knows what is missing rather than doubting the whole list. -->
+    <string name="marketplace_partial">Could not reach %1$s, so this list may be missing
+        numbers.</string>
+    <string name="marketplace_search_empty_title">No matches</string>
+    <string name="marketplace_search_empty">The carrier has no numbers matching these filters.
+        Try a different area code or number type.</string>
+    <string name="marketplace_owned_empty_title">No numbers yet</string>
+    <string name="marketplace_owned_empty">This workspace has no active phone numbers.</string>
+    <!-- ⛔ An account state, not a fault, and it offers no retry — retrying cannot connect a
+         carrier. The body is the server\'s own sentence, which distinguishes "none configured"
+         from "that one is not connected". -->
+    <string name="marketplace_not_configured_title">No carrier connected</string>
+    <string name="marketplace_search_failed">Could not search for numbers.</string>
+    <string name="marketplace_owned_failed">Could not load this workspace\'s numbers.</string>
+    <!-- ⛔ THE CAPTION THAT MAKES THE ABSENCE OF BUTTONS DELIBERATE. Buying and releasing a
+         number are recurring charges and live lines; a released number cannot be reclaimed, so
+         those changes are not made here. Without this line the screen reads as broken.
+         ⛔ IT NAMES NO DESTINATION, matching the iOS client, where App Store Guideline 3.1.1
+         forbids the signpost and not only the button. The link BELOW
+         (`marketplace_buy_web`) stays: Google Play permits it, which is exactly why it has no iOS
+         counterpart, and why these captions are the only place the two apps' copy diverges. -->
+    <string name="marketplace_read_only">Numbers cannot be added, released or reconfigured in this
+        app, so this screen is read-only.</string>
+    <!-- ⚠️ A viewer cannot make the change anywhere else either, so a signpost would be useless
+         advice on top of being steering. They are told who can. -->
+    <string name="marketplace_read_only_viewer">This screen is read-only. Ask an agency or client
+        member of this workspace to add or release a number.</string>
+    <!-- ⛔ "Open ... on the web", NOT "Buy". This is a link into the browser, and Google Play's
+         Payments policy is why the purchase itself never happens in the app — a phone number is a
+         recurring carrier charge on the same subscription as the web product. A "Buy" label here
+         would read as an in-app purchase that failed, which is a worse version of the same
+         boundary. The same rule the Billing section below records. -->
+    <string name="marketplace_buy_web">Open the number marketplace on the web</string>
+    <string name="marketplace_buy_web_caption">Numbers are bought on the District AI website, not
+        in the app. This opens it in your browser, signed in as you.</string>
+
+    <!-- ══ Billing (read-only) ══════════════════════════════════════════════
+         ⛔ THERE IS NO PURCHASE, UPGRADE, CANCEL OR PAYMENT COPY IN THIS SECTION AND THERE MUST
+         NOT BE. Google Play's Payments policy prohibits an in-app route to a purchase for this
+         kind of subscription, so the screen states what is being billed and names the website in
+         prose — never as a tappable link into a checkout. -->
+    <string name="billing_title">Billing</string>
+    <string name="billing_open">Billing</string>
+
+    <string name="billing_plan_title">Plan</string>
+    <!-- ⛔ NOT "Free". subscriptionTier is nullable and this route passes null through untouched;
+         GET /api/settings substitutes a capitalised "Free" and this one deliberately does not.
+         Inventing the word would put a plan name on screen that no database row contains. -->
+    <string name="billing_plan_none">No plan on this workspace</string>
+    <string name="billing_status_active">Active</string>
+    <string name="billing_status_past_due">Past due</string>
+    <string name="billing_status_canceled">Cancelled</string>
+    <string name="billing_status_none">No subscription</string>
+    <!-- ⚠️ Explains the badge rather than repeating it. "Past due" is a Stripe word; what a
+         customer needs to know is whether their service is still running. -->
+    <string name="billing_status_past_due_caption">A payment did not go through. Service continues
+        while it is retried.</string>
+    <string name="billing_status_canceled_caption">This plan will not renew.</string>
+
+    <string name="billing_overage_title">Going over your minutes</string>
+    <string name="billing_overage_auto_bill">Extra minutes beyond your plan are billed
+        automatically.</string>
+    <string name="billing_overage_hard_cap">Calls stop once your included minutes run out.</string>
+    <!-- ⛔ TWO SENTENCES FOR ONE FLAG, AND THE DIFFERENCE IS AN OUTAGE. Under a hard cap an
+         exceeded allowance means calls are being REFUSED right now, which the operator has no
+         other way to learn from this app; under auto-bill it is a charge. -->
+    <string name="billing_overage_blocked">Calls are being declined — your included minutes are
+        used up</string>
+    <string name="billing_overage_exceeded">Over your included minutes — the extra is being
+        billed</string>
+
+    <string name="billing_meter_title">Call minutes this month</string>
+    <!-- ⛔ NOT "0 minutes". usage is null when the month has no metering rows at all, and a zero
+         beside an allowance asserts, with the authority of a bill, that no calls were made. -->
+    <string name="billing_meter_unmetered">No call minutes have been recorded this month
+        yet.</string>
+    <string name="billing_meter_used">%1$s minutes used</string>
+    <!-- ⚠️ The real numbers, even past the allowance. The BAR clamps; this label must not. -->
+    <string name="billing_meter_used_of">%1$s of %2$d included minutes used</string>
+    <string name="billing_meter_month">Billing month %1$s</string>
+
+    <string name="billing_subscriptions_title">Subscription</string>
+    <string name="billing_subscriptions_empty">No subscription is attached to this account.</string>
+    <!-- ⚠️ The "$" is this client mirroring the web console. Nothing on /api/billing carries a
+         currency, so the assumption lives here, in one translatable place. -->
+    <string name="billing_amount">$%1$s</string>
+    <string name="billing_amount_monthly">$%1$s / month</string>
+    <!-- ⛔ SAME DATE, OPPOSITE MEANING, chosen by cancel_at_period_end. Telling someone who
+         cancelled that their plan "renews" says they are about to be billed again. -->
+    <string name="billing_renews_on">Renews %1$s</string>
+    <string name="billing_ends_on">Ends %1$s</string>
+    <string name="billing_discount_percent">%1$s — %2$s%% off</string>
+    <string name="billing_discount_amount">%1$s — $%2$s off</string>
+
+    <string name="billing_invoices_title">Invoices</string>
+    <string name="billing_invoices_empty">No invoices yet.</string>
+    <!-- ⚠️ The server caps the list at 10. Staying silent would present a truncated history as a
+         complete one. -->
+    <string name="billing_invoices_truncated">Showing your most recent invoices. Older invoices are
+        not available in this app.</string>
+    <string name="billing_invoice_tax">incl. $%1$s tax</string>
+    <string name="billing_invoice_open">Open</string>
+
+    <!-- ⛔ THE COPY THAT MUST NEVER BE AN EMPTY INVOICE LIST. billingUnavailable means we could not
+         reach Stripe; the plan and the invoices still exist. Rendering this as "no plan" tells a
+         paying customer they have none. -->
+    <string name="billing_unavailable_title">Billing details unavailable</string>
+    <string name="billing_unavailable_body">We could not reach our payment provider just now, so
+        your subscription and invoices are not shown. Your plan and your usage above are current,
+        and nothing about your account has changed.</string>
+    <string name="billing_stripe_failed">Could not load your subscription and invoices.</string>
+
+    <!-- ⛔ THE CAPTION THAT MAKES THE ABSENCE OF CONTROLS DELIBERATE, and it is a store requirement
+         rather than a courtesy. ⛔ It links nowhere and names nowhere: App Store Guideline 3.1.1
+         makes the signpost the offence as much as the button, and this copy is the iOS client's
+         `BillingCopy.readOnly` word for word. -->
+    <string name="billing_read_only">Plan changes, payment methods and cancellations are not
+        available in this app. This screen is read-only.</string>
+    <!-- ⚠️ A viewer cannot make the change anywhere else either, so a signpost would be useless
+         advice on top of being steering. They are told who can. -->
+    <string name="billing_read_only_viewer">This screen is read-only. Ask an agency or client
+        member of this workspace to change the plan.</string>
+
+    <!-- ── Workspace settings ────────────────────────────────────────────────
+         ⛔ EVERY MUTATION FORM ON THIS SURFACE HYDRATES FROM ONE READ, AND A FAILED READ RENDERS
+         RETRY RATHER THAN AN EMPTY FORM. Three of the save routes replace their stored value
+         wholesale, so a blank form saved is a deletion — of the transfer directory the voice agent
+         routes live callers through, or of the agent's tool allowlist. The wording below is written
+         for that: nothing here ever implies a blank field will be ignored. -->
+    <string name="workspace_settings_title">Workspace settings</string>
+    <string name="workspace_settings_persona_subtitle">The agent\'s name, greeting and character.</string>
+    <string name="workspace_settings_capabilities_subtitle">What the agent may do on a call, and
+        external lead enrichment.</string>
+    <string name="workspace_settings_numbers_subtitle">The phone numbers this workspace uses.</string>
+    <string name="workspace_settings_directory_subtitle">Who the agent can transfer a live caller
+        to.</string>
+    <string name="workspace_settings_routing_subtitle">Which callers get which voice and
+        instructions.</string>
+    <string name="workspace_settings_knowledge_subtitle">The documents the agent answers from, and
+        where answers come from.</string>
+    <!-- ⚠️ Offered to every role: both reads admit a viewer, and the screen itself withholds
+         the controls the PATCHes refuse them. -->
+    <string name="workspace_settings_calls_subtitle">Who answers, how long your phone rings,
+        and whether you are on call.</string>
+    <string name="workspace_settings_messaging_subtitle">Which carrier accounts this workspace sends
+        from.</string>
+    <string name="workspace_settings_members_subtitle">Who belongs to this workspace, and what it
+        is called.</string>
+    <!-- ⚠️ Names what is deliberately absent. A settings screen that stops without saying why reads
+         as a half-built one. The transfer directory, the routing rules and messaging are all
+         edited in the app, so they are not named. -->
+    <string name="workspace_settings_more_on_web">Outbound campaign settings and the video avatar
+        are not available in this app.</string>
+    <!-- ⚠️ THE VIEWER'S VERSION OF THE LINE ABOVE. A viewer is offered two sections rather than
+         eight, and a hub that just stops after two rows reads as broken; this says why. -->
+    <string name="workspace_settings_viewer_note">You have read-only access to this workspace. The
+        agent\'s persona, capabilities, transfer directory and routing are not shown.</string>
+    <!-- ⛔ THE FAILED-LOAD HEADING. This state offers a retry and nothing else, on purpose. -->
+    <string name="workspace_settings_load_failed">Could not load this workspace\'s settings</string>
+    <string name="workspace_settings_save">Save</string>
+    <string name="workspace_settings_saving">Saving…</string>
+    <string name="workspace_settings_saved">Saved.</string>
+    <!-- ⛔ THE WRITE LANDED AND ONLY THE RE-READ FAILED. Worded so nobody saves a second time from
+         a view we can no longer vouch for — on this surface that would re-send a wholesale-replace
+         array built from a stale baseline. -->
+    <string name="workspace_settings_saved_stale">Saved, but we could not re-read your settings just
+        now, so what you see may be out of date. Pull back and reopen this screen to refresh.</string>
+    <string name="workspace_settings_unsaved_title">Discard your changes?</string>
+    <string name="workspace_settings_unsaved_body">You have edits that have not been saved. Leaving
+        now discards them.</string>
+    <string name="workspace_settings_discard">Discard</string>
+    <string name="workspace_settings_keep_editing">Keep editing</string>
+
+    <!-- ── Agent persona ─────────────────────────────────────────────────────
+         ⛔ THREE EDITABLE FIELDS. The voice, language and engine are drawn from server-side
+         vocabularies that COERCE a wrong value instead of refusing it, so they are shown and not
+         typed into here. -->
+    <string name="persona_title">Agent persona</string>
+    <string name="persona_name">Agent name</string>
+    <string name="persona_greeting">Opening greeting</string>
+    <string name="persona_personality">Character</string>
+    <!-- ⚠️ Says out loud that blank means blank. The server stores an empty string verbatim, and
+         "leave it blank to keep the old one" is what a reader would otherwise assume. -->
+    <string name="persona_clear_hint">Clearing a box saves it as empty. Anything you do not change
+        is left exactly as it is.</string>
+    <string name="persona_engine_title">Voice and engine</string>
+    <string name="persona_engine_body">Engine %1$s · Voice %2$s · Language %3$s</string>
+    <string name="persona_engine_default">not set</string>
+    <!-- ⛔ THE FALLBACK WHEN THE CATALOGUE READ FAILED, NOT A PERMANENT STATE. These values
+         belong to registries the save route COERCES against, so offering them from a built-in list
+         would silently retarget every subsequent call with a 200. -->
+    <string name="persona_engine_read_only">The list of available engines and voices could not be
+        loaded, so these cannot be changed right now.</string>
+
+    <!-- ── Agent capabilities ────────────────────────────────────────────────
+         ⛔ THE ALLOWLIST IS REPLACED WHOLESALE BY ITS SAVE ROUTE. -->
+    <string name="capabilities_title">Agent capabilities</string>
+    <string name="capabilities_section_tools">What the agent may do</string>
+    <string name="capabilities_save_tools">Save capabilities</string>
+    <!-- ⛔ SHOWN FOR A STORED CAPABILITY THIS APP CANNOT NAME. Hiding such a row would delete it on
+         the next save, because the list is replaced wholesale. -->
+    <string name="capabilities_unknown_tool">Stored for this workspace. This version of the app does
+        not have a name for it, and leaving it on keeps it.</string>
+    <!-- ⚠️ The one prerequisite this screen can honestly observe; the calendar connection lives
+         behind a route the app does not call, so nothing is claimed about scheduling tools. -->
+    <string name="capabilities_needs_support_number">Needs a support team number, which cannot be
+        set in this app.</string>
+    <string name="capabilities_transfer_to_person">Transfer to a person</string>
+    <string name="capabilities_transfer_to_agent">Transfer to a human (fallback)</string>
+    <string name="capabilities_dispatch_email">Email dispatcher</string>
+    <string name="capabilities_check_availability">Check availability</string>
+    <string name="capabilities_book_appointment">Book appointments</string>
+    <string name="capabilities_create_or_update_contact">CRM updates</string>
+    <string name="capabilities_leave_message">Voicemail / message</string>
+    <string name="capabilities_search_knowledge_base">Knowledge base</string>
+    <string name="capabilities_send_sms">Text the caller</string>
+    <string name="capabilities_list_event_types">List appointment types</string>
+    <string name="capabilities_list_appointments">Read back appointments</string>
+    <string name="capabilities_cancel_appointment">Cancel appointments</string>
+    <string name="capabilities_reschedule_appointment">Reschedule appointments</string>
+    <string name="capabilities_section_enrichment">External lead enrichment</string>
+    <string name="capabilities_enrichment_title">District Global Intelligence</string>
+    <!-- ⛔ A CONSENT CONTROL, NOT A PREFERENCE. The published sub-processor list and the privacy
+         policy both promise this is off unless a workspace turns it on. -->
+    <string name="capabilities_enrichment_body">When on, contacts can be enriched with business
+        details from licensed B2B providers and public web search. Off by default — calls,
+        follow-ups and your CRM work normally without it.</string>
+    <string name="capabilities_save_enrichment">Save enrichment setting</string>
+
+    <!-- ⚠️ Opens the workspace settings hub. Hidden for a viewer: every route behind it, including
+         the read, answers 403 for that role. -->
+    <string name="workspace_settings_open">Workspace settings</string>
+
+    <!-- ── Call transfer directory ───────────────────────────────────────────
+         ⛔ THE SAVE REPLACES THE WHOLE LIST AND AN EMPTY ONE REMOVES EVERY TRANSFER TARGET, with a
+         200. Every string below is written so nothing reads as "add these" when it means "replace
+         with exactly these". -->
+    <string name="directory_title">Transfer directory</string>
+    <string name="directory_add_section">Add a transfer target</string>
+    <string name="directory_name">Staff name</string>
+    <string name="directory_phone">Phone number</string>
+    <string name="directory_add">Add to the list</string>
+    <!-- ⚠️ The web form's own rule, word for word in effect: both boxes are required to ADD. -->
+    <string name="directory_add_rejected">A name and a phone number are both needed to add
+        someone.</string>
+    <string name="directory_remove">Remove</string>
+    <string name="directory_save">Replace the directory</string>
+    <string name="directory_empty_title">No transfer targets</string>
+    <string name="directory_empty_body">The agent has nobody to put a caller through to. Add someone
+        above, then replace the directory.</string>
+    <!-- ⚠️ A WARNING, NOT A BLOCK. Half-filled rows are legal server-side and already exist, so
+         refusing to save one would refuse data the web wrote. -->
+    <plurals name="directory_incomplete_warning">
+        <item quantity="one">%1$d entry is missing a name or a number. The agent cannot transfer to
+            it.</item>
+        <item quantity="other">%1$d entries are missing a name or a number. The agent cannot
+            transfer to them.</item>
+    </plurals>
+    <!-- ⛔ THE COUNT IS THE POINT. It is the one thing an operator can check against what they
+         meant before a wholesale replace. -->
+    <string name="directory_confirm_title">Replace the transfer directory?</string>
+    <plurals name="directory_confirm_body">
+        <item quantity="one">Replace the transfer directory with %1$d entry? Everything stored today
+            is replaced by exactly this list.</item>
+        <item quantity="other">Replace the transfer directory with %1$d entries? Everything stored
+            today is replaced by exactly this list.</item>
+    </plurals>
+    <string name="directory_confirm_action">Replace</string>
+    <!-- ⛔ A SEPARATE STRING FOR THE WIPE, NAMING THE CONSEQUENCE RATHER THAN THE NUMBER. "Replace
+         with 0 entries" is arithmetic; this is what actually happens. -->
+    <string name="directory_confirm_empty_title">Remove every transfer target?</string>
+    <string name="directory_confirm_empty_body">Saving an empty directory removes every transfer
+        target. The agent will have nobody to put a caller through to, on every call, until someone
+        is added back.</string>
+    <string name="directory_confirm_empty_action">Remove everyone</string>
+    <!-- ⛔ THE READ SUCCEEDED AND THE VALUE STILL CANNOT BE EDITED. No retry: nothing failed. -->
+    <string name="directory_unmodellable_title">Cannot be edited here</string>
+    <string name="directory_unmodellable_body">This workspace\'s transfer directory is stored in a
+        shape this version of the app cannot change without losing part of it, so it cannot be
+        edited in this app.</string>
+
+    <!-- ── Call routing rules ────────────────────────────────────────────────
+         ⛔ ALSO REPLACED WHOLESALE. A rule decides which voice and which engine answer a segment of
+         callers. -->
+    <string name="routing_title">Call routing rules</string>
+    <string name="routing_rule_number">Rule %1$d</string>
+    <string name="routing_field">If this contact field</string>
+    <string name="routing_operator">Matches how</string>
+    <string name="routing_value">This value</string>
+    <string name="routing_voice">Use this voice</string>
+    <string name="routing_instruction">Extra instruction for these callers</string>
+    <!-- ⛔ READ-ONLY. The engine catalogue is derived server-side and varies by region, so a
+         free-text override here would be silently coerced to the default engine. -->
+    <string name="routing_model_read_only">Engine override: %1$s (cannot be changed in this app)</string>
+    <string name="routing_model_none">none</string>
+    <string name="routing_option_unset">not set</string>
+    <string name="routing_add">Add a rule</string>
+    <string name="routing_remove">Remove this rule</string>
+    <string name="routing_save">Replace the rules</string>
+    <string name="routing_empty_title">No routing rules</string>
+    <string name="routing_empty_body">Every caller gets the workspace persona. Add a rule to give a
+        segment of callers a different voice or instruction.</string>
+    <string name="routing_confirm_title">Replace the routing rules?</string>
+    <plurals name="routing_confirm_body">
+        <item quantity="one">Replace the routing rules with %1$d rule? Everything stored today is
+            replaced by exactly this list.</item>
+        <item quantity="other">Replace the routing rules with %1$d rules? Everything stored today is
+            replaced by exactly this list.</item>
+    </plurals>
+    <string name="routing_confirm_action">Replace</string>
+    <string name="routing_confirm_empty_title">Remove every routing rule?</string>
+    <string name="routing_confirm_empty_body">Saving with no rules removes every persona override.
+        Every caller will get the workspace persona until a rule is added back.</string>
+    <string name="routing_confirm_empty_action">Remove all rules</string>
+    <string name="routing_unmodellable_title">Cannot be edited here</string>
+    <string name="routing_unmodellable_body">This workspace\'s routing rules are stored in a shape
+        this version of the app cannot change without losing part of them, so they cannot be
+        edited in this app.</string>
+
+    <!-- ── Knowledge base ────────────────────────────────────────────────────
+         ⛔ THE MODE IS A DATA-RESIDENCY CONTROL. `linked` sends this workspace's questions to
+         Atlassian to be answered; the wording says so rather than selling coverage. -->
+    <string name="knowledge_title">Knowledge base</string>
+    <string name="knowledge_section_mode">Where answers come from</string>
+    <string name="knowledge_mode_internal">Your own knowledge base (recommended)</string>
+    <string name="knowledge_mode_internal_help">Answers come only from the documents you upload here,
+        retrieved inside your own region. Nothing is sent to a third party to compose the
+        answer.</string>
+    <string name="knowledge_mode_linked">Linked support knowledge base</string>
+    <string name="knowledge_mode_linked_help">Answers are composed by our support desk\'s assistant
+        from the linked help-centre content. Wider coverage with no uploads, but questions are sent
+        to Atlassian to answer.</string>
+    <!-- ⛔ WITHHELD RATHER THAN DEFAULTED. Showing "your own knowledge base" as selected because
+         nothing came back would be a false claim about where a customer's questions go. -->
+    <string name="knowledge_mode_unavailable">We could not read where this workspace\'s answers come
+        from, so the choice is not shown. Reopen this screen to try again.</string>
+    <string name="knowledge_linked_confirm_title">Send questions to Atlassian?</string>
+    <string name="knowledge_linked_confirm_body">Answers will be composed by our support desk\'s
+        assistant, which means each caller question is sent to Atlassian. Your uploaded documents
+        stay where they are and stop being used to answer.</string>
+    <string name="knowledge_linked_confirm_action">Send questions to Atlassian</string>
+    <string name="knowledge_section_add">Add a document</string>
+    <string name="knowledge_doc_title">Title</string>
+    <string name="knowledge_doc_content">Text the agent should be able to answer from</string>
+    <string name="knowledge_add">Add document</string>
+    <string name="knowledge_adding">Adding…</string>
+    <string name="knowledge_add_rejected">A title and some text are both needed.</string>
+    <string name="knowledge_section_documents">Documents</string>
+    <string name="knowledge_empty_title">No documents yet</string>
+    <string name="knowledge_empty_body">The agent has nothing of your own to answer from. Add a
+        document above.</string>
+    <string name="knowledge_doc_subtitle">%1$s · %2$d sections</string>
+    <string name="knowledge_status_unknown">unknown status</string>
+    <string name="knowledge_delete">Delete</string>
+    <string name="knowledge_delete_confirm_title">Delete this document?</string>
+    <!-- ⛔ NOT RECOVERABLE. The chunks cascade and the embeddings have to be paid for again. -->
+    <string name="knowledge_delete_confirm_body">“%1$s” and everything indexed from it are deleted.
+        Restoring it means uploading and indexing it again.</string>
+    <string name="knowledge_delete_confirm_action">Delete</string>
+
+    <!-- ── Messaging accounts ────────────────────────────────────────────────
+         ⛔ EDITABLE BY AGENCY AND CLIENT; a viewer reads it and is offered nothing.
+         The one irreversible action here is DELETE: it releases the phone-number claims that stop
+         another tenant sending as this workspace, so its confirmation names that rather than asking
+         "are you sure". ⛔ NO COPY HERE MAY IMPLY A STORED SECRET IS VISIBLE — the read is redacted,
+         and a blank credential box means "keep the saved value". -->
+    <string name="messaging_title">Messaging accounts</string>
+    <string name="messaging_section_accounts">Carrier accounts</string>
+    <string name="messaging_account_subtitle">%1$s · %2$s · %3$d numbers</string>
+    <string name="messaging_provider_unknown">unknown</string>
+    <string name="messaging_default_badge">Default</string>
+    <string name="messaging_empty_title">No carrier connected</string>
+    <string name="messaging_empty_body">This workspace has no messaging account, so it cannot send
+        SMS.</string>
+    <!-- ⛔ ITS OWN SECTION. It has no id and is not a sender identity the API will accept. -->
+    <string name="messaging_section_managed">Numbers we manage for you</string>
+    <string name="messaging_managed_subtitle">%1$d numbers on our carrier account</string>
+    <string name="messaging_section_channels">Per-channel senders</string>
+    <!-- ⚠️ SHOWN TO VIEWERS ONLY. Everyone else has the controls, so telling them to go to the web
+         would be false. -->
+    <string name="messaging_read_only">You have read-only access to this workspace, so carrier
+        accounts and senders cannot be changed here.</string>
+
+    <string name="messaging_add">Add carrier account</string>
+    <string name="messaging_edit">Edit</string>
+    <string name="messaging_delete">Remove</string>
+    <string name="messaging_make_default_action">Make default</string>
+    <string name="messaging_cancel">Cancel</string>
+    <string name="messaging_save">Save</string>
+    <string name="messaging_saving">Saving…</string>
+
+    <string name="messaging_add_title">Add a carrier account</string>
+    <string name="messaging_edit_title">Edit carrier account</string>
+    <string name="messaging_field_label">Name for this account</string>
+    <string name="messaging_field_numbers">Phone numbers, one per line</string>
+    <!-- ⛔ SAYS WHAT AN EMPTY BOX DOES. Clearing this list removes the numbers from the account and
+         frees them in our index; leaving it untouched sends nothing. -->
+    <string name="messaging_numbers_help">Leave this alone to keep the numbers as they are. Editing
+        it replaces the list, and any number you remove is released.</string>
+    <string name="messaging_make_default">Send from this account by default</string>
+
+    <string name="messaging_provider_section">Carrier</string>
+    <string name="messaging_provider_twilio">Twilio</string>
+    <string name="messaging_provider_sinch">Sinch</string>
+    <string name="messaging_provider_telnyx">Telnyx</string>
+    <!-- ⛔ CHANGING THE CARRIER DISCARDS THE SAVED KEYS, because the server only keeps them when the
+         provider is unchanged. The form has to say so or a blank box silently stores nothing. -->
+    <string name="messaging_provider_switch_warning">Changing the carrier clears the saved keys, so
+        every field below has to be filled in.</string>
+
+    <string name="messaging_source_section">Whose carrier account</string>
+    <string name="messaging_source_byok">Our own carrier account</string>
+    <string name="messaging_source_byok_help">You supply the keys below and the carrier bills you
+        directly.</string>
+    <string name="messaging_source_managed">Managed by Distronode</string>
+    <string name="messaging_source_managed_help">Sends on our carrier account and bills through your
+        plan. Only available on a managed plan.</string>
+
+    <string name="messaging_section_credentials">Carrier keys</string>
+    <!-- ⛔ THE SENTENCE THAT MAKES A REDACTED READ EDITABLE. Saved keys are never sent to this
+         device, so an empty box is not an empty key. -->
+    <string name="messaging_secret_keep">Leave blank to keep the saved value.</string>
+    <string name="messaging_field_account_sid">Account SID</string>
+    <string name="messaging_field_auth_token">Auth token</string>
+    <string name="messaging_field_project_id">Project ID</string>
+    <string name="messaging_field_key_id">Key ID</string>
+    <string name="messaging_field_key_secret">Key secret</string>
+    <string name="messaging_field_application_key">Application key</string>
+    <string name="messaging_field_application_secret">Application secret</string>
+    <string name="messaging_field_api_key">API key</string>
+
+    <string name="messaging_test">Test these keys</string>
+    <string name="messaging_testing">Checking with the carrier…</string>
+    <string name="messaging_test_passed">The carrier accepted these keys.</string>
+    <string name="messaging_test_passed_detail">The carrier accepted these keys (%1$s).</string>
+    <!-- ⚠️ ONLY OFFERED WHEN EVERY KEY IS TYPED. There is nothing on this device to test with
+         otherwise, and testing blanks would report a working account as broken. -->
+    <string name="messaging_test_unavailable">Fill in every key above to test them.</string>
+
+    <string name="messaging_section_creator_cell">Owner mobile number</string>
+    <!-- ⚠️ NEVER PRE-FILLED: nothing this app can read returns the saved number. -->
+    <string name="messaging_creator_cell_help">Where the AI transfers a call it cannot handle. We
+        cannot show the saved number here, so typing one replaces it.</string>
+    <string name="messaging_creator_cell_label">Mobile number</string>
+    <string name="messaging_creator_cell_save">Save number</string>
+
+    <string name="messaging_channel_title">Send %1$s from</string>
+    <string name="messaging_channel_add">Set a sender for a channel</string>
+    <string name="messaging_channel_none">No override</string>
+
+    <string name="messaging_delete_confirm_title">Remove this carrier account?</string>
+    <!-- ⛔ NAMES THE CONSEQUENCE. A generic "are you sure" hides that the numbers become claimable
+         by another workspace and that re-adding them may no longer be possible. -->
+    <string name="messaging_delete_confirm_body">“%1$s” is removed and its %2$d phone number(s) are
+        released. Once released, another workspace can claim a number and you may not get it
+        back.</string>
+    <string name="messaging_delete_confirm_action">Remove and release</string>
+
+    <!-- ── Members and the workspace name ────────────────────────────────────
+         ⛔ THE MEMBERSHIP WRITES ARE AGENCY-ONLY, the narrowest guard in the API: these rows are
+         what every other permission check is derived from. The RENAME is wider (agency or client)
+         and the roster READ is wider still (viewers see it too), so this screen carries three
+         different audiences and the copy has to work for all of them. -->
+    <string name="members_title">Members</string>
+    <string name="members_section_roster">Who is in this workspace</string>
+    <string name="members_role_agency">Agency</string>
+    <string name="members_role_agency_help">Full access, including who belongs here and what the
+        AI receptionist does.</string>
+    <string name="members_role_client">Client</string>
+    <string name="members_role_client_help">Everyday use: calls, contacts, messages and the
+        workspace settings. Cannot change who belongs here.</string>
+    <string name="members_role_viewer">Viewer</string>
+    <string name="members_role_viewer_help">Read only. Can see calls, contacts and messages, and
+        can change nothing.</string>
+    <!-- ⚠️ SHOWN VERBATIM when the stored role is not one this app knows. The column is free text
+         and older rows can hold anything, so a guess here would claim someone has privileges they
+         may not have. -->
+    <string name="members_role_unknown">Unrecognised role “%1$s”</string>
+    <string name="members_empty_title">Nobody found</string>
+    <string name="members_empty_body">We could not find anyone in this workspace, which should not
+        be possible — try again, and tell us if it keeps happening.</string>
+
+    <string name="members_section_add">Add someone</string>
+    <!-- ⛔ NO INVITATION IS SENT. Adding a row makes an existing login a member; an address that has
+         never signed up simply has a place waiting. Without this line an operator waits for an
+         email that is not coming. -->
+    <string name="members_add_no_invite">Adding someone does not send them an invitation. They get
+        access the next time they sign in with that address.</string>
+    <string name="members_add">Add a member</string>
+    <string name="members_add_title">Add a member</string>
+    <string name="members_add_email">Email address</string>
+    <string name="members_add_action">Add</string>
+    <string name="members_add_rejected">That does not look like an email address.</string>
+    <string name="members_cancel">Cancel</string>
+
+    <string name="members_change_role">Change role</string>
+    <string name="members_role_title">Change role</string>
+    <string name="members_role_action">Save role</string>
+    <string name="members_remove">Remove</string>
+    <string name="members_remove_confirm_title">Remove this member?</string>
+    <!-- ⛔ IMMEDIATE, AND NOT AN UNDO. Re-adding writes a new row rather than restoring the old one. -->
+    <string name="members_remove_confirm_body">%1$s loses access to this workspace straight away.
+        Adding them back later starts a new membership.</string>
+
+    <!-- ⛔ OUR OWN WORDING FOR THE TWO 409s, NOT THE SERVER'S. The server writes for an operator
+         reading a log; these are the two sentences a person on a phone needs, and neither offers a
+         retry because pressing again produces the identical refusal. -->
+    <string name="members_error_duplicate">Already a member.</string>
+    <string name="members_error_last_agency">Every workspace needs at least one agency member.</string>
+
+    <string name="members_section_rename">Workspace name</string>
+    <!-- ⛔ ASKS FOR A NEW NAME AND DOES NOT PREFILL. Nothing this app can read returns the current
+         name, and a field seeded from nothing is how a form saves a blank over a real value. -->
+    <string name="members_rename_label">New workspace name</string>
+    <string name="members_rename_action">Rename workspace</string>
+    <!-- ⚠️ Only ever the name the server confirmed it stored, which is the only one we can vouch for. -->
+    <string name="members_rename_current">Now called “%1$s”.</string>
+
+    <!-- ── Rooms ─────────────────────────────────────────────────────────────
+         ⛔ NOTHING HERE SAYS "video call". A meet_ room is multi-party and the video is optional;
+            calling it a video call sets an expectation the camera-denied path cannot meet.
+         ⛔ AND THE COMPANION IS NAMED BEFORE ANYONE JOINS, not after. It transcribes every meeting
+            automatically, and being told afterwards is being told too late. -->
+    <string name="rooms_open">Rooms</string>
+    <string name="rooms_title">Rooms</string>
+    <string name="rooms_start_label">Start or join a room</string>
+    <string name="rooms_name_label">Room name</string>
+    <!-- ⚠️ Shown while typing so nobody discovers the rewrite by ending up alone in a room. -->
+    <string name="rooms_name_preview">Everyone joining “%1$s” lands in the same room.</string>
+    <string name="rooms_name_hint">Name the room. Anyone in this workspace who types the same name
+        joins you.</string>
+    <string name="rooms_join">Join room</string>
+    <string name="rooms_companion_notice">The Companion joins every room and writes up the minutes.</string>
+    <string name="rooms_history_label">Recent meetings</string>
+    <string name="rooms_history_failed">Could not load meetings</string>
+    <string name="rooms_empty_title">No meetings yet</string>
+    <string name="rooms_empty_body">Meetings appear here once one has been held, with the minutes
+        the Companion wrote.</string>
+    <!-- ⛔ SAYS "Preview", because the server truncates to 220 characters. Presenting two sentences
+         as the minutes would quietly deliver a fraction of what was written. -->
+    <string name="rooms_preview">Preview: %1$s</string>
+    <string name="rooms_no_minutes_yet">Minutes are written when the meeting ends.</string>
+    <string name="rooms_no_minutes">No minutes were saved for this meeting.</string>
+    <string name="rooms_open_meeting">Read the minutes</string>
+    <string name="rooms_rejoin">Rejoin</string>
+    <string name="rooms_record_title">Meeting record</string>
+    <string name="rooms_record_minutes">Minutes</string>
+    <string name="rooms_record_transcript">Transcript</string>
+    <string name="rooms_record_close">Close</string>
+
+    <!-- ── A live room ───────────────────────────────────────────────────────
+         ⛔ "Reconnecting" IS WORDED AS A WAIT, NOT AS A FAILURE. A phone handing over between wifi
+            and its radio does this routinely and the SDK recovers by itself; wording it as an
+            error teaches people to hang up on something that was about to come back. -->
+    <string name="room_state_idle">Not connected yet.</string>
+    <string name="room_state_connecting">Connecting…</string>
+    <string name="room_state_reconnecting">Reconnecting — hold on, the meeting is still here.</string>
+    <string name="room_state_left">You have left this room.</string>
+    <string name="room_state_failed">The connection to this room was lost.</string>
+    <string name="room_join_failed">Could not join</string>
+    <!-- ⛔ SAYS WHAT THE COMPANION IS DOING, not merely that it is present. -->
+    <string name="room_companion_notes">Companion is taking notes.</string>
+    <string name="room_viewer_notice">You are in this room as a viewer, so your microphone and
+        camera stay off.</string>
+    <string name="room_no_microphone">Microphone access is off, so others cannot hear you. You can
+        still listen.</string>
+    <string name="room_no_camera">Camera access is off, so you are here without video.</string>
+    <string name="room_alone_title">Nobody else here yet</string>
+    <string name="room_alone_body">Share the invite, or wait for someone to join with the same room
+        name.</string>
+    <string name="room_unnamed_participant">Someone</string>
+    <string name="room_mic_on">Mute</string>
+    <string name="room_mic_off">Unmute</string>
+    <string name="room_camera_on">Stop video</string>
+    <string name="room_camera_off">Start video</string>
+    <string name="room_flip">Flip camera</string>
+    <string name="room_speaker_on">Speaker on</string>
+    <string name="room_speaker_off">Speaker off</string>
+    <string name="room_leave">Leave</string>
+    <!-- ⚠️ "Guest" is load-bearing: the link admits somebody who is NOT in this workspace, and it
+         works for twelve hours for whoever holds it. -->
+    <string name="room_share_invite">Share guest link</string>
+
+    <!-- ── The outbound softphone ────────────────────────────────────────────
+         ⛔ "Calling…" AND THE TIMER ARE DIFFERENT FACTS AND ARE WORDED SO. The dial route returns
+            before the callee's phone has even rung, so the app is in the room while the far end
+            is ringing; a duration shown then would be counting the ring as conversation, and it
+            is the number an operator compares against an invoice. -->
+    <string name="dialer_open">Dial</string>
+    <string name="dialer_title">Dial</string>
+    <string name="dialer_number_label">Number</string>
+    <string name="dialer_entry_hint">Enter a number with its country code, for example +1 416 555
+        0100.</string>
+    <string name="dialer_call">Call</string>
+    <!-- ⚠️ Says the microphone is needed BEFORE the request, so the dialog has a visible reason. -->
+    <string name="dialer_mic_notice">Placing a call turns on your microphone.</string>
+    <!-- ⛔ A REFUSAL, NOT A DEGRADED CALL. A meeting is joinable listen-only; a phone call with no
+         microphone is a billed call the other person experiences as an empty line. -->
+    <string name="dialer_needs_microphone">Microphone access is off, so this call was not placed.
+        A call with no microphone would reach the other person as silence.</string>
+    <!-- ⛔ STATES THE FACT AND STOPS, AND NAMES NO WEBSITE. Google Play's
+         Payments policy keeps subscription changes out of this app, so offering a control here
+         would be offering one that cannot exist; App Store Guideline 3.1.1 is why naming where to
+         make the change instead is not the fallback. Matches the iOS client's
+         `DialerCopy.subscriptionFallback`. -->
+    <string name="dialer_subscription_inactive">This workspace\'s subscription is not active, so
+        calls are paused.</string>
+    <!-- ⛔ NOT A PAYMENT PROBLEM. The account is in good standing and has used its included
+         minutes under a hard cap it chose; wording this as a billing failure sends someone to
+         check a card that is working. -->
+    <string name="dialer_overage_cap">This workspace has used its included voice minutes and its
+        overage policy is set to a hard cap. Change the policy or upgrade the plan to resume
+        calls.</string>
+    <string name="dialer_callbacks_label">Call back</string>
+    <!-- ⚠️ "Call back", never "Redial". The call log records the workspace's OWN number on an
+         outbound row, so only inbound calls carry a number worth dialling. -->
+    <string name="dialer_callbacks_empty_title">No recent callers</string>
+    <string name="dialer_callbacks_empty">Numbers from incoming calls appear here so you can call
+        someone back with one tap.</string>
+    <string name="dialer_callbacks_failed">Could not load recent callers</string>
+    <string name="dialer_callback_action">Call back %1$s</string>
+    <string name="dialer_viewer_notice">You are in this workspace as a viewer, so you cannot place
+        calls.</string>
+
+    <!-- ── A live call ───────────────────────────────────────────────────── -->
+    <string name="call_state_dialing">Placing the call…</string>
+    <!-- ⛔ "Calling" RATHER THAN "Connected". The app is in the room; nobody has picked up yet. -->
+    <string name="call_state_ringing">Calling…</string>
+    <string name="call_state_reconnecting">Reconnecting — hold on, the call is still here.</string>
+    <string name="call_state_ended">Call ended</string>
+    <string name="call_state_failed">The call could not be connected.</string>
+    <string name="call_ended_duration">Lasted %1$s</string>
+    <string name="call_mic_on">Mute</string>
+    <string name="call_mic_off">Unmute</string>
+    <string name="call_speaker_on">Speaker on</string>
+    <string name="call_speaker_off">Speaker off</string>
+    <string name="call_hang_up">Hang up</string>
+    <string name="call_done">Done</string>
+    <!-- ⚠️ Stated on screen because this app never writes the call's outcome: the terminal status
+         and the billed duration come from the carrier's own webhooks, so the log can differ. -->
+    <string name="call_log_notice">This call is in the workspace call log.</string>
+
+    <!-- ── The automation monitor ────────────────────────────────────────────
+         ⛔ READ-MOSTLY, AND THE COPY HAS TO SAY WHAT IS STILL ELSEWHERE. Two controls: the
+            per-workflow switch, and the campaign pause/resume. The campaign's OTHER two fields
+            (goal, batch size) stay on the web, because the route that writes them rebuilds all
+            three from its body and a partial write wipes the goal — the pause reaches
+            `workspace/campaign-status`, which merges one key instead. A card whose single button
+            is unexplained reads as a half-built settings form. -->
+    <string name="workflows_open">Workflows</string>
+    <string name="workflows_title">Workflows</string>
+    <string name="workflows_section">Workflows</string>
+    <string name="workflows_retry">Try again</string>
+    <string name="workflows_dismiss">Dismiss</string>
+    <string name="workflows_list_failed">Could not load workflows</string>
+    <!-- ⚠️ "None yet", never "none" — an empty list here is a workspace that has not built any
+         automation, not one whose automation vanished. -->
+    <string name="workflows_empty_title">No workflows yet</string>
+    <string name="workflows_empty_body">Workflows run an action after a call, a message or a new
+        contact. They cannot be created in this app.</string>
+
+    <!-- ── The always-on SDR campaign ──────────────────────────────────────── -->
+    <string name="workflows_campaign_label">Outbound campaign</string>
+    <string name="workflows_campaign_active">Active</string>
+    <!-- ⚠️ "Paused", not "Off" or "Not set up". A workspace that switched the campaign off and one
+         that never opened the campaigns tab are the SAME value on the wire, so the word has to be
+         true of both. -->
+    <string name="workflows_campaign_paused">Paused</string>
+    <string name="workflows_campaign_batch">%1$d contacts per batch</string>
+    <!-- ⛔ NULL IS NOT ZERO. The stored batch size is floored to at least 1, so a "0" on screen
+         would be a number nobody configured. -->
+    <string name="workflows_campaign_batch_unset">No batch size configured yet.</string>
+    <string name="workflows_campaign_no_goal">No goal configured yet.</string>
+    <string name="workflows_campaign_failed">Could not load the campaign</string>
+    <!-- ⛔ NAMES WHAT IS STILL WEB-ONLY, AND IT IS NOT THE WHOLE CARD ANY MORE. Pausing merges one
+         key through `workspace/campaign-status`; the goal and the batch size are written by
+         `campaign-settings`, which rebuilds all three fields from its body — so a phone editing
+         either of those would have to send all of them. Without this line the single button reads
+         as a half-built settings form. -->
+    <string name="workflows_campaign_read_only">The campaign goal and batch size cannot be changed
+        in this app.</string>
+    <!-- ⚠️ A viewer sent to the web dashboard would be refused there too, so they are told who
+         can change it instead. -->
+    <string name="workflows_campaign_read_only_viewer">You are in this workspace as a viewer.
+        Ask an agency or client member to change the campaign.</string>
+    <string name="workflows_campaign_pause">Pause campaign</string>
+    <string name="workflows_campaign_resume">Resume campaign</string>
+    <!-- ⚠️ Replaces the label while a write is in flight rather than sitting beside it: the button
+         is the only control on the card, so a spinner elsewhere would leave it looking dead. -->
+    <string name="workflows_campaign_working">Saving…</string>
+    <string name="workflows_campaign_cancel">Cancel</string>
+    <!-- ⛔ THE CONFIRMATIONS NAME THE CONSEQUENCE, NOT "ARE YOU SURE". A pause stops an engine
+         that is working through a contact list right now; a resume starts spending call and
+         message credit again. They are different facts and get different sentences. -->
+    <string name="workflows_campaign_pause_title">Pause the outbound campaign?</string>
+    <string name="workflows_campaign_pause_body">The always-on SDR engine stops working through
+        your contacts. Nothing is deleted, and the campaign goal and batch size are kept, so
+        resuming picks up where it left off.</string>
+    <string name="workflows_campaign_resume_title">Resume the outbound campaign?</string>
+    <string name="workflows_campaign_resume_body">The SDR engine starts calling and messaging
+        your contacts again, which spends call and message credit.</string>
+
+    <!-- ── Run history ────────────────────────────────────────────────────── -->
+    <string name="workflows_runs_heading">Recent runs</string>
+    <string name="workflows_runs_empty">This workflow has not run yet.</string>
+    <string name="workflows_runs_more">Load more runs</string>
+    <!-- ⚠️ Shown where a finish time would be. A run with no finish did not complete; a blank
+         there reads as a missing value rather than as the answer. -->
+    <string name="workflows_run_unfinished">Did not finish</string>
+    <string name="workflows_never_run">Never run</string>
+
+    <!-- ── Trigger labels ─────────────────────────────────────────────────────
+         ⛔ THE RAW WIRE VALUE IS SHOWN FOR ANYTHING NOT LISTED HERE. The server's trigger
+            vocabulary has already grown once, and an installed build has to keep drawing a
+            workflow whose trigger it has never heard of.
+         ⚠️ THE THREE CALL-END TRIGGERS ARE NOT SYNONYMS. "call_ended" fires for every terminal
+            call; the answered/unanswered pair fires alongside it, exactly one per call. -->
+    <string name="workflow_trigger_call_ended">After any call ends</string>
+    <string name="workflow_trigger_call_ended_answered">After an answered call</string>
+    <string name="workflow_trigger_call_ended_unanswered">After a missed call</string>
+    <string name="workflow_trigger_negative_sentiment">Negative sentiment</string>
+    <string name="workflow_trigger_positive_sentiment">Positive sentiment</string>
+    <string name="workflow_trigger_neutral_sentiment">Neutral sentiment</string>
+    <string name="workflow_trigger_intent_detected">Intent detected</string>
+    <string name="workflow_trigger_sms_received">Message received</string>
+    <string name="workflow_trigger_contact_created">New contact</string>
+    <string name="workflow_trigger_dnc_registered">Added to do-not-call</string>
+
+    <!--
+      Push notifications and the inbound call.
+
+      ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY
+         DECISION REACHING THE WORDING. The push payload carries identifiers only, because a
+         notification is readable by the OS and by any installed notification-listener app — so the
+         app genuinely does not know who is calling or what was said. These strings say what
+         happened and nothing more, which is also why none of them takes a format argument.
+    -->
+    <string name="push_channel_messages">Messages</string>
+    <string name="push_channel_messages_description">New messages in your workspace inbox.</string>
+    <string name="push_channel_calls">Incoming calls</string>
+    <string name="push_channel_calls_description">Calls transferred to you from the AI attendant.</string>
+    <string name="push_message_title">New message</string>
+    <string name="push_message_body">Open District AI to read it.</string>
+    <string name="push_call_title">Incoming call</string>
+    <string name="push_call_body">Transferred from your AI attendant.</string>
+    <string name="push_call_answer">Answer</string>
+    <string name="push_call_decline">Decline</string>
+    <string name="push_ongoing_call_title">Call in progress</string>
+    <string name="push_ongoing_call_body">District AI is connected to a call.</string>
+
+    <!--
+      ⚠️ "Caller" IS A PLACEHOLDER FOR AN IDENTITY THIS CLIENT NEVER LEARNS, not a label waiting to
+         be filled in. The answer route returns a join credential rather than a caller, so there is
+         no later point at which a name or a number becomes available.
+    -->
+    <string name="incoming_call_caller">Caller</string>
+    <string name="incoming_call_ringing">Incoming call</string>
+    <string name="incoming_call_connecting">Connecting…</string>
+    <string name="incoming_call_answer">Answer</string>
+    <string name="incoming_call_decline">Decline</string>
+    <string name="incoming_call_gone">That call ended before you could answer it.</string>
+    <string name="incoming_call_media_failed">The call could not be connected.</string>
+    <string name="incoming_call_notice">Answering puts your microphone on this call.</string>
+
+    <!--
+      ⚠️ ASKED AT THE FIRST POST-SIGN-IN LANDING, not at launch: a permission dialog with no visible
+         reason is the one users deny permanently, and the reason here is the app they have just
+         signed in to.
+    -->
+    <string name="notifications_permission_reason">Turn on notifications to be told about new messages and transferred calls.</string>
+
+    <!-- ── Scheduling ─────────────────────────────────────────────────────────
+         The workspace's booking page: one card, four tenancy states plus the two
+         "there is no row" ones.
+
+         ⛔ NOTHING HERE OFFERS TO BUY ANYTHING. A workspace the feature does not
+            admit gets `scheduling_not_eligible` and no control at all — Google
+            Play's Payments policy is the same shape as the App Store's 3.1.3(b),
+            and a "contact sales" line out of a paid product's own settings is a
+            purchase offer wearing a different hat.
+
+         ⚠️ THE ENABLE BUTTON'S WORDING IS THE SERVER'S DECISION, NOT A ROLE'S. The
+            status route sends `canManage`, and the client draws the button from it
+            rather than re-deriving one from a role string. -->
+    <string name="scheduling_open">Scheduling</string>
+    <string name="scheduling_title">Scheduling</string>
+    <string name="scheduling_eyebrow">Booking page</string>
+    <string name="scheduling_not_eligible">Scheduling is not enabled for this workspace.</string>
+    <string name="scheduling_legacy">Scheduling is available for this workspace. Turn it on to
+        give customers a booking page of their own.</string>
+    <!-- ⚠️ NAMES THE HOURLY RECONCILER, deliberately: a provision that stalls is retried without
+         anybody doing anything, and saying so is what stops somebody pressing Enable again. -->
+    <string name="scheduling_provisioning">Your booking page is being set up. This usually takes
+        under a minute, and it is re-checked automatically every hour if anything stalls.</string>
+    <string name="scheduling_live">Your booking page is live.</string>
+    <string name="scheduling_setup_failed">Setup did not finish.</string>
+    <string name="scheduling_setup_failed_no_reason">No reason was recorded.</string>
+    <string name="scheduling_switched_off">Scheduling is turned off for this workspace.</string>
+    <!-- ⛔ FORWARD COMPATIBILITY, NOT A FAULT. The scheduling status column takes a new value
+         without a migration, so an already-installed build can meet a state it does not model.
+         The honest answer is that the booking page exists and this app cannot say what it is
+         doing — never "setup failed" and never a blank card. -->
+    <string name="scheduling_unrecognised">This workspace has a booking page, and this version of
+        the app does not recognise its current state. Updating the app should fix it.</string>
+    <!-- ⛔ THE ONE READY-STATE SENTENCE THAT IS NOT A FAILURE AND NOT A LINK. The row says `ready`
+         and the server sent no `bookingUrl`, which is contract drift rather than an outage, so it
+         says what it can and offers no address. Never rebuild the URL from the host. -->
+    <string name="scheduling_live_without_link">This workspace has a booking page, but the server
+        did not send its address.</string>
+    <string name="scheduling_host">Served from %1$s</string>
+    <!-- ⚠️ THE RAW ISO-8601 STAMP, like the devices screen's "last active". This app owns no date
+         parsing, and a second timestamp convention for one caption is not worth one. -->
+    <string name="scheduling_last_checked">Last checked %1$s</string>
+    <string name="scheduling_enable">Enable scheduling</string>
+    <string name="scheduling_enabling">Setting up…</string>
+    <string name="scheduling_refresh">Refresh</string>
+    <!-- ⛔ THE PRIMARY ACTION SINCE THE SCHEDULER CONSOLE STARTED BEING SWITCHED OFF. It opens the
+         dashboard's own scheduling pages in a browser sheet, signed in, so the wording says WHERE
+         it goes rather than what it does — "Manage scheduling" would read as an in-app editor, and
+         this app deliberately has none. -->
+    <string name="scheduling_open_dashboard">Manage on the web</string>
+    <!-- ⚠️ NOW THE SECONDARY ACTION, AND THE LABEL NAMES THE CONSOLE RATHER THAN THE PRODUCT. Two
+         buttons that both said "scheduling" would be indistinguishable; this one goes to the
+         scheduler fork's own admin, which is on its way out. -->
+    <string name="scheduling_open_scheduler">Open scheduler console</string>
+    <string name="scheduling_opening">Opening…</string>
+    <string name="scheduling_dismiss">Dismiss</string>
+    <string name="scheduling_failed">Could not load scheduling</string>
+    <string name="scheduling_badge_setting_up">Setting up</string>
+    <string name="scheduling_badge_live">Live</string>
+    <string name="scheduling_badge_needs_attention">Needs attention</string>
+    <string name="scheduling_badge_switched_off">Switched off</string>
+    <string name="scheduling_badge_unknown">Unknown state</string>
+    <!-- ⚠️ FIVE PER HOUR PER WORKSPACE, SHARED BY EVERYBODY IN IT — three colleagues pressing the
+         same button spend one budget. It is the only failure on this screen that resolves by
+         waiting, which is why it gets its own sentence rather than the generic one. -->
+    <string name="scheduling_too_many_attempts">Scheduling has been enabled several times in the
+        last hour for this workspace. Try again shortly.</string>
+    <!-- ⛔ A DIFFERENT LIMIT FROM `scheduling_too_many_attempts` ABOVE, AND THE TWO MUST NOT BE
+         MERGED. That one is five PROVISIONS an hour for the workspace; this is ten HAND-OFFS a
+         minute for the account, and nothing was provisioned. Saying "scheduling has been enabled
+         several times" for a budget that was never spent would be a wrong answer, not a vaguer one.
+
+         ⛔ AND IT EXISTS AT ALL BECAUSE THE SERVER'S OWN TEXT IS UNSHOWABLE HERE. The handoff
+         route's 429 body is `{"error":"rate_limited","message":"…"}` — the human half is in
+         `message`, which the client's error envelope does not model, so the shared mapping (which
+         renders the server's string verbatim) would print `rate_limited` on a customer's phone. -->
+    <string name="scheduling_handoff_rate_limited">Scheduling was opened several times just now.
+        Try again shortly.</string>
+    <!-- ⚠️ A 409 FROM THE SSO ROUTE, WHICH IS NOT A FAULT: the tenancy is simply not ready yet. -->
+    <string name="scheduling_not_ready_yet">Scheduling is not ready yet. Turn it on, or wait for
+        setup to finish.</string>
+    <!-- ⚠️ USED ONLY WHEN A 202 CARRIED `ok: false` AND NO SENTENCE. The server's own classified
+         message is the product whenever it sends one. -->
+    <string name="scheduling_enable_failed_fallback">Setting up scheduling did not finish, and no
+        reason was recorded.</string>
+
+    <!-- ══ District Desk ══════════════════════════════════════════════════════
+         ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM
+         EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant
+         writing to US. A bare "Tickets" on either surface collapses the distinction, which is why
+         every string here says whose customers it means. -->
+    <string name="desk_title">Customer desk</string>
+    <string name="desk_open">Open the customer desk</string>
+    <!-- ⛔ THE DISABLED SCREEN, WHICH IS NOT THE EMPTY ONE. Nothing is being recorded, so "no one
+         has written in" would be a claim we have no basis for. -->
+    <string name="desk_disabled_title">The customer desk is off</string>
+    <string name="desk_disabled_body">Your customers cannot raise tickets and nothing is being
+        recorded. Turning it on starts an empty queue.</string>
+    <string name="desk_enable">Turn the desk on</string>
+    <string name="desk_empty_title">No tickets yet</string>
+    <string name="desk_empty">The desk is on. Tickets your customers raise, and any the receptionist
+        takes during a call, appear here.</string>
+    <string name="desk_filter_empty">No tickets in this state.</string>
+    <string name="desk_filter_all">All</string>
+    <string name="desk_status_open">Open</string>
+    <string name="desk_status_waiting">Waiting</string>
+    <string name="desk_status_resolved">Resolved</string>
+    <string name="desk_from_call">From a call</string>
+    <string name="desk_no_requester">No contact details</string>
+    <!-- ⚠️ A COUNT OF MESSAGES, not of unread ones. Nothing on this surface tracks read state. -->
+    <string name="desk_message_count">%1$d messages</string>
+    <string name="desk_capped">Showing the 100 most recently updated tickets. Older ones are on the
+        web dashboard.</string>
+    <string name="desk_viewer_title">Not available on a viewer seat</string>
+    <!-- ⛔ SAYS WHY RATHER THAN SAYING NO. These payloads carry a customer's name, email address and
+         phone number in the clear plus the correspondence about them. -->
+    <string name="desk_viewer_body">The customer desk holds your customers\' contact details and
+        correspondence, so it is limited to agency and client seats. Ask someone on your team to
+        change your role if you need it.</string>
+    <string name="desk_settings_title">Desk settings</string>
+    <string name="desk_settings_open">Desk settings</string>
+    <string name="desk_settings_enabled">Accept customer tickets</string>
+    <string name="desk_settings_notify">Email customers when you reply</string>
+    <string name="desk_settings_brand_name">Public name</string>
+    <!-- ⚠️ SAYS WHAT AN EMPTY BOX DOES, because clearing it is a real action with a real result. -->
+    <string name="desk_settings_brand_name_help">Shown to your customers on their ticket page.
+        Leave it empty to use this workspace\'s own name.</string>
+    <string name="desk_settings_save">Save</string>
+    <string name="desk_settings_saving">Saving…</string>
+    <string name="desk_logo_title">Logo</string>
+    <string name="desk_logo_help">Shown beside your public name on your customers\' ticket page.</string>
+    <string name="desk_logo_choose">Choose an image</string>
+    <string name="desk_logo_replace">Replace</string>
+    <string name="desk_logo_remove">Remove</string>
+    <string name="desk_logo_none">No logo published.</string>
+    <string name="desk_logo_busy">Working…</string>
+    <!-- ⚠️ NOT A REJECTED TYPE OR SIZE. The picked item could not be read at all: a revoked grant, a
+         file the provider deleted, or a cloud item that failed to download. -->
+    <string name="desk_logo_unreadable">That image could not be read. Pick it again.</string>
+    <!-- ⛔ THE TAKEDOWN HAS TWO HALVES AND A 200 GUARANTEES ONLY THE FIRST. The logo is off the page
+         either way; this says the stored file may still be reachable. -->
+    <string name="desk_logo_object_retained">The logo is off your customers\' page. The stored image
+        file could not be deleted, so it may still be reachable by its old link.</string>
+    <string name="desk_ticket_title">Ticket</string>
+    <string name="desk_reply_label">Reply to your customer</string>
+    <string name="desk_reply_send">Send</string>
+    <string name="desk_reply_sending">Sending…</string>
+    <string name="desk_notified">Your customer was emailed.</string>
+    <string name="desk_not_notified">Your customer was not emailed.</string>
+    <string name="desk_author_customer">Customer</string>
+    <string name="desk_author_team">Your team</string>
+    <string name="desk_author_assistant">Receptionist</string>
+    <string name="desk_set_status">Move this ticket</string>
+    <string name="desk_compose_title">Raise a ticket</string>
+    <!-- ⛔ SAYS WHOSE WORDS THE MESSAGE BECOMES. The server records the CUSTOMER as the author even
+         when an operator types it, because it is their problem. -->
+    <string name="desk_compose_help">For something a customer brought another way. The message is
+        recorded as your customer\'s own words.</string>
+    <string name="desk_compose_subject">Subject</string>
+    <string name="desk_compose_message">What they told you</string>
+    <string name="desk_compose_requester_name">Customer name (optional)</string>
+    <string name="desk_compose_requester_email">Customer email (optional)</string>
+    <string name="desk_compose_requester_phone">Customer phone (optional)</string>
+    <string name="desk_compose_submit">Raise the ticket</string>
+    <string name="desk_compose_cancel">Cancel</string>
+    <string name="desk_compose_submitting">Raising…</string>
+    <string name="desk_created">Ticket %1$s raised.</string>
+    <!-- ⚠️ A REPLAYED SUBMIT CARRIES NO TICKET AND IS STILL A SUCCESS. -->
+    <string name="desk_created_duplicate">That ticket was already raised.</string>
+
+    <!-- ══ Support (this workspace's requests with Distronode) ════════════════
+         ⛔ NOT THE DESK. See the header above. -->
+    <string name="support_title">Support</string>
+    <string name="support_open">Contact Distronode support</string>
+    <string name="support_empty_title">No requests</string>
+    <string name="support_empty">Requests your team raises with Distronode appear here, with our
+        replies.</string>
+    <string name="support_section_open">Open</string>
+    <string name="support_section_resolved">Resolved</string>
+    <string name="support_capped">Showing the 100 most recent requests.</string>
+    <!-- ⚠️ WHILE A REQUEST IS UNFILED IT HAS NO KEY TO QUOTE. It is still addressable and still
+         real, so this is a state rather than an error. -->
+    <string name="support_unfiled">Being opened</string>
+    <string name="support_viewer_title">Not available on a viewer seat</string>
+    <string name="support_viewer_body">Support requests are correspondence with Distronode, so they
+        are limited to agency and client seats. Ask someone on your team to change your role if you
+        need it.</string>
+    <string name="support_new">Raise a request</string>
+    <string name="support_kind">What is this about?</string>
+    <string name="support_kind_problem">Something is broken</string>
+    <string name="support_kind_question">A question</string>
+    <string name="support_kind_suggestion">A suggestion</string>
+    <string name="support_compose_subject">Subject</string>
+    <string name="support_compose_message">Tell us what is happening</string>
+    <string name="support_compose_submit">Send to Distronode</string>
+    <string name="support_compose_cancel">Cancel</string>
+    <string name="support_compose_submitting">Sending…</string>
+    <string name="support_filed">Request %1$s is open with our team.</string>
+    <string name="support_duplicate">That request was already sent.</string>
+    <!-- ⛔ A SUCCESS, NOT A FAILURE. We are holding the request and a human will see it; only the
+         reference is missing. Showing this as an error makes people send it twice. -->
+    <string name="support_pending">We have your request. Its reference will appear here shortly.</string>
+    <string name="support_request_title">Request</string>
+    <string name="support_reply_label">Reply to Distronode</string>
+    <string name="support_reply_send">Send</string>
+    <string name="support_reply_sending">Sending…</string>
+    <string name="support_close">Mark as resolved</string>
+    <string name="support_closing">Closing…</string>
+    <string name="support_closed">Closed as %1$s.</string>
+    <!-- ⛔ THE SERVER DECIDES THIS, NOT THE ROLE. The desk's workflow offers no single unambiguous
+         way to close, so we do not guess one on the customer's behalf. -->
+    <string name="support_not_closeable">This one cannot be closed from here. Reply to let us know
+        it is resolved and we will close it.</string>
+    <string name="support_author_agent">Distronode Support</string>
+    <string name="support_author_you">You</string>
+    <!-- ── Persona engine pickers ───────────────────────────────────────────
+         ⛔ EVERY LIST BELOW COMES FROM `workspace/persona/options`. The save route COERCES rather
+         than refusing: an unrecognised engine becomes `deepgram-pipeline` and an unrecognised voice
+         is stored and then replaced by the agent at synthesis time, both with a 200. -->
+    <string name="persona_engine_label">Engine</string>
+    <string name="persona_language_label">Language</string>
+    <string name="persona_voice_label">Voice</string>
+    <string name="persona_response_length_label">Answer length</string>
+    <string name="persona_voice_style_label">Voice style</string>
+    <string name="persona_temperature_label">Variation</string>
+    <string name="persona_temperature_hint">Lower is more consistent, higher is more varied.</string>
+    <string name="persona_preemptive_tts_label">Start speaking early</string>
+    <string name="persona_preemptive_tts_body">Begins synthesising a reply before the answer is
+        finished. Faster, and it is charged for whatever it produces.</string>
+    <!-- ⛔ STATED, NEVER CORRECTED. A voice the catalogue has dropped is still what this workspace
+         speaks in today, and substituting it silently would change the agent because a list moved. -->
+    <string name="persona_voice_off_catalogue">%1$s is not in the current list for this engine and
+        language. It is still what the agent uses.</string>
+
+    <!-- ── Persona preview ──────────────────────────────────────────────────
+         ⛔ A REAL, BILLED CALL TO THE WORKSPACE'S OWN VOICE AGENT, NOT A DRY RUN. Capped at 10 a
+         minute per workspace, not idempotent, never retried. -->
+    <string name="persona_preview_open">Try this agent</string>
+    <string name="persona_preview_title">Try this agent</string>
+    <string name="persona_preview_start">Start</string>
+    <string name="persona_preview_stop">Stop</string>
+    <string name="persona_preview_close">Close</string>
+    <string name="persona_preview_billed">This places a real call to your agent using the settings
+        on this screen, including the ones you have not saved. It uses call minutes.</string>
+    <string name="persona_preview_idle">Ready when you are.</string>
+    <string name="persona_preview_minting">Setting up the call…</string>
+    <string name="persona_preview_connecting">Connecting…</string>
+    <!-- ⛔ NOT "live". Speaking before the agent has joined means speaking into a room nothing is
+         listening to, which reads as a broken persona. -->
+    <string name="persona_preview_waiting">Connected. Waiting for the agent to join…</string>
+    <string name="persona_preview_live">The agent is on the line. Say something.</string>
+    <string name="persona_preview_reconnecting">Reconnecting…</string>
+    <string name="persona_preview_failed">The call could not be started.</string>
+    <string name="persona_preview_ended_stopped">You ended the call.</string>
+    <!-- ⛔ A DIFFERENT SENTENCE FROM THE ONE ABOVE. Telling somebody they stopped a session the
+         server dropped is how a second billed one gets started. -->
+    <string name="persona_preview_ended_dropped">The call ended.</string>
+    <string name="persona_preview_speaking">The agent is speaking.</string>
+    <!-- ⚠️ SAID OUT LOUD. A denied microphone still leaves a usable audition, so the session goes
+         ahead and this explains why nothing is heard back. -->
+    <string name="persona_preview_no_microphone">The microphone is off, so the agent cannot hear
+        you. You can still hear it.</string>
+
+    <!-- ── Call handling and availability ───────────────────────────────────
+         ⛔ TWO SCOPES. The mode is the WORKSPACE's; availability is this person's own membership
+         row, and its route takes no identity at all. -->
+    <string name="call_handling_title">Call handling</string>
+    <string name="call_handling_section_mode">Who answers first</string>
+    <string name="call_handling_mode_ai_first">AI answers</string>
+    <string name="call_handling_mode_ai_first_body">The agent takes every inbound call.</string>
+    <string name="call_handling_mode_ai_then_app">AI answers, then the app rings</string>
+    <string name="call_handling_mode_ai_then_app_body">The agent takes the call and can hand it to
+        a person.</string>
+    <string name="call_handling_mode_app_first">The app rings first</string>
+    <string name="call_handling_mode_app_first_body">Your phones ring before the agent answers.</string>
+    <string name="call_handling_ring_title">How long the app rings</string>
+    <string name="call_handling_ring_value">%1$d seconds</string>
+    <string name="call_handling_ring_hint">Between 5 and 30 seconds.</string>
+    <string name="call_handling_viewer_note">Only agency and client members can change call
+        handling.</string>
+    <string name="call_handling_section_availability">Your availability</string>
+    <string name="call_handling_availability_title">Available for calls</string>
+    <string name="call_handling_availability_on">Your phones ring for this workspace.</string>
+    <string name="call_handling_availability_off">Your phones do not ring for this workspace.</string>
+    <!-- ⛔ A 200 WITH A REASON, NOT A REFUSAL. Two different facts, two sentences. -->
+    <string name="call_handling_availability_role">Viewers cannot take calls.</string>
+    <string name="call_handling_availability_no_member_row">You have no membership record in this
+        workspace, so calls cannot ring you.</string>
+
+    <!-- ── Inbox search ─────────────────────────────────────────────────────
+         ⛔ FULL-CONTENT SEARCH ACROSS EVERY MESSAGE, not the conversation list filtered. -->
+    <string name="inbox_search_label">Search messages</string>
+    <string name="inbox_search_running">Searching…</string>
+    <string name="inbox_search_none_title">No matches</string>
+    <string name="inbox_search_none">Search looks inside every message in this workspace, including
+        older threads.</string>
+    <!-- ⛔ STATED, NOT SWALLOWED. The server stopped at its ceiling, so older matches exist and are
+         not on this screen. -->
+    <string name="inbox_search_capped">Showing the newest matches. Older ones are not listed.</string>
+</resources>

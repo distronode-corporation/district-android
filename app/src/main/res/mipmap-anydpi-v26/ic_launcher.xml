@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Distronode mark, generated from the square logo lockup the website serves into the
+  five density buckets.
+
+  ⛔ THE FOREGROUND IS A 108dp CANVAS WITH THE MARK AT 52dp IN THE MIDDLE, AND THE PADDING
+  IS LOAD-BEARING RATHER THAN TASTE. Adaptive icons reserve the outer 18dp on every edge
+  for the launcher's mask and its parallax, so artwork placed there is clipped on some
+  launchers and not others. The mark is held slightly inside even the 72dp safe zone
+  at Material's square keyline, because its blades run out to the edges of their own
+  bounding box: at 62dp it is visibly pressed against the circular mask.
+
+  ⚠️ PNG rather than a vector: the mark is a gradient-filled spiral with no flat-fill
+  equivalent, so tracing it to `pathData` would either lose the gradient or grow into
+  something nobody can hand-edit. `minSdk` is 26 and adaptive icons landed in 26, so no
+  density-bucketed raster fallback for pre-26 is needed.
+
+  ⚠️ `monochrome` intentionally reuses the same drawable. Android 13+ themed icons take
+  only the alpha channel, so the silhouette is what ships; it reads as the spiral.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

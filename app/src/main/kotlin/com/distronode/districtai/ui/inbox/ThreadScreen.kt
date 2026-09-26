@@ -62,10 +62,10 @@ fun ThreadScreen(
     /** Expand the thread backwards by one page. See `ThreadViewModel.loadOlder`. */
     onLoadOlder: () -> Unit,
     composer: ComposerHandlers,
-    modifier: Modifier = Modifier,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = THREAD_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = THREAD_ROOT_DESCRIPTION },
         topBar = { DistrictTopBar(title = title, onBack = onBack) },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {

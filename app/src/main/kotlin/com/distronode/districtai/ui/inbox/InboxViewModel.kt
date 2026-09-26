@@ -225,7 +225,9 @@ class InboxViewModel(
      * one.
      */
     fun conversationFor(threadKey: String): ConversationSummary? =
-        (_state.value as? InboxUiState.Content)?.conversations?.firstOrNull { it.threadKey == threadKey }
+        (_state.value as? InboxUiState.Content)?.let { content ->
+            content.conversations.firstOrNull { it.threadKey == threadKey }
+        }
 
     /**
      * Factory.

@@ -25,6 +25,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.model.MarkReadRequest
+import com.distronode.districtai.core.model.MarkReadResponse
+import org.junit.Assert.assertNull
 
 /**
  * ⛔ THE ASSERTION THAT MATTERS MOST HERE IS `a viewer never fires a mark-read`. `messages/mark-read`
@@ -262,4 +265,99 @@ class InboxViewModelTest {
 
         assertTrue(api.draftReads.isEmpty())
     }
+
+    // ── Arriving in, or acting on, a state that is not the list ──────────────
+
+    /**
+     * A fake whose list read answers from a queue first, and which records every mark-read.
+     *
+     * ⚠️ A SUBCLASS RATHER THAN NEW FIELDS ON THE SHARED FAKE: only these tests need either.
+     */
+    private class SequencedApi : TestDistrictApi() {
+        val answers = ArrayDeque<ApiResult<ConversationsResponse>>()
+        val markReads = mutableListOf<MarkReadRequest>()
+
+        override suspend fun conversations(workspaceId: String): ApiResult<ConversationsResponse> =
+            answers.removeFirstOrNull() ?: super.conversations(workspaceId)
+
+        override suspend fun markRead(request: MarkReadRequest): ApiResult<MarkReadResponse> =
+            super.markRead(request).also { markReads += request }
+    }
+
+    private fun list(vararg threads: ConversationSummary): ApiResult<ConversationsResponse> =
+        ApiResult.Success(ConversationsResponse(success = true, conversations = threads.toList()))
+
+    @Test
+    fun `a refresh from a failed load re-reads without first blanking to a spinner`() = runTest(dispatcher) {
+        val api = SequencedApi().apply {
+            answers += ApiResult.NetworkFailure(java.io.IOException("offline"))
+            answers += list(summary())
+        }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+        assertTrue(vm.state.value is InboxUiState.Failed)
+
+        vm.load(refreshing = true)
+        assertTrue("the failure stays up until the answer lands", vm.state.value is InboxUiState.Failed)
+        advanceUntilIdle()
+
+        assertEquals(1, (vm.state.value as InboxUiState.Content).conversations.size)
+    }
+
+    @Test
+    fun `opening a thread while the list has failed still records the read`() = runTest(dispatcher) {
+        val api = SequencedApi().apply { answers += ApiResult.NetworkFailure(java.io.IOException("offline")) }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.markThreadRead("c1", "+14165550142")
+        advanceUntilIdle()
+
+        assertEquals(1, api.markReads.size)
+        assertTrue(vm.state.value is InboxUiState.Failed)
+    }
+
+    @Test
+    fun `draft badges that land after the list has since failed are not applied`() = runTest(dispatcher) {
+        // ⚠️ Two loads in flight: the first answers with the list, the second with a failure. The
+        // first load's badge read lands last, on a screen that is now the failure.
+        val api = SequencedApi().apply {
+            answers += list(summary(threadKey = "contact:c1"))
+            answers += ApiResult.NetworkFailure(java.io.IOException("offline"))
+            draftsResult = ApiResult.Success(
+                DraftListResponse(success = true, drafts = listOf(MessageDraft(threadKey = "contact:c1", body = "x"))),
+            )
+        }
+        val vm = viewModel(api)
+        vm.load()
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value is InboxUiState.Failed)
+        assertEquals(1, api.draftReads.size)
+    }
+
+    @Test
+    fun `no thread resolves while the list has failed`() = runTest(dispatcher) {
+        val api = SequencedApi().apply { answers += ApiResult.NetworkFailure(java.io.IOException("offline")) }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        assertNull(vm.conversationFor("contact:c1"))
+    }
+
+    @Test
+    fun `clearing a search nobody started is harmless, and a second query replaces the first`() =
+        runTest(dispatcher) {
+            val vm = viewModel(apiWith(summary()))
+            advanceUntilIdle()
+
+            vm.clearSearch()
+            assertFalse(vm.searchState.value.active)
+
+            vm.onSearchQueryChanged("ref")
+            vm.onSearchQueryChanged("refund")
+            advanceUntilIdle()
+
+            assertEquals(listOf("refund"), searchApi.searches)
+        }
 }

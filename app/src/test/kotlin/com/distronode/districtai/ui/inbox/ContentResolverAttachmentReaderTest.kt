@@ -10,6 +10,7 @@ import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.core.data.ComposerRepository
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import java.io.File
 import java.io.FileNotFoundException
@@ -18,7 +19,9 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -84,15 +87,32 @@ class ContentResolverAttachmentReaderTest {
 
     @Test
     fun `an item without a usable display name falls back to a neutral file name`() = runTest {
-        // Three different ways a provider can decline to name an item: no name column, a name
-        // column with no row, and refusing the query outright. None of them loses the bytes.
-        listOf("no-name-column", "no-rows", "name-refused").forEach { item ->
+        // Four different ways a provider can decline to name an item: no name column, a name column
+        // with no row, refusing the query outright, and answering it with no cursor at all. None of
+        // them loses the bytes.
+        listOf("no-name-column", "no-rows", "name-refused", "no-cursor").forEach { item ->
             val picked = read(item, StandardTestDispatcher(testScheduler))
 
             assertEquals(item, "attachment", picked?.fileName)
             assertEquals(item, "image/png", picked?.mimeType)
             assertArrayEquals(item, photoBytes, picked?.bytes)
         }
+    }
+
+    @Test
+    fun `a provider that opens no stream is could-not-read`() = runTest {
+        assertNull(read("no-stream", StandardTestDispatcher(testScheduler)))
+        assertEquals(1, PickerProvider.opened("no-stream"))
+    }
+
+    @Test
+    fun `the size rule is one byte to the route's ceiling, inclusive`() {
+        fun sized(size: Int) = PickedAttachment("a.png", "image/png", ByteArray(size))
+
+        assertFalse("an empty read is a failed read, not an image", sized(0).isWithinSizeLimit())
+        assertTrue(sized(1).isWithinSizeLimit())
+        assertTrue(sized(ComposerRepository.MAX_UPLOAD_BYTES).isWithinSizeLimit())
+        assertFalse(sized(ComposerRepository.MAX_UPLOAD_BYTES + 1).isWithinSizeLimit())
     }
 
     private companion object {
@@ -115,12 +135,15 @@ internal class PickerProvider : ContentProvider() {
         else -> "image/png"
     }
 
-    override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
+    override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         val item = uri.lastPathSegment.orEmpty()
         openCounts[item] = opened(item) + 1
         return when (item) {
             "revoked" -> throw SecurityException("Permission Denial: reading $uri requires a grant")
             "gone" -> throw FileNotFoundException("No item at $uri")
+            // A provider that answers with no descriptor at all, which the resolver hands back as a
+            // null stream rather than an exception.
+            "no-stream" -> null
             else -> {
                 val file = File.createTempFile("picked", ".bin").apply {
                     deleteOnExit()
@@ -137,8 +160,9 @@ internal class PickerProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<out String>?,
         sortOrder: String?,
-    ): Cursor = when (uri.lastPathSegment) {
+    ): Cursor? = when (uri.lastPathSegment) {
         "name-refused" -> throw SecurityException("Permission Denial: querying $uri")
+        "no-cursor" -> null
         "no-name-column" -> MatrixCursor(arrayOf(OpenableColumns.SIZE)).apply {
             addRow(arrayOf<Any>(bytes.size))
         }

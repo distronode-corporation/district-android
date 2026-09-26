@@ -59,14 +59,14 @@ fun InboxScreen(
     state: InboxUiState,
     onOpenThread: (ConversationSummary) -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
-    searchState: InboxSearchState = InboxSearchState(),
-    onSearchQueryChanged: (String) -> Unit = {},
-    onOpenHit: (MessageSearchHit) -> Unit = {},
+    onBack: () -> Unit,
+    searchState: InboxSearchState,
+    onSearchQueryChanged: (String) -> Unit,
+    onOpenHit: (MessageSearchHit) -> Unit,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = INBOX_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = INBOX_ROOT_DESCRIPTION },
         topBar = { DistrictTopBar(title = stringResource(R.string.inbox_title), onBack = onBack) },
     ) { inset ->
         Column(modifier = inset.fillMaxSize()) {

@@ -157,6 +157,22 @@ class TokenRefreshCoordinatorTest {
         assertEquals(listOf("r0"), api.presentedTokens)
     }
 
+    @Test
+    fun `a marker naming an older token than the one on disk is not an interrupted refresh`() = runTest {
+        // A refresh that DID land: the rotated token reached disk, and the process died before the
+        // marker for the spent one was cleared. The token on disk is fresh, so it is the one to use;
+        // treating the stale marker as an interruption would sign a healthy session out.
+        val store = FakeTokenStore(session("r1"))
+        store.markRefreshPending("r0")
+        val api = CountingRefreshApi(null) { RefreshResult.Success(tokens("r2")) }
+
+        val result = TokenRefreshCoordinator(store, api, nowMillis = { NOW }).accessToken()
+
+        assertEquals(AccessToken.Available("access-r2"), result)
+        assertEquals("only the token on disk is presented", listOf("r1"), api.presentedTokens)
+        assertEquals("refresh-r2", store.read()?.refreshToken)
+    }
+
     // ── 4. Proactive refresh ─────────────────────────────────────────────────
 
     @Test

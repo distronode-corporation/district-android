@@ -6,6 +6,7 @@ import java.io.OutputStream
 import java.security.InvalidAlgorithmParameterException
 import java.security.Key
 import java.security.KeyStore
+import java.security.KeyStoreException
 import java.security.KeyStoreSpi
 import java.security.Provider
 import java.security.SecureRandom
@@ -16,6 +17,7 @@ import java.util.Collections
 import java.util.Date
 import java.util.Enumeration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import javax.crypto.KeyGeneratorSpi
 import javax.crypto.SecretKey
@@ -39,10 +41,12 @@ import javax.crypto.spec.SecretKeySpec
  *     [KeystoreCipher] asks for is recorded instead ([lastKeySpec]) and asserted directly;
  *   - non-extractable key objects: the platform hands back an opaque key whose `encoded` is null,
  *     and this double hands back a [SecretKeySpec] with its bytes;
- *   - key invalidation: on a device a key can be PRESENT under its alias and unusable, so the
- *     lookup succeeds and `Cipher.init` throws (`KeyPermanentlyInvalidatedException` or another
- *     `InvalidKeyException`). [forgetAllKeys] models an ABSENT key only, which is a backup
- *     restored onto a new device; nothing here models the present-but-unusable case.
+ *   - key invalidation, only approximately: on a device a key can be PRESENT under its alias and
+ *     unusable, so the lookup succeeds and `Cipher.init` throws (`KeyPermanentlyInvalidatedException`
+ *     or another `InvalidKeyException`). [forgetAllKeys] models an ABSENT key, which is a backup
+ *     restored onto a new device. [plantUnusableKey] models the present-but-unusable case by the
+ *     same symptom (a lookup that succeeds and an init that throws `InvalidKeyException`), not by
+ *     the platform's cause.
  *
  * INSTALLED AND REMOVED AROUND EACH TEST. It is registered under the platform's provider name,
  * which is process-wide state, and [KeystoreTokenStoreTest] depends on that name being ABSENT to
@@ -52,11 +56,12 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
 
     private val storedKeys = ConcurrentHashMap<String, SecretKey>()
     private val lastSpec = AtomicReference<KeyGenParameterSpec?>(null)
+    private val lookupsLeft = AtomicInteger(UNLIMITED)
 
     init {
         putService(
             object : Service(this, "KeyStore", NAME, SoftKeyStoreSpi::class.java.name, null, null) {
-                override fun newInstance(constructorParameter: Any?): Any = SoftKeyStoreSpi(storedKeys)
+                override fun newInstance(constructorParameter: Any?): Any = SoftKeyStoreSpi(storedKeys, lookupsLeft)
             },
         )
         putService(
@@ -81,6 +86,25 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
      */
     fun forgetAllKeys() = storedKeys.clear()
 
+    /**
+     * Let the next [count] key lookups succeed and refuse every one after that, as a keystore that
+     * stops answering partway through a sequence of operations does. [allowLookups] lifts it.
+     */
+    fun refuseLookupsAfter(count: Int) = lookupsLeft.set(count)
+
+    fun allowLookups() = lookupsLeft.set(UNLIMITED)
+
+    /**
+     * Put a key under [alias] that the lookup returns and every AES cipher refuses at `init` with an
+     * `InvalidKeyException`: the symptom a key invalidated by a device-security change shows.
+     */
+    fun plantUnusableKey(alias: String) {
+        storedKeys[alias] = SecretKeySpec(ByteArray(UNUSABLE_KEY_BYTES), "AES")
+    }
+
+    /** The key object currently held under [alias], or null. */
+    fun keyUnder(alias: String): SecretKey? = storedKeys[alias]
+
     fun install() {
         check(Security.getProvider(NAME) == null) { "an $NAME provider is already installed" }
         Security.addProvider(this)
@@ -90,16 +114,28 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
 
     companion object {
         const val NAME = "AndroidKeyStore"
+        private const val UNLIMITED = -1
+
+        /** Not a legal AES key length, so `Cipher.init` rejects it. */
+        private const val UNUSABLE_KEY_BYTES = 7
     }
 }
 
-private class SoftKeyStoreSpi(private val keys: MutableMap<String, SecretKey>) : KeyStoreSpi() {
+private class SoftKeyStoreSpi(
+    private val keys: MutableMap<String, SecretKey>,
+    private val lookupsLeft: AtomicInteger,
+) : KeyStoreSpi() {
 
     override fun engineGetKey(alias: String, password: CharArray?): Key? = keys[alias]
 
     // The default implementation refuses a key entry without a password; the platform's does not.
-    override fun engineGetEntry(alias: String, protParam: KeyStore.ProtectionParameter?): KeyStore.Entry? =
-        keys[alias]?.let { KeyStore.SecretKeyEntry(it) }
+    override fun engineGetEntry(alias: String, protParam: KeyStore.ProtectionParameter?): KeyStore.Entry? {
+        // A negative budget is unlimited; otherwise each lookup spends one and none is left at zero.
+        if (lookupsLeft.getAndUpdate { if (it > 0) it - 1 else it } == 0) {
+            throw KeyStoreException("the keystore refused the lookup")
+        }
+        return keys[alias]?.let { KeyStore.SecretKeyEntry(it) }
+    }
 
     override fun engineGetCertificateChain(alias: String): Array<Certificate>? = null
 

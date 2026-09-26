@@ -1,5 +1,8 @@
 package com.distronode.districtai.ui.dialer
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -14,6 +17,7 @@ import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -197,6 +201,64 @@ class DialerScreenTest {
         composeRule.onNodeWithContentDescription(DIALER_ROOT_DESCRIPTION).assertDoesNotExist()
     }
 
+    // ── A redraw, a row with no number, and the preview ──────────────────────
+
+    @Test
+    fun `a theme change redraws the keypad and the call-back list with their handles intact`() {
+        val theme = ThemeFlip(composeRule)
+        val state = idle(callbacks = CallbacksState.Ready(listOf(callRow())))
+        // ⚠️ One handlers instance for the whole test, so the redraw hands the row the same one.
+        val handlers = handlers()
+        theme.setContent { DialerScreen(state = state, handlers = handlers) }
+
+        theme.flip()
+
+        composeRule.onNodeWithContentDescription(DIALER_MIC_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+        assertEquals(listOf("+14165550100"), callBacks)
+    }
+
+    @Test
+    fun `a viewer's notice survives a theme change`() {
+        val theme = ThemeFlip(composeRule)
+        val handlers = handlers()
+        theme.setContent { DialerScreen(state = idle(canDial = false), handlers = handlers) }
+
+        theme.flip()
+
+        composeRule.onNodeWithContentDescription(DIALER_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a call-back row with no number fills an empty entry, which cannot be dialled`() {
+        // ⚠️ The repository drops such rows before they reach the screen; the screen itself still
+        // takes any row it is handed, and one without a number must not produce something dialable.
+        render(idle(callbacks = CallbacksState.Ready(listOf(callRow().copy(from = null)))))
+
+        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+
+        assertEquals(listOf(""), callBacks)
+        assertEquals(0, dialTaps)
+    }
+
+    @Test
+    fun `the preview renders a dialable number`() {
+        composeRule.setContent { DialerScreenPreview() }
+
+        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+    }
+
+    private fun handlers() = DialerHandlers(
+        onEntryChange = { entries += it },
+        onCallBack = { callBacks += it },
+        onDial = { dialTaps++ },
+        onToggleMicrophone = { micTaps++ },
+        onToggleSpeaker = { speakerTaps++ },
+        onHangUp = { hangUpTaps++ },
+        onDismissEndedCall = { dismissTaps++ },
+        onBack = {},
+    )
+
     private fun callRow() = CallSummary(
         id = "call-1",
         type = "inbound",
@@ -212,4 +274,21 @@ class DialerScreenTest {
         summary = "",
         createdAt = "2026-08-15T14:30:00.000Z",
     )
+
+    @Test
+    fun `a call-back row reaches the handlers the host holds now`() {
+        val later = mutableListOf<String>()
+        var current by mutableStateOf(handlers())
+        val state = idle(callbacks = CallbacksState.Ready(listOf(callRow())))
+        composeRule.setContent {
+            DistrictTheme { DialerScreen(state = state, handlers = current) }
+        }
+
+        current = handlers().copy(onCallBack = { later += it })
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+
+        assertEquals(listOf("+14165550100"), later)
+        assertEquals(emptyList<String>(), callBacks)
+    }
 }

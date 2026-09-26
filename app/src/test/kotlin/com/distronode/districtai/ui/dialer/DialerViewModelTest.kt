@@ -612,6 +612,126 @@ class DialerViewModelTest {
         }
     }
 
+    // ── Edges of the call lifecycle ──────────────────────────────────────────
+
+    @Test
+    fun `a dial abandoned in flight cannot be re-dialled until its answer lands`() = runTest {
+        // ⛔ THE ABANDONED DIAL'S CARRIER LEG IS STILL BEING PLACED. A second dial now would be a
+        // second call to the same person while the first is being torn down.
+        val api = api()
+        val vm = viewModel(api = api)
+        vm.dialTo()
+        vm.hangUp {}
+
+        vm.onEntryChange("+14165550100")
+        vm.onDial()
+        vm.onMicrophonePermissionResult(granted = true)
+        assertEquals("no new permission request while the first dial is out", 1, vm.state.value.microphoneRequest)
+        advanceUntilIdle()
+
+        assertEquals(1, api.dialRequests.size)
+        assertNull(vm.state.value.call)
+    }
+
+    @Test
+    fun `mute and speaker toggle back, each round trip reaching the engine`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(factory = factory)
+        vm.dialTo()
+        advanceUntilIdle()
+
+        vm.toggleMicrophone()
+        advanceUntilIdle()
+        vm.toggleMicrophone()
+        advanceUntilIdle()
+        vm.toggleSpeaker()
+        vm.toggleSpeaker()
+        runCurrent()
+
+        assertTrue(vm.state.value.call!!.micEnabled)
+        val mic = factory.engine.calls.filter { it.startsWith("mic:") }
+        assertEquals(listOf("mic:true", "mic:false", "mic:true"), mic)
+        assertFalse(vm.state.value.call!!.speakerOn)
+        val speaker = factory.engine.calls.filter { it.startsWith("speaker:") }
+        assertEquals(listOf("speaker:true", "speaker:false"), speaker)
+
+        vm.hangUp {}
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `a second participant is not a second answer, so Telecom is told once`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(factory = factory)
+        vm.dialTo()
+        advanceUntilIdle()
+
+        factory.engine.emitParticipants(listOf(MediaParticipant(identity = "sip_a", name = null)))
+        runCurrent()
+        advanceTimeBy(TICK * 2 + 1)
+        factory.engine.emitParticipants(
+            listOf(MediaParticipant(identity = "sip_a", name = null), MediaParticipant(identity = "b", name = null)),
+        )
+        runCurrent()
+
+        assertEquals(1, telecom.calls.count { it == "active" })
+        assertEquals("the duration is not restarted", 2, vm.state.value.call!!.elapsedSeconds)
+
+        vm.hangUp {}
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `a participant arriving after the hang-up does not answer a call that is over`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(factory = factory)
+        vm.dialTo()
+        advanceUntilIdle()
+        vm.hangUp {}
+
+        factory.engine.emitParticipants(listOf(MediaParticipant(identity = "sip_late", name = null)))
+        advanceUntilIdle()
+
+        assertFalse(vm.state.value.call!!.answered)
+        assertFalse(telecom.calls.contains("active"))
+    }
+
+    @Test
+    fun `dismissing does nothing while there is no call, or while the call is still live`() = runTest {
+        val vm = viewModel()
+        vm.clearEndedCall()
+        assertNull(vm.state.value.call)
+
+        vm.dialTo()
+        advanceUntilIdle()
+        vm.clearEndedCall()
+
+        assertEquals(CallPhase.RINGING, vm.state.value.call!!.phase)
+        vm.hangUp {}
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `a second call after the first is dismissed shows only the second call's state`() = runTest {
+        // ⚠️ The first call's state mirror is replaced, so a late emission from the finished call
+        // cannot write over the new one.
+        val first = FakeCallEngineFactory()
+        val vm = viewModel(factory = first)
+        vm.dialTo()
+        advanceUntilIdle()
+        vm.hangUp {}
+        advanceUntilIdle()
+        vm.clearEndedCall()
+
+        vm.dialTo("+14165550199")
+        advanceUntilIdle()
+
+        assertEquals("+14165550199", vm.state.value.call!!.number)
+        assertEquals(CallPhase.RINGING, vm.state.value.call!!.phase)
+        vm.hangUp {}
+        advanceUntilIdle()
+    }
+
     @Test
     fun `a call placed while the call-back list is read survives the list landing`() = runTest {
         // ⚠️ The two are unrelated reads; a slow call log must not hold the keypad.

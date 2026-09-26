@@ -325,4 +325,54 @@ class SupportRequestViewModelTest {
         assertEquals("Not found", state.failure.message.literalOrNull)
         assertFalse("a 404 here offers no retry", state.failure.retryable)
     }
+
+    @Test
+    fun `neither write is attempted before the thread has loaded`() = runTest {
+        // ⚠️ There is no thread to append to or close yet; a tap in that window must not post.
+        val api = api()
+        val model = viewModel(api)
+        model.editDraft("Still happening")
+
+        model.send()
+        model.close()
+        advanceUntilIdle()
+
+        assertTrue(api.replyBodies.isEmpty())
+        assertTrue(api.closedKeys.isEmpty())
+    }
+
+    @Test
+    fun `a second send while the first is in flight posts one comment`() = runTest {
+        // ⛔ A reply is a PUBLIC comment; a double tap would put two copies in the customer's thread.
+        val api = api().apply {
+            replyResult = ApiResult.Success(
+                SupportReplyResponse(
+                    success = true,
+                    message = SupportMessage(id = "c2", role = "customer", body = "Still happening"),
+                ),
+            )
+        }
+        val model = viewModel(api)
+        advanceUntilIdle()
+        model.editDraft("Still happening")
+
+        model.send()
+        model.send()
+        advanceUntilIdle()
+
+        assertEquals(listOf("Still happening"), api.replyBodies)
+    }
+
+    @Test
+    fun `retryOrNoop on a loaded thread reads nothing`() = runTest {
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+        val reads = api.detailReads
+
+        model.retryOrNoop()
+        advanceUntilIdle()
+
+        assertEquals(reads, api.detailReads)
+    }
 }

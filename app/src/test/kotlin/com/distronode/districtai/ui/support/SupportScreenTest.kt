@@ -1,6 +1,12 @@
 package com.distronode.districtai.ui.support
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
@@ -10,11 +16,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.SupportMessage
 import com.distronode.districtai.core.model.SupportRequestDetail
 import com.distronode.districtai.core.model.SupportRequestSummary
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -56,6 +64,8 @@ class SupportScreenTest {
         canUse: Boolean = true,
         onOpenRequest: (SupportRequestSummary) -> Unit = {},
         onCompose: () -> Unit = {},
+        onRetry: () -> Unit = {},
+        onBack: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -64,7 +74,8 @@ class SupportScreenTest {
                     canUse = canUse,
                     onOpenRequest = onOpenRequest,
                     onCompose = onCompose,
-                    onRetry = {},
+                    onRetry = onRetry,
+                    onBack = onBack,
                 )
             }
         }
@@ -178,6 +189,7 @@ class SupportScreenTest {
                     onSend = {},
                     onClose = onClose,
                     onRetry = {},
+                    onBack = {},
                 )
             }
         }
@@ -257,5 +269,114 @@ class SupportScreenTest {
         composeRule
             .onNodeWithContentDescription(SUPPORT_REQUEST_REFUSED_DESCRIPTION)
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun `a refresh over a loaded list draws its bar above the rows it keeps`() {
+        renderList(SupportUiState.Content(requests = listOf(open), refreshing = true))
+
+        composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertIsDisplayed()
+        composeRule.onNodeWithText("Calls drop").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a list at the route's cap says older requests are not shown`() {
+        // ⚠️ The route caps at 100 with no cursor; staying silent would present a partial list as
+        // the whole history.
+        val many = (1..100).map { open.copy(issueKey = "DA-$it", id = "row_$it", subject = "Request $it") }
+        renderList(SupportUiState.Content(requests = many))
+
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasContentDescription(SUPPORT_CAPPED_DESCRIPTION))
+        composeRule.onNodeWithContentDescription(SUPPORT_CAPPED_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a list under the cap says nothing about older requests`() {
+        renderList(SupportUiState.Content(requests = listOf(open)))
+
+        composeRule.onNodeWithContentDescription(SUPPORT_CAPPED_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a failed read offers a retry that reaches the host, and only when it could work`() {
+        var retries = 0
+        renderList(SupportUiState.Failed(FailureText(message = UiText.Literal("Offline"))), onRetry = { retries += 1 })
+        composeRule.onNodeWithText("Try again").performClick()
+        assertEquals(1, retries)
+    }
+
+    @Test
+    fun `a failure that cannot be retried offers no button`() {
+        renderList(SupportUiState.Failed(FailureText(message = UiText.Literal("Forbidden"), retryable = false)))
+
+        composeRule.onNodeWithText("Forbidden").assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the list's back action reaches the host`() {
+        var backs = 0
+        renderList(SupportUiState.Loading, onBack = { backs += 1 })
+
+        composeRule.onNodeWithContentDescription(SUPPORT_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `a theme change redraws the list with its rows still opening their request`() {
+        val opened = mutableListOf<SupportRequestSummary>()
+        var composes = 0
+        val theme = ThemeFlip(composeRule)
+        theme.setContent {
+            SupportScreen(
+                state = SupportUiState.Content(requests = listOf(open, unfiled)),
+                canUse = true,
+                onOpenRequest = { opened += it },
+                onCompose = { composes += 1 },
+                onRetry = {},
+                onBack = {},
+            )
+        }
+
+        theme.flip()
+
+        composeRule.onNodeWithText("Calls drop").performClick()
+        composeRule.onNodeWithContentDescription(SUPPORT_NEW_DESCRIPTION).performClick()
+        assertEquals(listOf(open), opened)
+        assertEquals(1, composes)
+    }
+
+    @Test
+    fun `rows and the new-request button reach the handlers the host holds now`() {
+        // ⚠️ The host may hand the list new handlers (a recreated ViewModel); a tap must reach
+        // the live ones rather than the first ones the list was drawn with.
+        val first = mutableListOf<String>()
+        val second = mutableListOf<String>()
+        var onOpen by mutableStateOf<(SupportRequestSummary) -> Unit>({ first += "open" })
+        var onCompose by mutableStateOf({ first += "compose" })
+        composeRule.setContent {
+            DistrictTheme {
+                SupportScreen(
+                    state = SupportUiState.Content(requests = listOf(open)),
+                    canUse = true,
+                    onOpenRequest = onOpen,
+                    onCompose = onCompose,
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        onOpen = { second += "open" }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Calls drop").performClick()
+        onCompose = { second += "compose" }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(SUPPORT_NEW_DESCRIPTION).performClick()
+
+        assertEquals(emptyList<String>(), first)
+        assertEquals(listOf("open", "compose"), second)
     }
 }

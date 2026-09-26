@@ -58,11 +58,10 @@ fun SupportRequestScreen(
     onSend: () -> Unit,
     onClose: () -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = SUPPORT_REQUEST_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = SUPPORT_REQUEST_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 // ⚠️ The key when there is one; an unfiled request genuinely has none yet.
@@ -73,12 +72,16 @@ fun SupportRequestScreen(
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
-            when {
-                !canUse -> RequestRefused()
-                state is SupportRequestUiState.Loading -> RequestLoading()
-                state is SupportRequestUiState.Failed -> RequestFailure(state.failure, onRetry)
-                state is SupportRequestUiState.Content ->
-                    RequestLoaded(state, draft, onDraftChange, onSend, onClose)
+            // ⚠️ The states are matched exhaustively, so a new one cannot fall through to a blank screen.
+            if (!canUse) {
+                RequestRefused()
+            } else {
+                when (state) {
+                    SupportRequestUiState.Loading -> RequestLoading()
+                    is SupportRequestUiState.Failed -> RequestFailure(state.failure, onRetry)
+                    is SupportRequestUiState.Content ->
+                        RequestLoaded(state, draft, onDraftChange, onSend, onClose)
+                }
             }
         }
     }

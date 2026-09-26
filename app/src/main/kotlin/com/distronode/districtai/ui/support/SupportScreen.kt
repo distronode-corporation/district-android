@@ -56,22 +56,25 @@ fun SupportScreen(
     onOpenRequest: (SupportRequestSummary) -> Unit,
     onCompose: () -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = SUPPORT_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = SUPPORT_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.support_title), onBack = onBack)
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
-            when {
-                // ⛔ NO REQUEST IS SPENT FOR A VIEWER: all five routes refuse them, reads included.
-                !canUse -> SupportRefused()
-                state is SupportUiState.Loading -> SupportLoading()
-                state is SupportUiState.Failed -> SupportFailure(state.failure, onRetry)
-                state is SupportUiState.Content -> SupportLoaded(state, onOpenRequest, onCompose)
+            // ⛔ NO REQUEST IS SPENT FOR A VIEWER: all five routes refuse them, reads included.
+            // ⚠️ The states are matched exhaustively, so a new one cannot fall through to a blank screen.
+            if (!canUse) {
+                SupportRefused()
+            } else {
+                when (state) {
+                    SupportUiState.Loading -> SupportLoading()
+                    is SupportUiState.Failed -> SupportFailure(state.failure, onRetry)
+                    is SupportUiState.Content -> SupportLoaded(state, onOpenRequest, onCompose)
+                }
             }
         }
     }

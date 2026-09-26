@@ -1,9 +1,13 @@
 package com.distronode.districtai.ui.support
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -12,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.SupportMessage
 import com.distronode.districtai.core.model.SupportRequestDetail
 import com.distronode.districtai.ui.FailureText
@@ -57,6 +62,7 @@ class SupportRequestScreenTest {
     private var sends = 0
     private var closes = 0
     private var retries = 0
+    private var backs = 0
     private val drafts = mutableListOf<String>()
 
     private fun render(state: SupportRequestUiState, draft: String = "", canUse: Boolean = true) {
@@ -70,6 +76,7 @@ class SupportRequestScreenTest {
                     onSend = { sends += 1 },
                     onClose = { closes += 1 },
                     onRetry = { retries += 1 },
+                    onBack = { backs += 1 },
                 )
             }
         }
@@ -211,5 +218,42 @@ class SupportRequestScreenTest {
 
         composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_LOADING_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_REPLY_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the thread's back action reaches the host`() {
+        render(SupportRequestUiState.Loading)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `a second failed send replaces the first sentence in the same place`() {
+        var state by mutableStateOf<SupportRequestUiState>(
+            SupportRequestUiState.Content(request, sendFailure = FailureText(UiText.Literal("First failure."))),
+        )
+        composeRule.setContent {
+            DistrictTheme {
+                SupportRequestScreen(
+                    state = state,
+                    draft = "Thanks",
+                    canUse = true,
+                    onDraftChange = {},
+                    onSend = {},
+                    onClose = {},
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("First failure.").assertIsDisplayed()
+
+        state = SupportRequestUiState.Content(request, sendFailure = FailureText(UiText.Literal("Second failure.")))
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_FAILURE_DESCRIPTION)
+            .assertTextEquals("Second failure.")
+        composeRule.onNodeWithText("First failure.").assertDoesNotExist()
     }
 }

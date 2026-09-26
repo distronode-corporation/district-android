@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.contacts
 
+import androidx.activity.ComponentDialog
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -18,6 +19,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
+import com.distronode.districtai.ui.MainLooperDrain
+import org.junit.rules.RuleChain
 
 /**
  * The one place in the app that holds user input.
@@ -35,8 +39,11 @@ import org.robolectric.annotation.Config
 @Config(sdk = [ROBOLECTRIC_SDK])
 class CreateContactDialogTest {
 
+    private val composeRule = createComposeRule()
+
+    /** ⚠️ The drain is OUTER, so it runs after the activity has closed; see [MainLooperDrain]. */
     @get:Rule
-    val composeRule = createComposeRule()
+    val rules: RuleChain = RuleChain.outerRule(MainLooperDrain()).around(composeRule)
 
     private fun render(
         state: CreateContactUiState = CreateContactUiState.Idle,
@@ -196,5 +203,38 @@ class CreateContactDialogTest {
 
         composeRule.onNodeWithText("Add").assertIsDisplayed()
         composeRule.onNodeWithText("Adding…").assertDoesNotExist()
+    }
+
+    /**
+     * The system back gesture, delivered to the dialog's own window the way the platform does.
+     *
+     * ⚠️ THROUGH THE DIALOG'S BACK DISPATCHER, not a key event on a node: Compose's dialog listens
+     * for back on its window, which a semantics key press never reaches.
+     */
+    private fun pressBackOnDialog() {
+        composeRule.runOnIdle {
+            (ShadowDialog.getLatestDialog() as ComponentDialog).onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    @Test
+    fun `back dismisses when idle`() {
+        var dismissed = 0
+        render(onDismiss = { dismissed++ })
+
+        pressBackOnDialog()
+
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `back is ignored while saving, because the request is already in flight`() {
+        var dismissed = 0
+        render(CreateContactUiState.Saving, onDismiss = { dismissed++ })
+
+        pressBackOnDialog()
+
+        assertEquals(0, dismissed)
+        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
     }
 }

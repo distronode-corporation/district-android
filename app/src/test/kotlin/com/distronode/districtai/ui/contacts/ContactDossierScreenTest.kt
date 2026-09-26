@@ -1,6 +1,10 @@
 package com.distronode.districtai.ui.contacts
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -19,6 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.ui.MainLooperDrain
+import org.junit.rules.RuleChain
 
 /**
  * The dossier section of the contact detail screen.
@@ -37,8 +43,11 @@ import org.robolectric.annotation.Config
 @Config(sdk = [ROBOLECTRIC_SDK], qualifiers = "w1280dp-h3000dp")
 class ContactDossierScreenTest {
 
+    private val composeRule = createComposeRule()
+
+    /** ⚠️ The drain is OUTER, so it runs after the activity has closed; see [MainLooperDrain]. */
     @get:Rule
-    val composeRule = createComposeRule()
+    val rules: RuleChain = RuleChain.outerRule(MainLooperDrain()).around(composeRule)
 
     private fun contact(
         dgiStatus: String? = null,
@@ -313,5 +322,91 @@ class ContactDossierScreenTest {
         composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DOSSIER_PENDING_DESCRIPTION)
             .assertDoesNotExist()
         composeRule.onNodeWithText("No dossier for this contact.").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a company with blank fields shows only the ones it has`() {
+        render(
+            contact(
+                dgiStatus = "complete",
+                company = ContactCompany(name = "  ", domain = "engines.test", industry = ""),
+            ),
+        )
+
+        scrollTo(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("engines.test").assertIsDisplayed()
+        composeRule.onNodeWithText("Industry").assertDoesNotExist()
+    }
+
+    @Test
+    fun `while a mutation is in flight, enrich and clear are disabled`() {
+        composeRule.setContent {
+            DistrictTheme {
+                ContactDetailScreen(
+                    state = ContactDetailUiState.Content(
+                        contact(dgiStatus = "failed", dgiError = "Timed out"),
+                        saving = true,
+                    ),
+                    canMutate = true,
+                    onBack = {},
+                    onRetry = {},
+                    onRename = {},
+                    onDelete = {},
+                    onDismissMutationFailure = {},
+                    onEnrich = {},
+                    onClearIntel = {},
+                )
+            }
+        }
+
+        scrollTo(CONTACT_DETAIL_ENRICH_DESCRIPTION).assertIsNotEnabled()
+        scrollTo(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `the clear confirmation survives a poll landing under it, and cancel sends nothing`() {
+        // ⚠️ The dossier poll replaces the contact every few seconds while a crawl runs. An open
+        // confirmation must stay open across that, and its buttons must still do what they say.
+        var clears = 0
+        var state by mutableStateOf<ContactDetailUiState>(
+            ContactDetailUiState.Content(contact(dgiStatus = "complete")),
+        )
+        composeRule.setContent {
+            DistrictTheme {
+                ContactDetailScreen(
+                    state = state,
+                    canMutate = true,
+                    onBack = {},
+                    onRetry = {},
+                    onRename = {},
+                    onDelete = {},
+                    onDismissMutationFailure = {},
+                    onEnrich = {},
+                    onClearIntel = { clears += 1 },
+                )
+            }
+        }
+        scrollTo(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION).performClick()
+
+        state = ContactDetailUiState.Content(contact(dgiStatus = "complete", company = ContactCompany(name = "New")))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).assertIsDisplayed()
+
+        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).assertDoesNotExist()
+        assertEquals(0, clears)
+
+        scrollTo(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).performClick()
+        assertEquals(1, clears)
+    }
+
+    @Test
+    fun `a company whose domain is blank shows its name and no domain row`() {
+        render(contact(dgiStatus = "complete", company = ContactCompany(name = "Analytical Engines", domain = " ")))
+
+        scrollTo(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("Analytical Engines").assertIsDisplayed()
+        composeRule.onNodeWithText("Domain").assertDoesNotExist()
     }
 }

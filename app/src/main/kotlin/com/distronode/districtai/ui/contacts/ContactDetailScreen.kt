@@ -59,13 +59,13 @@ fun ContactDetailScreen(
      * not idempotent — see `DgiApi`. The control that calls this is hidden unless the contact is
      * genuinely enrichable, and disabled while anything else is in flight.
      */
-    onEnrich: () -> Unit = {},
+    onEnrich: () -> Unit,
     /** ⛔ Destroys the dossier (not the contact) and is not recoverable. Confirmed in-screen. */
-    onClearIntel: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onClearIntel: () -> Unit,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = CONTACT_DETAIL_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_ROOT_DESCRIPTION },
         topBar = {
             // ⚠️ The back affordance moves INTO the app bar. It used to exist only inside the
             // FAILURE state, so a contact that loaded successfully offered no visible way back.

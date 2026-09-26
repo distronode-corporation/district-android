@@ -299,6 +299,184 @@ class ContactDetailDgiViewModelTest {
         assertEquals(failure, content(vm).mutationFailure)
     }
 
+    // ── What arrives in the wrong state ──────────────────────────────────────
+
+    @Test
+    fun `nothing is sent, and nothing changes, before the contact has loaded`() = runTest {
+        val api = TestDistrictApi().apply { contactResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val vm = viewModel(api)
+        runCurrent()
+        val failed = vm.state.value
+
+        vm.enrich()
+        vm.clearIntel()
+        vm.rename("Grace")
+        vm.delete {}
+        vm.clearMutationFailure()
+        runCurrent()
+
+        assertTrue(api.enrichRequests.isEmpty())
+        assertTrue(api.clearIntelRequests.isEmpty())
+        assertTrue(api.mutations.isEmpty())
+        assertEquals(failed, vm.state.value)
+    }
+
+    @Test
+    fun `a second enrich, clear or delete while one is in flight sends nothing more`() = runTest {
+        val api = api(dgiStatus = null)
+        val vm = viewModel(api)
+        runCurrent()
+
+        vm.enrich()
+        vm.enrich()
+        vm.clearIntel()
+        vm.delete {}
+        runCurrent()
+
+        assertEquals(1, api.enrichRequests.size)
+        assertTrue(api.clearIntelRequests.isEmpty())
+        assertTrue(api.mutations.isEmpty())
+    }
+
+    @Test
+    fun `a failed clear keeps the dossier and says why`() = runTest {
+        val api = api(dgiStatus = "complete").apply { clearIntelResult = ApiResult.RateLimited("Slow down.") }
+        val vm = viewModel(api)
+        runCurrent()
+
+        vm.clearIntel()
+        runCurrent()
+
+        assertEquals("complete", content(vm).contact.dgiStatus)
+        assertEquals("Slow down.", content(vm).mutationFailure?.message?.literalOrNull)
+        assertTrue(!content(vm).saving)
+    }
+
+    @Test
+    fun `an enrich that landed but whose re-read failed keeps the contact and says so`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+        runCurrent()
+
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        vm.enrich()
+        runCurrent()
+
+        assertEquals(1, api.enrichRequests.size)
+        assertEquals("Ada", content(vm).contact.name)
+        assertTrue(content(vm).mutationFailure != null)
+        assertTrue(!content(vm).saving)
+    }
+
+    @Test
+    fun `mutation results that land after a reload began are dropped rather than resurrecting the old screen`() =
+        runTest {
+            // ⚠️ A reload puts the screen back to Loading. A failure from a write started before it
+            // must not paint the pre-reload contact back over that, whichever write it was.
+            val api = api().apply {
+                enrichResult = ApiResult.RateLimited("Slow down.")
+                mutationResult = ApiResult.RateLimited("Slow down.")
+            }
+            val vm = viewModel(api)
+            runCurrent()
+
+            vm.enrich()
+            vm.load()
+            runCurrent()
+            assertNull(content(vm).mutationFailure)
+
+            vm.rename("Grace")
+            vm.load()
+            runCurrent()
+            assertNull(content(vm).mutationFailure)
+
+            vm.delete {}
+            vm.load()
+            runCurrent()
+            assertNull(content(vm).mutationFailure)
+        }
+
+    @Test
+    fun `a rename that lands during a crawl does not start a second poll`() = runTest {
+        val api = api(dgiStatus = "pending")
+        val vm = viewModel(api)
+        runCurrent()
+
+        vm.rename("Grace")
+        runCurrent()
+        val afterRename = api.contactRequestCount
+
+        tick()
+
+        // One poll, one read per interval: the rename's re-read found the crawl still running and
+        // left the poll already watching it alone.
+        assertEquals(afterRename + 1, api.contactRequestCount)
+
+        settle(api)
+    }
+
+    @Test
+    fun `a clear during a crawl stops the poll`() = runTest {
+        val api = api(dgiStatus = "crawling")
+        val vm = viewModel(api)
+        runCurrent()
+
+        api.answerWith(null)
+        vm.clearIntel()
+        runCurrent()
+        val afterClear = api.contactRequestCount
+
+        tick()
+        tick()
+
+        assertEquals(afterClear, api.contactRequestCount)
+        assertNull(content(vm).contact.dgiStatus)
+    }
+
+    @Test
+    fun `a poll read that fails leaves the contact as it was and stops watching`() = runTest {
+        val api = api(dgiStatus = "pending")
+        val vm = viewModel(api)
+        runCurrent()
+
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        tick()
+        val afterFailure = api.contactRequestCount
+
+        assertEquals("pending", content(vm).contact.dgiStatus)
+        assertNull(content(vm).mutationFailure)
+        tick()
+        assertEquals(afterFailure, api.contactRequestCount)
+    }
+
+    @Test
+    fun `a poll read that lands on a failed reload is not applied`() = runTest {
+        val api = api(dgiStatus = "pending")
+        val vm = viewModel(api)
+        runCurrent()
+
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        vm.load()
+        runCurrent()
+        assertTrue(vm.state.value is ContactDetailUiState.Failed)
+
+        api.answerWith("complete")
+        tick()
+
+        assertTrue(vm.state.value is ContactDetailUiState.Failed)
+    }
+
+    @Test
+    fun `the factory builds a model for the contact it was given`() = runTest {
+        val api = api()
+        val vm = ContactDetailViewModel.factory(ContactsRepository(api), "ws-1", "c1", WorkspaceRole.CLIENT)
+            .create(ContactDetailViewModel::class.java)
+        runCurrent()
+
+        assertTrue(vm.canMutate)
+        assertEquals("Ada", content(vm).contact.name)
+    }
+
     private companion object {
         /** Mirrors ContactsRepository.DOSSIER_POLL_INTERVAL_MS, which is the web console's own. */
         const val POLL_INTERVAL_MS = 2_500L

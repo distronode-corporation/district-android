@@ -1,11 +1,17 @@
 package com.distronode.districtai.ui.contacts
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactCompany
@@ -16,10 +22,13 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.ui.MainLooperDrain
+import org.junit.rules.RuleChain
 
 /**
  * ⛔ MOSTLY ABOUT WHAT A VIEWER IS AND IS NOT SHOWN, and about the dossier states. All three contacts
@@ -32,8 +41,11 @@ import org.robolectric.annotation.Config
 @Config(sdk = [ROBOLECTRIC_SDK])
 class ContactDetailScreenTest {
 
+    private val composeRule = createComposeRule()
+
+    /** ⚠️ The drain is OUTER, so it runs after the activity has closed; see [MainLooperDrain]. */
     @get:Rule
-    val composeRule = createComposeRule()
+    val rules: RuleChain = RuleChain.outerRule(MainLooperDrain()).around(composeRule)
 
     private fun contact(
         name: String = "Ada Lovelace",
@@ -72,6 +84,8 @@ class ContactDetailScreenTest {
                     onRename = onRename,
                     onDelete = onDelete,
                     onDismissMutationFailure = {},
+                    onEnrich = {},
+                    onClearIntel = {},
                 )
             }
         }
@@ -140,6 +154,122 @@ class ContactDetailScreenTest {
 
         scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
         scrollTo(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertIsDisplayed()
+
+        // ⚠️ The unchanged name and a blank box are not edits, so neither can be saved.
+        scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextClearance()
+        scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).assertIsNotEnabled()
+
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
+        scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).performClick()
+
+        assertEquals("Grace", renamed)
+        // Saving closes the field and puts the rename control back.
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertDoesNotExist()
+        scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `cancelling a rename closes the field and sends nothing`() {
+        var renamed: String? = null
+        render(ContactDetailUiState.Content(contact(name = "Ada")), onRename = { renamed = it })
+
+        scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("x")
+        composeRule.onNodeWithText("Cancel").performScrollTo().performClick()
+
+        assertNull(renamed)
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `while a mutation is in flight, rename and delete are disabled`() {
+        render(ContactDetailUiState.Content(contact(), saving = true))
+
+        scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).assertIsNotEnabled()
+        scrollTo(CONTACT_DETAIL_DELETE_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a rename field left open when a save starts locks until the save lands`() {
+        // ⚠️ One screen whose state moves under an open field, as it does when another write (a
+        // clear, an enrich) starts: the field, its save and its cancel all lock rather than letting a
+        // second write race the first.
+        var state by mutableStateOf<ContactDetailUiState>(ContactDetailUiState.Content(contact(name = "Ada")))
+        composeRule.setContent {
+            DistrictTheme {
+                ContactDetailScreen(
+                    state = state,
+                    canMutate = true,
+                    onBack = {},
+                    onRetry = {},
+                    onRename = {},
+                    onDelete = {},
+                    onDismissMutationFailure = {},
+                    onEnrich = {},
+                    onClearIntel = {},
+                )
+            }
+        }
+        scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
+
+        state = ContactDetailUiState.Content(contact(name = "Ada"), saving = true)
+        composeRule.waitForIdle()
+
+        scrollTo(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertIsNotEnabled()
+        scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText("Cancel").performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a save from an open rename reaches the handler current at the time of the tap`() {
+        val first = mutableListOf<String>()
+        val second = mutableListOf<String>()
+        var onRename by mutableStateOf<(String) -> Unit>({ first += it })
+        composeRule.setContent {
+            DistrictTheme {
+                ContactDetailScreen(
+                    state = ContactDetailUiState.Content(contact(name = "Ada")),
+                    canMutate = true,
+                    onBack = {},
+                    onRetry = {},
+                    onRename = onRename,
+                    onDelete = {},
+                    onDismissMutationFailure = {},
+                    onEnrich = {},
+                    onClearIntel = {},
+                )
+            }
+        }
+        scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
+
+        onRename = { second += it }
+        composeRule.waitForIdle()
+        scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).performClick()
+
+        assertEquals(emptyList<String>(), first)
+        assertEquals(1, second.size)
+    }
+
+    @Test
+    fun `a contact's own attributes are shown as labelled cards, and a blank one is left out`() {
+        render(
+            ContactDetailUiState.Content(
+                contact().copy(
+                    latestContextSummary = "Called about a leak.",
+                    budget = "Under 500",
+                    timeline = "This week",
+                    website = "   ",
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("Called about a leak.").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Under 500").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("This week").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Website").assertDoesNotExist()
     }
 
     // ── The dossier states ───────────────────────────────────────────────────

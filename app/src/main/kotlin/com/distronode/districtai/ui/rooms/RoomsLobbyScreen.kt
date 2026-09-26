@@ -239,7 +239,7 @@ const val ROOMS_HISTORY_FAILURE_DESCRIPTION: String = "district-rooms-history-fa
 
 @Preview(showBackground = true)
 @Composable
-private fun RoomsLobbyScreenPreview() {
+internal fun RoomsLobbyScreenPreview() {
     DistrictTheme {
         RoomsLobbyScreen(
             state = RoomsLobbyUiState(

@@ -56,13 +56,14 @@ class DeskScreenTest {
         val onEnable: () -> Unit = {},
         val onSettings: () -> Unit = {},
         val onRetry: () -> Unit = {},
-        val onBack: () -> Unit = {},
     )
 
     private fun render(
         state: DeskUiState,
         canUse: Boolean = true,
         callbacks: Callbacks = Callbacks(),
+        // ⚠️ Beside the bundle rather than in it: a seventh field trips detekt's constructor ceiling.
+        onBack: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -75,7 +76,7 @@ class DeskScreenTest {
                     onEnable = callbacks.onEnable,
                     onSettings = callbacks.onSettings,
                     onRetry = callbacks.onRetry,
-                    onBack = callbacks.onBack,
+                    onBack = onBack,
                 )
             }
         }
@@ -237,7 +238,7 @@ class DeskScreenTest {
     @Test
     fun `the app bar back action reports the tap`() {
         var backs = 0
-        render(content(), callbacks = Callbacks(onBack = { backs++ }))
+        render(content(), onBack = { backs++ })
 
         composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
 

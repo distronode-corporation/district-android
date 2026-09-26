@@ -1,22 +1,31 @@
 package com.distronode.districtai.ui.calls
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.data.PagedLoadException
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.testCall
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,7 +80,7 @@ class CallLogScreenTest {
             PagingData.from(items, sourceLoadStates = loadStates),
         ).collectAsLazyPagingItems()
 
-        CallLogScreen(calls = paging, onOpenCall = onOpenCall, onSignIn = onSignIn)
+        CallLogScreen(calls = paging, onOpenCall = onOpenCall, onSignIn = onSignIn, onBack = {})
     }
 
     private fun degraded() = PagedLoadException(
@@ -228,5 +237,95 @@ class CallLogScreenTest {
 
         composeRule.onNodeWithText("Outbound", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("Inbound", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a ringing call is flagged live like one in progress`() {
+        render(listOf(testCall(id = "ringing", status = "ringing")))
+
+        composeRule.onNodeWithText("Live").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a call that never connected, or has no measured length, shows no duration`() {
+        // ⚠️ The server formats a duration string even for a zero-second call; "0s" on a missed
+        // call would read as a call that connected and hung up at once.
+        render(
+            listOf(
+                testCall(id = "missed").copy(number = "Ada Lovelace", durationRaw = 0),
+                testCall(id = "unmeasured").copy(number = "Bob Barker", durationRaw = null),
+            ),
+        )
+
+        composeRule.onAllNodesWithText("1m 5s", substring = true).assertCountEquals(0)
+        composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a theme change redraws the rows and each still opens its own call`() {
+        val opened = mutableListOf<String>()
+        val theme = ThemeFlip(composeRule)
+        val rows = listOf(
+            testCall(id = "c1").copy(number = "Ada Lovelace"),
+            testCall(id = "c2").copy(number = "Bob Barker"),
+        )
+        // ⚠️ One flow for the whole test, so the redraw reads the same paged list rather than a new one.
+        val flow = flowOf(PagingData.from(rows, sourceLoadStates = states()))
+        theme.setContent {
+            CallLogScreen(
+                calls = flow.collectAsLazyPagingItems(),
+                onOpenCall = { opened += it },
+                onSignIn = {},
+                onBack = {},
+            )
+        }
+
+        theme.flip()
+
+        composeRule.onNodeWithText("Bob Barker").performClick()
+        assertEquals(listOf("c2"), opened)
+    }
+
+    @Test
+    fun `the log's back action reaches the host`() {
+        var backs = 0
+        composeRule.setContent {
+            DistrictTheme {
+                val paging = flowOf(PagingData.from(emptyList<CallSummary>(), sourceLoadStates = states()))
+                    .collectAsLazyPagingItems()
+                CallLogScreen(calls = paging, onOpenCall = {}, onSignIn = {}, onBack = { backs += 1 })
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `rows reach the handler the host holds now, not the first one`() {
+        val first = mutableListOf<String>()
+        val second = mutableListOf<String>()
+        var onOpen by mutableStateOf<(String) -> Unit>({ first += it })
+        var onSignIn by mutableStateOf({ first += "sign-in" })
+        val flow = flowOf(PagingData.from(listOf(testCall(id = "c1").copy(number = "Ada Lovelace")), states()))
+        composeRule.setContent {
+            DistrictTheme {
+                CallLogScreen(
+                    calls = flow.collectAsLazyPagingItems(),
+                    onOpenCall = onOpen,
+                    onSignIn = onSignIn,
+                    onBack = {},
+                )
+            }
+        }
+
+        onSignIn = { second += "sign-in" }
+        composeRule.waitForIdle()
+        onOpen = { second += it }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Ada Lovelace").performClick()
+
+        assertEquals(emptyList<String>(), first)
+        assertEquals(listOf("c1"), second)
     }
 }

@@ -45,10 +45,9 @@ fun CallDetailScreen(
     onRetry: () -> Unit,
     onShowTranscript: () -> Unit,
     onPlayRecording: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = CALL_DETAIL_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = CALL_DETAIL_ROOT_DESCRIPTION },
         topBar = {
             // ⚠️ The back affordance lives IN the app bar. A text button at the bottom of the
             // FAILURE state only would leave a call that loaded successfully with no visible way

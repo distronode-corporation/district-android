@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.dialer
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -173,5 +174,33 @@ class InCallScreenTest {
         composeRule.onNodeWithContentDescription(IN_CALL_DONE_DESCRIPTION).performClick()
 
         assertEquals(1, dismissTaps)
+    }
+
+    @Test
+    fun `a muted microphone offers Unmute and a speaker in use offers Speaker on`() {
+        render(call(answered = true, micEnabled = false, speakerOn = true))
+
+        composeRule.onNodeWithContentDescription(IN_CALL_MIC_DESCRIPTION).assertTextEquals("Unmute")
+        composeRule.onNodeWithContentDescription(IN_CALL_SPEAKER_DESCRIPTION).assertTextEquals("Speaker on")
+    }
+
+    @Test
+    fun `the far end dropping before the answer stops the ring label and shows no time talked`() {
+        // ⚠️ A remote disconnect before the answer is the callee declining or the carrier failing
+        // the dial. The phase is ENDED, so "Calling" must go, and the duration (zero) is what tells
+        // this apart from a call that was answered and then hung up. The hang-up stays to clear it.
+        render(call(connection = CallConnectionState.Disconnected(), answered = false))
+
+        composeRule.onNodeWithContentDescription(IN_CALL_RINGING_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertTextEquals("00:00")
+        composeRule.onNodeWithContentDescription(IN_CALL_HANG_UP_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `the preview renders an answered call with its duration`() {
+        composeRule.setContent { InCallScreenPreview() }
+
+        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("01:15").assertExists()
     }
 }

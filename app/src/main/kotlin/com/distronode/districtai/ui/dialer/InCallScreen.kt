@@ -100,14 +100,17 @@ private fun Callee(call: ActiveCallUiState) {
  */
 @Composable
 private fun PhaseLine(call: ActiveCallUiState) {
-    val (textId, description) = when (call.phase) {
+    // ⚠️ ONE nullable pair rather than a pair of nullables: the id and its handle are absent
+    // together, so a single check covers both.
+    val label: Pair<Int, String>? = when (call.phase) {
         CallPhase.DIALING -> R.string.call_state_dialing to IN_CALL_DIALING_DESCRIPTION
         CallPhase.RINGING -> R.string.call_state_ringing to IN_CALL_RINGING_DESCRIPTION
         CallPhase.FAILED -> R.string.call_state_failed to IN_CALL_FAILED_DESCRIPTION
         // ⚠️ Handled below with the duration, which is the whole content of these two.
-        CallPhase.IN_CALL, CallPhase.ENDED -> null to null
+        CallPhase.IN_CALL, CallPhase.ENDED -> null
     }
-    if (textId != null && description != null) {
+    if (label != null) {
+        val (textId, description) = label
         Text(
             text = stringResource(textId),
             style = MaterialTheme.typography.titleMedium,
@@ -238,9 +241,11 @@ const val IN_CALL_SPEAKER_DESCRIPTION: String = "district-call-speaker"
 const val IN_CALL_HANG_UP_DESCRIPTION: String = "district-call-hang-up"
 const val IN_CALL_DONE_DESCRIPTION: String = "district-call-done"
 
+// ⚠️ INTERNAL RATHER THAN PRIVATE so `InCallScreenTest` can render it: a preview that stopped
+// composing would break Android Studio's renderer without failing anything else.
 @Preview(showBackground = true)
 @Composable
-private fun InCallScreenPreview() {
+internal fun InCallScreenPreview() {
     DistrictTheme {
         InCallScreen(
             call = ActiveCallUiState(

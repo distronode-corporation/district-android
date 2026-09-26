@@ -54,15 +54,14 @@ import com.distronode.districtai.ui.resolve
 fun DialerScreen(
     state: DialerUiState,
     handlers: DialerHandlers,
-    modifier: Modifier = Modifier,
 ) {
     val call = state.call
     if (call != null) {
-        InCallScreen(call = call, handlers = handlers, modifier = modifier)
+        InCallScreen(call = call, handlers = handlers)
         return
     }
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = DIALER_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = DIALER_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.dialer_title), onBack = handlers.onBack)
         },
@@ -307,9 +306,11 @@ const val DIALER_CALLBACKS_LOADING_DESCRIPTION: String = "district-dialer-callba
 const val DIALER_CALLBACKS_FAILED_DESCRIPTION: String = "district-dialer-callbacks-failed"
 const val DIALER_CALLBACKS_EMPTY_DESCRIPTION: String = "district-dialer-callbacks-empty"
 
+// ⚠️ INTERNAL RATHER THAN PRIVATE so `DialerScreenTest` can render it: a preview that stopped
+// composing would break Android Studio's renderer without failing anything else.
 @Preview(showBackground = true)
 @Composable
-private fun DialerScreenPreview() {
+internal fun DialerScreenPreview() {
     DistrictTheme {
         DialerScreen(
             state = DialerUiState(

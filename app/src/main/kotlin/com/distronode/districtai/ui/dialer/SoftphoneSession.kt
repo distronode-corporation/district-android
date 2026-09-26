@@ -181,8 +181,8 @@ internal class SoftphoneSession(
         // invoice. The platform bills answered time; counting from the dial would overstate every
         // call by its ring duration and make the app the thing that looks wrong.
         //
-        // ⚠️ ONE JOB. Two tickers would advance the same counter twice per second.
-        timer?.cancel()
+        // ⚠️ ONE JOB. Two tickers would advance the same counter twice per second; the `answered`
+        // latch above is what guarantees it, since this line runs at most once per session.
         timer = observeScope.launch {
             while (true) {
                 delay(tickMillis)

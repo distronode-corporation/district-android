@@ -229,6 +229,35 @@ class HandBuiltWireTest {
         )
     }
 
+    @Test
+    fun `a member add with no role picked omits the key so the server applies its own default`() {
+        WireMirror.assertWire(
+            MemberAddRequest.serializer(),
+            MemberAddRequest(workspaceId = "ws-1", email = "ada@example.com", role = "viewer"),
+            """{"workspaceId":"ws-1","email":"ada@example.com","role":"viewer"}""",
+        )
+        // ⚠️ Absent, never null: the route defaults an absent role to `client`.
+        WireMirror.assertWire(
+            MemberAddRequest.serializer(),
+            MemberAddRequest(workspaceId = "ws-1", email = "ada@example.com"),
+            """{"workspaceId":"ws-1","email":"ada@example.com"}""",
+        )
+    }
+
+    @Test
+    fun `a call-handling patch sends only the half it changes`() {
+        WireMirror.assertWire(
+            CallHandlingPatchRequest.serializer(),
+            CallHandlingPatchRequest(workspaceId = "ws-1", callHandling = CallHandling.APP_FIRST),
+            """{"workspaceId":"ws-1","callHandling":"app_first"}""",
+        )
+        WireMirror.assertWire(
+            CallHandlingPatchRequest.serializer(),
+            CallHandlingPatchRequest(workspaceId = "ws-1", appRingSeconds = 20),
+            """{"workspaceId":"ws-1","appRingSeconds":20}""",
+        )
+    }
+
     @OptIn(ExperimentalSerializationApi::class)
     @Test
     fun `the override-create serializer refuses any format but JSON in both directions`() {

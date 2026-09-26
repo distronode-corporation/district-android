@@ -490,6 +490,9 @@ class ContractFixtureTest {
         // ⛔ THE FIELD THIS FIXTURE EXISTS FOR. `status` was being discarded by a DTO that modelled
         // five of thirteen fields, so the app could not tell a queued message from a delivered one.
         assertEquals("queued", message!!.status)
+        assertEquals("msg_contract_sent", message.id)
+        // The carrier's own id for the send (a Twilio SID here), distinct from our row id.
+        assertEquals("SM_contract", message.messageSid)
         assertEquals("sms", message.type)
         assertEquals("outbound", message.direction)
         assertEquals("twilio", message.provider)

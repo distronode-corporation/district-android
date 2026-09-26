@@ -175,6 +175,42 @@ class PersonaOptionsLookupTest {
         // ⚠️ HIDES THE PICKER rather than showing options that would be saved under a modelId the
         // route is about to coerce.
         assertTrue(options.responseLengthsForEngine("unknown-engine").isEmpty())
+        // A persona with no engine chosen yet has no lengths to pick from either.
+        assertTrue(options.responseLengthsForEngine(null).isEmpty())
+    }
+
+    @Test
+    fun `an engine, catalogue or group published without its list offers an empty picker`() {
+        // ⚠️ EVERY LIST ON THE OPTIONS PAYLOAD DEFAULTS TO EMPTY, so a row that arrives without its
+        // list decodes to "nothing to offer" rather than failing the whole read.
+        val sparse = PersonaOptionsResponse(
+            engines = listOf(PersonaEngineOption(id = "bare-engine", label = "Bare", inRegion = true)),
+            voices = listOf(
+                PersonaVoiceCatalog(engine = "bare-engine", language = "en-US"),
+                PersonaVoiceCatalog(
+                    engine = PERSONA_GEMINI_LIVE_ENGINE,
+                    language = "en-US",
+                    groups = listOf(PersonaVoiceGroup(label = "Voices")),
+                ),
+            ),
+        )
+
+        assertEquals(listOf("bare-engine"), sparse.selectableEngines.map { it.id })
+        assertTrue(sparse.responseLengthsForEngine("bare-engine").isEmpty())
+        assertTrue(sparse.voiceGroups("bare-engine", "en-US").isEmpty())
+        assertEquals(listOf("Voices"), sparse.voiceGroups(PERSONA_GEMINI_LIVE_ENGINE, "en-US").map { it.label })
+        assertFalse(sparse.voiceExists("Puck", PERSONA_GEMINI_LIVE_ENGINE, "en-US"))
+
+        WireMirror.assertWire(
+            PersonaEngineOption.serializer(),
+            PersonaEngineOption(id = "bare-engine"),
+            """{"id":"bare-engine"}""",
+        )
+        WireMirror.assertWire(
+            PersonaLabelledValue.serializer(),
+            PersonaLabelledValue(value = "warm"),
+            """{"value":"warm"}""",
+        )
     }
 
     @Test

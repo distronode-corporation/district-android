@@ -3,6 +3,7 @@ package com.distronode.districtai.push
 import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
+import java.util.concurrent.CountDownLatch
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.AppContainer
@@ -15,10 +16,11 @@ import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -32,8 +34,15 @@ import org.robolectric.annotation.Config
 /**
  * A credential store holding a session, or none: all the push gate reads is whether one exists.
  */
-private class SessionTokenStore(private val session: PersistedSession?) : TokenStore {
-    override fun read(): PersistedSession? = session
+private class SessionTokenStore(
+    private val session: PersistedSession?,
+    /** Runs before every read; see [PushTestApplication.readGate]. */
+    private val beforeRead: () -> Unit,
+) : TokenStore {
+    override fun read(): PersistedSession? {
+        beforeRead()
+        return session
+    }
     override fun write(session: PersistedSession) = Unit
     override fun clear() = Unit
     override fun pendingRefreshToken(): String? = null
@@ -49,17 +58,28 @@ private class SessionTokenStore(private val session: PersistedSession?) : TokenS
  * store and Telecom bridge replaced, reached through the same [AppContainerOwner] the real
  * application implements.
  *
- * ⚠️ THE APPLICATION SCOPE IS `Unconfined` WITH A JOB THE TEST OWNS, so a delivery runs inline up
- * to the credential read (which hops to IO, as in production) and the test then JOINS the delivery
- * rather than waiting on a clock. The ring timeout the controller starts is a later child of the
- * same job and is cancelled after each test.
+ * ⚠️ THE APPLICATION SCOPE RUNS ON AN `UnconfinedTestDispatcher` WITH A JOB THE TEST OWNS, so a
+ * delivery runs inline up to the credential read (which hops to IO, as in production), and the ring
+ * timeout the controller arms is a VIRTUAL delay that never fires on its own. It is cancelled with
+ * the job after each test.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class PushTestApplication : Application(), AppContainerOwner {
 
     val appJob = SupervisorJob()
     val api = TestDistrictApi()
     val telecom = FakeTelecomBridge()
     var signedIn = true
+
+    /**
+     * Held by every credential read until the test releases it.
+     *
+     * ⛔ WHAT MAKES THE DELIVERY'S JOB IDENTIFIABLE. The read runs on an IO thread, and without the
+     * hold a fast one finished the delivery (and armed the ring timeout) before the test could tell
+     * which new job was the delivery, so which job it joined depended on thread timing.
+     */
+    @Volatile
+    var readGate: CountDownLatch = CountDownLatch(0)
 
     override val container: AppContainer by lazy {
         val session = PersistedSession(
@@ -69,9 +89,9 @@ internal class PushTestApplication : Application(), AppContainerOwner {
         )
         AppContainer(
             this,
-            appScope = CoroutineScope(appJob + Dispatchers.Unconfined),
+            appScope = CoroutineScope(appJob + UnconfinedTestDispatcher()),
             seams = AppContainerSeams(
-                tokenStore = SessionTokenStore(session.takeIf { signedIn }),
+                tokenStore = SessionTokenStore(session.takeIf { signedIn }) { readGate.await() },
                 pushApi = api.pushApi,
                 pushTokenSource = { null },
                 districtApi = api,
@@ -109,14 +129,17 @@ class DistrictFirebaseMessagingServiceTest {
     /**
      * Deliver [data] and wait for the delivery itself, not for anything it started.
      *
-     * ⛔ ONLY THE DELIVERY'S OWN JOB IS JOINED. The ring it starts arms a 30-second timeout on the
-     * same scope, and under `Unconfined` that delay is a REAL one: joining every child would wait it
-     * out and then assert on a call the timeout had already declined.
+     * ⛔ ONLY THE DELIVERY'S OWN JOB IS JOINED: the ring it starts arms a timeout on the same scope
+     * that never completes by itself. The credential read is held while the delivery's job is picked
+     * out, so the timeout cannot exist yet at that moment; see [PushTestApplication.readGate].
      */
     private fun deliver(service: DistrictFirebaseMessagingService, data: Map<String, String>) {
+        val gate = CountDownLatch(1)
+        app.readGate = gate
         val before = app.appJob.children.toSet()
         service.onMessageReceived(RemoteMessage.Builder("sender@fcm.googleapis.com").setData(data).build())
         val delivery = app.appJob.children.toSet() - before
+        gate.countDown()
         runBlocking { delivery.joinAll() }
     }
 

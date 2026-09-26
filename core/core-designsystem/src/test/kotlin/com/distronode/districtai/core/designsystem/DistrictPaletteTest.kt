@@ -57,6 +57,8 @@ class DistrictPaletteTest {
             "--border" to (DistrictColors.BORDER to 0xFF24393D),
             "--input" to (DistrictColors.INPUT to 0xFF2A4146),
             "--elevated" to (DistrictColors.ELEVATED to 0xFF1F373B),
+            "--district" to (DistrictColors.DISTRICT to 0xFF7D84F7),
+            "--district-foreground" to (DistrictColors.DISTRICT_FOREGROUND to 0xFF0F1020),
             "--success" to (DistrictColors.SUCCESS to 0xFF3FBF7F),
             "--warning" to (DistrictColors.WARNING to 0xFFFBBF24),
             "--destructive" to (DistrictColors.DESTRUCTIVE to 0xFFF87171),

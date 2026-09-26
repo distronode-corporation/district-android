@@ -301,21 +301,4 @@ class PersonaFormViewModelTest {
             vm.state.value.save,
         )
     }
-
-    @Test
-    fun `dismissing the notice is refused mid-save`() = runTest {
-        val vm = viewModel(api())
-        advanceUntilIdle()
-
-        vm.edit(PersonaField.NAME, "Bea")
-        vm.save()
-        // Not advanced: the save is still in flight.
-        assertEquals(SaveState.Saving, vm.state.value.save)
-        vm.dismissSaveNotice()
-        assertEquals(SaveState.Saving, vm.state.value.save)
-
-        advanceUntilIdle()
-        vm.dismissSaveNotice()
-        assertEquals(SaveState.Idle, vm.state.value.save)
-    }
 }

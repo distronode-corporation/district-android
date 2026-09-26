@@ -145,12 +145,6 @@ class CallHandlingViewModel(
         }
     }
 
-    fun dismissSaveNotices() {
-        val current = _state.value
-        if (current.save.busy || current.availabilitySave.busy) return
-        _state.value = current.copy(save = SaveState.Idle, availabilitySave = SaveState.Idle)
-    }
-
     companion object {
         fun factory(
             repository: CallHandlingRepository,

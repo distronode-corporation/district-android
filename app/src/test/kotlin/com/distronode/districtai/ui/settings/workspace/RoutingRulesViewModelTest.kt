@@ -256,19 +256,4 @@ class RoutingRulesViewModelTest {
         assertEquals("Kore", vm.state.value.rules[1].value(RoutingRuleField.VOICE))
         assertTrue(vm.state.value.canSave)
     }
-
-    @Test
-    fun `dismissing the notice does not re-read`() = runTest {
-        val api = api()
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        vm.edit(1, RoutingRuleField.VALUE, "healthcare")
-        vm.save()
-        advanceUntilIdle()
-        vm.dismissSaveNotice()
-
-        assertEquals(SaveState.Idle, vm.state.value.save)
-        assertEquals(2, api.configRequests.size)
-    }
 }

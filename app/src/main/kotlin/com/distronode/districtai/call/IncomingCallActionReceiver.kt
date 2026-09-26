@@ -3,7 +3,7 @@ package com.distronode.districtai.call
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.distronode.districtai.DistrictApplication
+import com.distronode.districtai.AppContainerOwner
 import com.distronode.districtai.push.PushIntents
 
 /**
@@ -39,7 +39,7 @@ class IncomingCallActionReceiver : BroadcastReceiver() {
         // ⚠️ The application, not a held reference: this object is constructed by the system per
         // broadcast and has no lifetime of its own. A null cast is only reachable under a test
         // harness with a stub application, and doing nothing is the right answer there.
-        val container = (context.applicationContext as? DistrictApplication)?.container ?: return
+        val container = (context.applicationContext as? AppContainerOwner)?.container ?: return
         container.incomingCallController.decline()
     }
 }

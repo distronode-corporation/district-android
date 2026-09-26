@@ -1,7 +1,7 @@
 package com.distronode.districtai.push
 
 import com.distronode.districtai.AppContainer
-import com.distronode.districtai.DistrictApplication
+import com.distronode.districtai.AppContainerOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -35,8 +35,9 @@ class DistrictFirebaseMessagingService : FirebaseMessagingService() {
 
     private val container: AppContainer?
         // ⚠️ Nullable rather than a cast: a service can be instantiated by a test harness whose
-        // Application is the stock one, and doing nothing is the right answer there.
-        get() = (application as? DistrictApplication)?.container
+        // Application is the stock one, and doing nothing is the right answer there. Read through
+        // [AppContainerOwner], as `MainActivity` does, so a test can hand it a faked graph.
+        get() = (application as? AppContainerOwner)?.container
 
     /**
      * FCM issued a new registration token for this installation.

@@ -10,6 +10,7 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ### Changed
 
+- Coverage is measured by JaCoCo over the debug variant and gated at 99% line and 98% branch.
 - The source now lives in its own repository, with CI on GitHub Actions.
 - A build carries a Sentry DSN only when it is given one (`-PdistrictSentryDsn` or
   `DISTRICT_SENTRY_DSN`); a build from a plain checkout has crash reporting off.
@@ -24,6 +25,17 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 - Closing a support request now shows a disabled "Closing…" button while the close is in flight,
   instead of saying the request cannot be closed from here.
+- A request made while a token refresh was finishing, or right after one was rate-limited or could
+  not be sent, no longer wipes the session and signs the user out.
+- Hanging up while an answered call is still joining now stays hung up: the call no longer comes
+  back as live, the call's foreground service is not started, and the microphone is never turned
+  on for a call that has ended.
+- An answered call no longer leaves its engine watchers running for the life of the process.
+- A call placed while the call-back list loads, a marketplace tab or filter chosen while the owned
+  numbers load, and a device revoke started while the device list loads are no longer undone when
+  that list arrives (the last one allowed a second revoke).
+- Workflow run history that arrives after a reload is dropped instead of being shown on the next
+  expand, which after a session change could have been another account's history.
 
 ## [1.0]
 

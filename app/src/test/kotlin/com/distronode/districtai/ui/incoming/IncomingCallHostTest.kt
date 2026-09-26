@@ -21,9 +21,10 @@ import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,10 +41,11 @@ import org.robolectric.annotation.Config
  * notification's Answer action both go through the permission request, and a denial still answers:
  * the user pressed Answer. What is asserted is the request made and the controller's phase after it.
  *
- * ⚠️ THE CONTROLLER RUNS ON AN UNCONFINED SCOPE, so an answer's refusal (the fake API's default)
- * lands before the next assertion without any clock. The ring timeout is a child of the same scope
- * and is cancelled in [tearDown].
+ * ⚠️ THE CONTROLLER RUNS ON AN `UnconfinedTestDispatcher`, so an answer's refusal (the fake API's
+ * default) lands before the next assertion without any clock, and the ring timeout is a virtual
+ * delay that never fires on its own. It is cancelled with the scope in [tearDown].
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
 class IncomingCallHostTest {
@@ -51,7 +53,7 @@ class IncomingCallHostTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+    private val scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
     private val api = TestDistrictApi()
     private val telecom = FakeTelecomBridge()
     private val registry = ScriptedResultRegistry()

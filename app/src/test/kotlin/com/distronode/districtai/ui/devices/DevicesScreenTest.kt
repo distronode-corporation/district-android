@@ -1,5 +1,8 @@
 package com.distronode.districtai.ui.devices
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -15,6 +18,7 @@ import com.distronode.districtai.core.model.NativeDevice
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.SignedOutCause
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -309,6 +313,178 @@ class DevicesScreenTest {
 
         composeRule.onNodeWithContentDescription(DEVICES_LIST_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Try again").assertDoesNotExist()
+    }
+
+    // ── Rows the client cannot describe, and a screen that moves under a dialog ─
+
+    @Test
+    fun `a blank name and a blank platform get placeholders, not empty lines`() {
+        render(ready(otherDevice.copy(deviceName = "  ", platform = "")))
+
+        composeRule.onNodeWithText("Unnamed device").assertIsDisplayed()
+        composeRule.onNodeWithText("Unknown platform").assertIsDisplayed()
+    }
+
+    @Test
+    fun `an open confirmation still names its device after the list is re-read under it`() {
+        // ⚠️ A re-read lands while the dialog is up (a notice from the last write, the same rows in
+        // a new list). The pending confirmation must still apply to the row it was opened for.
+        var revoked: String? = null
+        var state by mutableStateOf(ready(thisDevice, otherDevice))
+        renderLive({ state }, onRevokeDevice = { revoked = it })
+
+        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        state = ready(thisDevice, otherDevice).copy(nothingRevoked = true)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+
+        assertEquals(OTHER_DEVICE_ID, revoked)
+    }
+
+    @Test
+    fun `an open sign-out-everywhere confirmation survives a re-read under it`() {
+        var revokedAll = 0
+        var state by mutableStateOf(ready(thisDevice, otherDevice))
+        renderLive({ state }, onRevokeAll = { revokedAll += 1 })
+
+        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION).performScrollTo().performClick()
+        state = ready(thisDevice, otherDevice).copy(nothingRevoked = true)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
+
+        assertEquals(1, revokedAll)
+    }
+
+    @Test
+    fun `a second failed write replaces the first failure notice`() {
+        var state by mutableStateOf(
+            ready(thisDevice).copy(mutationFailure = FailureText(message = UiText.Literal("First refusal"))),
+        )
+        renderLive({ state })
+        composeRule.onNodeWithText("First refusal").assertIsDisplayed()
+
+        state = ready(thisDevice).copy(mutationFailure = FailureText(message = UiText.Literal("Second refusal")))
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("Second refusal").assertIsDisplayed()
+        composeRule.onNodeWithText("First refusal").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the preview renders both of its devices`() {
+        composeRule.setContent { DevicesScreenPreview() }
+
+        composeRule.onNodeWithText("Google Pixel 9").assertIsDisplayed()
+        assertEquals(1, markedRowCount())
+    }
+
+    @Test
+    fun `an open confirmation reports to the handler the host holds when it is confirmed`() {
+        // ⚠️ The host may hand the screen a new handler while the dialog is up (a recreated
+        // ViewModel after a configuration change); the tap must reach the live one, not the first.
+        val first = mutableListOf<String>()
+        val second = mutableListOf<String>()
+        var handler by mutableStateOf<(String) -> Unit>({ first += it })
+        composeRule.setContent {
+            DistrictTheme {
+                DevicesScreen(
+                    state = ready(thisDevice, otherDevice),
+                    thisDeviceId = THIS_DEVICE_ID,
+                    onBack = {},
+                    onRetry = {},
+                    onRevokeDevice = handler,
+                    onRevokeAll = {},
+                    onDismissNotices = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        handler = { second += it }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+
+        assertEquals(emptyList<String>(), first)
+        assertEquals(listOf(OTHER_DEVICE_ID), second)
+    }
+
+    @Test
+    fun `an open sign-out-everywhere confirmation reports to the handler the host holds`() {
+        var firstCalls = 0
+        var secondCalls = 0
+        var handler by mutableStateOf<() -> Unit>({ firstCalls += 1 })
+        composeRule.setContent {
+            DistrictTheme {
+                DevicesScreen(
+                    state = ready(thisDevice),
+                    thisDeviceId = THIS_DEVICE_ID,
+                    onBack = {},
+                    onRetry = {},
+                    onRevokeDevice = {},
+                    onRevokeAll = handler,
+                    onDismissNotices = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION).performScrollTo().performClick()
+        handler = { secondCalls += 1 }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
+
+        assertEquals(0, firstCalls)
+        assertEquals(1, secondCalls)
+    }
+
+    @Test
+    fun `a theme change redraws the rows and notices with their handles and actions intact`() {
+        var revoked: String? = null
+        val theme = ThemeFlip(composeRule)
+        theme.setContent {
+            DevicesScreen(
+                state = ready(thisDevice, otherDevice).copy(
+                    nothingRevoked = true,
+                    mutationFailure = FailureText(message = UiText.Literal("Refused")),
+                ),
+                thisDeviceId = THIS_DEVICE_ID,
+                onBack = {},
+                onRetry = {},
+                onRevokeDevice = { revoked = it },
+                onRevokeAll = {},
+                onDismissNotices = {},
+            )
+        }
+
+        theme.flip()
+
+        composeRule.onNodeWithContentDescription(DEVICES_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
+        assertEquals(1, markedRowCount())
+        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performScrollTo().performClick()
+        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+        assertEquals(OTHER_DEVICE_ID, revoked)
+    }
+
+    /** Like [render], but the state is read on every composition so a test can move it. */
+    private fun renderLive(
+        state: () -> DevicesUiState,
+        onRevokeDevice: (String) -> Unit = {},
+        onRevokeAll: () -> Unit = {},
+    ) {
+        composeRule.setContent {
+            DistrictTheme {
+                DevicesScreen(
+                    state = state(),
+                    thisDeviceId = THIS_DEVICE_ID,
+                    onBack = {},
+                    onRetry = {},
+                    onRevokeDevice = onRevokeDevice,
+                    onRevokeAll = onRevokeAll,
+                    onDismissNotices = {},
+                )
+            }
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

@@ -68,7 +68,6 @@ fun DevicesScreen(
     onRevokeDevice: (String) -> Unit,
     onRevokeAll: () -> Unit,
     onDismissNotices: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     // ⚠️ Held as the device being confirmed rather than as a boolean, so the dialog can name
     // what it is about to end and so a stale confirmation cannot apply to a different row.
@@ -76,7 +75,7 @@ fun DevicesScreen(
     var confirmingAll by remember { mutableStateOf(false) }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = DEVICES_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = DEVICES_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.devices_title), onBack = onBack)
         },
@@ -370,9 +369,11 @@ const val DEVICES_LIST_FAILURE_DESCRIPTION: String = "district-devices-list-fail
 const val DEVICES_FAILURE_DESCRIPTION: String = "district-devices-failure"
 const val DEVICES_NOTICE_DESCRIPTION: String = "district-devices-notice"
 
+// ⚠️ INTERNAL RATHER THAN PRIVATE so `DevicesScreenTest` can render it: a preview that stopped
+// composing would break Android Studio's renderer without failing anything else.
 @Preview(showBackground = true)
 @Composable
-private fun DevicesScreenPreview() {
+internal fun DevicesScreenPreview() {
     DistrictTheme {
         DevicesScreen(
             state = DevicesUiState(

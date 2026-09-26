@@ -203,6 +203,38 @@ class NativeLoginFlowTest {
     }
 
     @Test
+    fun `a callback with the right state but no code is denied without spending anything`() = runTest {
+        val state = stateFrom(flow.authorizeUrl())
+
+        val outcome = flow.completeLogin(Uri.parse("$redirectUri?state=$state"))
+
+        assertEquals(LoginOutcome.Denied("missing_code"), outcome)
+        assertEquals(0, server.requestCount)
+    }
+
+    @Test
+    fun `a rate-limited exchange reports rate limited and stores nothing`() = runTest {
+        val state = stateFrom(flow.authorizeUrl())
+        server.enqueue(MockResponse.Builder().code(429).body("""{"error":"rate_limited"}""").build())
+
+        val outcome = flow.completeLogin(Uri.parse("$redirectUri?code=c&state=$state"))
+
+        assertEquals(LoginOutcome.RateLimited, outcome)
+        assertNull(store.read())
+    }
+
+    @Test
+    fun `an exchange that could not reach the server reports unreachable and stores nothing`() = runTest {
+        val state = stateFrom(flow.authorizeUrl())
+        server.enqueue(MockResponse.Builder().code(502).body("<html>Bad Gateway</html>").build())
+
+        val outcome = flow.completeLogin(Uri.parse("$redirectUri?code=c&state=$state"))
+
+        assertEquals(LoginOutcome.Unreachable, outcome)
+        assertNull(store.read())
+    }
+
+    @Test
     fun `cancel discards the attempt so a later callback cannot complete it`() = runTest {
         val state = stateFrom(flow.authorizeUrl())
         flow.cancel()

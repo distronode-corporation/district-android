@@ -382,6 +382,33 @@ class TokenRefreshCoordinatorTest {
     }
 
     @Test
+    fun `a caller queued behind a rejected refresh finds no session rather than refreshing again`() = runTest {
+        // The second caller passed the unlocked checks while a session still existed, then
+        // waited on the mutex while the first caller's refresh was REJECTED and the store was
+        // cleared. Under the lock it must re-read the store and stop, not present anything.
+        val store = FakeTokenStore(session("r0"))
+        val gate = CompletableDeferred<Unit>()
+        val api = CountingRefreshApi(gate) { RefreshResult.Rejected }
+        val coordinator = TokenRefreshCoordinator(
+            store,
+            api,
+            nowMillis = { NOW },
+            io = StandardTestDispatcher(testScheduler),
+        )
+
+        val first = async { coordinator.accessToken() }
+        val second = async { coordinator.accessToken() }
+        advanceUntilIdle()
+        assertEquals("the second caller is queued, not sending", 1, api.callCount)
+
+        gate.complete(Unit)
+
+        assertEquals(AccessToken.ReauthRequired(ReauthReason.RefreshRejected), first.await())
+        assertEquals(AccessToken.ReauthRequired(ReauthReason.NoSession), second.await())
+        assertEquals("the dead token is presented once, by the first caller only", listOf("r0"), api.presentedTokens)
+    }
+
+    @Test
     fun `a request that never left the device keeps the session`() = runTest {
         // ⛔ OPENING THE APP OFFLINE USED TO BURN THE SESSION. A connect-phase failure was
         // mapped to TransportFailure, whose contract is "may have rotated", so the marker was

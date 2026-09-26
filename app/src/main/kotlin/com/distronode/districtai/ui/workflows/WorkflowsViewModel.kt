@@ -67,6 +67,9 @@ class WorkflowsViewModel(
     /** Mirrors the route's `["agency","client"]` guard. See the ⛔ on the class. */
     val canToggle: Boolean = role.allowsMutation()
 
+    /** Moved by every [load], so a run-history read can tell it was asked before one. */
+    private var generation = 0
+
     init {
         load()
     }
@@ -85,6 +88,7 @@ class WorkflowsViewModel(
      * questions from different databases.
      */
     fun load() {
+        generation += 1
         _state.value = _state.value.copy(
             campaign = CampaignState.Loading,
             workflows = WorkflowListState.Loading,
@@ -280,6 +284,7 @@ class WorkflowsViewModel(
         _state.value = _state.value.copy(
             runs = _state.value.runs + (workflowId to existing.copy(loading = true, failure = null)),
         )
+        val asked = generation
         viewModelScope.launch {
             val result = repository.runs(
                 workspaceId = workspaceId,
@@ -287,7 +292,13 @@ class WorkflowsViewModel(
                 limit = RUNS_PAGE_SIZE,
                 offset = offset,
             )
-            val held = _state.value.runs[workflowId] ?: RunHistory()
+            // ⛔ A RELOAD LANDED WHILE THIS WAS IN FLIGHT, SO THE ANSWER BELONGS TO THE VIEW IT
+            // CLEARED. Writing it back would refill the cache [load] just emptied, and the next
+            // expand would show it without a fetch: after a session change, possibly another
+            // account's history.
+            if (asked != generation) return@launch
+            // ⚠️ Present: only [load] removes an entry, and it moves the generation checked above.
+            val held = _state.value.runs.getValue(workflowId)
             val next = when (result) {
                 is ApiResult.Success -> held.copy(
                     // ⛔ APPEND, NEVER REPLACE, and `offset == 0` is the only case that starts

@@ -47,7 +47,11 @@ class MarketplaceViewModel(
     fun load() {
         _state.value = _state.value.copy(owned = OwnedState.Loading)
         viewModelScope.launch {
-            _state.value = _state.value.copy(owned = ownedState(repository.owned(workspaceId)))
+            // ⛔ Read the state AFTER the request lands. One `copy` around the call reads the
+            // receiver first and holds it across the suspension, so a tab switch, a typed filter
+            // or a search result that arrived meanwhile would be written back to what it was.
+            val owned = ownedState(repository.owned(workspaceId))
+            _state.value = _state.value.copy(owned = owned)
         }
     }
 

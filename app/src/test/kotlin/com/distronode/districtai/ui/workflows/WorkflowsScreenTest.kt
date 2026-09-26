@@ -1,9 +1,15 @@
 package com.distronode.districtai.ui.workflows
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -653,5 +659,80 @@ class WorkflowsScreenTest {
         composeRule
             .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_LOADING_DESCRIPTION)
             .assertIsDisplayed()
+    }
+
+    // ── The history panel's in-between states ────────────────────────────────
+
+    @Test
+    fun `a panel with no history yet, or a first page still loading, draws a placeholder`() {
+        composeRule.setContent {
+            DistrictTheme {
+                Column {
+                    RunHistoryPanel(history = null, onLoadMore = {})
+                    RunHistoryPanel(history = RunHistory(loading = true), onLoadMore = {})
+                }
+            }
+        }
+
+        composeRule.onAllNodesWithContentDescription(WORKFLOWS_RUNS_DESCRIPTION).assertCountEquals(2)
+        composeRule.onNodeWithText("This workflow has not run yet.").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a first page that failed says so and does NOT claim the workflow never ran`() {
+        composeRule.setContent {
+            DistrictTheme {
+                RunHistoryPanel(
+                    history = RunHistory(failure = FailureText(UiText.Literal("Server error"))),
+                    onLoadMore = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("This workflow has not run yet.").assertDoesNotExist()
+    }
+
+    @Test
+    fun `load more is held while the next page is loading`() {
+        var loadedMore = 0
+        composeRule.setContent {
+            DistrictTheme {
+                RunHistoryPanel(
+                    history = RunHistory(
+                        runs = listOf(WorkflowRun(id = "run-1", workflowId = "wf-active", status = "success")),
+                        total = 9,
+                        hasMore = true,
+                        loading = true,
+                    ),
+                    onLoadMore = { loadedMore += 1 },
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_MORE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(runCardDescription("run-1")).assertIsDisplayed()
+        assertEquals(0, loadedMore)
+    }
+
+    @Test
+    fun `a failure block follows a new failure and a new handle`() {
+        var failure by mutableStateOf(FailureText(UiText.Literal("First")))
+        var description by mutableStateOf("first-handle")
+        composeRule.setContent {
+            DistrictTheme {
+                WorkflowFailure(title = "Title", failure = failure, description = description, onRetry = {})
+            }
+        }
+
+        failure = FailureText(UiText.Literal("Second"))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
+        composeRule.onNodeWithText("Second").assertIsDisplayed()
+
+        description = "second-handle"
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("first-handle").assertDoesNotExist()
     }
 }

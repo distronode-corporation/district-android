@@ -253,8 +253,10 @@ class WorkflowsViewModel(
     fun confirmCampaignChange() {
         if (!canToggle) return
         val current = _state.value
+        // ⚠️ No separate in-flight check: committing clears the confirmation in the same write that
+        // sets `campaignPending`, and nothing opens a new one while a write is pending, so a second
+        // tap always finds the confirmation gone.
         val confirm = current.campaignConfirm ?: return
-        if (current.campaignPending) return
 
         _state.value = current.copy(
             campaignConfirm = null,

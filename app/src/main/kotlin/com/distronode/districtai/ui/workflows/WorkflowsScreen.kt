@@ -84,7 +84,6 @@ fun WorkflowsScreen(
     /** ⚠️ The three campaign callbacks are one group: ask, back out, commit. */
     campaign: CampaignCallbacks,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     // ⛔ HOISTED ABOVE THE SCAFFOLD SO IT SURVIVES THE LIST RECOMPOSING UNDERNEATH IT. Inside a
     // LazyColumn item the dialog would be torn down whenever the campaign card scrolled out of
@@ -98,7 +97,7 @@ fun WorkflowsScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = WORKFLOWS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = WORKFLOWS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.workflows_title), onBack = onBack)
         },

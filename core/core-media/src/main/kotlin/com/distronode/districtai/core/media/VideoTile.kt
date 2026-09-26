@@ -39,11 +39,11 @@ import io.livekit.android.room.track.VideoTrack
  * shape. A default aspect ratio at this level would have to be wrong for either portrait phones or
  * landscape screen-shares.
  *
- * ⚠️ EVERY LINE HERE IS UNCOVERABLE BY UNIT TEST, like the rest of this module's SDK surface — the
- * renderer needs an EGL context and a real GPU. That is the reason it is this short: the aggregate
- * coverage floor is a ratchet, so logic placed here is logic subtracted from the measured codebase.
- * The DECISIONS that a test could check — which participants get a tile, which get an audio-only
- * placeholder, whether the Companion is filtered out — all live in the consumer's ViewModel.
+ * ⚠️ THE PIXELS ARE NOT UNIT-TESTABLE: the renderer needs an EGL context and a real GPU.
+ * `VideoTileTest` covers what the tile decides (which renderer, attached to which track, detached
+ * and released when) against a mocked track under Robolectric. Keep it this short: the DECISIONS
+ * about which participants get a tile, which get an audio-only placeholder, and whether the
+ * Companion is filtered out all live in the consumer's ViewModel.
  */
 @Composable
 fun VideoTile(handle: VideoTrackHandle, modifier: Modifier = Modifier) {

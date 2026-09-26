@@ -17,6 +17,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.ui.MainLooperDrain
+import org.junit.rules.RuleChain
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.test.hasProgressBarRangeInfo
+import com.distronode.districtai.core.model.MessageSearchHit
 
 /**
  * ⛔ THE ASSERTION THIS FILE EXISTS FOR IS `a partial list says so`. The server scans a bounded window
@@ -28,8 +36,11 @@ import org.robolectric.annotation.Config
 @Config(sdk = [ROBOLECTRIC_SDK])
 class InboxScreenTest {
 
+    private val composeRule = createComposeRule()
+
+    /** ⚠️ The drain is OUTER, so it runs after the activity has closed; see [MainLooperDrain]. */
     @get:Rule
-    val composeRule = createComposeRule()
+    val rules: RuleChain = RuleChain.outerRule(MainLooperDrain()).around(composeRule)
 
     private fun thread(
         threadKey: String = "contact:c1",
@@ -64,7 +75,15 @@ class InboxScreenTest {
     ) {
         composeRule.setContent {
             DistrictTheme {
-                InboxScreen(state = state, onOpenThread = onOpenThread, onRetry = onRetry)
+                InboxScreen(
+                    state = state,
+                    onOpenThread = onOpenThread,
+                    onRetry = onRetry,
+                    onBack = {},
+                    searchState = InboxSearchState(),
+                    onSearchQueryChanged = {},
+                    onOpenHit = {},
+                )
             }
         }
     }
@@ -236,4 +255,93 @@ class InboxScreenTest {
         composeRule.onNodeWithContentDescription(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithContentDescription(INBOX_DRAFT_DESCRIPTION).assertDoesNotExist()
     }
+
+    @Test
+    fun `a refresh keeps the list on screen under a progress bar`() {
+        render(InboxUiState.Content(listOf(thread()), partial = false, refreshing = true))
+
+        composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertExists()
+        composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a thread whose last message has no body says so rather than showing a blank line`() {
+        render(InboxUiState.Content(listOf(thread(body = "  ")), partial = false))
+
+        composeRule.onNodeWithText("No message body").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a search still running with nothing back yet says it is searching, not that nothing matched`() {
+        composeRule.setContent {
+            DistrictTheme {
+                InboxScreen(
+                    state = InboxUiState.Content(listOf(thread()), partial = false),
+                    onOpenThread = {},
+                    onRetry = {},
+                    onBack = {},
+                    searchState = InboxSearchState(query = "refund", running = true),
+                    onSearchQueryChanged = {},
+                    onOpenHit = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Searching…").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the list and a search's results follow state that changes under them`() {
+        // ⚠️ One screen: the list gains a thread and swaps its open handler, then a search lands.
+        // Each tap must reach the live handler and each redraw must show the new rows.
+        val opened = mutableListOf<String>()
+        var state by mutableStateOf<InboxUiState>(
+            InboxUiState.Content(listOf(thread()), partial = false),
+        )
+        var onOpen by mutableStateOf<(ConversationSummary) -> Unit>({})
+        var search by mutableStateOf(InboxSearchState())
+        composeRule.setContent {
+            DistrictTheme {
+                InboxScreen(
+                    state = state,
+                    onOpenThread = onOpen,
+                    onRetry = {},
+                    onBack = {},
+                    searchState = search,
+                    onSearchQueryChanged = {},
+                    onOpenHit = {},
+                )
+            }
+        }
+
+        state = InboxUiState.Content(
+            listOf(thread(), thread(threadKey = "contact:c2", contactName = "Grace Hopper", contactId = "c2")),
+            partial = false,
+        )
+        composeRule.waitForIdle()
+        onOpen = { opened += it.threadKey }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Grace Hopper").performClick()
+        assertEquals(listOf("contact:c2"), opened)
+
+        search = InboxSearchState(query = "refund", hits = listOf(hit("m1")))
+        composeRule.waitForIdle()
+        search = InboxSearchState(
+            query = "refunds",
+            hits = listOf(hit("m1"), hit("m2", body = "Refunds take 5 days.")),
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Refunds take 5 days.").assertIsDisplayed()
+    }
+
+    private fun hit(id: String, body: String = "Our refund policy is 30 days.") = MessageSearchHit(
+        messageId = id,
+        threadKey = "contact:c1",
+        kind = "phone",
+        contactId = "c1",
+        contactName = "Ada",
+        body = body,
+        direction = "inbound",
+        createdAt = "2026-08-15T14:30:00.000Z",
+    )
 }

@@ -27,6 +27,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.ui.MainLooperDrain
+import org.junit.rules.RuleChain
 
 /**
  * ⛔ TWO ASSERTIONS HERE GUARD MONEY, NOT LAYOUT: that a `viewer` is offered no reply box at all, and
@@ -42,8 +44,11 @@ import org.robolectric.annotation.Config
 @Config(sdk = [ROBOLECTRIC_SDK])
 class ThreadScreenTest {
 
+    private val composeRule = createComposeRule()
+
+    /** ⚠️ The drain is OUTER, so it runs after the activity has closed; see [MainLooperDrain]. */
     @get:Rule
-    val composeRule = createComposeRule()
+    val rules: RuleChain = RuleChain.outerRule(MainLooperDrain()).around(composeRule)
 
     private fun message(
         id: String = "m1",
@@ -546,5 +551,115 @@ class ThreadScreenTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Held 18").assertIsDisplayed()
+    }
+
+    // ── Rows that carry less than usual ─────────────────────────────────────
+
+    @Test
+    fun `a blank email subject draws no empty line, and an outbound message with no status draws no badge`() {
+        render(
+            ThreadUiState.Content(
+                listOf(
+                    message(id = "m1", subject = "   ", body = "First"),
+                    message(id = "m2", direction = "outbound", status = "", body = "Second"),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("First").assertIsDisplayed()
+        composeRule.onNodeWithText("Second").assertIsDisplayed()
+        composeRule.onNodeWithText("   ").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a call's summary shows when it has one, and a blank one shows nothing`() {
+        render(
+            ThreadUiState.Content(
+                listOf(
+                    call(id = "c1", summary = "Asked about Thursday hours."),
+                    call(id = "c2", summary = "  "),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("Asked about Thursday hours.").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a thread that cannot be retried offers no retry`() {
+        render(
+            ThreadUiState.Failed(FailureText(message = UiText.Literal("Not yours."), retryable = false)),
+        )
+
+        composeRule.onNodeWithText("Not yours.").assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a failed page stays reported even once the thread says nothing more is behind it`() {
+        render(
+            ThreadUiState.Content(
+                listOf(message(body = "Are you open Thursday?")),
+                hasMore = false,
+                olderFailure = FailureText(message = UiText.Literal("Offline.")),
+            ),
+        )
+
+        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_FAILURE_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `send reaches the handler current at the time of the tap, with the text in the box then`() {
+        // ⚠️ One screen whose state and handlers are replaced under it one at a time, as the graph
+        // does: a new message arriving must not disturb the composer, and the tap must reach the
+        // live handler, never one captured earlier.
+        val first = mutableListOf<String>()
+        val second = mutableListOf<String>()
+        var onSend by mutableStateOf<(String) -> Unit>({ first += it })
+        var state by mutableStateOf(ThreadUiState.Content(listOf(message(id = "m1", body = "Hello?"))))
+        composeRule.setContent {
+            var text by remember { mutableStateOf("") }
+            // ⚠️ Remembered on the text, so a change to the thread alone reaches the screen with the
+            // SAME composer, and a keystroke with a new one.
+            val composer = remember(text) {
+                ComposerHandlers(
+                    text = text,
+                    onTextChange = { text = it },
+                    canAttach = false,
+                    onAttach = {},
+                    onRemoveAttachment = {},
+                    onGenerateDraft = {},
+                    imageLoader = MediaImageLoader { null },
+                    onOpenMedia = {},
+                )
+            }
+            DistrictTheme {
+                ThreadScreen(
+                    title = "Ada Lovelace",
+                    state = state,
+                    canReply = true,
+                    onBack = {},
+                    onSend = onSend,
+                    onRetry = {},
+                    onDismissSendFailure = {},
+                    onLoadOlder = {},
+                    composer = composer,
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION).performTextInput("On my way")
+
+        state = ThreadUiState.Content(
+            listOf(message(id = "m1", body = "Hello?"), message(id = "m2", body = "Anyone?")),
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Anyone?").assertIsDisplayed()
+
+        onSend = { second += it }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).performClick()
+
+        assertEquals(emptyList<String>(), first)
+        assertEquals(listOf("On my way"), second)
     }
 }

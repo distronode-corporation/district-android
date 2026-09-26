@@ -588,4 +588,37 @@ class ThreadViewModelTest {
         assertTrue(vm.state.value is ThreadUiState.Failed)
         assertEquals(1, api.timelineCursors.size)
     }
+
+    @Test
+    fun `a page that says there is more but names no cursor asks for nothing`() = runTest(dispatcher) {
+        // ⚠️ An empty first window with an optimistic hasMore: there is no oldest event to page
+        // back from, so any request would be a guess at a cursor.
+        val api = TestDistrictApi().apply { timelineResult = page(hasMore = true) }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.loadOlder()
+        advanceUntilIdle()
+
+        assertEquals(listOf(null to null), api.timelineCursors)
+        assertFalse(contentOf(vm).loadingOlder)
+    }
+
+    @Test
+    fun `a send that fails after a reload began does not paint the old thread back`() = runTest(dispatcher) {
+        val api = TestDistrictApi().apply {
+            timelineResult = page(event("m1"))
+            sendResult = ApiResult.RateLimited("Slow down.")
+        }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.send("Hello")
+        vm.load()
+        advanceUntilIdle()
+
+        assertEquals(1, api.sends.size)
+        assertNull(contentOf(vm).sendFailure)
+        assertFalse(contentOf(vm).sending)
+    }
 }

@@ -634,4 +634,79 @@ class ThreadComposerViewModelTest {
         assertEquals("", vm.composerText.value)
         assertNull(content(vm).sendFailure)
     }
+
+    // ── A thread that failed to load has no composer to change ───────────────
+
+    @Test
+    fun `on a thread that failed to load, the composer's controls change nothing and spend nothing`() =
+        runTest(dispatcher) {
+            val api = api().apply { timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline")) }
+            val vm = viewModel(api)
+            advanceUntilIdle()
+            val failed = vm.state.value
+            assertTrue(failed is ThreadUiState.Failed)
+
+            vm.attach("content://picked")
+            vm.removeAttachment("https://www.distronode.test/api/media/media-1")
+            vm.dismissSendFailure()
+            vm.generateDraft()
+            advanceUntilIdle()
+
+            assertEquals(failed, vm.state.value)
+            assertTrue(api.uploads.isEmpty())
+            assertTrue(api.generations.isEmpty())
+        }
+
+    @Test
+    fun `an autosave that fires while the thread is not loaded saves the text with no media`() =
+        runTest(dispatcher) {
+            val api = api().apply { timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline")) }
+            val vm = viewModel(api)
+            advanceUntilIdle()
+
+            vm.onComposerChange("Still here.")
+            advanceUntilIdle()
+
+            val save = api.draftSaves.single()
+            assertEquals("Still here.", save.body)
+            assertTrue(save.mediaUrls.isEmpty())
+        }
+
+    @Test
+    fun `a second attach while an upload is in flight is ignored`() = runTest(dispatcher) {
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.attach("content://one")
+        vm.attach("content://two")
+        advanceUntilIdle()
+
+        assertEquals(1, api.uploads.size)
+        assertEquals(1, content(vm).attachments.size)
+    }
+
+    @Test
+    fun `a restored draft's attachments are dropped when the thread itself failed to load`() =
+        runTest(dispatcher) {
+            val api = api().apply {
+                timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
+                draftResult = ApiResult.Success(
+                    DraftResponse(
+                        success = true,
+                        draft = MessageDraft(
+                            threadKey = "contact:c1",
+                            body = "See attached.",
+                            mediaUrls = listOf("https://www.distronode.test/api/media/media-9"),
+                        ),
+                    ),
+                )
+            }
+            val vm = viewModel(api)
+            advanceUntilIdle()
+
+            // The text still comes back, since it lives in the composer rather than in the thread.
+            assertEquals("See attached.", vm.composerText.value)
+            assertTrue(vm.state.value is ThreadUiState.Failed)
+        }
 }

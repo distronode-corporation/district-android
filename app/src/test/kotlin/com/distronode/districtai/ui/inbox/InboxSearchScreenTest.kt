@@ -70,7 +70,9 @@ class InboxSearchScreenTest {
                     state = conversations,
                     onOpenThread = {},
                     onRetry = {},
+                    onBack = {},
                     searchState = searchState,
+                    onSearchQueryChanged = {},
                     onOpenHit = onOpenHit,
                 )
             }

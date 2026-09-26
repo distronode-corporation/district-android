@@ -83,13 +83,22 @@ class ThreadViewModel(
 ) : ViewModel() {
 
     /**
+     * Where a send goes, or null when this caller may not reply at all.
+     *
+     * ⚠️ ONE NULLABLE VALUE FOR BOTH HALVES OF [canReply] (the role and the target), so [send] reads
+     * the recipient and the permission in a single check rather than re-checking a target that the
+     * permission has already proved present.
+     */
+    private val replyTo: ReplyTarget? = target.replyTarget?.takeIf { role.allowsMutation() }
+
+    /**
      * ⛔ `messages/send` excludes `viewer` server-side.
      *
      * ⚠️ ALSO FALSE WHEN THERE IS NOTHING TO REPLY TO. A thread the server marked neither
      * `canSms` nor `canEmail` has no reachable address, so offering a reply box would collect a
      * message that could only ever fail to send.
      */
-    val canReply: Boolean = role.allowsMutation() && target.replyTarget != null
+    val canReply: Boolean = replyTo != null
 
     /**
      * Whether to offer the attach control at all.
@@ -109,7 +118,7 @@ class ThreadViewModel(
      * The web composer makes the same call from `capabilities.mms && !isWhatsApp`; this is the
      * client-knowable half of it.
      */
-    val canAttach: Boolean = canReply && target.replyTarget?.channel == CHANNEL_SMS
+    val canAttach: Boolean = replyTo?.channel == CHANNEL_SMS
 
     /**
      * The composer's text.
@@ -249,7 +258,7 @@ class ThreadViewModel(
                     // ⚠️ Read at FIRE time, not at edit time: an image attached during the
                     // debounce belongs on the draft the timer is about to write.
                     mediaUrls = (_state.value as? ThreadUiState.Content)
-                        ?.attachments?.map { it.url }.orEmpty(),
+                        ?.attachments.orEmpty().map { it.url },
                 )
             }
         }
@@ -275,12 +284,11 @@ class ThreadViewModel(
      * a message the operator sends twice on their next device.
      */
     fun send(body: String) {
-        if (!canReply) return
+        val recipient = replyTo ?: return
         val current = _state.value
         if (current !is ThreadUiState.Content || current.sending) return
         if (body.isBlank()) return
 
-        val recipient = target.replyTarget ?: return
         val media = current.attachments.map { it.url }
 
         _state.value = current.copy(sending = true, sendFailure = null)
@@ -356,16 +364,14 @@ class ThreadViewModel(
             // ⚠️ THREE DISTINCT REFUSALS, NOT ONE. "could not be read", "wrong format" and "too
             // big" call for three different next actions from the operator, and collapsing them
             // into "attachment failed" would leave them re-picking the same unsupported file.
-            val rejection = when {
-                picked == null -> R.string.thread_attach_unreadable
-                !picked.isSupportedType() -> R.string.thread_attach_unsupported
-                !picked.isWithinSizeLimit() -> R.string.thread_attach_too_large
-                else -> null
-            }
-            if (rejection == null && picked != null) {
-                upload(picked)
-            } else if (rejection != null) {
+            val refuse = { rejection: Int ->
                 _state.withContent { it.copy(attaching = false, sendFailure = refusal(rejection)) }
+            }
+            when {
+                picked == null -> refuse(R.string.thread_attach_unreadable)
+                !picked.isSupportedType() -> refuse(R.string.thread_attach_unsupported)
+                !picked.isWithinSizeLimit() -> refuse(R.string.thread_attach_too_large)
+                else -> upload(picked)
             }
         }
     }

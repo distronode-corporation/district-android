@@ -81,7 +81,8 @@ class OkHttpMediaImageLoader(
         return withContext(io) {
             val bytes = try {
                 client.newCall(Request.Builder().url(url).get().build()).execute().use { response ->
-                    if (response.isSuccessful) response.body?.bytes() else null
+                    // `body` is non-null for an executed call in OkHttp 5, so there is no null to check.
+                    if (response.isSuccessful) response.body.bytes() else null
                 }
             } catch (_: java.io.IOException) {
                 null
@@ -136,7 +137,6 @@ fun MediaImage(
     url: String,
     loader: MediaImageLoader,
     onOpen: (String) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     // ⛔ ONE produceState, NOT TWO. An earlier shape used a second one to tell "still loading"
     // from "loaded nothing", which called the loader TWICE per thumbnail — two requests, two
@@ -149,8 +149,9 @@ fun MediaImage(
         value = loader.load(url)?.let { MediaPhase.Ready(it) } ?: MediaPhase.Failed
     }
 
+    // ⚠️ No `modifier` parameter: the thread's attachment row is the one caller and never passed one.
     Box(
-        modifier = modifier
+        modifier = Modifier
             .size(THUMBNAIL_SIZE)
             .clip(RoundedCornerShape(THUMBNAIL_RADIUS))
             .background(DistrictTheme.colors.muted)

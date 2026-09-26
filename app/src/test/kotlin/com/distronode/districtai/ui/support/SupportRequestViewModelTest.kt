@@ -175,6 +175,25 @@ class SupportRequestViewModelTest {
     }
 
     @Test
+    fun `a second close while the first is in flight sends nothing`() = runTest {
+        // ⛔ A REPEAT LEAVES A SECOND AUDIT COMMENT. The control stays on screen while the first
+        // close is in flight (disabled, labelled as closing), so the ViewModel is what refuses the
+        // second one.
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.close()
+        val inFlight = content(model)
+        assertTrue(inFlight.closing)
+        assertTrue("the control stays offered while it closes", inFlight.canClose)
+        model.close()
+        advanceUntilIdle()
+
+        assertEquals(listOf("DA-42"), api.closedKeys)
+    }
+
+    @Test
     fun `a failed close is not repeated`() = runTest {
         val api = api().apply { closeResult = ApiResult.HttpFailure(502, "We could not close it.") }
         val model = viewModel(api)

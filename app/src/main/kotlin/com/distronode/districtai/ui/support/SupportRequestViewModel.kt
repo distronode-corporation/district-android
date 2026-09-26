@@ -124,7 +124,8 @@ class SupportRequestViewModel(
     fun close() {
         if (!canUse) return
         val current = _state.value as? SupportRequestUiState.Content ?: return
-        if (!current.canClose) return
+        // A second tap during the first close would post a second audit comment; see the class.
+        if (!current.canClose || current.closing) return
 
         _state.value = current.copy(closing = true, closeFailure = null)
         viewModelScope.launch {

@@ -1,9 +1,11 @@
 package com.distronode.districtai.ui.support
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -77,6 +79,11 @@ class SupportRequestScreenTest {
     fun `a loaded thread is titled by its key and attributes each message by role`() {
         render(SupportRequestUiState.Content(request))
 
+        // The key is both the top bar's title and the header's eyebrow.
+        val keyed = composeRule.onAllNodesWithText("DA-42")
+        keyed.assertCountEquals(2)
+        keyed[0].assertIsDisplayed()
+        keyed[1].assertIsDisplayed()
         composeRule.onNodeWithText("Calls drop after ten seconds").assertIsDisplayed()
         composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_STATUS_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Distronode Support").assertIsDisplayed()
@@ -138,12 +145,23 @@ class SupportRequestScreenTest {
 
     @Test
     fun `while a reply is sending the box and the button are both held`() {
-        render(SupportRequestUiState.Content(request, sending = true, closing = true), draft = "Thanks")
+        render(SupportRequestUiState.Content(request, sending = true), draft = "Thanks")
 
         composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_DESCRIPTION).assertIsNotEnabled()
         composeRule.onNodeWithText("Sending…").assertIsDisplayed()
-        // A close in flight hides the button rather than letting it be pressed twice.
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `while a close is in flight the button says so and cannot be pressed again`() {
+        // The button stays, disabled and labelled as closing. The not-closeable sentence belongs to
+        // a request the desk will not close, and this one is being closed.
+        render(SupportRequestUiState.Content(request, closing = true))
+
+        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
+            .assertIsDisplayed()
+            .assertIsNotEnabled()
+        composeRule.onNodeWithText("Closing…").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION).assertDoesNotExist()
     }
 
     @Test

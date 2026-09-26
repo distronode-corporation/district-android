@@ -20,6 +20,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - The iOS endpoint list used by the endpoint parity test is a vendored snapshot under
   `parity/`, overridable with `DISTRICT_IOS_ENDPOINT_IDS`.
 
+### Fixed
+
+- Closing a support request now shows a disabled "Closing…" button while the close is in flight,
+  instead of saying the request cannot be closed from here.
+
 ## [1.0]
 
 The first release, submitted to Google Play and in Google's review. The store listing is not

@@ -58,8 +58,13 @@ sealed interface SupportRequestUiState {
          * request that is already resolved — a repeat leaves a SECOND "Closed at the requester's
          * request by …" in the customer's own thread, because the audit comment is posted before
          * the transition is applied.
+         *
+         * ⚠️ IT DOES NOT READ [closing]. A close in flight keeps the control on screen, disabled
+         * and labelled as closing; excluding it here sent the header to the "cannot be closed from
+         * here" sentence for the length of the request. [SupportRequestViewModel.close] refuses a
+         * second close while one is in flight.
          */
-        val canClose: Boolean get() = request.closeable && !request.isResolved && !closing
+        val canClose: Boolean get() = request.closeable && !request.isResolved
     }
 
     data class Failed(val failure: FailureText) : SupportRequestUiState

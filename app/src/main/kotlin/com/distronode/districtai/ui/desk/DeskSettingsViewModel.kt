@@ -163,11 +163,9 @@ class DeskSettingsViewModel(
         _state.value = current.copy(logoBusy = true, logoFailure = null, logoObjectRetained = false)
         viewModelScope.launch {
             when (val result = repository.deleteLogo(workspaceId)) {
-                is ApiResult.Success -> {
-                    val settings = result.value.settings ?: current.stored
-                    _state.value = contentFor(settings)
+                is ApiResult.Success ->
+                    _state.value = contentFor(result.value.settings)
                         .copy(logoObjectRetained = !result.value.objectRemoved)
-                }
                 is ApiResult.Failure ->
                     _state.value =
                         current.copy(logoBusy = false, logoFailure = result.toFailureText())

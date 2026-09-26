@@ -84,35 +84,35 @@ fun DeskComposeSheet(
                     onChange = onSubject,
                     labelId = R.string.desk_compose_subject,
                     enabled = !state.submitting,
-                    description = DESK_COMPOSE_SUBJECT_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_SUBJECT_DESCRIPTION },
                 )
                 Field(
                     value = state.message,
                     onChange = onMessage,
                     labelId = R.string.desk_compose_message,
                     enabled = !state.submitting,
-                    description = DESK_COMPOSE_MESSAGE_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_MESSAGE_DESCRIPTION },
                 )
                 Field(
                     value = state.requesterName,
                     onChange = onRequesterName,
                     labelId = R.string.desk_compose_requester_name,
                     enabled = !state.submitting,
-                    description = DESK_COMPOSE_NAME_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_NAME_DESCRIPTION },
                 )
                 Field(
                     value = state.requesterEmail,
                     onChange = onRequesterEmail,
                     labelId = R.string.desk_compose_requester_email,
                     enabled = !state.submitting,
-                    description = DESK_COMPOSE_EMAIL_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_EMAIL_DESCRIPTION },
                 )
                 Field(
                     value = state.requesterPhone,
                     onChange = onRequesterPhone,
                     labelId = R.string.desk_compose_requester_phone,
                     enabled = !state.submitting,
-                    description = DESK_COMPOSE_PHONE_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_PHONE_DESCRIPTION },
                 )
             }
         },
@@ -157,16 +157,14 @@ private fun Field(
     onChange: (String) -> Unit,
     labelId: Int,
     enabled: Boolean,
-    description: String,
+    modifier: Modifier,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
         label = { Text(stringResource(labelId)) },
         enabled = enabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = description },
+        modifier = modifier.fillMaxWidth(),
     )
 }
 

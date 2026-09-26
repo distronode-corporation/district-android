@@ -1,6 +1,11 @@
 package com.distronode.districtai.ui.desk
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.performScrollToNode
@@ -10,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DeskSettings
 import com.distronode.districtai.core.model.DeskTicketStatus
 import com.distronode.districtai.core.model.DeskTicketSummary
@@ -50,6 +56,7 @@ class DeskScreenTest {
         val onEnable: () -> Unit = {},
         val onSettings: () -> Unit = {},
         val onRetry: () -> Unit = {},
+        val onBack: () -> Unit = {},
     )
 
     private fun render(
@@ -68,6 +75,7 @@ class DeskScreenTest {
                     onEnable = callbacks.onEnable,
                     onSettings = callbacks.onSettings,
                     onRetry = callbacks.onRetry,
+                    onBack = callbacks.onBack,
                 )
             }
         }
@@ -76,10 +84,12 @@ class DeskScreenTest {
     private fun content(
         tickets: List<DeskTicketSummary> = listOf(ticket),
         filter: DeskTicketStatus? = null,
+        refreshing: Boolean = false,
     ) = DeskUiState.Content(
         tickets = tickets,
         settings = DeskSettings(enabled = true),
         filter = filter,
+        refreshing = refreshing,
     )
 
     @Test
@@ -222,5 +232,88 @@ class DeskScreenTest {
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasContentDescription(DESK_CAPPED_DESCRIPTION))
         composeRule.onNodeWithContentDescription(DESK_CAPPED_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `the app bar back action reports the tap`() {
+        var backs = 0
+        render(content(), callbacks = Callbacks(onBack = { backs++ }))
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `a refresh keeps the queue on screen under a progress bar`() {
+        render(content(refreshing = true))
+
+        composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertExists()
+        composeRule.onNodeWithText("Leaking tap").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a requester known only by email or only by phone is named by what the ticket carries`() {
+        render(
+            content(
+                tickets = listOf(
+                    ticket.copy(id = "t-email", requesterName = null, requesterEmail = "ada@example.com"),
+                    ticket.copy(id = "t-phone", requesterName = null, requesterPhone = "+14165550142"),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("ada@example.com").assertIsDisplayed()
+        composeRule.onNodeWithText("+14165550142").assertIsDisplayed()
+        composeRule.onNodeWithText("No contact details").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the chips follow the filter as it moves, and each still reports its own status`() {
+        // ⚠️ One screen with its filter changed underneath it, the way the ViewModel moves it: every
+        // chip is redrawn against the new selection and must go on reporting the right status.
+        val picked = mutableListOf<DeskTicketStatus?>()
+        var state by mutableStateOf<DeskUiState>(content())
+        composeRule.setContent {
+            DistrictTheme {
+                DeskScreen(
+                    state = state,
+                    canUse = true,
+                    onOpenTicket = {},
+                    onFilter = { picked += it },
+                    onCompose = {},
+                    onEnable = {},
+                    onSettings = {},
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("$DESK_FILTER_DESCRIPTION-resolved").performClick()
+        state = content(filter = DeskTicketStatus.RESOLVED)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(DESK_FILTER_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("$DESK_FILTER_DESCRIPTION-open").performClick()
+
+        assertEquals(listOf(DeskTicketStatus.RESOLVED, DeskTicketStatus.OPEN), picked)
+    }
+
+    @Test
+    fun `each known status is badged with its own name`() {
+        render(
+            content(
+                tickets = listOf(
+                    ticket.copy(id = "t-open", subject = "One"),
+                    ticket.copy(id = "t-waiting", subject = "Two", status = "waiting"),
+                    ticket.copy(id = "t-resolved", subject = "Three", status = "resolved"),
+                ),
+            ),
+        )
+
+        // ⚠️ Exact matches: the filter chips read "Waiting 1" and "Resolved 1", so only a badge matches.
+        composeRule.onNodeWithText("Open").assertIsDisplayed()
+        composeRule.onNodeWithText("Waiting").assertIsDisplayed()
+        composeRule.onNodeWithText("Resolved").assertIsDisplayed()
     }
 }

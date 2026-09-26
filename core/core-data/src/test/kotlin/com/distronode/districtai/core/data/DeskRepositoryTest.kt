@@ -200,7 +200,7 @@ class DeskRepositoryTest {
     // ── The logo takedown's two halves ───────────────────────────────────────
 
     @Test
-    fun `deleteLogo returns the whole response so objectRemoved survives`() = runTest {
+    fun `deleteLogo returns objectRemoved alongside the settings`() = runTest {
         // ⛔ A 200 MEANS THE COLUMN WAS CLEARED, WHICH IS WHAT TAKES THE IMAGE OFF THE PAGE.
         // `objectRemoved: false` means the stored file survived and may still answer its old link.
         // Collapsing this to the settings row would discard the only field that says so.
@@ -217,7 +217,7 @@ class DeskRepositoryTest {
         val result = DeskRepository(api).deleteLogo("ws-1")
 
         assertEquals(false, (result as ApiResult.Success).value.objectRemoved)
-        assertNull(result.value.settings!!.publicLogoUrl)
+        assertNull(result.value.settings.publicLogoUrl)
     }
 
     @Test

@@ -57,29 +57,34 @@ fun DeskSettingsScreen(
     onPickLogo: () -> Unit,
     onRemoveLogo: () -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = DESK_SETTINGS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.desk_settings_title), onBack = onBack)
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
-            when {
-                !canUse -> SettingsRefused()
-                state is DeskSettingsUiState.Loading -> SettingsLoading()
-                state is DeskSettingsUiState.Failed -> SettingsFailure(state.failure, onRetry)
-                state is DeskSettingsUiState.Content -> SettingsForm(
-                    state = state,
-                    onEnabled = onEnabled,
-                    onNotify = onNotify,
-                    onBrandName = onBrandName,
-                    onSave = onSave,
-                    onPickLogo = onPickLogo,
-                    onRemoveLogo = onRemoveLogo,
-                )
+            // ⚠️ A `when` on the state itself rather than a chain of `is` tests, so the compiler
+            // rather than a trailing test proves every state is drawn.
+            if (!canUse) {
+                SettingsRefused()
+            } else {
+                when (state) {
+                    DeskSettingsUiState.Loading -> SettingsLoading()
+                    is DeskSettingsUiState.Failed -> SettingsFailure(state.failure, onRetry)
+                    is DeskSettingsUiState.Content -> SettingsForm(
+                        state = state,
+                        onEnabled = onEnabled,
+                        onNotify = onNotify,
+                        onBrandName = onBrandName,
+                        onSave = onSave,
+                        onPickLogo = onPickLogo,
+                        onRemoveLogo = onRemoveLogo,
+                    )
+                }
             }
         }
     }
@@ -108,14 +113,14 @@ private fun SettingsForm(
                     labelId = R.string.desk_settings_enabled,
                     checked = state.enabled,
                     enabled = !state.saving,
-                    description = DESK_SETTINGS_ENABLED_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_ENABLED_DESCRIPTION },
                     onChange = onEnabled,
                 )
                 ToggleRow(
                     labelId = R.string.desk_settings_notify,
                     checked = state.notifyCustomersByEmail,
                     enabled = !state.saving,
-                    description = DESK_SETTINGS_NOTIFY_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_NOTIFY_DESCRIPTION },
                     onChange = onNotify,
                 )
 
@@ -140,7 +145,7 @@ private fun SettingsForm(
                 )
 
                 state.saveFailure?.let {
-                    InlineError(it, DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION)
+                    InlineError(it, Modifier.semantics { contentDescription = DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION })
                 }
 
                 DistrictButton(
@@ -204,7 +209,9 @@ private fun LogoCard(
             )
         }
 
-        state.logoFailure?.let { InlineError(it, DESK_LOGO_FAILURE_DESCRIPTION) }
+        state.logoFailure?.let {
+            InlineError(it, Modifier.semantics { contentDescription = DESK_LOGO_FAILURE_DESCRIPTION })
+        }
 
         Row(
             modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
@@ -244,7 +251,7 @@ private fun ToggleRow(
     labelId: Int,
     checked: Boolean,
     enabled: Boolean,
-    description: String,
+    modifier: Modifier,
     onChange: (Boolean) -> Unit,
 ) {
     Row(
@@ -263,21 +270,20 @@ private fun ToggleRow(
             checked = checked,
             onCheckedChange = onChange,
             enabled = enabled,
-            modifier = Modifier.semantics { contentDescription = description },
+            modifier = modifier,
         )
     }
 }
 
 @Composable
-private fun InlineError(failure: FailureText, description: String) {
+private fun InlineError(failure: FailureText, modifier: Modifier) {
     Text(
         text = failure.message.resolve(),
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.destructive,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = DistrictTheme.spacing.hairline)
-            .semantics { contentDescription = description },
+            .padding(vertical = DistrictTheme.spacing.hairline),
     )
 }
 

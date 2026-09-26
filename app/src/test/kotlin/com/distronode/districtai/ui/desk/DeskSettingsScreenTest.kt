@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DeskSettings
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
@@ -53,6 +54,7 @@ class DeskSettingsScreenTest {
         var picks = 0
         var removes = 0
         var retries = 0
+        var backs = 0
     }
 
     private val loaded = DeskSettingsUiState.Content(
@@ -79,6 +81,7 @@ class DeskSettingsScreenTest {
                     onPickLogo = { recorder.picks++ },
                     onRemoveLogo = { recorder.removes++ },
                     onRetry = { recorder.retries++ },
+                    onBack = { recorder.backs++ },
                 )
             }
         }
@@ -320,5 +323,15 @@ class DeskSettingsScreenTest {
 
         composeRule.onNodeWithContentDescription(DESK_LOGO_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithContentDescription(DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the app bar back action reports the tap`() {
+        val recorder = Recorder()
+        render(loaded, recorder = recorder)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        assertEquals(1, recorder.backs)
     }
 }

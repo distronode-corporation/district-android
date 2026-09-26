@@ -305,4 +305,88 @@ class DeskTicketViewModelTest {
         assertTrue(model.state.value is DeskTicketUiState.Failed)
         assertNull((model.state.value as? DeskTicketUiState.Content)?.ticket)
     }
+
+    // ── Guards: nothing is sent from a state that cannot use it ─────────────
+
+    @Test
+    fun `a reply or a status change before the thread has loaded sends nothing`() = runTest {
+        val api = api().apply { ticketResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val model = viewModel(api)
+        advanceUntilIdle()
+        assertTrue(model.state.value is DeskTicketUiState.Failed)
+
+        model.editDraft("Hello")
+        model.send()
+        model.setStatus(DeskTicketStatus.RESOLVED)
+        advanceUntilIdle()
+
+        assertTrue(api.replyBodies.isEmpty())
+        assertTrue(api.statuses.isEmpty())
+    }
+
+    @Test
+    fun `a second send while the first is in flight sends nothing more`() = runTest {
+        val api = api().apply {
+            replyResult = ApiResult.Success(
+                DeskReplyResponse(
+                    success = true,
+                    ticket = DeskTicketSummary(id = "tkt_1", status = "waiting"),
+                    message = DeskMessage(id = "m2", authorType = "team", body = "Coming."),
+                    notified = true,
+                ),
+            )
+        }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.editDraft("Coming.")
+        model.send()
+        model.send()
+        advanceUntilIdle()
+
+        assertEquals(listOf("Coming."), api.replyBodies)
+    }
+
+    @Test
+    fun `a second status change while the first is in flight sends nothing more`() = runTest {
+        val api = api().apply {
+            statusResult = ApiResult.Success(
+                DeskTicketStatusResponse(
+                    success = true,
+                    ticket = DeskTicketSummary(id = "tkt_1", status = "resolved"),
+                ),
+            )
+        }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.setStatus(DeskTicketStatus.RESOLVED)
+        model.setStatus(DeskTicketStatus.WAITING)
+        advanceUntilIdle()
+
+        assertEquals(listOf(DeskTicketStatus.RESOLVED), api.statuses)
+    }
+
+    @Test
+    fun `a viewer's status change sends nothing`() = runTest {
+        val api = api()
+        val model = viewModel(api, role = WorkspaceRole.VIEWER)
+        advanceUntilIdle()
+
+        model.setStatus(DeskTicketStatus.RESOLVED)
+        advanceUntilIdle()
+
+        assertTrue(api.statuses.isEmpty())
+    }
+
+    @Test
+    fun `the factory builds a model for the ticket it was given`() = runTest {
+        val api = api()
+        val model = DeskTicketViewModel.factory(DeskRepository(api) { "key" }, "ws-1", "tkt_1", WorkspaceRole.CLIENT)
+            .create(DeskTicketViewModel::class.java)
+        advanceUntilIdle()
+
+        assertEquals("tkt_1", model.ticketId)
+        assertEquals(1, api.ticketDetailReads)
+    }
 }

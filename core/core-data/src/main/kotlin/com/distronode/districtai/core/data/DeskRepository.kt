@@ -98,20 +98,21 @@ class DeskRepository(
         }
 
     /**
-     * ⛔ RETURNS THE WHOLE RESPONSE, `objectRemoved` INCLUDED, RATHER THAN JUST THE SETTINGS. The
-     * takedown has two halves and only the first is guaranteed by a 200 — see
-     * [DeskLogoRemovalResponse]. Collapsing it to the settings row would discard the one field
-     * that says whether the bytes are still being served.
+     * ⛔ RETURNS `objectRemoved` AS WELL AS THE SETTINGS, NOT JUST THE SETTINGS. The takedown has two
+     * halves and only the first is guaranteed by a 200 (see [DeskLogoRemovalResponse]). Collapsing
+     * it to the settings row would discard the one field that says whether the bytes are still
+     * being served.
+     *
+     * ⚠️ AS A [DeskLogoRemoval], whose settings are non-null, rather than the wire response: the
+     * null case is drift and is answered here, so no caller carries a fallback that cannot run.
      */
-    suspend fun deleteLogo(workspaceId: String): ApiResult<DeskLogoRemovalResponse> =
+    suspend fun deleteLogo(workspaceId: String): ApiResult<DeskLogoRemoval> =
         when (val result = api.deleteDeskLogo(workspaceId)) {
             is ApiResult.Success ->
                 rejectedEnvelope(LOGO_REMOVAL_ENVELOPE, result.value.success)
-                    ?: if (result.value.settings == null) {
-                        drift(LOGO_REMOVAL_ENVELOPE, "settings")
-                    } else {
-                        ApiResult.Success(result.value)
-                    }
+                    ?: result.value.settings
+                        ?.let { ApiResult.Success(DeskLogoRemoval(it, result.value.objectRemoved)) }
+                    ?: drift(LOGO_REMOVAL_ENVELOPE, "settings")
             is ApiResult.Failure -> result
         }
 
@@ -249,6 +250,12 @@ private fun settingsOrDrift(settings: DeskSettings?): ApiResult<DeskSettings> =
 
 /** ⚠️ Shared by the GET, the PATCH and the logo POST, which all answer the same envelope. */
 private const val DESK_SETTINGS_ENVELOPE = "DeskSettingsResponse"
+
+/**
+ * A logo takedown that succeeded: the settings row the server stored, and whether the stored object
+ * was deleted too. See [DeskRepository.deleteLogo].
+ */
+data class DeskLogoRemoval(val settings: DeskSettings, val objectRemoved: Boolean)
 
 /**
  * What a reply actually produced.

@@ -40,10 +40,9 @@ import com.distronode.districtai.core.designsystem.Tone
 fun SignInScreen(
     status: LoginStatus?,
     onSignIn: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .semantics { contentDescription = SIGN_IN_ROOT_DESCRIPTION },
         color = DistrictTheme.colors.background,
@@ -113,7 +112,7 @@ fun SignInScreen(
 }
 
 @Composable
-private fun StatusPanel(status: LoginStatus, modifier: Modifier = Modifier) {
+private fun StatusPanel(status: LoginStatus, modifier: Modifier) {
     val tone = toneForLoginStatus(status)
     val ink = when (tone) {
         Tone.Danger -> DistrictTheme.colors.destructive

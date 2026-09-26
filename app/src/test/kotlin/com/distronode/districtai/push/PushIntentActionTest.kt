@@ -80,6 +80,7 @@ class PushIntentActionTest {
         assertNull(pushIntentAction(workspaceId = "ws-1", messageId = null, callId = null, answer = false))
         assertNull(pushIntentAction(workspaceId = null, messageId = "msg-1", callId = null, answer = false))
         assertNull(pushIntentAction(workspaceId = "", messageId = "msg-1", callId = null, answer = false))
+        assertNull(pushIntentAction(workspaceId = "ws-1", messageId = " ", callId = null, answer = false))
     }
 
     @Test

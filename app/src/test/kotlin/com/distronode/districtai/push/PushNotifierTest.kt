@@ -17,6 +17,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.Implementation
+import org.robolectric.annotation.Implements
+import org.robolectric.shadows.ShadowNotificationManager
 
 /**
  * The two channels, the three notifications, and the ids that keep them apart.
@@ -192,5 +195,28 @@ class PushNotifierTest {
         assertEquals(Notification.CATEGORY_CALL, notification.category)
         assertTrue(notification.flags and Notification.FLAG_ONGOING_EVENT != 0)
         assertEquals(null, notification.actions)
+    }
+
+    @Test
+    @Config(shadows = [RefusingNotificationManagerShadow::class])
+    fun `a platform that refuses to post drops the notification rather than crashing the push`() {
+        // ⚠️ SOME BUILDS THROW `SecurityException` FROM `notify` rather than dropping a post the app
+        // may not make. A throw here would escape into the FCM callback and lose the ring's Telecom
+        // half along with the notification.
+        val refusing = AndroidPushNotifier(context)
+
+        refusing.showMessage("ws-1", "msg-1")
+        refusing.showIncomingCall("ws-1", "CA1")
+
+        assertTrue(posted().isEmpty())
+    }
+}
+
+/** A notification manager that refuses every post, the way some OEM builds do. */
+@Implements(NotificationManager::class)
+class RefusingNotificationManagerShadow : ShadowNotificationManager() {
+    @Implementation
+    override fun notify(tag: String?, id: Int, notification: Notification?) {
+        throw SecurityException("posting notifications is not allowed")
     }
 }

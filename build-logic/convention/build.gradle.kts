@@ -47,12 +47,23 @@ dependencies {
 // ⚠️ Every configuration, not just that one, so a configuration kotlin-dsl adds later is
 // covered without an edit. Same set and same number as the main build: `bouncyCastle` in
 // gradle/libs.versions.toml, which this build reads too (see settings.gradle.kts).
+//
+// ⚠️ The same four plugin-classpath patches the main build forces in its `buildscript` block
+// (freemarker, jdom2, jose4j, commons-lang3) are forced here too, for the same reason: AGP and
+// Kover resolve them into this build's accessor classpath, and it is reported the same way.
 val bouncyCastleVersion: String = libs.versions.bouncyCastle.get()
+val pluginClasspathForces: List<String> = listOf(
+    "org.freemarker:freemarker:${libs.versions.freemarker.get()}",
+    "org.jdom:jdom2:${libs.versions.jdom2.get()}",
+    "org.bitbucket.b_c:jose4j:${libs.versions.jose4j.get()}",
+    "org.apache.commons:commons-lang3:${libs.versions.commonsLang3.get()}",
+)
 
 configurations.configureEach {
     resolutionStrategy {
         listOf("bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on").forEach {
             force("org.bouncycastle:$it:$bouncyCastleVersion")
         }
+        pluginClasspathForces.forEach { force(it) }
     }
 }

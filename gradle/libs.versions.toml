@@ -261,6 +261,19 @@ sentryGradlePlugin = "6.23.0"
 # bouncycastle note in build.gradle.kts before changing it.
 bouncyCastle = "1.86"
 
+# ⛔ ALSO FORCED, NEVER DECLARED, AND ONLY ON THE GRADLE PLUGIN CLASSPATH (plus the modules'
+# Lint classpath for commons-lang3). Each is the patch that clears a Dependabot advisory on a
+# library a build plugin brings in, forced in the root build's `buildscript` block and in
+# build-logic, which read these numbers from here. None of them ships to a device.
+#   freemarker   Kover's IntelliJ coverage reporter        GHSA-27j2-h3m2-8237  fixed 2.3.35
+#   jdom2        AGP's Jetifier (disabled in this build)   GHSA-2363-cqg2-863c  fixed 2.0.6.1
+#   jose4j       AGP's bundletool                          GHSA-3677-xxcr-wjqv  fixed 0.9.6
+#   commonsLang3 AGP's sdk-common, via commons-compress    GHSA-j288-q9x7-2f5v  fixed 3.18.0
+freemarker = "2.3.35"
+jdom2 = "2.0.6.1"
+jose4j = "0.9.6"
+commonsLang3 = "3.20.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }

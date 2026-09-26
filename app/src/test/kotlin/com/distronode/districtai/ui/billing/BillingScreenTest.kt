@@ -134,6 +134,15 @@ class BillingScreenTest {
         composeRule.onNodeWithContentDescription(BILLING_PLAN_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
         composeRule.onNodeWithText("Active").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(BILLING_REFRESHING_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a refresh in flight shows its bar over the plan it already has, rather than blanking it`() {
+        render(content().copy(refreshing = true))
+
+        composeRule.onNodeWithContentDescription(BILLING_REFRESHING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
     }
 
     @Test

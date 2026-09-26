@@ -387,6 +387,43 @@ class OverviewScreenTest {
     }
 
     @Test
+    fun `a failed transfer is flagged in recent activity, beside a completed one`() {
+        // The failure is the one thing on this screen a human has to act on, so it gets its own
+        // chip rather than sharing the transferred one.
+        render(
+            content(
+                overview = overview(
+                    calls = listOf(
+                        RecentActivity(
+                            id = "c1",
+                            displayName = "Ada",
+                            outbound = false,
+                            status = "completed",
+                            live = false,
+                            transferred = true,
+                            transferFailed = false,
+                            time = "now",
+                        ),
+                        RecentActivity(
+                            id = "c2",
+                            displayName = "Bob",
+                            outbound = false,
+                            status = "completed",
+                            live = false,
+                            transferred = false,
+                            transferFailed = true,
+                            time = "earlier",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        scrollToText("Transferred").assertIsDisplayed()
+        scrollToText("Transfer failed").assertIsDisplayed()
+    }
+
+    @Test
     fun `warns when the workspace list was incomplete`() {
         // ⛔ The switcher is short because a region did not answer. Saying so is not optional:
         // implying the user has fewer workspaces than they do is the same class of error as

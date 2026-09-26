@@ -62,10 +62,9 @@ fun SchedulingScreen(
     onOpenDashboard: () -> Unit,
     onOpenScheduler: () -> Unit,
     onDismissNotice: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = SCHEDULING_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = SCHEDULING_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.scheduling_title), onBack = onBack)
         },
@@ -190,9 +189,11 @@ const val SCHEDULING_DISMISS_DESCRIPTION: String = "district-scheduling-dismiss"
 const val SCHEDULING_FAILURE_DESCRIPTION: String = "district-scheduling-failure"
 const val SCHEDULING_RETRY_DESCRIPTION: String = "district-scheduling-retry"
 
+// ⚠️ INTERNAL RATHER THAN PRIVATE so `SchedulingScreenTest` can render it: a preview that stopped
+// composing would break Android Studio's renderer without failing anything else.
 @Preview(showBackground = true)
 @Composable
-private fun SchedulingScreenPreview() {
+internal fun SchedulingScreenPreview() {
     DistrictTheme {
         SchedulingScreen(
             state = SchedulingUiState(

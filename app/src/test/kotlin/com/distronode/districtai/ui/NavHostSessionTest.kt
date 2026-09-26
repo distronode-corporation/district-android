@@ -161,4 +161,23 @@ class NavHostSessionTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).assertDoesNotExist()
     }
+
+    @Test
+    fun `a new overview state handed down by a caller reaches the graph, and an unchanged one changes nothing`() {
+        harness.render(forwarded = true)
+
+        // Unchanged: the caller recomposes for the epoch alone, and the tabs still carry agency.
+        harness.bumpEpoch()
+        composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).performClick()
+        composeRule.waitForIdle()
+        assertEquals("agency", harness.argument(ARG_ROLE))
+
+        // Changed: a new state with a narrower role, and the next tab carries it.
+        harness.overviewState = NavHostHarness.content(role = WorkspaceRole.VIEWER)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(NAV_INBOX_DESCRIPTION).performClick()
+        composeRule.waitForIdle()
+        assertEquals(Routes.INBOX, harness.route())
+        assertEquals("viewer", harness.argument(ARG_ROLE))
+    }
 }

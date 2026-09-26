@@ -73,6 +73,21 @@ class NavHostMediaTest {
     }
 
     @Test
+    fun `a blank workspace id mints no room name, so the join goes nowhere`() {
+        // ⛔ HOSTILE INPUT FOR THE REFUSAL. The field is filled, so the button is live, but
+        // `meet_ _standup` is a name the server rejects as malformed; the lobby must refuse it
+        // locally rather than navigate to a room that 400s.
+        harness.render()
+        harness.navigate(Routes.rooms(" ", WorkspaceRole.AGENCY))
+
+        composeRule.onNodeWithContentDescription(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("standup")
+        harness.tap(ROOMS_JOIN_DESCRIPTION)
+
+        assertEquals(Routes.ROOMS, harness.route())
+        assertTrue(harness.engines.isEmpty())
+    }
+
+    @Test
     fun `a live meeting is rejoined by its own room name`() {
         harness.api.meetingsResult = ApiResult.Success(
             listOf(MeetingSummary(id = "m1", roomName = "meet_ws-1_standup", status = STATUS_IN_PROGRESS)),

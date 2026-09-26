@@ -425,4 +425,58 @@ class MembersViewModelTest {
         /** One past the route's `MAX_NAME_LENGTH` of 120. */
         const val OVER_MAX_NAME = 121
     }
+
+    @Test
+    fun `nothing else can be written while an add is in flight`() = runTest {
+        // ⚠️ ONE MEMBERSHIP WRITE AT A TIME. Each one re-reads the roster, and two re-reads racing
+        // would decide the list on screen by whichever answered last.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.editEmail("new@example.com")
+        vm.addMember()
+        vm.addMember()
+        vm.changeRole("operator@example.com", WorkspaceRole.AGENCY)
+        vm.removeMember("auditor@example.com")
+        advanceUntilIdle()
+
+        assertEquals(1, api.memberAdds.size)
+        assertTrue(api.memberRoleChanges.isEmpty())
+        assertTrue(api.memberRemovals.isEmpty())
+    }
+
+    @Test
+    fun `a client that calls a membership write directly is refused without a request`() = runTest {
+        // ⛔ THE WRITES ARE AGENCY-ONLY SERVER-SIDE, and the screen draws no control for a client.
+        // This is the ViewModel holding the same line when something calls it anyway.
+        val api = api()
+        val vm = viewModel(api, role = WorkspaceRole.CLIENT)
+        advanceUntilIdle()
+
+        vm.editEmail("new@example.com")
+        vm.addMember()
+        vm.changeRole("operator@example.com", WorkspaceRole.AGENCY)
+        vm.removeMember("auditor@example.com")
+        advanceUntilIdle()
+
+        assertTrue(api.memberAdds.isEmpty())
+        assertTrue(api.memberRoleChanges.isEmpty())
+        assertTrue(api.memberRemovals.isEmpty())
+        assertEquals(roster, vm.state.value.members)
+    }
+
+    @Test
+    fun `the factory builds a ViewModel that reads the roster and carries both gates`() = runTest {
+        val api = api()
+        val vm = MembersViewModel
+            .factory(MembersRepository(api), "ws-1", WorkspaceRole.CLIENT)
+            .create(MembersViewModel::class.java)
+        advanceUntilIdle()
+
+        assertEquals(listOf("ws-1"), api.memberListRequests)
+        assertEquals(roster, vm.state.value.members)
+        assertFalse(vm.state.value.canManage)
+        assertTrue(vm.state.value.canRename)
+    }
 }

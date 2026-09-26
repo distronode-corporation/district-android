@@ -64,9 +64,13 @@ data class CallHandlingUiState(
     val ringSeconds: Int
         get() = ringDraft ?: stored?.appRingSeconds ?: CallHandling.DEFAULT_RING_SECONDS
 
-    val modeDirty: Boolean get() = stored != null && modeDraft != null && modeDraft != stored?.callHandling
+    // ⚠️ `stored` is read ONCE per check: a second read after the null test could never be null,
+    // and reading it through `?.` again left a branch no state can take.
+    val modeDirty: Boolean
+        get() = stored.let { it != null && modeDraft != null && modeDraft != it.callHandling }
 
-    val ringDirty: Boolean get() = stored != null && ringDraft != null && ringDraft != stored?.appRingSeconds
+    val ringDirty: Boolean
+        get() = stored.let { it != null && ringDraft != null && ringDraft != it.appRingSeconds }
 
     val hasUnsavedChanges: Boolean get() = modeDirty || ringDirty
 

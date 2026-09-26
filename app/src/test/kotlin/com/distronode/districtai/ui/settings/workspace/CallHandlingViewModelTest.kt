@@ -224,4 +224,103 @@ class CallHandlingViewModelTest {
         // ⚠️ STILL TRUE. Showing it as moved would claim a state the ring fan-out does not share.
         assertTrue(vm.state.value.availableForCalls)
     }
+
+    @Test
+    fun `a failed availability read leaves the workspace mode readable and the switch withheld`() =
+        runTest {
+            // ⚠️ THE MIRROR IMAGE OF THE FIRST TEST. The caller's own row could not be read, so the
+            // switch has no known position to show, while the workspace mode still did load.
+            val api = api().apply { availabilityResult = ApiResult.NetworkFailure(IOException("down")) }
+            val vm = viewModel(api)
+            advanceUntilIdle()
+
+            assertTrue(vm.state.value.load is CallHandlingLoad.Ready)
+            assertTrue(vm.state.value.availability is AvailabilityLoad.LoadFailed)
+            assertFalse(vm.state.value.availableForCalls)
+            assertFalse(vm.state.value.canToggleAvailability)
+        }
+
+    @Test
+    fun `a pick made before the read lands is dropped rather than drafted`() = runTest {
+        // ⛔ A DRAFT AGAINST A BASELINE NOBODY HAS READ. The screen shows no picker yet; this is
+        // the ViewModel refusing the same thing on its own, whatever called it.
+        val vm = viewModel(api())
+
+        vm.selectMode(CallHandling.APP_FIRST)
+        vm.selectRingSeconds(30)
+        advanceUntilIdle()
+
+        assertEquals(CallHandling.AI_FIRST, vm.state.value.mode)
+        assertEquals(20, vm.state.value.ringSeconds)
+        assertFalse(vm.state.value.hasUnsavedChanges)
+    }
+
+    @Test
+    fun `a viewer cannot move the ring slider either`() = runTest {
+        val vm = viewModel(api(), role = WorkspaceRole.VIEWER)
+        advanceUntilIdle()
+
+        vm.selectRingSeconds(30)
+
+        assertEquals(20, vm.state.value.ringSeconds)
+        assertFalse(vm.state.value.canSave)
+    }
+
+    @Test
+    fun `a save with nothing changed sends nothing`() = runTest {
+        // ⚠️ The route rejects a body carrying neither field, so an empty save would be a 400.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.save()
+        advanceUntilIdle()
+
+        assertTrue(api.handlingWrites.isEmpty())
+        assertEquals(SaveState.Idle, vm.state.value.save)
+    }
+
+    @Test
+    fun `a failed save is reported and keeps the draft`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        api.handlingResult = ApiResult.HttpFailure(status = 500, message = "boom")
+        vm.selectRingSeconds(30)
+        vm.save()
+        advanceUntilIdle()
+
+        assertEquals(listOf(null to 30), api.handlingWrites)
+        assertTrue(vm.state.value.save is SaveState.Failed)
+        assertEquals("the operator's pick survives the failure", 30, vm.state.value.ringSeconds)
+        assertTrue("and can be sent again", vm.state.value.canSave)
+    }
+
+    @Test
+    fun `tapping the switch to the position it already holds sends nothing`() = runTest {
+        // ⚠️ A write that changes nothing still spends a request and stamps the row.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.setAvailability(true)
+        advanceUntilIdle()
+
+        assertTrue(api.availabilityWrites.isEmpty())
+        assertEquals(SaveState.Idle, vm.state.value.availabilitySave)
+    }
+
+    @Test
+    fun `the factory builds a ViewModel that reads at once and carries the role gate`() = runTest {
+        val api = api()
+        val vm = CallHandlingViewModel
+            .factory(CallHandlingRepository(api), "ws-1", WorkspaceRole.VIEWER)
+            .create(CallHandlingViewModel::class.java)
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.load is CallHandlingLoad.Ready)
+        assertEquals(CallHandling.AI_FIRST, vm.state.value.mode)
+        assertFalse("a viewer's ViewModel offers no controls", vm.state.value.canMutate)
+    }
 }

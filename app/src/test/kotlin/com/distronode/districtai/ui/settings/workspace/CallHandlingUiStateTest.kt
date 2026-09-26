@@ -201,4 +201,13 @@ class CallHandlingUiStateTest {
     }
 
     private fun failure() = FailureText(message = UiText.Literal("offline"))
+
+    @Test
+    fun `a ring draft moved back to the stored value is not a change`() {
+        val state = ready(ringDraft = 15)
+
+        assertFalse(state.ringDirty)
+        assertNull(state.pendingRingSeconds)
+        assertFalse(state.canSave)
+    }
 }

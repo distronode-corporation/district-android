@@ -72,13 +72,16 @@ class PersonaFormViewModel(
     private fun hydrated(
         config: ApiResult<WorkspaceConfig>,
         options: ApiResult<PersonaOptionsResponse>,
-    ): PersonaOptionsState = when {
-        options is ApiResult.Failure -> PersonaOptionsState.LoadFailed(options.toFailureText())
-        config is ApiResult.Failure -> PersonaOptionsState.LoadFailed(config.toFailureText())
-        options is ApiResult.Success && config is ApiResult.Success -> PersonaOptionsState.Ready(
-            PersonaEngineDraft.hydrate(config.value.aiPersona, options.value),
-        )
-        else -> PersonaOptionsState.Loading
+    ): PersonaOptionsState = when (options) {
+        is ApiResult.Failure -> PersonaOptionsState.LoadFailed(options.toFailureText())
+        // ⚠️ Nested rather than a flat `when` with an `else`: both reads are finished here, so
+        // there is no "still loading" answer, and the old `else -> Loading` arm could never run.
+        is ApiResult.Success -> when (config) {
+            is ApiResult.Failure -> PersonaOptionsState.LoadFailed(config.toFailureText())
+            is ApiResult.Success -> PersonaOptionsState.Ready(
+                PersonaEngineDraft.hydrate(config.value.aiPersona, options.value),
+            )
+        }
     }
 
     fun edit(field: PersonaField, value: String) {

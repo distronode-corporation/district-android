@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.MediaParticipant
@@ -15,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -255,6 +258,184 @@ class PersonaPreviewViewModelTest {
             PersonaPreviewPhase.Ended(PersonaPreviewEnding.Stopped),
             vm.state.value.phase,
         )
+    }
+
+    private val agent = MediaParticipant(identity = "agent", name = "Agent", isAgent = true)
+
+    @Test
+    fun `a permission answer that arrives after the sheet was stopped mints nothing`() = runTest {
+        // ⛔ THE PERMISSION CALLBACK CAN OUTLIVE THE SHEET. Minting then would start a billed
+        // session for a screen nobody is looking at.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.start(PersonaPreviewForm(name = "Ada"))
+        vm.stop()
+        vm.onMicrophonePermissionResult(true)
+        advanceUntilIdle()
+
+        assertTrue(api.previewCalls.isEmpty())
+        assertEquals(PersonaPreviewPhase.Idle, vm.state.value.phase)
+    }
+
+    @Test
+    fun `a repeated permission answer during the cooldown mints nothing`() = runTest {
+        // ⚠️ THE FORM IS STILL PENDING AFTER A REFUSAL, so a second answer from the OS prompt would
+        // reach the mint if the cooldown did not also gate this entry point.
+        val api = TestPersonaApi().apply {
+            previewResult = ApiResult.NetworkFailure(IOException("down"))
+        }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.audition()
+        runCurrent()
+        assertTrue(vm.state.value.cooling)
+        vm.onMicrophonePermissionResult(true)
+        runCurrent()
+
+        assertEquals("exactly one billed attempt", 1, api.previewCalls.size)
+    }
+
+    @Test
+    fun `a join that throws ends in Failed and publishes nothing`() = runTest {
+        // ⚠️ The engine reports Failed before it throws; the ViewModel must neither swallow that
+        // phase nor go on to open the speaker and the microphone on a room it never joined.
+        val factory = FakeCallEngineFactory().apply {
+            engine.connectFailure = IllegalStateException("media unreachable")
+        }
+        val vm = viewModel(api(), factory)
+        advanceUntilIdle()
+
+        vm.audition()
+        runCurrent()
+
+        assertEquals(PersonaPreviewPhase.Failed, vm.state.value.phase)
+        assertTrue(vm.state.value.cooling)
+        assertFalse("speaker:true" in factory.engine.calls)
+        assertFalse("mic:true" in factory.engine.calls)
+    }
+
+    @Test
+    fun `stopping a sheet that never started still tears down, and does not cool down`() =
+        runTest {
+            // ⛔ THE TEARDOWN RUNS FROM EVERY STATE. Only the phase and the cooldown depend on
+            // whether anything was running, and nothing was.
+            val factory = FakeCallEngineFactory()
+            val vm = viewModel(api(), factory)
+            advanceUntilIdle()
+
+            vm.stop()
+            runCurrent()
+
+            assertEquals(PersonaPreviewPhase.Idle, vm.state.value.phase)
+            assertFalse(vm.state.value.cooling)
+            assertEquals(listOf("disconnect"), factory.engine.calls)
+        }
+
+    @Test
+    fun `the phase follows the media layer through connecting, live and reconnecting`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(api(), factory)
+        advanceUntilIdle()
+
+        // ⚠️ A roster update before any join moves no phase: the sheet is not in a room yet.
+        factory.engine.emitParticipants(listOf(agent))
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Idle, vm.state.value.phase)
+
+        // The agent was already in the room, so a completed join is live at once.
+        vm.audition()
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Live, vm.state.value.phase)
+
+        factory.engine.emitConnection(CallConnectionState.Connecting)
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Connecting, vm.state.value.phase)
+
+        factory.engine.emitConnection(CallConnectionState.Reconnecting)
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Reconnecting, vm.state.value.phase)
+
+        // ⚠️ The engine at rest says nothing about the session: the phase is left where it was.
+        factory.engine.emitConnection(CallConnectionState.Idle)
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Reconnecting, vm.state.value.phase)
+
+        // The agent leaving mid-session drops the sheet back to waiting rather than live.
+        factory.engine.emitParticipants(emptyList())
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Waiting, vm.state.value.phase)
+        assertFalse(vm.state.value.agentPresent)
+    }
+
+    @Test
+    fun `a failure after a drop restarts the cooldown rather than stacking a second one`() =
+        runTest {
+            // ⚠️ THE LATER ENDING OWNS THE COOLDOWN. Two timers running would clear the flag at the
+            // first one's deadline and re-arm the button early.
+            val factory = FakeCallEngineFactory()
+            val vm = viewModel(api(), factory)
+            advanceUntilIdle()
+            vm.audition()
+            advanceUntilIdle()
+
+            factory.engine.emitConnection(CallConnectionState.Disconnected("room_deleted"))
+            runCurrent()
+            advanceTimeBy(COOLDOWN / 2)
+            factory.engine.emitConnection(CallConnectionState.Failed("gone"))
+            runCurrent()
+            assertEquals(PersonaPreviewPhase.Failed, vm.state.value.phase)
+
+            advanceTimeBy(COOLDOWN / 2 + 1)
+            assertTrue("the first deadline no longer clears it", vm.state.value.cooling)
+            advanceTimeBy(COOLDOWN / 2)
+            assertFalse(vm.state.value.cooling)
+        }
+
+    @Test
+    fun `the factory's ViewModel tears the session down once when it is cleared`() = runTest {
+        // ⛔ A DISMISSED SCREEN MUST NOT LEAVE A ROOM PUBLISHING THIS PHONE'S MICROPHONE. Clearing
+        // after a stop must not send a second disconnect either.
+        val factory = FakeCallEngineFactory()
+        val store = ViewModelStore()
+        val vm = ViewModelProvider(
+            store,
+            PersonaPreviewViewModel.factory(PersonaOptionsRepository(api()), "ws-1", factory),
+        )[PersonaPreviewViewModel::class.java]
+        advanceUntilIdle()
+
+        vm.audition()
+        advanceUntilIdle()
+        assertEquals(PersonaPreviewPhase.Waiting, vm.state.value.phase)
+
+        vm.stop()
+        store.clear()
+        advanceUntilIdle()
+
+        assertEquals(1, factory.engine.calls.count { it == "disconnect" })
+        assertFalse(vm.state.value.micEnabled)
+    }
+
+    @Test
+    fun `clearing a live session disconnects it`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val store = ViewModelStore()
+        val vm = ViewModelProvider(
+            store,
+            PersonaPreviewViewModel.factory(PersonaOptionsRepository(api()), "ws-1", factory),
+        )[PersonaPreviewViewModel::class.java]
+        advanceUntilIdle()
+        vm.audition()
+        advanceUntilIdle()
+        assertTrue(vm.state.value.micEnabled)
+
+        store.clear()
+        advanceUntilIdle()
+
+        assertEquals("disconnect", factory.engine.calls.last())
+        assertFalse("nothing may still claim a live microphone", vm.state.value.micEnabled)
     }
 
     private companion object {

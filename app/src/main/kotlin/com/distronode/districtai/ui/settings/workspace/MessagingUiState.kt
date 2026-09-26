@@ -135,7 +135,9 @@ data class MessagingDraft(
      * no credentials at all, which the route accepts (it deletes the key) and which then fails at
      * send time with nothing pointing back here.
      */
-    val secretsRequired: Boolean get() = isCreate || (originalProvider != null && originalProvider != provider)
+    // ⚠️ No separate null test on [originalProvider]: it is null exactly for a create, which
+    // [isCreate] has already answered, and every edit is seeded by [of] with a non-null one.
+    val secretsRequired: Boolean get() = isCreate || originalProvider != provider
 
     /** ⚠️ Blank lines dropped and each entry trimmed, mirroring the route's own filter. */
     val parsedNumbers: List<String>

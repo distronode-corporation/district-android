@@ -23,12 +23,25 @@
 // only org.bouncycastle modules that resolve here (checked with buildEnvironment), and the
 // number is `bouncyCastle` in gradle/libs.versions.toml, shared with that block and with
 // build-logic, which is a separate build and forces its own configurations.
+//
+// ⚠️ AND FOUR MORE, FOR THE SAME REASON. Kover brings freemarker 2.3.32 (through its IntelliJ
+// coverage reporter), and AGP brings jdom2 2.0.6 (Jetifier), jose4j 0.9.5 (bundletool) and
+// commons-lang3 3.16.0 (sdk-common, via commons-compress), each below the patch for a Dependabot
+// advisory on this repository. None is reachable here: the reporter only renders Kover's own
+// templates and this build reports through JaCoCo, Jetifier is off, and bundletool and the SDK
+// tools only read this build's own files. Forced anyway, because the alert cannot tell that, and
+// the patch-level bump is cheaper than explaining it. The numbers are in gradle/libs.versions.toml
+// beside `bouncyCastle`, and build-logic forces the same four.
 buildscript {
     configurations.classpath {
         resolutionStrategy {
             listOf("bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on").forEach {
                 force("org.bouncycastle:$it:${libs.versions.bouncyCastle.get()}")
             }
+            force("org.freemarker:freemarker:${libs.versions.freemarker.get()}")
+            force("org.jdom:jdom2:${libs.versions.jdom2.get()}")
+            force("org.bitbucket.b_c:jose4j:${libs.versions.jose4j.get()}")
+            force("org.apache.commons:commons-lang3:${libs.versions.commonsLang3.get()}")
         }
     }
 }
@@ -335,6 +348,7 @@ kover {
 // `libs` is this script's accessor, not the per-project closure's. The number is shared with
 // the root plugin-classpath force at the top of this file and with build-logic.
 val bouncyCastleVersion: String = libs.versions.bouncyCastle.get()
+val commonsLang3Version: String = libs.versions.commonsLang3.get()
 
 subprojects {
     dependencyLocking {
@@ -429,7 +443,7 @@ subprojects {
 
             // GHSA-j288-q9x7-2f5v: uncontrolled recursion on long inputs in
             // `RandomStringUtils`/`WordUtils`. Affects 3.16.0, fixed in 3.18.0.
-            force("org.apache.commons:commons-lang3:3.20.0")
+            force("org.apache.commons:commons-lang3:$commonsLang3Version")
 
             // GHSA-7r82-7xv7-xcpj / CVE-2020-13956: HttpClient mishandles a malformed
             // authority component in a request URI, so a URI can be interpreted

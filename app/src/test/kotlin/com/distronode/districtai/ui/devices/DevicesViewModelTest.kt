@@ -5,12 +5,15 @@ import com.distronode.districtai.core.model.DeviceListResponse
 import com.distronode.districtai.core.model.DeviceRevokeResponse
 import com.distronode.districtai.core.model.NativeDevice
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.DeviceRevokeRequest
 import com.distronode.districtai.ui.TestDistrictApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -365,6 +368,45 @@ class DevicesViewModelTest {
         assertEquals(listOf("revoke:device-other-phone", "revoke-all"), api.deviceWrites)
     }
 
+    @Test
+    fun `a list read landing mid-write keeps the write's lock, so a second tap is still dropped`() = runTest {
+        // ⛔ THE BUG THIS PINS. The read copied the state it saw when it STARTED, so a revoke
+        // begun while the list was loading had its `busy` flag cleared by the read landing, and a
+        // second tap then started a second revoke while the first was still in flight.
+        val api = HeldDevicesApi().apply {
+            devicesResult = api().devicesResult
+        }
+        val vm = viewModel(api)
+        runCurrent()
+
+        vm.revokeDevice(OTHER_DEVICE_ID) {}
+        runCurrent()
+        api.listGate.complete(Unit)
+        runCurrent()
+
+        assertTrue("the write is still in flight", vm.state.value.busy)
+        vm.revokeDevice(OTHER_DEVICE_ID) {}
+        api.writeGate.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(listOf("revoke:$OTHER_DEVICE_ID"), api.deviceWrites)
+    }
+
+    /** Holds the first list read and every write until their gates open, as a slow network would. */
+    private class HeldDevicesApi : TestDistrictApi() {
+        val listGate = CompletableDeferred<Unit>()
+        val writeGate = CompletableDeferred<Unit>()
+
+        override suspend fun devices(): ApiResult<DeviceListResponse> {
+            listGate.await()
+            return super.devices()
+        }
+
+        override suspend fun revokeDevice(request: DeviceRevokeRequest): ApiResult<DeviceRevokeResponse> {
+            writeGate.await()
+            return super.revokeDevice(request)
+        }
+    }
+
     private fun assertNotNullFailure(vm: DevicesViewModel) {
         assertTrue(
             "a genuine server fault must surface as a mutation failure",
@@ -375,5 +417,6 @@ class DevicesViewModelTest {
     private companion object {
         /** ⛔ The opaque installation id — the ONLY trustworthy way to tell which row is ours. */
         const val THIS_DEVICE_ID = "device-this-installation"
+        const val OTHER_DEVICE_ID = "device-other-phone"
     }
 }

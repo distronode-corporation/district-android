@@ -58,7 +58,11 @@ class DevicesViewModel(
     fun load(refreshing: Boolean = false) {
         if (!refreshing) _state.value = _state.value.copy(devices = DevicesListState.Loading)
         viewModelScope.launch {
-            _state.value = _state.value.copy(devices = listState(repository.devices()))
+            // ⛔ Read the state AFTER the request lands. One `copy` around the call reads the
+            // receiver first and holds it across the suspension, so a write started meanwhile
+            // would have its `busy` flag cleared by the read, re-enabling both controls mid-write.
+            val devices = listState(repository.devices())
+            _state.value = _state.value.copy(devices = devices)
         }
     }
 

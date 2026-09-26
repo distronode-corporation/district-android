@@ -1,5 +1,6 @@
 package com.distronode.districtai.push
 
+import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -29,12 +30,21 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * ⚠️ NONE OF THIS IS VERIFIABLE ON THIS MACHINE. That is why the interface exists and why
  * [PushRegistrar]'s tests drive a fake rather than this class.
  */
-class FirebasePushTokenSource : PushTokenSource {
+class FirebasePushTokenSource internal constructor(
+    /**
+     * The SDK's token call. ⚠️ A seam so the failure paths (no `FirebaseApp`, a task that fails, is
+     * cancelled or answers blank) are asserted against real `Task` objects; production passes
+     * nothing. Invoked inside the `runCatching`, because `getInstance()` is what throws.
+     */
+    private val tokenTask: () -> Task<String>,
+) : PushTokenSource {
+
+    constructor() : this({ FirebaseMessaging.getInstance().token })
 
     override suspend fun currentToken(): String? {
-        val messaging = runCatching { FirebaseMessaging.getInstance() }.getOrNull() ?: return null
+        val task = runCatching(tokenTask).getOrNull() ?: return null
         return suspendCancellableCoroutine { continuation ->
-            messaging.token
+            task
                 // ⚠️ ONE LISTENER FOR BOTH OUTCOMES. `addOnSuccessListener` +
                 // `addOnFailureListener` would leave a cancelled task resuming neither, and a
                 // coroutine that is never resumed is a leak rather than a failure.

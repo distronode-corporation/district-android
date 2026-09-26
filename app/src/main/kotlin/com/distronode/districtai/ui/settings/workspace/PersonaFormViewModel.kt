@@ -159,11 +159,6 @@ class PersonaFormViewModel(
         }
     }
 
-    fun dismissSaveNotice() {
-        if (_state.value.save == SaveState.Saving) return
-        _state.value = _state.value.copy(save = SaveState.Idle)
-    }
-
     /**
      * ⛔ THE DRAFT IS REHYDRATED FROM THE RE-READ CONFIG, AGAINST THE CATALOGUE ALREADY IN HAND.
      * Keeping the old draft would leave a saved value showing as dirty for ever; refetching the

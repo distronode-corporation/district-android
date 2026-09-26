@@ -377,19 +377,4 @@ class DirectoryEditorViewModelTest {
         assertNull(vm.state.value.draft)
         assertEquals("Ops desk", vm.state.value.entries[0].value(DirectoryField.NAME))
     }
-
-    @Test
-    fun `dismissing the notice does not re-read`() = runTest {
-        val api = api()
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        vm.edit(0, DirectoryField.NAME, "Ops (day)")
-        vm.save()
-        advanceUntilIdle()
-        vm.dismissSaveNotice()
-
-        assertEquals(SaveState.Idle, vm.state.value.save)
-        assertEquals(2, api.configRequests.size)
-    }
 }

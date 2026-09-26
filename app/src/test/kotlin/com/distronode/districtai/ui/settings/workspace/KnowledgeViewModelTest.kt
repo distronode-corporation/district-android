@@ -309,22 +309,6 @@ class KnowledgeViewModelTest {
     }
 
     @Test
-    fun `dismissing the notices clears all three without a re-read`() = runTest {
-        val api = api()
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        vm.deleteDocument("doc-2")
-        advanceUntilIdle()
-        vm.dismissNotices()
-
-        assertEquals(SaveState.Idle, vm.state.value.deleteSave)
-        assertEquals(SaveState.Idle, vm.state.value.addSave)
-        assertEquals(SaveState.Idle, vm.state.value.modeSave)
-        assertEquals(2, api.knowledgeListRequests.size)
-    }
-
-    @Test
     fun `a viewer reads both halves and cannot reach a single write`() = runTest {
         // ⛔ THE UI GATE IS NOT THE ONLY GATE. Both reads admit `viewer` server-side and all three
         // writes exclude one, and a viewer genuinely arrives here through the settings hub.

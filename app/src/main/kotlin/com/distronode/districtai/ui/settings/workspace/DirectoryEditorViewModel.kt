@@ -143,13 +143,6 @@ class DirectoryEditorViewModel(
         }
     }
 
-    /** ⚠️ Retires the banner without a re-read. */
-    fun dismissSaveNotice() {
-        val current = _state.value
-        if (current.save.busy) return
-        _state.value = current.copy(save = SaveState.Idle)
-    }
-
     /**
      * ⛔ ON SUCCESS THE DRAFT IS DROPPED AND THE FRESH CONFIG BECOMES THE BASELINE. Keeping it would
      * leave the screen reading "changed" against a server that now agrees, and the next save would

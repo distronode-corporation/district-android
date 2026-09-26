@@ -183,18 +183,6 @@ class MembersViewModel(
         }
     }
 
-    /** ⚠️ Retires every banner without a re-read. */
-    fun dismissNotices() {
-        val current = _state.value
-        if (current.busy) return
-        _state.value = current.copy(
-            addSave = SaveState.Idle,
-            roleSave = SaveState.Idle,
-            removeSave = SaveState.Idle,
-            renameSave = SaveState.Idle,
-        )
-    }
-
     /**
      * Read the roster into [MembersUiState.list].
      *

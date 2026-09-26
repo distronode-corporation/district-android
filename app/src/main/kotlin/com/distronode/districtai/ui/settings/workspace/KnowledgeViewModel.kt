@@ -163,17 +163,6 @@ class KnowledgeViewModel(
         }
     }
 
-    /** ⚠️ Retires all three banners without a re-read. */
-    fun dismissNotices() {
-        val current = _state.value
-        if (current.busy) return
-        _state.value = current.copy(
-            addSave = SaveState.Idle,
-            deleteSave = SaveState.Idle,
-            modeSave = SaveState.Idle,
-        )
-    }
-
     /** ⚠️ The list only. A write must not re-read the MODE and quietly overwrite a save banner. */
     private suspend fun reloadDocuments() {
         _state.value = when (val result = repository.documents(workspaceId)) {

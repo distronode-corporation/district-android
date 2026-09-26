@@ -112,13 +112,6 @@ class RoutingRulesViewModel(
         }
     }
 
-    /** ⚠️ Retires the banner without a re-read. */
-    fun dismissSaveNotice() {
-        val current = _state.value
-        if (current.save.busy) return
-        _state.value = current.copy(save = SaveState.Idle)
-    }
-
     /** ⛔ Identical outcome handling to the directory editor — see its [applyOutcome]. */
     private fun applyOutcome(
         current: RoutingRulesUiState,

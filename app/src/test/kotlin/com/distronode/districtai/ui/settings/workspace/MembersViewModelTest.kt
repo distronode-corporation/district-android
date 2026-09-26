@@ -419,23 +419,6 @@ class MembersViewModelTest {
         assertTrue(ready.copy(renameDraft = "x".repeat(OVER_MAX_NAME - 1)).canRenameNow)
     }
 
-    // ── Notices ──────────────────────────────────────────────────────────────
-
-    @Test
-    fun `dismissing retires every banner without a re-read`() = runTest {
-        val api = api()
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        vm.removeMember("auditor@example.com")
-        advanceUntilIdle()
-        vm.dismissNotices()
-
-        assertEquals(SaveState.Idle, vm.state.value.removeSave)
-        assertEquals(SaveState.Idle, vm.state.value.addSave)
-        assertEquals(2, api.memberListRequests.size)
-    }
-
     private companion object {
         const val HTTP_CONFLICT = 409
 

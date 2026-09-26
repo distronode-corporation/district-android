@@ -131,13 +131,6 @@ class CapabilitiesViewModel(
         }
     }
 
-    /** ⚠️ Retires both banners without a re-read. */
-    fun dismissSaveNotices() {
-        val current = _state.value
-        if (current.toolsSave.busy || current.enrichmentSave.busy) return
-        _state.value = current.copy(toolsSave = SaveState.Idle, enrichmentSave = SaveState.Idle)
-    }
-
     /**
      * ⛔ ON SUCCESS THE TOGGLES ARE CLEARED AND THE FRESH CONFIG BECOMES THE BASELINE. Keeping them
      * would leave the screen showing "changed" against a server that now agrees, and the NEXT save

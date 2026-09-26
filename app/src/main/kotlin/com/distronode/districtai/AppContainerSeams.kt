@@ -9,6 +9,7 @@ import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
+import com.distronode.districtai.core.network.SchedulingAdminApi
 import com.distronode.districtai.core.network.SupportApi
 import com.distronode.districtai.push.PushTokenSource
 import com.distronode.districtai.telecom.TelecomBridge
@@ -67,6 +68,13 @@ data class AppContainerSeams(
     val personaApi: PersonaApi? = null,
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,
+    /**
+     * The scheduler's admin RPC route, its image upload and its recording download.
+     *
+     * ⚠️ NEEDED BECAUSE A SERVER-ONLY ANSWER IS WIRED HERE: the container decides what a 400
+     * `unknown_op` does (see [reportUnknownSchedulingOp]), and only a fake can produce one.
+     */
+    val schedulingAdminApi: SchedulingAdminApi? = null,
     /** The media engine a room, the dialler and the persona audition connect through. */
     val callEngineFactory: CallEngineFactory? = null,
     /** What the softphone tells the OS; Robolectric does not model `TelecomManager`. */

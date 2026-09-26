@@ -16,6 +16,7 @@ import java.util.Collections
 import java.util.Date
 import java.util.Enumeration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 import javax.crypto.KeyGeneratorSpi
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -29,10 +30,19 @@ import javax.crypto.spec.SecretKeySpec
  * keeps it there. Everything else (the cipher itself, the IV the cipher generates) is the JVM's
  * own AES/GCM, not a fake.
  *
- * WHAT IT CANNOT STAND IN FOR, stated so no test built on it claims more: hardware backing,
- * extraction resistance, and a key invalidated by a device-security change. The last is modelled
- * the only honest way available, by [forgetAllKeys], which leaves the store exactly as an
- * invalidated or backup-restored key would: a stored ciphertext and no key that can open it.
+ * WHAT IT CANNOT STAND IN FOR, stated so no test built on it claims more:
+ *   - hardware backing: the key is ordinary bytes in this process's heap;
+ *   - extraction resistance: nothing stops a caller reading those bytes back out;
+ *   - authorisation enforcement: the platform refuses a key used outside its spec, and this double
+ *     does not. Purposes, block modes, paddings and randomized encryption are NOT enforced here, so
+ *     a cipher built against the wrong mode or with a caller-supplied IV would still work. The spec
+ *     [KeystoreCipher] asks for is recorded instead ([lastKeySpec]) and asserted directly;
+ *   - non-extractable key objects: the platform hands back an opaque key whose `encoded` is null,
+ *     and this double hands back a [SecretKeySpec] with its bytes;
+ *   - key invalidation: on a device a key can be PRESENT under its alias and unusable, so the
+ *     lookup succeeds and `Cipher.init` throws (`KeyPermanentlyInvalidatedException` or another
+ *     `InvalidKeyException`). [forgetAllKeys] models an ABSENT key only, which is a backup
+ *     restored onto a new device; nothing here models the present-but-unusable case.
  *
  * INSTALLED AND REMOVED AROUND EACH TEST. It is registered under the platform's provider name,
  * which is process-wide state, and [KeystoreTokenStoreTest] depends on that name being ABSENT to
@@ -41,6 +51,7 @@ import javax.crypto.spec.SecretKeySpec
 internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKeyStore for JVM tests") {
 
     private val storedKeys = ConcurrentHashMap<String, SecretKey>()
+    private val lastSpec = AtomicReference<KeyGenParameterSpec?>(null)
 
     init {
         putService(
@@ -50,7 +61,7 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
         )
         putService(
             object : Service(this, "KeyGenerator", "AES", SoftAesKeyGeneratorSpi::class.java.name, null, null) {
-                override fun newInstance(constructorParameter: Any?): Any = SoftAesKeyGeneratorSpi(storedKeys)
+                override fun newInstance(constructorParameter: Any?): Any = SoftAesKeyGeneratorSpi(storedKeys, lastSpec)
             },
         )
     }
@@ -58,7 +69,16 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
     /** The aliases a key has been generated under, in no particular order. */
     fun aliases(): Set<String> = storedKeys.keys.toSet()
 
-    /** Drop every key, as a device-security change or a restore onto a new device would. */
+    /**
+     * The last [KeyGenParameterSpec] any AES key generator on this provider was initialised with,
+     * or null if none was. Nothing here enforces it (see the class), so tests assert it instead.
+     */
+    fun lastKeySpec(): KeyGenParameterSpec? = lastSpec.get()
+
+    /**
+     * Drop every key, as a backup restored onto a new device would: the key is ABSENT. This does
+     * not model a key that is present but unusable, which is what a device-security change leaves.
+     */
     fun forgetAllKeys() = storedKeys.clear()
 
     fun install() {
@@ -119,7 +139,10 @@ private class SoftKeyStoreSpi(private val keys: MutableMap<String, SecretKey>) :
     override fun engineLoad(stream: InputStream?, password: CharArray?) = Unit
 }
 
-private class SoftAesKeyGeneratorSpi(private val keys: MutableMap<String, SecretKey>) : KeyGeneratorSpi() {
+private class SoftAesKeyGeneratorSpi(
+    private val keys: MutableMap<String, SecretKey>,
+    private val lastSpec: AtomicReference<KeyGenParameterSpec?>,
+) : KeyGeneratorSpi() {
 
     private var alias: String? = null
     private var keySizeBits: Int = 0
@@ -133,6 +156,7 @@ private class SoftAesKeyGeneratorSpi(private val keys: MutableMap<String, Secret
     override fun engineInit(params: AlgorithmParameterSpec?, random: SecureRandom?) {
         val spec = params as? KeyGenParameterSpec
             ?: throw InvalidAlgorithmParameterException("expected a KeyGenParameterSpec, got $params")
+        lastSpec.set(spec)
         alias = spec.keystoreAlias
         keySizeBits = spec.keySize
     }

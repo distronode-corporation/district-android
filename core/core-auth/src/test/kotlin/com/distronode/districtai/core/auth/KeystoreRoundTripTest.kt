@@ -2,6 +2,7 @@ package com.distronode.districtai.core.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -27,12 +28,15 @@ import org.robolectric.annotation.Config
  *   - what reaches disk is `base64(iv || ciphertext)`, never the plaintext;
  *   - the IV is the provider's and is fresh on every write (a reused GCM IV under one key destroys
  *     both confidentiality and authenticity);
- *   - a stored value that was altered, truncated, or whose key is gone reads as NO SESSION, never
- *     as a crash and never as a half-decoded credential;
+ *   - a stored value that was altered, truncated, or whose key is absent reads as NO SESSION,
+ *     never as a crash and never as a half-decoded credential;
+ *   - the key is asked for with the spec the design depends on (AES-256, GCM, no padding,
+ *     randomized encryption, no user authentication), because the double does not enforce it;
  *   - `clear()` carries the revoke outbox across VERBATIM, so it still decrypts afterwards.
  *
- * What the software provider cannot stand in for (hardware backing, extraction resistance) is
- * listed on [SoftwareAndroidKeyStore] and is still verified on a device.
+ * What the software provider cannot stand in for (hardware backing, extraction resistance,
+ * authorisation enforcement, non-extractable key objects, and a key that is present but
+ * invalidated) is listed on [SoftwareAndroidKeyStore] and is still verified on a device.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
@@ -104,7 +108,7 @@ class KeystoreRoundTripTest {
     }
 
     @Test
-    fun `a stored value too short to hold an IV and a tag reads as no session`() {
+    fun `a truncated stored value fails closed and reads as no session`() {
         store().write(session)
         prefs().edit()
             .putString(KEY_DEVICE_ID, Base64.encodeToString(ByteArray(IV_BYTES), Base64.NO_WRAP))
@@ -114,9 +118,10 @@ class KeystoreRoundTripTest {
     }
 
     @Test
-    fun `a lost key makes the stored session unreadable, and the next login stores a new one`() {
-        // The shape of a device-security change, or a backup restored onto a new device: the
-        // ciphertext is still there and nothing can open it. The answer is a clean re-login.
+    fun `an absent key makes the stored session unreadable, and the next login stores a new one`() {
+        // A backup restored onto a new device: the ciphertext came across and the key did not, so
+        // nothing can open it. The answer is a clean re-login. This is an ABSENT key only; a key
+        // that is present but invalidated is not modelled by the double (see its class comment).
         store().write(session)
         keystore.forgetAllKeys()
 
@@ -124,6 +129,22 @@ class KeystoreRoundTripTest {
 
         store().write(session)
         assertEquals(session, store().read())
+    }
+
+    @Test
+    fun `the key is generated with the spec the design depends on`() {
+        // The double enforces none of this (see SoftwareAndroidKeyStore), so a spec that drifted
+        // would still round trip here. Asserting the spec itself is what catches it.
+        store().write(session)
+
+        val spec = checkNotNull(keystore.lastKeySpec()) { "no key was generated" }
+        assertEquals(KEY_ALIAS, spec.keystoreAlias)
+        assertEquals(listOf(KeyProperties.BLOCK_MODE_GCM), spec.blockModes.toList())
+        assertEquals(listOf(KeyProperties.ENCRYPTION_PADDING_NONE), spec.encryptionPaddings.toList())
+        assertEquals(KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT, spec.purposes)
+        assertEquals(256, spec.keySize)
+        assertTrue("the provider, never the caller, picks the IV", spec.isRandomizedEncryptionRequired)
+        assertFalse("background refresh runs with the screen locked", spec.isUserAuthenticationRequired)
     }
 
     @Test

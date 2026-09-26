@@ -48,7 +48,7 @@ This is exactly what CI's one job runs:
 ```sh
 ./gradlew detekt lintDebug testDebugUnitTest assembleDebug
 # then: at least one test result must exist (CI sums every module's result XMLs)
-./gradlew :koverLog :koverVerify
+./gradlew :koverLogUnit :koverVerifyUnit
 scripts/verify-release-minification.sh
 ```
 

@@ -103,10 +103,12 @@ jobs:
           fi
 
       # The aggregate line and branch floors in build.gradle.kts. Root-qualified: each module also
-      # owns a rule-less koverVerify that passes trivially, so the unqualified name would run six
-      # no-ops beside the one task that matters. koverLog prints the aggregate number.
+      # owns a rule-less koverVerifyUnit that passes trivially, so the unqualified name would run those
+      # no-ops beside the one task that matters. koverLogUnit prints the aggregate number. Never the
+      # unsuffixed koverVerify: under JaCoCo the `total` variant mixes release classes into the
+      # report and reads far below the truth (see build.gradle.kts).
       - name: Coverage floors
-        run: ./gradlew :koverLog :koverVerify --no-daemon
+        run: ./gradlew :koverLogUnit :koverVerifyUnit --no-daemon
 
       # assembleDebug does not minify, so every R8 problem is invisible to the steps above. This
       # builds the release variant, UNSIGNED (no signing variables are set, which the build treats

@@ -27,7 +27,7 @@ signing in needs a District AI account. There is no offline mode and no local se
 ./gradlew assembleDebug                      # debug APK: app/build/outputs/apk/debug/
 ./gradlew testDebugUnitTest                  # every module's unit tests (Robolectric included)
 ./gradlew detekt lintDebug                   # static analysis and Android Lint
-./gradlew :koverLog :koverVerify             # aggregate coverage and its floors
+./gradlew :koverLogUnit :koverVerifyUnit     # aggregate coverage and its floors
 scripts/verify-release-minification.sh       # R8 release build, serializers retained
 ```
 

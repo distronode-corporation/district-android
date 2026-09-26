@@ -7,11 +7,13 @@ import com.distronode.districtai.core.model.NumberSearchResponse
 import com.distronode.districtai.core.model.OwnedNumbersResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestDistrictApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -279,5 +281,33 @@ class MarketplaceViewModelTest {
         advanceUntilIdle()
 
         assertTrue(vm.state.value.owned is OwnedState.Failed)
+    }
+
+    @Test
+    fun `a tab switch made while the owned list loads survives the list landing`() = runTest {
+        // ⛔ THE BUG THIS PINS. The owned read copied the state it saw when it STARTED, so an
+        // operator who switched to Search (or typed a filter) while it loaded was put back.
+        val api = HeldOwnedApi().apply { ownedResult = api().ownedResult }
+        val vm = viewModel(api)
+        runCurrent()
+
+        vm.selectTab(MarketplaceTab.SEARCH)
+        vm.updateForm(NumberSearchForm(areaCode = "416"))
+        api.gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(MarketplaceTab.SEARCH, vm.state.value.tab)
+        assertEquals("416", vm.state.value.form.areaCode)
+        assertTrue(vm.state.value.owned is OwnedState.Ready)
+    }
+
+    /** Holds the owned read until [gate] opens, as a slow network would. */
+    private class HeldOwnedApi : TestDistrictApi() {
+        val gate = CompletableDeferred<Unit>()
+
+        override suspend fun ownedNumbers(workspaceId: String): ApiResult<OwnedNumbersResponse> {
+            gate.await()
+            return super.ownedNumbers(workspaceId)
+        }
     }
 }

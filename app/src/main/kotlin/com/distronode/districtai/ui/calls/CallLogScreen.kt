@@ -46,11 +46,10 @@ fun CallLogScreen(
     calls: LazyPagingItems<CallSummary>,
     onOpenCall: (String) -> Unit,
     onSignIn: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = CALL_LOG_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = CALL_LOG_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.call_log_title),

@@ -258,4 +258,69 @@ class CallDetailViewModelTest {
 
         assertEquals(2, api.detailRequests.size)
     }
+
+    // ── Taps that land before the call, twice, or across a reload ────────────
+
+    @Test
+    fun `neither the transcript nor the recording is requested before the call has loaded`() = runTest(dispatcher) {
+        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
+        val vm = viewModel(api)
+        var handed: String? = null
+
+        vm.loadTranscript()
+        vm.resolveRecording { handed = it }
+        advanceUntilIdle()
+
+        assertTrue(api.transcriptRequests.isEmpty())
+        assertTrue(api.recordingRequests.isEmpty())
+        assertEquals(null, handed)
+    }
+
+    @Test
+    fun `a double tap on play resolves the recording once`() = runTest(dispatcher) {
+        // ⛔ Two resolves would open two players and mint two presigned URLs for one action.
+        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
+        val vm = viewModel(api)
+        advanceUntilIdle()
+        val handed = mutableListOf<String>()
+
+        vm.resolveRecording { handed += it }
+        vm.resolveRecording { handed += it }
+        advanceUntilIdle()
+
+        assertEquals(1, api.recordingRequests.size)
+        assertEquals(listOf("https://recordings.test/x.mp3"), handed)
+    }
+
+    @Test
+    fun `a transcript that lands after a reload began is dropped, not written over the fresh call`() =
+        runTest(dispatcher) {
+            val api = apiWithCall().apply {
+                transcriptResult = ApiResult.Success(CallTranscriptResponse(success = true, transcript = "Hello."))
+            }
+            val vm = viewModel(api)
+            advanceUntilIdle()
+
+            vm.loadTranscript()
+            vm.load()
+            advanceUntilIdle()
+
+            assertEquals(TranscriptState.Idle, (vm.state.value as CallDetailUiState.Content).transcript)
+        }
+
+    @Test
+    fun `a recording resolved across a reload still plays, and leaves the fresh call's state alone`() =
+        runTest(dispatcher) {
+            val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
+            val vm = viewModel(api)
+            advanceUntilIdle()
+            var handed: String? = null
+
+            vm.resolveRecording { handed = it }
+            vm.load()
+            advanceUntilIdle()
+
+            assertEquals("https://recordings.test/x.mp3", handed)
+            assertEquals(RecordingState.Idle, (vm.state.value as CallDetailUiState.Content).recording)
+        }
 }

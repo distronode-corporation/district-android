@@ -167,7 +167,7 @@ private fun FailureAction(
     failure: FailureText,
     onRetry: () -> Unit,
     onSignIn: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
 ) {
     when {
         // A dead session cannot be retried; the only way forward is signing in.

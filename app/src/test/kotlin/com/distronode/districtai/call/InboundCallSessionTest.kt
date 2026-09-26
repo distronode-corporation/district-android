@@ -5,7 +5,11 @@ import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.ui.dialer.CallPhase
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
+import com.distronode.districtai.core.media.CallEngine
+import kotlin.coroutines.ContinuationInterceptor
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -233,6 +237,93 @@ class InboundCallSessionTest {
         // ⚠️ THE SPEAKER FLAG IS THIS SCREEN'S OWN BELIEF: the engine exposes no route to read back,
         // so it records what the app asked for. Honest for a toggle, not for a status readout.
         assertTrue(h.session.state.value.speakerOn)
+    }
+
+    @Test
+    fun `each toggle flips back, so a second press undoes the first`() = callTest { h ->
+        h.session.begin(observeScope)
+        h.session.connect("wss://x", "t", observeScope)
+        settle()
+
+        h.session.toggleMicrophone(observeScope)
+        settle()
+        h.session.toggleMicrophone(observeScope)
+        h.session.toggleSpeaker()
+        h.session.toggleSpeaker()
+        settle()
+
+        assertEquals(listOf("mic:true", "mic:false", "mic:true"), h.engine.calls.filter { it.startsWith("mic") })
+        assertEquals(listOf("speaker:true", "speaker:false"), h.engine.calls.filter { it.startsWith("speaker") })
+        assertTrue(h.session.state.value.micEnabled)
+        assertFalse(h.session.state.value.speakerOn)
+    }
+
+    @Test
+    fun `a second connect does not tell Telecom twice or start a second ticker`() = callTest { h ->
+        h.session.begin(observeScope)
+        h.session.connect("wss://x", "t", observeScope)
+        h.session.connect("wss://x", "t", observeScope)
+        advanceTimeBy(TICK * 3 + 1)
+
+        assertEquals(listOf("active"), h.telecom.calls)
+        assertEquals("one ticker, one second per second", 3, h.session.state.value.elapsedSeconds)
+    }
+
+    @Test
+    fun `a call ended while its join was in flight is never marked answered`() = runTest {
+        // ⛔ A HANG-UP DURING THE JOIN (a headset button, the OS's call surface) ends the session
+        // before media is up; the join finishing afterwards must not tell Telecom the call is ACTIVE
+        // or start the duration ticker for a call that is over.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val telecom = FakeTelecomBridge()
+        val session = InboundCallSessionFactory(
+            engineFactory = CallEngineFactory {
+                object : CallEngine by engine {
+                    override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+                        gate.await()
+                        engine.connect(url, token, e2eeKeyBase64)
+                    }
+                }
+            },
+            telecom = telecom,
+            engineScopeFactory = { engineScope },
+            tickMillis = TICK,
+        ).create()
+        session.begin(observeScope)
+        val joined = async { session.connect("wss://x", "t", observeScope) }
+        runCurrent()
+
+        session.end {}
+        gate.complete(Unit)
+        runCurrent()
+        advanceTimeBy(TICK * 3)
+
+        assertTrue("the engine did connect, so the join reports media up", joined.await())
+        assertEquals(listOf("disconnected"), telecom.calls)
+        assertFalse(session.state.value.answered)
+        assertEquals(0, session.state.value.elapsedSeconds)
+        observeScope.cancel()
+        engineScope.cancel()
+    }
+
+    @Test
+    fun `the production factory builds each engine on a Main-bound scope of its own`() {
+        val scopes = mutableListOf<CoroutineScope>()
+        val factory = InboundCallSessionFactory(
+            engineFactory = CallEngineFactory { scope -> scopes += scope; FakeCallEngine() },
+            telecom = FakeTelecomBridge(),
+        )
+
+        factory.create()
+        factory.create()
+
+        assertEquals(2, scopes.size)
+        assertTrue("one scope per call", scopes[0] !== scopes[1])
+        scopes.forEach { scope ->
+            assertEquals(Dispatchers.Main.immediate, scope.coroutineContext[ContinuationInterceptor])
+            scope.cancel()
+        }
     }
 
     @Test

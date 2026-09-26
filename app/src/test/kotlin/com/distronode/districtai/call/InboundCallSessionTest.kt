@@ -311,7 +311,10 @@ class InboundCallSessionTest {
     fun `the production factory builds each engine on a Main-bound scope of its own`() {
         val scopes = mutableListOf<CoroutineScope>()
         val factory = InboundCallSessionFactory(
-            engineFactory = CallEngineFactory { scope -> scopes += scope; FakeCallEngine() },
+            engineFactory = CallEngineFactory { scope ->
+                scopes += scope
+                FakeCallEngine()
+            },
             telecom = FakeTelecomBridge(),
         )
 

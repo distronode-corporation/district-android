@@ -58,7 +58,7 @@ class DistrictFirebaseInitializeTest {
     @Test
     fun `an initialisation that throws answers false instead of crashing startup`() {
         val broken = object : ContextWrapper(context) {
-            override fun getApplicationContext(): Context = throw IllegalStateException("no application yet")
+            override fun getApplicationContext(): Context = error("no application yet")
         }
 
         assertFalse(DistrictFirebase.initialize(broken, DistrictFirebase.DEBUG_APPLICATION_ID))

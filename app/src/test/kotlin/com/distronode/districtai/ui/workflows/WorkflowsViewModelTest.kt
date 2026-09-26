@@ -594,6 +594,8 @@ class WorkflowsViewModelTest {
         assertTrue(api.campaignPauses.isEmpty())
     }
 
+    // ── Taps with nothing to act on, and answers that land after a reload ────
+
     @Test
     fun `run history that lands after a reload is dropped, so the next expand reads again`() = runTest {
         // ⛔ THE BUG THIS PINS. The reload empties the run cache (after a session change, the cached
@@ -611,6 +613,71 @@ class WorkflowsViewModelTest {
         vm.toggleExpanded("wf-active")
         advanceUntilIdle()
         assertEquals("the reopened row reads its history again", 2, api.workflowRunRequests.size)
+    }
+
+    @Test
+    fun `load more is dropped for a row never opened, and while a page is in flight`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.loadMoreRuns("wf-active")
+        advanceUntilIdle()
+        assertTrue(api.workflowRunRequests.isEmpty())
+
+        vm.toggleExpanded("wf-active")
+        advanceUntilIdle()
+        vm.loadMoreRuns("wf-active")
+        vm.loadMoreRuns("wf-active")
+        advanceUntilIdle()
+
+        assertEquals("the first page and ONE next page", 2, api.workflowRunRequests.size)
+    }
+
+    @Test
+    fun `a toggle is dropped before the list has loaded, and for a workflow not in it`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+
+        vm.setActive("wf-active", active = false)
+        advanceUntilIdle()
+        vm.setActive("wf-gone", active = false)
+        advanceUntilIdle()
+
+        assertTrue(api.workflowToggles.isEmpty())
+    }
+
+    @Test
+    fun `a refused toggle that lands during a reload leaves the fresh list as the server sent it`() = runTest {
+        val api = api().apply { workflowToggleResult = ApiResult.HttpFailure(500, "Server error") }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.setActive("wf-active", active = false)
+        vm.load()
+        advanceUntilIdle()
+
+        val list = (vm.state.value.workflows as WorkflowListState.Ready).workflows
+        assertTrue("the server's own value, not a revert over a list that was loading", list.first().active)
+        assertTrue(vm.state.value.toggleFailure != null)
+    }
+
+    @Test
+    fun `the campaign cannot be asked about before it loads, or while a write is in flight`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+
+        vm.requestCampaignChange(enable = false)
+        assertNull("nothing to ask about before the card loads", vm.state.value.campaignConfirm)
+        advanceUntilIdle()
+
+        vm.requestCampaignChange(enable = false)
+        vm.confirmCampaignChange()
+        vm.requestCampaignChange(enable = true)
+        vm.confirmCampaignChange()
+        advanceUntilIdle()
+
+        assertEquals("one write for one confirmation", 1, api.campaignPauses.size)
     }
 }
 

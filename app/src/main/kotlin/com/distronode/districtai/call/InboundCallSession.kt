@@ -179,13 +179,12 @@ internal class InboundCallSession(
         if (_state.value.answered || released) return
         telecom.setActive()
         _state.value = _state.value.copy(answered = true)
-        timer?.cancel()
+        // ⚠️ No earlier ticker to cancel: the guard above lets this line run once per session. And no
+        // `ended` check inside the loop: [end] cancels this job before it sets `ended`, so a tick
+        // resumed after that is cancelled at its `delay` and never reads the flag.
         timer = observeScope.launch {
             while (true) {
                 delay(tickMillis)
-                // ⚠️ Stops counting the moment the call ends, rather than being cancelled from
-                // outside and racing one last tick past the frozen duration.
-                if (_state.value.ended) return@launch
                 _state.value = _state.value.copy(
                     elapsedSeconds = _state.value.elapsedSeconds + 1,
                 )

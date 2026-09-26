@@ -71,6 +71,8 @@ import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSchedulingAdminApi
 import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSupportApi
+import com.distronode.districtai.core.network.SchedulingAdminApi
+import com.distronode.districtai.core.network.SchedulingAdminOp
 import com.distronode.districtai.telecom.AndroidTelecomBridge
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.inbox.AttachmentReader
@@ -182,7 +184,8 @@ class AppContainer(
     private val callHandlingApi: CallHandlingApi = seams.callHandlingApi ?: HttpCallHandlingApi(apiClient)
     private val inboxExtrasApi: InboxExtrasApi = seams.inboxExtrasApi ?: HttpInboxExtrasApi(apiClient)
     private val callControlApi = HttpCallControlApi(apiClient)
-    private val schedulingAdminApi = HttpSchedulingAdminApi(apiClient)
+    private val schedulingAdminApi: SchedulingAdminApi =
+        seams.schedulingAdminApi ?: HttpSchedulingAdminApi(apiClient)
 
     val workspaceRepository: WorkspaceRepository = WorkspaceRepository(
         api = districtApi,
@@ -477,15 +480,7 @@ class AppContainer(
         // which is a debug-only trap; Kotlin has no free release-mode equivalent and a `check`
         // here would crash a shipped app over a refusal the repository already reports honestly.
         // So: loud in debug, silent in release, never fatal.
-        reportUnknownOp = { op ->
-            if (BuildConfig.DEBUG) {
-                Log.e(
-                    "SchedulingAdmin",
-                    "Server rejected op '${op.wire}' as unknown. SchedulingAdminOp and the " +
-                        "server's ADMIN_OPS catalog have diverged.",
-                )
-            }
-        },
+        reportUnknownOp = { op -> reportUnknownSchedulingOp(op, BuildConfig.DEBUG) },
     )
 
     /**
@@ -856,5 +851,21 @@ class AppContainer(
         if (revokeApi.revoke(pending) == RevokeResult.Done) {
             withContext(Dispatchers.IO) { tokenStore.clearRevokePending() }
         }
+    }
+}
+
+/**
+ * Report a scheduler op the server did not recognise: loud in debug, silent in release.
+ *
+ * ⚠️ `debug` IS A PARAMETER RATHER THAN A READ OF `BuildConfig.DEBUG` so both halves of the rule can
+ * be asserted from one build; the call site passes the build's own flag.
+ */
+internal fun reportUnknownSchedulingOp(op: SchedulingAdminOp, debug: Boolean) {
+    if (debug) {
+        Log.e(
+            "SchedulingAdmin",
+            "Server rejected op '${op.wire}' as unknown. SchedulingAdminOp and the " +
+                "server's ADMIN_OPS catalog have diverged.",
+        )
     }
 }

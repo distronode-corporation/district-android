@@ -130,34 +130,43 @@ allprojects {
 // root `total` report that `koverVerify` checks (app plus the six core modules, with the
 // generated-code exclusions below applied):
 //
-//     line   17312/18415 = 94.01%  ->  floor 90
-//     branch  9745/15456 = 63.05%  ->  floor 60
+//     line   17683/18415 = 96.02%  ->  floor 95
+//     branch 11626/15456 = 75.22%  ->  floor 65
 //
-// The floors were 86 and 49. They moved to 90 and 60 once `DistrictNavHost` and `HttpDistrictApi`
-// had tests of their own, which is where most of the missed lines were; nothing was excluded to
-// get there.
+// The floors were 86 and 49, then 90 and 60. They moved to 95 and 65 once the core modules had
+// wire-shape, failure-path and keystore round-trip tests and the app's untested screens, readers
+// and effects had tests of their own; nothing was excluded to get there.
 //
-// ⚠️ THE BRANCH FIGURE IS LOWER THAN IT LOOKS, AND THE REASON IS GENERATED CODE THAT STAYS
-// COUNTED. kotlinx.serialization compiles each @Serializable class's `write$Self` encoder into
-// the class itself, so the `*$$serializer` exclusion below does not remove it: 6398 of the 15456
-// branches are those encoders (3119 covered), almost all in core-model. The app never encodes a
-// response, so most of them are unreachable from behaviour. Without them the branch figure would
-// be 6626/9058 = 73.15%. They are left in on purpose, as a decision rather than an oversight.
+// ⚠️ THE BRANCH FIGURE IS STILL SHAPED BY GENERATED CODE THAT STAYS COUNTED.
+// kotlinx.serialization compiles each @Serializable class's `write$Self` encoder into the class
+// itself, so the `*$$serializer` exclusion below does not remove it: 6398 of the 15456 branches
+// are those encoders (4891 covered), almost all in core-model. The app never encodes a response;
+// the wire-shape tests in core-model encode them on purpose, against the committed fixtures,
+// which is what moved this figure. Without them the branch figure would be 6735/9058 = 74.35%.
+// They are left in on purpose, as a decision rather than an oversight.
 //
 // ⚠️ A HIGH LINE FLOOR IS UNREACHABLE WITHOUT COMPOSE UI TESTS, AND THAT IS ARITHMETIC RATHER
 // THAN A PREFERENCE: most missed lines live in Compose files, so screen-level tests are where
 // coverage moves. Rendering a screen in more than one state is also what moves branch coverage,
 // because a screen rendered in exactly one state exercises none of its `when` arms. The
 // remaining gap is concentrated in the parts of `DistrictNavHost` that need a live session or a
-// media engine, `MainActivity`, `LiveKitCallEngine`, and `KeystoreCipher` (unreachable without a
-// real Keystore).
+// media engine, `MainActivity`, `LiveKitCallEngine` and `VideoTile`, the call foreground service
+// and the Telecom bridge, and Canvas drawing that runs only when a frame is rendered.
+// `KeystoreCipher` is no longer in that list: its round trip runs over a software AndroidKeyStore
+// in core-auth's tests, and hardware backing is still verified on a device.
 //
 // Measured with `./gradlew testDebugUnitTest :koverXmlReport :koverLog`. Reproduce it the same
 // way; the report-level counters are the last ones in build/reports/kover/report.xml.
 //
 // ⚠️ BOTH FLOORS SIT BELOW THE MEASURED VALUE, ON PURPOSE. An exact-equality floor reds on any
-// rounding drift; the headroom (about four points of line, three of branch) keeps the ratchet
-// honest without making it brittle.
+// rounding drift; the headroom (about one point of line, ten of branch) keeps the ratchet honest
+// without making it brittle.
+//
+// ⚠️ THE COUNT MUST NOT DEPEND ON THREAD TIMING, or a tight floor becomes a flaky one. Two full
+// runs of the same tree produce identical counts, class for class. `DistrictNavHostTest` holds its
+// credential reads for exactly that reason (see its class doc): before it did, two runs differed
+// by tens of branches. A test that lets a background result race the UI it asserts on brings that
+// back.
 //
 // ⚠️ A FLOOR, NOT A TARGET. They exist so coverage becomes a ratchet: the point is that it can no
 // longer silently fall. A test-count-is-not-zero assertion alone would let almost every test file
@@ -168,8 +177,8 @@ allprojects {
 // ⚠️ Hardcoded on purpose, deliberately NOT `findProperty(...) ?: 0`. A floor that falls back to
 // zero when a property is unset is a gate that passes when it is misconfigured, which is the
 // exact failure a floor exists to prevent.
-val LINE_COVERAGE_FLOOR = 90
-val BRANCH_COVERAGE_FLOOR = 60
+val LINE_COVERAGE_FLOOR = 95
+val BRANCH_COVERAGE_FLOOR = 65
 
 // ── Coverage aggregation and the floor ───────────────────────────────────────
 //

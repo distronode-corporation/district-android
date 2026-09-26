@@ -119,6 +119,19 @@ class WorkspaceEditModelsTest {
     }
 
     @Test
+    fun `a column that is not an array at all refuses to be edited`() {
+        // The same refusal one level up. A stored object or scalar is not a list of rows, and
+        // editing it as an empty one would replace it with whatever the phone saved.
+        val storedObject = json.parseToJsonElement("""{"name":"Ops","phoneNumber":"+14165550100"}""")
+        val storedScalar = JsonPrimitive("Ops")
+
+        assertNull(directoryEntries(storedObject))
+        assertNull(routingRules(storedObject))
+        assertNull(directoryEntries(storedScalar))
+        assertNull(routingRules(storedScalar))
+    }
+
+    @Test
     fun `an absent column is an empty list rather than a refusal`() {
         // ⚠️ THE DIRECTORY ROUTE WRITES `callDirectory || []`, so "never configured" and
         // "explicitly empty" are the same stored value. Treating null as unmodellable would leave a

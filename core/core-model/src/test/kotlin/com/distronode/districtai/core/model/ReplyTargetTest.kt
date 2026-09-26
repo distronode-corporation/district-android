@@ -88,4 +88,32 @@ class ReplyTargetTest {
 
         assertNull(target)
     }
+
+    @Test
+    fun `an address-keyed email thread falls back to its counterpart`() {
+        // The email mirror of the sms fallback: no Contact row, so no contactEmail, but the address
+        // the thread is keyed by is a real mailbox.
+        val target = conversation(counterpart = "grace@example.com", canEmail = true).replyTarget
+
+        assertEquals("grace@example.com", target?.to)
+        assertEquals(CHANNEL_EMAIL, target?.channel)
+    }
+
+    @Test
+    fun `a blank contact address is skipped in favour of the counterpart`() {
+        // A Contact row can hold an empty string rather than null; that is not an address.
+        val sms = conversation(counterpart = "+14165550159", contactPhone = "  ", canSms = true).replyTarget
+        val email = conversation(counterpart = "grace@example.com", contactEmail = "", canEmail = true).replyTarget
+
+        assertEquals("+14165550159", sms?.to)
+        assertEquals("grace@example.com", email?.to)
+    }
+
+    @Test
+    fun `a phone counterpart is never offered as an email recipient`() {
+        // The shape guard in the other direction: canEmail with only a phone number in hand has
+        // nothing to send to, and a blank counterpart is nothing on either channel.
+        assertNull(conversation(counterpart = "+14165550159", canEmail = true).replyTarget)
+        assertNull(conversation(counterpart = "", canSms = true, canEmail = true).replyTarget)
+    }
 }

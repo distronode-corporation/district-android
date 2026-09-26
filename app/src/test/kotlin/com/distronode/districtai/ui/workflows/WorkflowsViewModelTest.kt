@@ -593,6 +593,25 @@ class WorkflowsViewModelTest {
         assertNull(vm.state.value.campaignConfirm)
         assertTrue(api.campaignPauses.isEmpty())
     }
+
+    @Test
+    fun `run history that lands after a reload is dropped, so the next expand reads again`() = runTest {
+        // ⛔ THE BUG THIS PINS. The reload empties the run cache (after a session change, the cached
+        // history may be another account's). A page still in flight used to write itself back into
+        // the emptied cache, and the next expand then showed it without a fetch.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.toggleExpanded("wf-active")
+        vm.load()
+        advanceUntilIdle()
+
+        assertTrue("the stale page must not refill the cache", vm.state.value.runs.isEmpty())
+        vm.toggleExpanded("wf-active")
+        advanceUntilIdle()
+        assertEquals("the reopened row reads its history again", 2, api.workflowRunRequests.size)
+    }
 }
 
 /** Reads one workflow's `active` flag out of the list state. */

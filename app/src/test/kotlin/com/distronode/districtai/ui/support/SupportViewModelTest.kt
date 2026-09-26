@@ -338,4 +338,35 @@ class SupportViewModelTest {
         advanceUntilIdle()
         assertEquals(afterSuccess, api.listReads)
     }
+
+    @Test
+    fun `a refresh over a failure keeps the failure on screen until the answer lands`() = runTest {
+        // ⚠️ Only content is kept under a refresh bar; a failed screen has nothing to keep, and it
+        // is not blanked to a skeleton either, so the reload replaces it only when it answers.
+        val api = api().apply { listResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        api.listResult = ApiResult.Success(SupportRequestListResponse(success = true, requests = listOf(open)))
+        model.load(refreshing = true)
+
+        assertTrue(model.state.value is SupportUiState.Failed)
+        advanceUntilIdle()
+        assertEquals(listOf(open), (model.state.value as SupportUiState.Content).requests)
+    }
+
+    @Test
+    fun `a draft that is not submittable sends nothing`() = runTest {
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.editSubject("ab")
+        model.editMessage("Every call.")
+        model.submit()
+        advanceUntilIdle()
+
+        assertTrue(api.createDrafts.isEmpty())
+        assertFalse(model.compose.value.submitting)
+    }
 }

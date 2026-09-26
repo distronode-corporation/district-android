@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -527,6 +528,9 @@ class IncomingCallControllerTest {
 
         assertEquals("CA2", h.controller.state.value?.callId)
         assertNull("the new ring carries no call from the old session", h.controller.state.value?.call)
+        // ⛔ Only the new ring's timeout is left on the application scope: the old call's engine
+        // collectors, which ran there for the life of the process, went with its dismissal.
+        assertEquals(1, liveJobs())
     }
 
     @Test
@@ -566,6 +570,15 @@ class IncomingCallControllerTest {
             assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
             assertNull("a hang-up is not a failure", h.controller.state.value?.message)
             assertEquals("the service is never started for it", listOf(false), h.foreground.calls)
+            // ⛔ AND THE ROOM IS LEFT: the microphone never came on, and a disconnect followed the
+            // connect that resolved after the hang-up.
+            assertFalse(h.engine.calls.contains("mic:true"))
+            assertEquals("disconnect", h.engine.calls.last())
+            assertTrue(h.engine.calls.lastIndexOf("disconnect") > h.engine.calls.indexOf(CONNECTED))
+
+            h.controller.dismiss()
+            settle()
+            assertEquals("nothing is left watching the abandoned call", 0, liveJobs())
         }
     }
 
@@ -589,11 +602,23 @@ class IncomingCallControllerTest {
                 "the media failure is not reported over the user's own hang-up",
                 h.controller.state.value?.message,
             )
+            assertFalse(h.engine.calls.contains("mic:true"))
+            assertTrue(h.engine.calls.lastIndexOf("disconnect") > h.engine.calls.indexOf(CONNECTED))
+
+            h.controller.dismiss()
+            settle()
+            assertEquals(0, liveJobs())
         }
     }
+
+    /** Coroutines still running on the application scope the controller was given. */
+    private fun liveJobs(): Int = controllerScope.coroutineContext.job.children.count { it.isActive }
 
     private companion object {
         /** ⚠️ Short so the virtual clock does not have to advance thirty seconds. */
         const val RING_MILLIS = 30_000L
+
+        /** What the fake engine records for the answer route's credential. */
+        const val CONNECTED = "connect:wss://livekit-wss.distronode.com:join-jwt"
     }
 }

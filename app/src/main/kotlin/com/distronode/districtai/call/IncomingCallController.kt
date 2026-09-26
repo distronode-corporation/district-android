@@ -11,6 +11,8 @@ import com.distronode.districtai.ui.dialer.ActiveCallUiState
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -150,7 +152,17 @@ internal class IncomingCallController(
 
     private var session: InboundCallSession? = null
     private var ringTimeout: Job? = null
-    private var mirror: Job? = null
+
+    /**
+     * Everything that watches one answered call: the session's engine collectors, its duration
+     * ticker and the mirror onto [state].
+     *
+     * ⛔ A CHILD OF [scope], CANCELLED BY [dismiss], RATHER THAN [scope] ITSELF. [scope] is the
+     * application's and never ends, so collectors started on it outlived their call: every answered
+     * call left its session's two engine collectors running for the life of the process, holding the
+     * engine they read.
+     */
+    private var callScope: CoroutineScope? = null
 
     /**
      * A push says a call is ringing for this workspace.
@@ -262,14 +274,14 @@ internal class IncomingCallController(
      */
     fun dismiss() {
         if (_state.value?.phase != IncomingCallPhase.ENDED) return
-        // ⛔ THE MIRROR IS CANCELLED HERE AND NOT IN [finish], WHICH LOOKS LIKE THE OBVIOUS PLACE AND
-        // IS NOT. `InboundCallSession.end` sets `ended` on its own state, and the screen renders the
-        // ended summary — the duration, and the note that the call log is the record — from THAT
-        // flag. Cutting the collector at `finish` would leave the last emission unread, so a call
+        // ⛔ THE MIRROR (WITH THE REST OF [callScope]) IS CANCELLED HERE AND NOT IN [finish], WHICH
+        // LOOKS LIKE THE OBVIOUS PLACE AND IS NOT. `InboundCallSession.end` sets `ended` on its own
+        // state, and the screen renders the ended summary (the duration, and the note that the call
+        // log is the record) from THAT flag. Cutting the collector at `finish` would leave the last emission unread, so a call
         // that had just ended would keep drawing live mute/speaker/hang-up controls. It stays until
         // the user has dismissed what it was feeding.
-        mirror?.cancel()
-        mirror = null
+        callScope?.cancel()
+        callScope = null
         _state.value = null
     }
 
@@ -291,13 +303,15 @@ internal class IncomingCallController(
     private suspend fun join(url: String, token: String) {
         val live = sessions.create()
         session = live
-        live.begin(scope)
-        // ⚠️ No earlier mirror to cancel: a join follows a RINGING phase, which only a call arriving
-        // on a cleared screen starts, and [dismiss] cancels and clears the mirror as it clears it.
-        mirror = scope.launch {
+        // ⚠️ No earlier call scope to cancel: a join follows a RINGING phase, which only a call
+        // arriving on a cleared screen starts, and [dismiss] cancels and clears it as it clears that.
+        val watch = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext[Job]))
+        callScope = watch
+        live.begin(watch)
+        watch.launch {
             live.state.collect { call -> update { copy(call = call) } }
         }
-        val joined = live.connect(url, token, scope)
+        val joined = live.connect(url, token, watch)
         // ⛔ A HANG-UP CAN LAND WHILE THE JOIN IS IN FLIGHT: a headset button or the OS's own call
         // surface reaches [decline] at any phase, and [finish] has then already torn this call down
         // and cleared [session]. Acting on the join's outcome after that restarted the foreground

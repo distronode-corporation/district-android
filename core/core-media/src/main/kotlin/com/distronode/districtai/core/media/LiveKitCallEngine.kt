@@ -25,11 +25,11 @@ import kotlinx.coroutines.launch
 /**
  * The one place in the app that talks to the LiveKit SDK.
  *
- * ⛔ THIN BY POLICY, NOT BY ACCIDENT. Every line here is uncoverable by unit test (the
- * SDK needs a device and a live socket), and the aggregate coverage floor is a ratchet —
- * so logic added here is logic subtracted from the measured codebase. Anything that can
- * be a pure function belongs in [mapConnectionUpdate]/[toMediaParticipant]-style mappers
- * or in the consumer's ViewModel, where tests reach it. This class only forwards.
+ * ⛔ THIN BY POLICY, NOT BY ACCIDENT. A real `Room` cannot be built off a device (`LiveKit.create`
+ * loads libwebrtc's natives), so `LiveKitCallEngineTest` reaches this class only through MockK
+ * mocks of the SDK, and every line added here is one more SDK behaviour a mock has to stand in
+ * for. Anything that can be a pure function belongs in [toMediaParticipant]-style mappers or in
+ * the consumer's ViewModel. This class only forwards.
  *
  * ⚠️ The [scope] outlives composables but not the call: the owning ViewModel passes its
  * own scope and cancels it on clear, which tears down the event collection with it.
@@ -175,9 +175,9 @@ class LiveKitCallEngine(
 }
 
 /**
- * Pure mapping from an SDK participant to the UI model — separated so the shape rules
- * (name blank→null, first subscribed video wins) stay testable in consumers via the
- * data types even though this function itself needs SDK instances.
+ * Pure mapping from an SDK participant to the UI model, separated so the shape rules
+ * (name blank→null, first subscribed video wins) read in one place. Tested through the engine
+ * with mocked participants.
  */
 private fun RemoteParticipant.toMediaParticipant(
     initRenderer: (View) -> Unit,

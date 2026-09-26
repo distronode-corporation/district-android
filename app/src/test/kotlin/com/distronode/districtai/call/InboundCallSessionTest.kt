@@ -13,6 +13,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -269,15 +270,9 @@ class InboundCallSessionTest {
         assertEquals("one ticker, one second per second", 3, h.session.state.value.elapsedSeconds)
     }
 
-    @Test
-    fun `a call ended while its join was in flight is never marked answered`() = runTest {
-        // ⛔ A HANG-UP DURING THE JOIN (a headset button, the OS's call surface) ends the session
-        // before media is up; the join finishing afterwards must not tell Telecom the call is ACTIVE
-        // or start the duration ticker for a call that is over.
-        val gate = CompletableDeferred<Unit>()
-        val engine = FakeCallEngine()
-        val telecom = FakeTelecomBridge()
-        val session = InboundCallSessionFactory(
+    /** A session whose engine holds `connect` open until [gate] completes: a join in flight. */
+    private fun gatedSession(gate: CompletableDeferred<Unit>, engine: FakeCallEngine, telecom: FakeTelecomBridge) =
+        InboundCallSessionFactory(
             engineFactory = CallEngineFactory {
                 object : CallEngine by engine {
                     override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
@@ -290,21 +285,66 @@ class InboundCallSessionTest {
             engineScopeFactory = { engineScope },
             tickMillis = TICK,
         ).create()
+
+    @Test
+    fun `a hang-up during the join leaves the room disconnected, with the microphone never on`() = runTest {
+        // ⛔ THE RACE THIS CLOSES: `end` launches its disconnect while `connect` is still inside the
+        // engine, and nothing orders the two inside the SDK. A connect that resolved AFTER that
+        // disconnect used to turn the microphone on and report media up, leaving the room joined
+        // with a live microphone after the user hung up. The session must issue a disconnect after
+        // the connect has resolved, and never publish the microphone.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val telecom = FakeTelecomBridge()
+        val session = gatedSession(gate, engine, telecom)
         session.begin(observeScope)
         val joined = async { session.connect("wss://x", "t", observeScope) }
         runCurrent()
 
-        session.end {}
+        var ended = 0
+        session.end { ended++ }
+        runCurrent()
+        assertEquals("end's own disconnect ran while the connect was still open", listOf("disconnect"), engine.calls)
         gate.complete(Unit)
         runCurrent()
         advanceTimeBy(TICK * 3)
 
-        assertTrue("the engine did connect, so the join reports media up", joined.await())
-        assertEquals(listOf("disconnected"), telecom.calls)
+        assertFalse("a released session reports no media", joined.await())
+        assertEquals(listOf("disconnect", "connect:wss://x:t", "disconnect"), engine.calls)
+        assertFalse(engine.calls.contains("mic:true"))
+        assertEquals("Telecom was told once, by end", listOf("disconnected"), telecom.calls)
         assertFalse(session.state.value.answered)
         assertEquals(0, session.state.value.elapsedSeconds)
+        assertEquals("onEnded runs exactly once", 1, ended)
+        assertFalse("end cancelled the engine scope after its disconnect", engineScope.isActive)
         observeScope.cancel()
-        engineScope.cancel()
+    }
+
+    @Test
+    fun `a hang-up during a join that then fails still disconnects after it, and says nothing more`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine().apply { connectFailure = IllegalStateException("socket closed") }
+        val telecom = FakeTelecomBridge()
+        val session = gatedSession(gate, engine, telecom)
+        session.begin(observeScope)
+        val joined = async { session.connect("wss://x", "t", observeScope) }
+        runCurrent()
+
+        var ended = 0
+        session.end { ended++ }
+        gate.complete(Unit)
+        runCurrent()
+
+        assertFalse(joined.await())
+        assertEquals("disconnect", engine.calls.last())
+        assertTrue(
+            "the last disconnect follows the connect attempt",
+            engine.calls.lastIndexOf("disconnect") > engine.calls.indexOf("connect:wss://x:t"),
+        )
+        assertFalse(engine.calls.contains("mic:true"))
+        assertEquals("Telecom is not told a second time", listOf("disconnected"), telecom.calls)
+        assertEquals(1, ended)
+        observeScope.cancel()
     }
 
     @Test

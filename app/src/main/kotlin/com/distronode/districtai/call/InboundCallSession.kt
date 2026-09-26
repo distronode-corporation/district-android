@@ -8,6 +8,7 @@ import com.distronode.districtai.ui.dialer.ActiveCallUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * ONE answered inbound call: its engine, its scope, its clock.
@@ -107,6 +109,18 @@ internal class InboundCallSession(
      */
     suspend fun connect(url: String, token: String, observeScope: CoroutineScope): Boolean {
         val failure = runCatching { engine.connect(url, token) }.exceptionOrNull()
+        // ⛔ HUNG UP WHILE THE JOIN WAS IN FLIGHT: [end] already ran, told Telecom and launched its
+        // disconnect, but that disconnect may have reached the engine BEFORE this connect resolved,
+        // and nothing orders the two inside the SDK. So the room could be left joined after the user
+        // hung up. The microphone is never turned on here, and a disconnect is issued now, after the
+        // connect has resolved, whatever it resolved to. ⚠️ In THIS coroutine and `NonCancellable`,
+        // not in [scope]: [end] cancels [scope] once its own disconnect finishes, and a disconnect
+        // launched into a cancelled scope never runs. [end]'s `onEnded` and cancellation are left to
+        // [end], so each still happens exactly once.
+        if (released) {
+            withContext(NonCancellable) { engine.disconnect() }
+            return false
+        }
         if (failure != null) {
             telecom.setDisconnected()
             _state.value = _state.value.copy(
@@ -176,7 +190,9 @@ internal class InboundCallSession(
      * ⚠️ ONE JOB. Two tickers would advance the same counter twice per second.
      */
     private fun markAnswered(observeScope: CoroutineScope) {
-        if (_state.value.answered || released) return
+        // ⚠️ `released` is no longer checked here: [connect] returns before this for a released
+        // session, and nothing else calls it.
+        if (_state.value.answered) return
         telecom.setActive()
         _state.value = _state.value.copy(answered = true)
         // ⚠️ No earlier ticker to cancel: the guard above lets this line run once per session. And no

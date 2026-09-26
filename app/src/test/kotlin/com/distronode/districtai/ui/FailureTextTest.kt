@@ -3,6 +3,7 @@ package com.distronode.districtai.ui
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.core.auth.ReauthReason
+import com.distronode.districtai.core.data.PagedLoadException
 import com.distronode.districtai.core.network.ApiResult
 import java.io.IOException
 import org.junit.Assert.assertEquals
@@ -222,5 +223,25 @@ class FailureTextTest {
                 failure.toFailureText().signedOutCause,
             )
         }
+    }
+
+    // ── Paging's error channel ───────────────────────────────────────────────
+
+    @Test
+    fun `a paged load failure carries the API's own failure through`() {
+        val text = PagedLoadException(ApiResult.NetworkFailure(IOException("offline")))
+            .toPagedFailure(UiText.Literal("fallback"))
+
+        assertEquals(ApiResult.NetworkFailure(IOException("offline")).toFailureText().message, text.message)
+        assertTrue(text.retryable)
+    }
+
+    @Test
+    fun `an error Paging raised itself gets the caller's fallback, retryable, with no invented cause`() {
+        val text = IllegalStateException("paging internals").toPagedFailure(UiText.Resource(R.string.overview_retry))
+
+        assertEquals(R.string.overview_retry, text.message.resourceIdOrNull)
+        assertTrue(text.retryable)
+        assertNull(text.signedOutCause)
     }
 }

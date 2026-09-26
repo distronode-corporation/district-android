@@ -25,4 +25,15 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Robolectric and the Compose test rule for `VideoTile`, as in `:app`. The manifest artifact is
+    // debugImplementation for the same reason `:app` gives: it contributes the test activity's
+    // manifest entry, which a testImplementation dependency never merges.
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // MockK, for this module only: a real `Room` cannot be built off a device (`LiveKit.create`
+    // loads libwebrtc's natives and fails with UnsatisfiedLinkError), and the SDK's classes are
+    // final, so the engine's calls into the SDK are asserted against mocks.
+    testImplementation(libs.mockk)
 }

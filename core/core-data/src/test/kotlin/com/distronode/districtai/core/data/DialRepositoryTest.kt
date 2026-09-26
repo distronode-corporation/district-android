@@ -92,6 +92,17 @@ class DialRepositoryTest {
     }
 
     @Test
+    fun `a credential missing only one half is refused, and the preview names that half`() = runTest {
+        placed(url = "")
+        val noUrl = (repository.dial("ws-1", "+14165550100") as DialOutcome.NotPlaced).failure
+        assertTrue((noUrl as ApiResult.DecodeFailure).bodyPreview.contains("token=true,url=false"))
+
+        placed(token = "")
+        val noToken = (repository.dial("ws-1", "+14165550100") as DialOutcome.NotPlaced).failure
+        assertTrue((noToken as ApiResult.DecodeFailure).bodyPreview.contains("token=false,url=true"))
+    }
+
+    @Test
     fun `a call_ room is refused, because the AI joins those`() = runTest {
         // ⛔ ONE CHARACTER OF DIFFERENCE AND AN ENTIRELY DIFFERENT CALL. `request_fnc` in the voice
         // agent refuses `direct_` BY NAME; a `call_` room is one the agent joins and speaks in.

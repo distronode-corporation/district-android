@@ -291,6 +291,15 @@ class WorkflowsRepositoryTest {
     }
 
     @Test
+    fun `a resume sends the flag switched on, not a pause`() = runTest {
+        val api = FakeDistrictApi()
+
+        WorkflowsRepository(api).setCampaignEnabled("ws-1", enabled = true)
+
+        assertEquals(true, api.campaignPauses.single().infiniteSdrEnabled)
+    }
+
+    @Test
     fun `the post-write campaign is unwrapped exactly as the read is`() = runTest {
         // ⚠️ The route derives its reply from what it MERGED, so the goal and batch size come back
         // untouched — and this layer hands the caller the same unwrapped type either verb produced.

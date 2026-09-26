@@ -188,6 +188,23 @@ class KnowledgeRepositoryTest {
         }
 
     @Test
+    fun `an add, a delete or a mode change that does not affirm success is drift, not done`() = runTest {
+        // ⛔ Each would otherwise read as done: an added document that was never stored, a deleted
+        // one still answering questions, or a residency mode reported as stored when it was not.
+        val api = api().apply {
+            knowledgeCreateResult = ApiResult.Success(KnowledgeCreateResponse(success = false))
+            knowledgeDeleteResult = ApiResult.Success(KnowledgeDeleteResponse(success = false))
+            saveKnowledgeModeResult = ApiResult.Success(KnowledgeModeResponse(success = false, mode = "linked"))
+        }
+        val repository = KnowledgeRepository(api)
+
+        val request = KnowledgeCreateRequest(workspaceId = "ws-1", title = "Hours", content = "Open 9 to 5.")
+        assertTrue(repository.addDocument(request) is ApiResult.DecodeFailure)
+        assertTrue(repository.deleteDocument("ws-1", "doc-1") is ApiResult.DecodeFailure)
+        assertTrue(repository.setMode("ws-1", "linked") is ApiResult.DecodeFailure)
+    }
+
+    @Test
     fun `an affirmed envelope with no mode is carried as null rather than defaulted`() = runTest {
         // ⚠️ Different from the case above: the envelope IS affirmed, so this is a server that said
         // success and sent no mode. Null is carried up so the UI can say "we could not read it"

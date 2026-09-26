@@ -9,6 +9,7 @@ import com.distronode.districtai.core.model.TimelinePageInfo
 import com.distronode.districtai.core.model.TimelineResponse
 import com.distronode.districtai.core.model.UnreadCountResponse
 import com.distronode.districtai.core.network.ApiResult
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -274,6 +275,17 @@ class InboxRepositoryTest {
     }
 
     @Test
+    fun `a refusal with no sentence is still a refusal, with an empty message`() = runTest {
+        val api = FakeDistrictApi().apply {
+            sendResult = ApiResult.Success(SendMessageResponse(success = false))
+        }
+
+        val result = InboxRepository(api).send("ws-1", "+1416", "hi", "sms")
+
+        assertEquals(ApiResult.HttpFailure(status = 200, message = ""), result)
+    }
+
+    @Test
     fun `a genuine send succeeds and carries the request through verbatim`() = runTest {
         val api = FakeDistrictApi().apply {
             sendResult = ApiResult.Success(SendMessageResponse(success = true))
@@ -324,5 +336,19 @@ class InboxRepositoryTest {
         }
 
         assertEquals(3, (InboxRepository(api).markRead("ws-1", "c1", null) as ApiResult.Success).value)
+    }
+
+    @Test
+    fun `a failed unread count or mark read is passed through rather than read as zero`() = runTest {
+        // ⚠️ Zero is a real answer (nothing unread, nothing marked); a failure must not look like it.
+        val offline = ApiResult.NetworkFailure(IOException("offline"))
+        val api = FakeDistrictApi().apply {
+            unreadCountResult = offline
+            markReadResult = offline
+        }
+        val repository = InboxRepository(api)
+
+        assertEquals(offline, repository.unreadCount("ws-1"))
+        assertEquals(offline, repository.markRead("ws-1", null, "+14165550142"))
     }
 }

@@ -103,6 +103,32 @@ class InboundCallRepositoryTest {
     }
 
     @Test
+    fun `a 5xx is a real failure rather than the call having ended`() = runTest {
+        // ⚠️ Only 404 and 409 mean "over". A server fault says nothing about the call, which may
+        // still be ringing for somebody else.
+        val failure = ApiResult.HttpFailure(status = 503, message = "Calling service is not configured.")
+
+        val outcome = InboundCallRepository(api(failure)).answer("ws-1", "CA1")
+
+        assertEquals(AnswerOutcome.NotAnswered(failure), outcome)
+    }
+
+    @Test
+    fun `a 200 missing only one half of the credential is refused, and says which half`() = runTest {
+        val noUrl = InboundCallRepository(
+            api(ApiResult.Success(CallAnswerResponse(success = true, url = "", token = "join-jwt"))),
+        ).answer("ws-1", "CA1")
+        val noToken = InboundCallRepository(
+            api(ApiResult.Success(CallAnswerResponse(success = true, url = "wss://x", token = ""))),
+        ).answer("ws-1", "CA1")
+
+        val urlFailure = (noUrl as AnswerOutcome.NotAnswered).failure as ApiResult.DecodeFailure
+        val tokenFailure = (noToken as AnswerOutcome.NotAnswered).failure as ApiResult.DecodeFailure
+        assertTrue(urlFailure.bodyPreview.contains("token=true,url=false"))
+        assertTrue(tokenFailure.bodyPreview.contains("token=false,url=true"))
+    }
+
+    @Test
     fun `a 200 that does not affirm success is refused`() = runTest {
         val outcome = InboundCallRepository(
             api(

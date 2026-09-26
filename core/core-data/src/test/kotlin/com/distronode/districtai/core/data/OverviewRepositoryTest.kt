@@ -126,6 +126,32 @@ class OverviewRepositoryTest {
     }
 
     @Test
+    fun `a resolved name wins, and a blank name or blank number is no label at all`() = runTest {
+        val result = load(
+            OverviewResponse(
+                success = true,
+                recentCalls = listOf(
+                    call(id = "named", callerName = "Ada Lovelace"),
+                    call(id = "blank-name", callerName = " ", from = "+14165550160"),
+                    call(id = "blank-both", callerName = "", from = " "),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf("Ada Lovelace", "+14165550160", null),
+            result.recentCalls.map { it.displayName },
+        )
+    }
+
+    @Test
+    fun `a ringing call is live too`() = runTest {
+        val result = load(OverviewResponse(success = true, recentCalls = listOf(call(status = "ringing"))))
+
+        assertTrue(result.recentCalls.single().live)
+    }
+
+    @Test
     fun `falls back to the raw number when the name is unresolved`() = runTest {
         val result = load(
             OverviewResponse(

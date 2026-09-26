@@ -17,6 +17,7 @@ import com.distronode.districtai.core.model.DeskTicketSummary
 import com.distronode.districtai.core.model.DeskTicketsResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DeskApi
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -217,6 +218,67 @@ class DeskRepositoryTest {
 
         assertEquals(false, (result as ApiResult.Success).value.objectRemoved)
         assertNull(result.value.settings!!.publicLogoUrl)
+    }
+
+    @Test
+    fun `a logo upload returns the settings the server stored, and a failure passes through`() = runTest {
+        val api = FakeDeskApi().apply {
+            settingsResult = ApiResult.Success(DeskSettingsResponse(success = true, settings = settings))
+        }
+        assertEquals(
+            ApiResult.Success(settings),
+            DeskRepository(api).uploadLogo("ws-1", "logo.png", "image/png", byteArrayOf(1)),
+        )
+
+        val tooLarge = ApiResult.HttpFailure(status = 413, message = "Logo too large.")
+        api.settingsResult = tooLarge
+        assertEquals(tooLarge, DeskRepository(api).uploadLogo("ws-1", "logo.png", "image/png", byteArrayOf(1)))
+    }
+
+    @Test
+    fun `a logo removal with no settings is drift, and a failed one is passed through`() = runTest {
+        val empty = FakeDeskApi().apply {
+            logoRemovalResult = ApiResult.Success(DeskLogoRemovalResponse(success = true))
+        }
+        assertTrue(DeskRepository(empty).deleteLogo("ws-1") is ApiResult.DecodeFailure)
+
+        val refused = FakeDeskApi().apply {
+            logoRemovalResult = ApiResult.Success(DeskLogoRemovalResponse(success = false, settings = settings))
+        }
+        assertTrue(DeskRepository(refused).deleteLogo("ws-1") is ApiResult.DecodeFailure)
+
+        val offline = ApiResult.NetworkFailure(IOException("offline"))
+        val failed = FakeDeskApi().apply { logoRemovalResult = offline }
+        assertEquals(offline, DeskRepository(failed).deleteLogo("ws-1"))
+    }
+
+    @Test
+    fun `every settings, ticket and reply call refuses a 200 that does not affirm success`() = runTest {
+        // ⛔ Each of these bodies decodes with its payload present, so only the envelope says the
+        // server did not do what was asked. A refusal read as success would show a stale state.
+        val api = FakeDeskApi().apply {
+            settingsResult = ApiResult.Success(DeskSettingsResponse(success = false, settings = settings))
+            ticketResult = ApiResult.Success(DeskTicketResponse(success = false, ticket = DeskTicketDetail()))
+            createResult = ApiResult.Success(DeskTicketCreateResponse(success = false, ticket = ticket))
+            replyResult = ApiResult.Success(DeskReplyResponse(success = false))
+            statusResult = ApiResult.Success(DeskTicketStatusResponse(success = false, ticket = ticket))
+        }
+        val repository = DeskRepository(api)
+
+        assertTrue(repository.settings("ws-1") is ApiResult.DecodeFailure)
+        assertTrue(
+            repository.saveSettings("ws-1", DeskSettingsPatch(enabled = false)) is ApiResult.DecodeFailure,
+        )
+        assertTrue(
+            repository.uploadLogo("ws-1", "logo.png", "image/png", byteArrayOf(1)) is ApiResult.DecodeFailure,
+        )
+        assertTrue(repository.ticket("ws-1", "tkt_1") is ApiResult.DecodeFailure)
+        assertTrue(
+            repository.createTicket("ws-1", DeskTicketDraft(subject = "Leak", message = "Drips")) is
+                ApiResult.DecodeFailure,
+        )
+        assertTrue(repository.reply("ws-1", "tkt_1", "Tuesday.") is ApiResult.DecodeFailure)
+        assertTrue(repository.setStatus("ws-1", "tkt_1", DeskTicketStatus.RESOLVED) is ApiResult.DecodeFailure)
     }
 
     // ── The reply's three shapes ─────────────────────────────────────────────

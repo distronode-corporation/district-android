@@ -183,6 +183,54 @@ class WorkspaceRepositoryTest {
         assertEquals(listOf("ca", "apac"), result.degradedRegions)
     }
 
+    @Test
+    fun `an account whose only answer is a degraded region is partial, not empty or blocked`() = runTest {
+        // ⛔ Nothing listed, nothing unpaid, and a region that did not answer: "no workspaces" here
+        // would be the checkout-page mistake, so the state must say it could not see everything.
+        val result = state(WorkspaceListResponse(success = true, degradedRegions = listOf("eu")))
+
+        assertFalse(result.hasNoWorkspaces)
+        assertFalse(result.isBillingBlocked)
+        assertTrue(result.isPartial)
+    }
+
+    @Test
+    fun `an account with workspaces and some unpaid ones is neither empty nor blocked`() = runTest {
+        val result = state(WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a")), inactiveCount = 1))
+
+        assertFalse(result.hasNoWorkspaces)
+        assertFalse(result.isBillingBlocked)
+    }
+
+    @Test
+    fun `a state built from a list alone is complete and nothing is unpaid`() {
+        val state = WorkspaceState(workspaces = listOf(entry("ws-a")), active = entry("ws-a"))
+
+        assertFalse(state.isPartial)
+        assertFalse(state.isBillingBlocked)
+        assertEquals(0, state.inactiveCount)
+    }
+
+    @Test
+    fun `a stored selection on an account that now lists nothing is forgotten`() = runTest {
+        val (repo, store) = repository(WorkspaceListResponse(success = true, inactiveCount = 1), stored = "ws-a")
+
+        val result = (repo.load() as ApiResult.Success).value
+
+        assertNull(result.active)
+        assertNull("a selection nothing can match is dropped", store.selectedWorkspaceId())
+    }
+
+    @Test
+    fun `a 200 that does not affirm success is drift, never an empty account`() = runTest {
+        val repo = WorkspaceRepository(
+            listing(ApiResult.Success(WorkspaceListResponse(success = false, workspaces = listOf(entry("ws-a"))))),
+            FakeSelectionStore(null),
+        )
+
+        assertTrue(repo.load() is ApiResult.DecodeFailure)
+    }
+
     // ── Failures pass through ────────────────────────────────────────────────
 
     @Test

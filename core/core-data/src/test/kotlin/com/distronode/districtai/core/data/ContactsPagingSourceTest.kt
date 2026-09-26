@@ -140,6 +140,21 @@ class ContactsPagingSourceTest {
     }
 
     @Test
+    fun `a page that does not affirm success is an error, not the end of the address book`() {
+        // ⛔ A `{}` body decodes to "no contacts, total 0", which a paging source reads as END OF LIST:
+        // an empty address book with no error and no retry.
+        runTest {
+            val api = ContactsApi { _, _ -> ApiResult.Success(ContactListResponse(success = false)) }
+
+            val result = refresh(source(api))
+
+            assertTrue(result is PagingSource.LoadResult.Error)
+            val cause = (result as PagingSource.LoadResult.Error).throwable
+            assertTrue((cause as PagedLoadException).failure is ApiResult.DecodeFailure)
+        }
+    }
+
+    @Test
     fun `a failure carries its reason rather than becoming an empty page`() {
         runTest {
             val failure = ApiResult.RegionsDegraded("unreachable", listOf("eu"))

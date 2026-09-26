@@ -5,6 +5,7 @@ import com.distronode.districtai.core.model.AvailabilityResponse
 import com.distronode.districtai.core.model.CallHandling
 import com.distronode.districtai.core.model.CallHandlingResponse
 import com.distronode.districtai.core.network.ApiResult
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -115,6 +116,35 @@ class CallHandlingRepositoryTest {
 
         assertTrue(result is ApiResult.HttpFailure)
         assertEquals(409, (result as ApiResult.HttpFailure).status)
+    }
+
+    @Test
+    fun `a 200 on either route that does not affirm success is drift, read or write`() = runTest {
+        val api = FakeCallHandlingApi().apply {
+            handlingResult = ApiResult.Success(CallHandlingResponse(success = false, callHandling = "ai_first"))
+            availabilityResult = ApiResult.Success(AvailabilityResponse(success = false, availableForCalls = true))
+        }
+        val repository = repository(api)
+
+        assertTrue(repository.callHandling("ws-1") is ApiResult.DecodeFailure)
+        assertTrue(repository.saveCallHandling("ws-1", appRingSeconds = 20) is ApiResult.DecodeFailure)
+        assertTrue(repository.availability("ws-1") is ApiResult.DecodeFailure)
+        assertTrue(repository.saveAvailability("ws-1", availableForCalls = true) is ApiResult.DecodeFailure)
+    }
+
+    @Test
+    fun `a transport failure on either route is passed through unchanged`() = runTest {
+        val offline = ApiResult.NetworkFailure(IOException("offline"))
+        val api = FakeCallHandlingApi().apply {
+            handlingResult = offline
+            availabilityResult = offline
+        }
+        val repository = repository(api)
+
+        assertEquals(offline, repository.callHandling("ws-1"))
+        assertEquals(offline, repository.saveCallHandling("ws-1", callHandling = CallHandling.AI_FIRST))
+        assertEquals(offline, repository.availability("ws-1"))
+        assertEquals(offline, repository.saveAvailability("ws-1", availableForCalls = false))
     }
 
     @Test

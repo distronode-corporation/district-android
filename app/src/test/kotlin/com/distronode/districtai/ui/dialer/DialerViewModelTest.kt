@@ -15,6 +15,7 @@ import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestCallControlApi
 import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -608,6 +609,42 @@ class DialerViewModelTest {
             assertFalse("role=$role must not be able to dial", vm.state.value.canDial)
             assertFalse(vm.state.value.canPlaceCall)
             assertTrue(api.dialRequests.isEmpty())
+        }
+    }
+
+    @Test
+    fun `a call placed while the call-back list is read survives the list landing`() = runTest {
+        // ⚠️ The two are unrelated reads; a slow call log must not hold the keypad.
+        val api = HeldCallsApi().apply {
+            dialResult = api().dialResult
+            callsResult = ApiResult.Success(listOf(callRow()))
+        }
+        val vm = viewModel(api = api)
+        runCurrent()
+        assertTrue(vm.state.value.callbacks is CallbacksState.Loading)
+
+        vm.dialTo()
+        runCurrent()
+        assertEquals(1, api.dialRequests.size)
+
+        api.gate.complete(Unit)
+        runCurrent()
+        assertEquals(1, (vm.state.value.callbacks as CallbacksState.Ready).calls.size)
+        // ⛔ THE BUG THIS PINS. The read copied the state it saw when it STARTED, so the call
+        // placed meanwhile vanished from the screen, and the number with it, when the list landed.
+        assertEquals("+14165550100", vm.state.value.call?.number)
+        assertEquals("+14165550100", vm.state.value.entry)
+        vm.hangUp {}
+        advanceUntilIdle()
+    }
+
+    /** Holds the call-back read until [gate] opens, as a slow network would. */
+    private class HeldCallsApi : TestDistrictApi() {
+        val gate = CompletableDeferred<Unit>()
+
+        override suspend fun calls(workspaceId: String, limit: Int, offset: Int): ApiResult<List<CallSummary>> {
+            gate.await()
+            return super.calls(workspaceId, limit, offset)
         }
     }
 

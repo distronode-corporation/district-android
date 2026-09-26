@@ -162,12 +162,15 @@ class DialerViewModel(
      */
     fun load() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(
-                callbacks = when (val result = callsRepository.recentCallbacks(workspaceId)) {
-                    is ApiResult.Success -> CallbacksState.Ready(result.value)
-                    is ApiResult.Failure -> CallbacksState.Failed(result.toFailureText())
-                },
-            )
+            val callbacks = when (val result = callsRepository.recentCallbacks(workspaceId)) {
+                is ApiResult.Success -> CallbacksState.Ready(result.value)
+                is ApiResult.Failure -> CallbacksState.Failed(result.toFailureText())
+            }
+            // ⛔ THE STATE IS READ AFTER THE REQUEST, NOT BEFORE IT. Written as one `copy` around
+            // the call, the receiver was read first and held across the suspension, so a read that
+            // landed after the operator typed or dialled wrote back the entry and the call as they
+            // were when it started: a live call vanished from the screen.
+            _state.value = _state.value.copy(callbacks = callbacks)
         }
     }
 

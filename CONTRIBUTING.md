@@ -58,8 +58,10 @@ A few things these gates are strict about, so they do not surprise you in review
   be fixed, disable that check by name with the reason written beside it in
   `build-logic/convention/src/main/kotlin/district.android.base.gradle.kts`.
 - **Coverage floors only go up.** `LINE_COVERAGE_FLOOR` and `BRANCH_COVERAGE_FLOOR` in
-  `build.gradle.kts` are measured values rounded down. Raise them when coverage rises; do not
-  lower one to make a build pass.
+  `build.gradle.kts` are set by decision, below the measured values with some headroom, so
+  rounding drift does not red the build; the comment above them records the current
+  measurement and the headroom. Raise them when coverage rises; do not lower one to make a
+  build pass.
 - **A new module must be added to the `kover { }` dependency list** in `build.gradle.kts`,
   or it is silently left out of the coverage measurement.
 - **Release builds minify.** `assembleDebug` does not run R8, so a missing keep rule only

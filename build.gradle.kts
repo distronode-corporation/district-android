@@ -253,8 +253,8 @@ kover {
         verify {
             rule("aggregate line coverage") {
                 bound {
-                    // ⚠️ A FLOOR BELOW THE MEASURED VALUE, NOT AN ASPIRATION. It sits a
-                    // few points under the measurement recorded at LINE_COVERAGE_FLOOR so
+                    // ⚠️ A FLOOR BELOW THE MEASURED VALUE, NOT AN ASPIRATION. It sits about
+                    // one point under the measurement recorded at LINE_COVERAGE_FLOOR so
                     // a trivial refactor does not red the pipeline. It is deliberately not
                     // a target: it exists to make coverage a ratchet that cannot slip
                     // backwards.

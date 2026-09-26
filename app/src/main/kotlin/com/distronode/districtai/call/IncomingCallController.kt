@@ -292,16 +292,34 @@ internal class IncomingCallController(
         val live = sessions.create()
         session = live
         live.begin(scope)
-        mirror?.cancel()
+        // ⚠️ No earlier mirror to cancel: a join follows a RINGING phase, which only a call arriving
+        // on a cleared screen starts, and [dismiss] cancels and clears the mirror as it clears it.
         mirror = scope.launch {
-            live.state.collect { call -> _state.value = _state.value?.copy(call = call) }
+            live.state.collect { call -> update { copy(call = call) } }
         }
-        if (!live.connect(url, token, scope)) {
+        val joined = live.connect(url, token, scope)
+        // ⛔ A HANG-UP CAN LAND WHILE THE JOIN IS IN FLIGHT: a headset button or the OS's own call
+        // surface reaches [decline] at any phase, and [finish] has then already torn this call down
+        // and cleared [session]. Acting on the join's outcome after that restarted the foreground
+        // service for a call that had ended and painted it IN_CALL (or, on a failed join, replaced
+        // the ended call's message with a media failure the user never had).
+        if (session !== live) return
+        if (!joined) {
             finish(FailureText(UiText.Resource(R.string.incoming_call_media_failed), retryable = false))
             return
         }
         foreground.setCallActive(true)
-        _state.value = _state.value?.copy(phase = IncomingCallPhase.IN_CALL)
+        update { copy(phase = IncomingCallPhase.IN_CALL) }
+    }
+
+    /**
+     * Rewrite the call on screen, if there still is one.
+     *
+     * ⚠️ ONE PLACE FOR THE `?.`: [hangUp] is public and reaches [finish] with no call at all, and a
+     * write then must not conjure one.
+     */
+    private fun update(transform: IncomingCallUiState.() -> IncomingCallUiState) {
+        _state.value = _state.value?.transform()
     }
 
     /**
@@ -322,7 +340,7 @@ internal class IncomingCallController(
         } else {
             live.end {}
         }
-        _state.value = _state.value?.copy(phase = IncomingCallPhase.ENDED, message = message)
+        update { copy(phase = IncomingCallPhase.ENDED, message = message) }
     }
 
     private fun clearRing() {

@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotSelected
@@ -328,5 +329,75 @@ class KnowledgeScreenTest {
             .assertIsDisplayed()
         composeRule.onNodeWithContentDescription(KNOWLEDGE_MODE_READ_ONLY_DESCRIPTION)
             .assertDoesNotExist()
+    }
+
+    // ── The rest of the states ───────────────────────────────────────────────
+
+    @Test
+    fun `a list still being read draws skeletons`() {
+        render(KnowledgeUiState(canWrite = true, mode = KB_MODE_INTERNAL))
+
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `a document with no title, status or count is named by its id and still deletable`() {
+        // ⚠️ OLDER ROWS CARRY NONE OF THESE, and a row that rendered blank could not be told apart
+        // from its neighbours, let alone deleted on purpose.
+        var deleted: String? = null
+        render(
+            KnowledgeUiState(
+                list = KnowledgeListState.Ready(listOf(KnowledgeDocument(id = "doc-9"))),
+                canWrite = true,
+                mode = KB_MODE_INTERNAL,
+            ),
+            onDelete = { deleted = it },
+        )
+
+        composeRule.onNodeWithText("doc-9").assertIsDisplayed()
+        composeRule.onNodeWithText("unknown status · 0 sections").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(knowledgeDeleteDescription("doc-9")).performClick()
+        composeRule.onNodeWithContentDescription(KNOWLEDGE_DELETE_CONFIRM_DESCRIPTION).performClick()
+
+        assertEquals("doc-9", deleted)
+    }
+
+    @Test
+    fun `both confirmations still act after the screen redraws under them`() {
+        // ⚠️ A RE-READ CAN LAND WHILE A CONFIRMATION IS UP. The dialog must still delete the
+        // document it named and still switch to the mode it named.
+        val deleted = mutableListOf<String>()
+        val modes = mutableListOf<String>()
+        val current = mutableStateOf(ready())
+        val onDelete: (String) -> Unit = { deleted += it }
+        val onSelectMode: (String) -> Unit = { modes += it }
+        composeRule.setContent {
+            DistrictTheme {
+                KnowledgeScreen(
+                    state = current.value,
+                    onEditTitle = {},
+                    onEditContent = {},
+                    onAdd = {},
+                    onDelete = onDelete,
+                    onSelectMode = onSelectMode,
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(knowledgeDeleteDescription("doc-2")).performClick()
+        current.value = ready().copy(draftTitle = "Hours")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(KNOWLEDGE_DELETE_CONFIRM_DESCRIPTION).performClick()
+
+        composeRule.onNodeWithContentDescription(knowledgeModeDescription(KB_MODE_LINKED)).performClick()
+        current.value = ready().copy(draftTitle = "Hours, again")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(KNOWLEDGE_LINKED_CONFIRM_DESCRIPTION).performClick()
+
+        assertEquals(listOf("doc-2"), deleted)
+        assertEquals(listOf(KB_MODE_LINKED), modes)
     }
 }

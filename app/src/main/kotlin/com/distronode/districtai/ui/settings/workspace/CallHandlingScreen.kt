@@ -54,7 +54,6 @@ fun CallHandlingScreen(
     onSetAvailability: (Boolean) -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var confirmingExit by remember { mutableStateOf(false) }
 
@@ -72,7 +71,7 @@ fun CallHandlingScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = CALL_HANDLING_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = CALL_HANDLING_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.call_handling_title),

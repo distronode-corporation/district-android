@@ -75,10 +75,9 @@ fun WorkspaceSettingsScreen(
      */
     onOpenSection: (String) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = WORKSPACE_SETTINGS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = WORKSPACE_SETTINGS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.workspace_settings_title), onBack = onBack)
         },

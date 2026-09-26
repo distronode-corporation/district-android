@@ -58,11 +58,10 @@ fun PersonaFormScreen(
     onSave: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-    onSelectEngine: (String) -> Unit = {},
-    onSelectLanguage: (String) -> Unit = {},
-    onUpdateEngineValues: (PersonaEngineValues) -> Unit = {},
-    onPreview: () -> Unit = {},
+    onSelectEngine: (String) -> Unit,
+    onSelectLanguage: (String) -> Unit,
+    onUpdateEngineValues: (PersonaEngineValues) -> Unit,
+    onPreview: () -> Unit,
 ) {
     // ⚠️ `remember`, not `rememberSaveable`: the dialog is a transient response to a back press
     // and nothing typed lives in it. The DRAFT lives in the ViewModel, which survives rotation.
@@ -83,7 +82,7 @@ fun PersonaFormScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = PERSONA_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = PERSONA_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.persona_title),

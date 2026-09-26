@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -142,5 +143,41 @@ class SettingsScreenTest {
         // REVIEWER OPENS WITH NO SESSION. Changing one side alone is a review failure that no build
         // or runtime check would catch, so the coupling is asserted here instead.
         assertEquals("https://www.distronode.com/privacy/account-deletion", ACCOUNT_DELETION_URL)
+    }
+
+    @Test
+    fun `a row calls the callback the screen was last given, not the first one`() {
+        // ⚠️ THE NAV HOST HANDS THIS SCREEN NEW LAMBDAS WHENEVER IT RECOMPOSES. A row that kept the
+        // first one would sign out, or open devices, through a callback bound to a stale graph.
+        val generation = mutableIntStateOf(1)
+        val signOuts = mutableListOf<Int>()
+        val devices = mutableListOf<Int>()
+        composeRule.setContent {
+            val current = generation.intValue
+            DistrictTheme {
+                SettingsScreen(
+                    onBack = {},
+                    onSignOut = { signOuts += current },
+                    onDeleteAccount = {},
+                    onOpenDevices = { devices += current },
+                )
+            }
+        }
+
+        generation.intValue = 2
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(SETTINGS_DEVICES_DESCRIPTION).performClick()
+
+        assertEquals(listOf(2), signOuts)
+        assertEquals(listOf(2), devices)
+    }
+
+    @Test
+    fun `the design preview composes the whole screen`() {
+        composeRule.setContent { SettingsScreenPreview() }
+
+        composeRule.onNodeWithContentDescription(SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).assertIsDisplayed()
     }
 }

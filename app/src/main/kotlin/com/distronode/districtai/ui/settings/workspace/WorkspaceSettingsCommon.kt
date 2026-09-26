@@ -40,10 +40,9 @@ import com.distronode.districtai.ui.resolve
 internal fun ConfigLoadFailure(
     failure: com.distronode.districtai.ui.FailureText,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .padding(DistrictTheme.spacing.gutter)
             .semantics { contentDescription = WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION },
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
@@ -80,7 +79,7 @@ internal fun ConfigLoadFailure(
  * re-read rather than a re-save.
  */
 @Composable
-internal fun SaveNotice(state: SaveState, description: String, modifier: Modifier = Modifier) {
+internal fun SaveNotice(state: SaveState, description: String) {
     val text: String
     val tone = when (state) {
         SaveState.Saved -> {
@@ -101,7 +100,7 @@ internal fun SaveNotice(state: SaveState, description: String, modifier: Modifie
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = tone,
-        modifier = modifier.semantics { contentDescription = description },
+        modifier = Modifier.semantics { contentDescription = description },
     )
 }
 
@@ -175,9 +174,9 @@ internal fun NotEditableNotice(title: String, body: String, description: String)
 
 /** ⚠️ Skeletons rather than a blank expanse, so a slow read does not read as an empty workspace. */
 @Composable
-internal fun ConfigSkeleton(modifier: Modifier = Modifier) {
+internal fun ConfigSkeleton() {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .padding(DistrictTheme.spacing.gutter)
             .semantics { contentDescription = WORKSPACE_SETTINGS_LOADING_DESCRIPTION },
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),

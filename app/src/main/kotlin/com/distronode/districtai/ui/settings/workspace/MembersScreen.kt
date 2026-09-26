@@ -71,7 +71,6 @@ fun MembersScreen(
     onRename: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     // ⚠️ `rememberSaveable` for the dialog flag and plain `remember` for the pending rows. The flag
     // is a Boolean and survives a rotation for free; a `WorkspaceMember` is not `Parcelable`, and a
@@ -117,7 +116,7 @@ fun MembersScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = MEMBERS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = MEMBERS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.members_title), onBack = onBack)
         },

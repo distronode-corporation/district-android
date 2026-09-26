@@ -184,6 +184,46 @@ class KeystoreRoundTripTest {
     }
 
     @Test
+    fun `a keystore that fails partway through a write leaves no session, not a mixed one`() {
+        // ⛔ FAIL CLOSED ON EVERY FIELD, NOT JUST THE FIRST. Each of the three values is encrypted
+        // separately, so a keystore that stops answering after one or two of them must still leave
+        // nothing readable: a new token beside an old device id would be a session nobody wrote.
+        val newer = session.copy(refreshToken = "rotated-refresh-token")
+        listOf(1, 2).forEach { lookupsBeforeFailure ->
+            val subject = store()
+            subject.write(session)
+            subject.markRevokePending("refresh-to-revoke")
+
+            keystore.refuseLookupsAfter(lookupsBeforeFailure)
+            subject.write(newer)
+            keystore.allowLookups()
+
+            assertNull("failing after $lookupsBeforeFailure lookups", subject.read())
+            val onDisk = prefs().all.values.map { it.toString() }
+            assertFalse(onDisk.any { it.contains(newer.refreshToken) })
+            // The outbox is kept across the wipe, the same as a clear().
+            assertEquals("refresh-to-revoke", subject.pendingRevokeToken())
+            subject.clearRevokePending()
+        }
+    }
+
+    @Test
+    fun `a provider that hands back an IV of the wrong length stores nothing`() {
+        // The stored layout splits `iv || ciphertext` at 12 bytes. A 16-byte IV written that way
+        // would read back cut in the wrong place, so the write is refused and fails closed instead.
+        val hostile = WrongIvLengthGcmProvider()
+        hostile.install()
+        try {
+            store().write(session)
+        } finally {
+            hostile.uninstall()
+        }
+
+        assertNull(store().read())
+        assertTrue("nothing reaches disk", prefs().all.isEmpty())
+    }
+
+    @Test
     fun `clearing the refresh marker leaves the session in place`() {
         val subject = store()
         subject.write(session)

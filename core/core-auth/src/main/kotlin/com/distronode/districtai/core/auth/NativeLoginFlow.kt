@@ -25,7 +25,8 @@ class NativeLoginFlow(
     private val api: NativeAuthApi,
     private val coordinator: TokenRefreshCoordinator,
     private val deviceIdProvider: () -> String,
-    private val deviceNameProvider: () -> String? = { null },
+    // No default: every caller supplies the device name, so a default could never be taken.
+    private val deviceNameProvider: () -> String?,
 ) : PkceLoginFlow {
 
     /**

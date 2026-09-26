@@ -24,12 +24,13 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
  * could disagree with the first.
  */
 @Composable
-internal fun FinishSetupCard(
-    onFinishSetup: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun FinishSetupCard(onFinishSetup: () -> Unit) {
+    // ⚠️ The gutter is applied here rather than taken as a `modifier`: the overview is the one
+    // caller, and it always passed exactly this padding.
     DistrictCard(
-        modifier = modifier.semantics { contentDescription = OVERVIEW_FINISH_SETUP_DESCRIPTION },
+        modifier = Modifier
+            .padding(horizontal = DistrictTheme.spacing.gutter)
+            .semantics { contentDescription = OVERVIEW_FINISH_SETUP_DESCRIPTION },
     ) {
         Text(
             text = stringResource(R.string.overview_finish_setup_title),

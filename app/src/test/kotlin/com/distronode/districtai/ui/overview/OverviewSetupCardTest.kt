@@ -179,4 +179,24 @@ class OverviewSetupCardTest {
 
         assertFalse(vm.content.showFinishSetup)
     }
+
+    @Test
+    fun `a late answer that lands after the screen stopped showing content is dropped`() = runTest(dispatcher) {
+        // ⚠️ The reload failed while the setup read was held open. The screen is now an error with a
+        // retry; a card arriving on top of it would offer setup for a workspace it cannot show.
+        val gate = CompletableDeferred<Unit>()
+        val api = districtApi("ws-a")
+        val vm = viewModel(api, FakeSetupApi(midWizard, gate))
+        advanceUntilIdle()
+
+        api.workspaceListResult = ApiResult.NetworkFailure(IOException("offline"))
+        vm.load()
+        advanceUntilIdle()
+        assertTrue(vm.state.value is OverviewUiState.Unavailable)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value is OverviewUiState.Unavailable)
+    }
 }

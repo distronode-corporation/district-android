@@ -414,6 +414,45 @@ class OverviewViewModelTest {
     }
 
     @Test
+    fun `a failed overview read after a good workspace list is unavailable, never empty`() = runTest(dispatcher) {
+        // ⛔ The list answered and named a workspace; only its figures failed. That is "we could not
+        // finish looking", and the screen must say so rather than show a workspace with no numbers.
+        val api = TestDistrictApi().apply {
+            workspaceListResult = ApiResult.Success(
+                WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a"))),
+            )
+            overviewResult = ApiResult.NetworkFailure(IOException("dropped"))
+        }
+
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        val state = vm.state.value as OverviewUiState.Unavailable
+        assertEquals(R.string.failure_offline, state.message.resourceIdOrNull)
+        assertEquals(listOf("ws-a"), api.overviewRequests)
+    }
+
+    @Test
+    fun `the factory builds a model that reads through the repositories it was given`() = runTest(dispatcher) {
+        val api = TestDistrictApi().apply {
+            workspaceListResult = ApiResult.Success(
+                WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a", "Alpha"))),
+            )
+            overviewResult = ApiResult.Success(OverviewResponse(success = true, role = "client"))
+        }
+
+        val vm = OverviewViewModel.factory(
+            workspaceRepository = WorkspaceRepository(api, FakeStore()),
+            overviewRepository = OverviewRepository(api),
+            setupRepository = null,
+        ).create(OverviewViewModel::class.java)
+        advanceUntilIdle()
+
+        assertEquals("Alpha", (vm.state.value as OverviewUiState.Content).active.name)
+        assertEquals(listOf("ws-a"), api.overviewRequests)
+    }
+
+    @Test
     fun `a first load shows Loading`() = runTest(dispatcher) {
         val vm = viewModel(TestDistrictApi())
 

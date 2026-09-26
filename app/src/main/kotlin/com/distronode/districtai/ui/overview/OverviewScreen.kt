@@ -158,10 +158,10 @@ fun OverviewScreen(
      * verified App Link handler for the very URL it opens. See `openInBrowser`.
      */
     onFinishSetup: () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = OVERVIEW_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = OVERVIEW_ROOT_DESCRIPTION },
         topBar = {
             // ⛔ IN THE APP BAR, SO IT IS PRESENT IN EVERY STATE, AND THAT PLACEMENT IS THE
             // REQUIREMENT. Sign-out and account deletion are Play prerequisites and they are
@@ -355,10 +355,7 @@ private fun ContentState(
         if (state.showFinishSetup) {
             item {
                 ContentContainer {
-                    FinishSetupCard(
-                        onFinishSetup = onFinishSetup,
-                        modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
-                    )
+                    FinishSetupCard(onFinishSetup = onFinishSetup)
                 }
             }
         }
@@ -375,10 +372,7 @@ private fun ContentState(
 
         item {
             ContentContainer {
-                MetricTiles(
-                    overview = state.overview,
-                    modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
-                )
+                MetricTiles(overview = state.overview)
             }
         }
 
@@ -387,7 +381,6 @@ private fun ContentState(
                 SectionHeading(
                     label = stringResource(R.string.overview_recent_activity),
                     actionLabel = stringResource(R.string.call_log_open),
-                    actionDescription = OVERVIEW_OPEN_CALL_LOG_DESCRIPTION,
                     onAction = { onOpenCallLog(state.active.id) },
                 )
             }
@@ -680,12 +673,17 @@ private fun ContentState(
     }
 }
 
-/** An eyebrow-labelled section rule with a trailing link. Mirrors the browser's list headings. */
+/**
+ * An eyebrow-labelled section rule with a trailing link. Mirrors the browser's list headings.
+ *
+ * ⚠️ The link's description is the call log's constant rather than a parameter: this has one
+ * caller, and a parameter that only ever carried one compile-time constant was a branch no input
+ * could take.
+ */
 @Composable
 private fun SectionHeading(
     label: String,
     actionLabel: String,
-    actionDescription: String,
     onAction: () -> Unit,
 ) {
     Row(
@@ -704,7 +702,7 @@ private fun SectionHeading(
             onClick = onAction,
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Sm,
-            modifier = Modifier.semantics { contentDescription = actionDescription },
+            modifier = Modifier.semantics { contentDescription = OVERVIEW_OPEN_CALL_LOG_DESCRIPTION },
         )
     }
 }

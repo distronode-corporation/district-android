@@ -162,7 +162,8 @@ class OverviewViewModel(
         fun factory(
             workspaceRepository: WorkspaceRepository,
             overviewRepository: OverviewRepository,
-            setupRepository: SetupRepository? = null,
+            // ⚠️ No default: the activity, the one caller, always hands its container's repository.
+            setupRepository: SetupRepository?,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.RecentActivity
@@ -25,10 +24,7 @@ import com.distronode.districtai.ui.toneForCallStatus
  * an empty `onClick`, which invited a tap that did nothing.
  */
 @Composable
-internal fun ActivityRow(
-    call: RecentActivity,
-    modifier: Modifier = Modifier,
-) {
+internal fun ActivityRow(call: RecentActivity) {
     // ⚠️ `live` is derived from the DISPLAY status, which the server has already downgraded for a
     // stale call, so this cannot label a day-old row "Live".
     val statusLabel = if (call.live) stringResource(R.string.overview_status_live) else call.status
@@ -76,6 +72,5 @@ internal fun ActivityRow(
                 DistrictBadge(text = statusLabel, tone = statusTone)
             }
         },
-        modifier = modifier,
     )
 }

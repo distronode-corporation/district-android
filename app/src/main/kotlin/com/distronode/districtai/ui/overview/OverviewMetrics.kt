@@ -3,7 +3,9 @@ package com.distronode.districtai.ui.overview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,9 +30,14 @@ import com.distronode.districtai.core.designsystem.MetricCard
  * measurement the grid was supposed to compute.
  */
 @Composable
-internal fun MetricTiles(overview: Overview, modifier: Modifier = Modifier) {
+internal fun MetricTiles(overview: Overview) {
     val gap = DistrictTheme.spacing.row
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(gap)) {
+    // ⚠️ The gutter is applied here rather than taken as a `modifier`: the overview is the one
+    // caller, and it always passed exactly this padding.
+    Column(
+        modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
+        verticalArrangement = Arrangement.spacedBy(gap),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(gap),
@@ -39,13 +46,11 @@ internal fun MetricTiles(overview: Overview, modifier: Modifier = Modifier) {
                 label = stringResource(R.string.overview_tile_total_calls),
                 value = overview.metrics.totalCalls.toString(),
                 caption = stringResource(R.string.overview_tile_total_calls_caption),
-                modifier = Modifier.weight(1f),
             )
             Tile(
                 label = stringResource(R.string.overview_tile_weekly_calls),
                 value = overview.metrics.callsThisWeek.toString(),
                 caption = stringResource(R.string.overview_tile_weekly_calls_caption),
-                modifier = Modifier.weight(1f),
             )
         }
         Row(
@@ -56,7 +61,6 @@ internal fun MetricTiles(overview: Overview, modifier: Modifier = Modifier) {
                 label = stringResource(R.string.overview_tile_contacts),
                 value = overview.metrics.totalContacts.toString(),
                 caption = stringResource(R.string.overview_tile_contacts_caption),
-                modifier = Modifier.weight(1f),
             )
             Tile(
                 label = stringResource(R.string.overview_tile_avg_duration),
@@ -67,7 +71,6 @@ internal fun MetricTiles(overview: Overview, modifier: Modifier = Modifier) {
                 // sub-minute average.
                 value = overview.avgDurationLabel,
                 caption = stringResource(R.string.overview_tile_avg_duration_caption),
-                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -79,16 +82,17 @@ internal fun MetricTiles(overview: Overview, modifier: Modifier = Modifier) {
  * relationship. Pairing makes the tile announce itself as a fact.
  */
 @Composable
-private fun Tile(
+private fun RowScope.Tile(
     label: String,
     value: String,
     caption: String,
-    modifier: Modifier = Modifier,
 ) {
+    // ⚠️ A `RowScope` extension that weights itself, rather than a `modifier` parameter: every tile
+    // sits in one of the two rows and every caller passed exactly this weight.
     MetricCard(
         label = label,
         value = value,
         caption = caption,
-        modifier = modifier.semantics { contentDescription = "$label, $value" },
+        modifier = Modifier.weight(1f).semantics { contentDescription = "$label, $value" },
     )
 }

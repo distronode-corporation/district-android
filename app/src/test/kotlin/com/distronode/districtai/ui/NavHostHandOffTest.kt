@@ -230,7 +230,11 @@ class NavHostHandOffTest {
         harness.tap(DEVICES_CONFIRM_DEVICE_DESCRIPTION)
 
         assertEquals(listOf("revoke:device-other"), harness.api.deviceWrites)
-        assertEquals("another device's revoke must not sign this one out", epoch, harness.container.sessionSignal.epoch.value)
+        assertEquals(
+            "another device's revoke must not sign this one out",
+            epoch,
+            harness.container.sessionSignal.epoch.value,
+        )
     }
 
     @Test
@@ -238,7 +242,14 @@ class NavHostHandOffTest {
         harness.api.contactsResult = ApiResult.Success(
             ContactListResponse(
                 success = true,
-                contacts = listOf(Contact(id = "ct-4", workspaceId = "ws-1", name = "Ada Lovelace", createdAt = "2026-07-20T11:00:00.000Z")),
+                contacts = listOf(
+                    Contact(
+                        id = "ct-4",
+                        workspaceId = "ws-1",
+                        name = "Ada Lovelace",
+                        createdAt = "2026-07-20T11:00:00.000Z",
+                    ),
+                ),
                 total = 1,
             ),
         )

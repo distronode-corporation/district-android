@@ -203,7 +203,6 @@ fun DistrictNavHost(
         route == Routes.CALL_LOG ||
         route == Routes.CONTACTS
 
-
     // ⚠️ OUTSIDE THE NavHost, LIKE THE NAV BAR, BECAUSE IT MUST OUTLIVE A DESTINATION. A message
     // notification tapped while a detail screen is open resolves here and navigates; an effect
     // inside a destination would be torn down by the navigation it caused. See PushDeepLinkEffect.
@@ -1439,16 +1438,20 @@ fun DistrictNavHost(
                     // as an error is what makes people send the same request twice.
                     submitted?.let { outcome ->
                         // ⚠️ THE RESOURCE IS CHOSEN FIRST AND RESOLVED ONCE. Only FILED carries an
-                        // issue key and it always does (see SupportSubmitted), so the key list is
-                        // empty for the other two and their strings take no argument. Resolving
-                        // inside each arm needed an `orEmpty()` for a null FILED key that cannot
-                        // occur.
+                        // issue key and it always does (see SupportSubmitted), so the other two
+                        // strings take no argument. Resolving inside each arm needed an `orEmpty()`
+                        // for a null FILED key that cannot occur.
                         val messageRes = when (outcome.outcome) {
                             SupportSubmitOutcome.FILED -> R.string.support_filed
                             SupportSubmitOutcome.DEDUPLICATED -> R.string.support_duplicate
                             SupportSubmitOutcome.PENDING -> R.string.support_pending
                         }
-                        val message = stringResource(messageRes, *listOfNotNull(outcome.issueKey).toTypedArray())
+                        val issueKey = outcome.issueKey
+                        val message = if (issueKey == null) {
+                            stringResource(messageRes)
+                        } else {
+                            stringResource(messageRes, issueKey)
+                        }
                         LaunchedEffect(outcome) {
                             composing = false
                             onShowMessage(message)

@@ -198,7 +198,8 @@ class NavHostDeskSupportTest {
 
     @Test
     fun `a filed request is confirmed with its key and the dialog closes`() {
-        harness.support.createResult = ApiResult.Success(SupportRequestCreateResponse(success = true, issueKey = "DA-42"))
+        harness.support.createResult =
+            ApiResult.Success(SupportRequestCreateResponse(success = true, issueKey = "DA-42"))
         openSupport()
 
         raiseSupportRequest()

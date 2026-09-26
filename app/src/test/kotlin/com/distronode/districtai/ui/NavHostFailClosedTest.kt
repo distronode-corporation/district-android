@@ -102,7 +102,12 @@ class NavHostFailClosedTest {
             ContactListResponse(
                 success = true,
                 contacts = listOf(
-                    Contact(id = "ct-4", workspaceId = "ws-1", name = "Ada Lovelace", createdAt = "2026-07-20T11:00:00.000Z"),
+                    Contact(
+                        id = "ct-4",
+                        workspaceId = "ws-1",
+                        name = "Ada Lovelace",
+                        createdAt = "2026-07-20T11:00:00.000Z",
+                    ),
                 ),
                 total = 1,
             ),

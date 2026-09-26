@@ -1,13 +1,20 @@
 package com.distronode.districtai.ui.billing
 
+import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.BillingDiscount
 import com.distronode.districtai.core.model.BillingInvoice
@@ -18,6 +25,7 @@ import com.distronode.districtai.core.model.WorkspaceBilling
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.UiText
 import androidx.compose.ui.semantics.SemanticsProperties
 import org.junit.Assert.assertEquals
@@ -455,6 +463,177 @@ class BillingScreenTest {
 
         composeRule.onAllNodesWithContentDescription(BILLING_RETRY_DESCRIPTION).assertCountEquals(0)
     }
+
+    // ── The remaining shapes of a row ────────────────────────────────────────
+
+    @Test
+    fun `a fixed-amount coupon is quoted in dollars, and a coupon with neither figure by name`() {
+        val subscriptions = listOf(
+            BillingSubscription(
+                id = "s_amount",
+                tierName = "Amount",
+                discount = BillingDiscount(couponName = "Spring", amountOff = 500),
+            ),
+            BillingSubscription(
+                id = "s_named",
+                tierName = "Named",
+                discount = BillingDiscount(couponName = "Partner"),
+            ),
+        )
+        render(content(stripe = StripeSectionState.Ready(StripeBilling(subscriptions = subscriptions))))
+
+        composeRule.onNodeWithText(string(R.string.billing_discount_amount, "Spring", "5.00")).assertIsDisplayed()
+        composeRule.onNodeWithText("Partner").assertIsDisplayed()
+        // A subscription with no period end states no turnover date at all.
+        composeRule.onAllNodesWithContentDescription(renewalDescription("s_amount")).assertCountEquals(0)
+    }
+
+    @Test
+    fun `tapping the row itself opens the hosted invoice too`() {
+        var opened: String? = null
+        render(content(), onOpenInvoice = { opened = it })
+
+        composeRule.onNodeWithContentDescription(invoiceDescription("in_paid")).performClick()
+
+        assertEquals("https://invoice.stripe.test/in_paid", opened)
+    }
+
+    @Test
+    fun `a blank hosted URL is treated as no page, so the row offers nothing to tap`() {
+        var opened: String? = null
+        val invoice = BillingInvoice(id = "in_blank", total = 700, status = "draft", hostedInvoiceUrl = " ")
+        render(
+            content(stripe = StripeSectionState.Ready(StripeBilling(invoices = listOf(invoice)))),
+            onOpenInvoice = { opened = it },
+        )
+
+        composeRule.onAllNodesWithContentDescription(invoiceOpenDescription("in_blank")).assertCountEquals(0)
+        composeRule.onNodeWithContentDescription(invoiceDescription("in_blank")).performClick()
+        assertEquals(null, opened)
+        // An unrecognised Stripe status is still shown, in its own words.
+        composeRule.onNodeWithText("draft").assertIsDisplayed()
+        // And a list the server did not cap says nothing about truncation.
+        composeRule.onAllNodesWithContentDescription(BILLING_INVOICES_TRUNCATED_DESCRIPTION).assertCountEquals(0)
+    }
+
+    @Test
+    fun `an uncollectible invoice is badged, and a missing or blank status draws no badge`() {
+        val invoices = listOf(
+            BillingInvoice(id = "in_bad", total = 100, status = "uncollectible"),
+            BillingInvoice(id = "in_null", total = 200, status = null),
+            BillingInvoice(id = "in_blank", total = 300, status = ""),
+        )
+        render(content(stripe = StripeSectionState.Ready(StripeBilling(invoices = invoices))))
+
+        composeRule.onNodeWithText("uncollectible").assertIsDisplayed()
+        // Three rows, and exactly one status badge among them.
+        composeRule.onNodeWithText("$2.00").assertIsDisplayed()
+        composeRule.onNodeWithText("$3.00").assertIsDisplayed()
+        composeRule.onAllNodesWithText("paid").assertCountEquals(0)
+        composeRule.onAllNodesWithText("open").assertCountEquals(0)
+    }
+
+    @Test
+    fun `a failed Stripe read offers a retry only when retrying could work`() {
+        var retries = 0
+        render(
+            content(stripe = StripeSectionState.Failed(FailureText(message = UiText.Literal("Timed out")))),
+            onRetry = { retries += 1 },
+        )
+        composeRule.onNodeWithText("Timed out").assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").performClick()
+        assertEquals(1, retries)
+    }
+
+    @Test
+    fun `a Stripe read that failed for good offers no retry`() {
+        render(
+            content(
+                stripe = StripeSectionState.Failed(
+                    FailureText(message = UiText.Literal("Unexpected response"), retryable = false),
+                ),
+            ),
+        )
+        composeRule.onNodeWithText("Unexpected response").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Try again").assertCountEquals(0)
+    }
+
+    @Test
+    fun `a card failure follows a new failure, and moves its handle when handed a new one`() {
+        var failure by mutableStateOf(FailureText(message = UiText.Literal("Nope")))
+        var description by mutableStateOf("first-handle")
+        composeRule.setContent {
+            DistrictTheme {
+                BillingCardFailure(
+                    title = "Title",
+                    failure = failure,
+                    description = description,
+                    onRetry = {},
+                )
+            }
+        }
+        failure = FailureText(message = UiText.Literal("Still nope"))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
+        composeRule.onNodeWithText("Still nope").assertIsDisplayed()
+
+        description = "second-handle"
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
+        composeRule.onAllNodesWithContentDescription("first-handle").assertCountEquals(0)
+    }
+
+    @Test
+    fun `the billing month is named when it is known`() {
+        render(content())
+        composeRule.onNodeWithText(string(R.string.billing_meter_month, "2026-08")).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a blank billing month names no month`() {
+        render(content(plan = activePlan.copy(usage = UsageData(month = "", callMinutesInbound = 5.0))))
+        composeRule.onNodeWithText("5 of 1500 included minutes used").assertIsDisplayed()
+        composeRule.onAllNodesWithText(string(R.string.billing_meter_month, ""), substring = false)
+            .assertCountEquals(0)
+    }
+
+    @Test
+    fun `a month with no call keys is unmetered even though a usage row exists`() {
+        render(content(plan = activePlan.copy(usage = UsageData(month = "2026-08", smsOutbound = 3.0))))
+        composeRule.onNodeWithContentDescription(BILLING_METER_UNMETERED_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `the preview renders the plan it describes`() {
+        composeRule.setContent { BillingScreenPreview() }
+        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(BILLING_SUBSCRIPTIONS_EMPTY_DESCRIPTION).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a theme change redraws the invoices with both open actions still wired`() {
+        val opened = mutableListOf<String>()
+        val theme = ThemeFlip(composeRule)
+        theme.setContent {
+            BillingScreen(
+                state = content(),
+                role = WorkspaceRole.CLIENT,
+                onRetry = {},
+                onOpenInvoice = { opened += it },
+                onBack = {},
+            )
+        }
+
+        theme.flip()
+
+        composeRule.onNodeWithContentDescription(invoiceDescription("in_paid")).performClick()
+        composeRule.onNodeWithContentDescription(invoiceOpenDescription("in_paid")).performClick()
+        assertEquals(List(2) { "https://invoice.stripe.test/in_paid" }, opened)
+    }
+
+    private fun string(id: Int, vararg args: Any): String =
+        ApplicationProvider.getApplicationContext<Context>().getString(id, *args)
 
     /**
      * Assert which SENTENCE a subscription's turnover line uses.

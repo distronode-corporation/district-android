@@ -142,6 +142,13 @@ class BillingFormatTest {
     }
 
     @Test
+    fun `an inbound-only month sums the inbound minutes, not a null`() {
+        // The mirror of the case above: a workspace that only receives calls has no outbound key.
+        val usage = UsageData(callMinutesOutbound = null, callMinutesInbound = 42.5)
+        assertEquals(42.5, billableMinutes(usage)!!, 0.0)
+    }
+
+    @Test
     fun `a genuine zero is a zero, not an absence`() {
         val usage = UsageData(callMinutesOutbound = 0.0, callMinutesInbound = 0.0)
         assertEquals(0.0, billableMinutes(usage)!!, 0.0)

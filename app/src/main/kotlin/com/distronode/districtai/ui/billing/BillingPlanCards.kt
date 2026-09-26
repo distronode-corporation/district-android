@@ -211,7 +211,9 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
             .semantics { contentDescription = BILLING_METER_DESCRIPTION },
     ) {
         Eyebrow(stringResource(R.string.billing_meter_title))
-        if (used == null) {
+        // ⚠️ `usage == null` also makes `used` null; naming it here smart-casts `usage` below, where
+        // a safe call could never meet a null.
+        if (usage == null || used == null) {
             Text(
                 text = stringResource(R.string.billing_meter_unmetered),
                 style = MaterialTheme.typography.bodyMedium,
@@ -247,7 +249,7 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
                 )
             }
         }
-        usage?.month?.takeIf { it.isNotBlank() }?.let {
+        usage.month.takeIf { it.isNotBlank() }?.let {
             Text(
                 text = stringResource(R.string.billing_meter_month, it),
                 style = MaterialTheme.typography.bodySmall,

@@ -1,5 +1,8 @@
 package com.distronode.districtai.ui.desk
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -12,6 +15,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DeskMessage
 import com.distronode.districtai.core.model.DeskTicketDetail
 import com.distronode.districtai.core.model.DeskTicketStatus
@@ -52,6 +56,7 @@ class DeskTicketScreenTest {
         val statuses = mutableListOf<DeskTicketStatus>()
         var sends = 0
         var retries = 0
+        var backs = 0
     }
 
     private val ticket = DeskTicketDetail(
@@ -87,6 +92,7 @@ class DeskTicketScreenTest {
                     onSend = { recorder.sends++ },
                     onSetStatus = { recorder.statuses += it },
                     onRetry = { recorder.retries++ },
+                    onBack = { recorder.backs++ },
                 )
             }
         }
@@ -366,5 +372,49 @@ class DeskTicketScreenTest {
         composeRule.onNodeWithText("Send").assertIsEnabled().performClick()
 
         assertEquals(1, recorder.sends)
+    }
+
+    @Test
+    fun `the app bar back action reports the tap`() {
+        val recorder = Recorder()
+        render(loaded, recorder = recorder)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        assertEquals(1, recorder.backs)
+    }
+
+    @Test
+    fun `the thread follows an echoed status and a new message without losing the controls`() {
+        // ⚠️ One screen, its ticket replaced the way the ViewModel adopts the server's echo: the
+        // header redraws the new status as selected and the controls still report taps.
+        val statuses = mutableListOf<DeskTicketStatus>()
+        var state by mutableStateOf<DeskTicketUiState>(loaded)
+        composeRule.setContent {
+            DistrictTheme {
+                DeskTicketScreen(
+                    state = state,
+                    draft = "",
+                    canUse = true,
+                    onDraftChange = {},
+                    onSend = {},
+                    onSetStatus = { statuses += it },
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        state = DeskTicketUiState.Content(
+            ticket = ticket.copy(
+                status = "waiting",
+                messages = ticket.messages + DeskMessage(id = "m3", authorType = "team", body = "On our way."),
+            ),
+        )
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("On our way.").assertIsDisplayed()
+        statusButton(DeskTicketStatus.RESOLVED).performClick()
+        assertEquals(listOf(DeskTicketStatus.RESOLVED), statuses)
     }
 }

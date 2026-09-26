@@ -396,4 +396,100 @@ class DeskSettingsViewModelTest {
         advanceUntilIdle()
         assertTrue(api.patches.isEmpty())
     }
+
+    // ── Guards: nothing is sent from a state that cannot use it ─────────────
+
+    @Test
+    fun `edits, saves and logo actions before the form has loaded send nothing`() = runTest {
+        val api = api().apply { settingsResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.setEnabled(false)
+        model.editBrandName("Ada & Sons")
+        model.uploadLogo("content://picked")
+        model.deleteLogo()
+        advanceUntilIdle()
+
+        assertTrue(model.state.value is DeskSettingsUiState.Failed)
+        assertEquals(0, api.logoUploads)
+        assertEquals(0, api.logoDeletes)
+    }
+
+    @Test
+    fun `a second save while the first is in flight sends nothing more`() = runTest {
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.setNotify(false)
+        model.save()
+        model.save()
+        advanceUntilIdle()
+
+        assertEquals(1, api.patches.size)
+    }
+
+    @Test
+    fun `a second upload or a delete while an upload is in flight sends nothing more`() = runTest {
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.uploadLogo("content://picked")
+        model.uploadLogo("content://picked")
+        model.deleteLogo()
+        advanceUntilIdle()
+
+        assertEquals(1, api.logoUploads)
+        assertEquals(0, api.logoDeletes)
+    }
+
+    @Test
+    fun `a failed delete keeps the logo and says why`() = runTest {
+        val api = api().apply { logoRemovalResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.deleteLogo()
+        advanceUntilIdle()
+
+        val state = content(model)
+        assertEquals("https://cdn.example/logo.png", state.stored.publicLogoUrl)
+        assertFalse(state.logoBusy)
+        assertTrue(state.logoFailure != null)
+        assertFalse(state.logoObjectRetained)
+    }
+
+    @Test
+    fun `retryOrNoop replays a failed load and leaves a loaded form alone`() = runTest {
+        val api = api().apply { settingsResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        api.settingsResult = ApiResult.Success(DeskSettingsResponse(success = true, settings = stored))
+        model.retryOrNoop()
+        advanceUntilIdle()
+        assertEquals(2, api.settingsReads)
+
+        model.retryOrNoop()
+        advanceUntilIdle()
+        assertEquals(2, api.settingsReads)
+        assertEquals("Ada Plumbing", content(model).brandName)
+    }
+
+    @Test
+    fun `the factory builds a model for the workspace it was given`() = runTest {
+        val api = api()
+        val model = DeskSettingsViewModel.factory(
+            DeskRepository(api) { "key" },
+            FakeReader(null),
+            "ws-1",
+            WorkspaceRole.CLIENT,
+        ).create(DeskSettingsViewModel::class.java)
+        advanceUntilIdle()
+
+        assertTrue(model.canUse)
+        assertEquals(1, api.settingsReads)
+    }
 }

@@ -59,11 +59,11 @@ fun DeskScreen(
     onEnable: () -> Unit,
     onSettings: () -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = DESK_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = DESK_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.desk_title),
@@ -83,14 +83,19 @@ fun DeskScreen(
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
-            when {
-                // ⛔ NO REQUEST IS SPENT FOR A VIEWER. Every route behind this screen refuses them,
-                // reads included, so there is no version of it they could be shown.
-                !canUse -> DeskRefused()
-                state is DeskUiState.Loading -> DeskLoading()
-                state is DeskUiState.Disabled -> DeskDisabled(onEnable)
-                state is DeskUiState.Failed -> DeskFailure(state.failure, onRetry)
-                state is DeskUiState.Content -> DeskLoaded(state, onOpenTicket, onFilter, onCompose)
+            // ⛔ NO REQUEST IS SPENT FOR A VIEWER. Every route behind this screen refuses them,
+            // reads included, so there is no version of it they could be shown.
+            if (!canUse) {
+                DeskRefused()
+            } else {
+                // ⚠️ A `when` on the state itself rather than a chain of `is` tests, so the
+                // compiler rather than a trailing test proves every state is drawn.
+                when (state) {
+                    DeskUiState.Loading -> DeskLoading()
+                    is DeskUiState.Disabled -> DeskDisabled(onEnable)
+                    is DeskUiState.Failed -> DeskFailure(state.failure, onRetry)
+                    is DeskUiState.Content -> DeskLoaded(state, onOpenTicket, onFilter, onCompose)
+                }
             }
         }
     }

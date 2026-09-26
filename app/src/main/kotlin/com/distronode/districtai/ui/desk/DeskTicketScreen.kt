@@ -55,11 +55,11 @@ fun DeskTicketScreen(
     onSend: () -> Unit,
     onSetStatus: (DeskTicketStatus) -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = DESK_TICKET_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = DESK_TICKET_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = (state as? DeskTicketUiState.Content)?.ticket?.displayReference
@@ -69,12 +69,17 @@ fun DeskTicketScreen(
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
-            when {
-                !canUse -> TicketRefused()
-                state is DeskTicketUiState.Loading -> TicketLoading()
-                state is DeskTicketUiState.Failed -> TicketFailure(state.failure, onRetry)
-                state is DeskTicketUiState.Content ->
-                    TicketLoaded(state, draft, onDraftChange, onSend, onSetStatus)
+            // ⚠️ A `when` on the state itself rather than a chain of `is` tests, so the compiler
+            // rather than a trailing test proves every state is drawn.
+            if (!canUse) {
+                TicketRefused()
+            } else {
+                when (state) {
+                    DeskTicketUiState.Loading -> TicketLoading()
+                    is DeskTicketUiState.Failed -> TicketFailure(state.failure, onRetry)
+                    is DeskTicketUiState.Content ->
+                        TicketLoaded(state, draft, onDraftChange, onSend, onSetStatus)
+                }
             }
         }
     }
@@ -99,7 +104,10 @@ private fun TicketLoaded(
             state.statusFailure?.let { failure ->
                 item {
                     ContentContainer {
-                        InlineFailure(failure, DESK_TICKET_STATUS_FAILURE_DESCRIPTION)
+                        InlineFailure(
+                            failure,
+                            Modifier.semantics { contentDescription = DESK_TICKET_STATUS_FAILURE_DESCRIPTION },
+                        )
                     }
                 }
             }
@@ -208,12 +216,20 @@ private fun ReplyBox(
             // entirely on a degraded replay, and asserting "not emailed" there would be a claim
             // about the customer's inbox that we cannot support.
             when (state.lastNotified) {
-                true -> NotifyNote(R.string.desk_notified, DESK_TICKET_NOTIFIED_DESCRIPTION)
-                false -> NotifyNote(R.string.desk_not_notified, DESK_TICKET_NOT_NOTIFIED_DESCRIPTION)
+                true -> NotifyNote(
+                    R.string.desk_notified,
+                    Modifier.semantics { contentDescription = DESK_TICKET_NOTIFIED_DESCRIPTION },
+                )
+                false -> NotifyNote(
+                    R.string.desk_not_notified,
+                    Modifier.semantics { contentDescription = DESK_TICKET_NOT_NOTIFIED_DESCRIPTION },
+                )
                 null -> Unit
             }
 
-            state.sendFailure?.let { InlineFailure(it, DESK_TICKET_SEND_FAILURE_DESCRIPTION) }
+            state.sendFailure?.let {
+                InlineFailure(it, Modifier.semantics { contentDescription = DESK_TICKET_SEND_FAILURE_DESCRIPTION })
+            }
 
             OutlinedTextField(
                 value = draft,
@@ -237,27 +253,24 @@ private fun ReplyBox(
 }
 
 @Composable
-private fun NotifyNote(textId: Int, description: String) {
+private fun NotifyNote(textId: Int, modifier: Modifier) {
     Text(
         text = stringResource(textId),
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
-        modifier = Modifier
-            .padding(bottom = DistrictTheme.spacing.hairline)
-            .semantics { contentDescription = description },
+        modifier = modifier.padding(bottom = DistrictTheme.spacing.hairline),
     )
 }
 
 @Composable
-private fun InlineFailure(failure: FailureText, description: String) {
+private fun InlineFailure(failure: FailureText, modifier: Modifier) {
     Text(
         text = failure.message.resolve(),
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.destructive,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = DistrictTheme.spacing.hairline)
-            .semantics { contentDescription = description },
+            .padding(vertical = DistrictTheme.spacing.hairline),
     )
 }
 

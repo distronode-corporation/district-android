@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.desk
 
 import com.distronode.districtai.core.data.DeskRepository
+import com.distronode.districtai.core.model.DeskBounds
 import com.distronode.districtai.core.model.DeskSettings
 import com.distronode.districtai.core.model.DeskSettingsResponse
 import com.distronode.districtai.core.model.DeskTicketCreateResponse
@@ -345,5 +346,146 @@ class DeskViewModelTest {
         model.retryOrNoop()
         advanceUntilIdle()
         assertEquals("a loaded queue is not re-read", afterSuccess, api.settingsReads)
+    }
+
+    // ── Guards: nothing is sent from a state that cannot use it ─────────────
+
+    @Test
+    fun `the requester's name and phone reach the create exactly as typed`() = runTest {
+        val api = api().apply {
+            createResult = ApiResult.Success(DeskTicketCreateResponse(success = true, ticket = ticket))
+        }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.editSubject("Leaking tap")
+        model.editMessage("It drips.")
+        model.editRequesterName("Ada Lovelace")
+        model.editRequesterPhone("+14165550142")
+        model.submit()
+        advanceUntilIdle()
+
+        val draft = api.createDrafts.single()
+        assertEquals("Ada Lovelace", draft.requesterName)
+        assertEquals("+14165550142", draft.requesterPhone)
+    }
+
+    @Test
+    fun `a second submit while the first is in flight sends nothing more`() = runTest {
+        val api = api().apply {
+            createResult = ApiResult.Success(DeskTicketCreateResponse(success = true, ticket = ticket))
+        }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.editSubject("Leaking tap")
+        model.editMessage("It drips.")
+        model.submit()
+        model.submit()
+        advanceUntilIdle()
+
+        assertEquals(1, api.createDrafts.size)
+    }
+
+    @Test
+    fun `a subject or message over the route's maximum is not submittable`() = runTest {
+        val model = viewModel(api())
+        advanceUntilIdle()
+
+        model.editMessage("It drips.")
+        model.editSubject("a".repeat(DeskBounds.SUBJECT_MAX + 1))
+        assertFalse(model.compose.value.submittable)
+
+        model.editSubject("Leaking tap")
+        model.editMessage("a".repeat(DeskBounds.MESSAGE_MAX + 1))
+        assertFalse(model.compose.value.submittable)
+    }
+
+    @Test
+    fun `discarding the draft empties every box, and acknowledging clears the confirmation`() = runTest {
+        val api = api().apply {
+            createResult = ApiResult.Success(DeskTicketCreateResponse(success = true, ticket = ticket))
+        }
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.editSubject("Leaking tap")
+        model.editMessage("It drips.")
+        model.submit()
+        advanceUntilIdle()
+        assertEquals("T-1", model.submitted.value)
+        model.acknowledge()
+        assertNull(model.submitted.value)
+
+        model.editSubject("Second")
+        model.discardDraft()
+        assertEquals(DeskComposeState(), model.compose.value)
+    }
+
+    @Test
+    fun `filtering before the queue has loaded changes nothing`() = runTest {
+        val model = viewModel(api())
+
+        model.filterBy(DeskTicketStatus.OPEN)
+
+        assertEquals(DeskUiState.Loading, model.state.value)
+    }
+
+    @Test
+    fun `enabling from anything but the disabled screen sends nothing`() = runTest {
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.enableDesk()
+        advanceUntilIdle()
+
+        assertTrue(api.patches.isEmpty())
+        assertTrue(model.state.value is DeskUiState.Content)
+    }
+
+    @Test
+    fun `a viewer cannot enable the desk or load it`() = runTest {
+        val api = api(enabled = false)
+        val model = viewModel(api, role = WorkspaceRole.VIEWER)
+        advanceUntilIdle()
+
+        model.enableDesk()
+        model.load(refreshing = true)
+        advanceUntilIdle()
+
+        assertTrue(api.patches.isEmpty())
+        assertEquals(0, api.settingsReads)
+    }
+
+    @Test
+    fun `a refresh from a failed load re-reads without flashing a spinner in between`() = runTest {
+        // ⚠️ A refresh keeps whatever is on screen. From Failed there is no content to mark as
+        // refreshing, so the failure stays up until the answer lands rather than turning into a
+        // skeleton the operator did not ask for.
+        val api = api().apply { settingsResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val model = viewModel(api)
+        advanceUntilIdle()
+        assertTrue(model.state.value is DeskUiState.Failed)
+
+        api.settingsResult = ApiResult.Success(
+            DeskSettingsResponse(success = true, settings = DeskSettings(enabled = true)),
+        )
+        model.load(refreshing = true)
+        assertTrue(model.state.value is DeskUiState.Failed)
+        advanceUntilIdle()
+
+        assertTrue(model.state.value is DeskUiState.Content)
+    }
+
+    @Test
+    fun `the factory builds a model for the workspace it was given`() = runTest {
+        val api = api()
+        val model = DeskViewModel.factory(DeskRepository(api) { "key" }, "ws-1", WorkspaceRole.CLIENT)
+            .create(DeskViewModel::class.java)
+        advanceUntilIdle()
+
+        assertTrue(model.canUse)
+        assertEquals(1, api.settingsReads)
     }
 }

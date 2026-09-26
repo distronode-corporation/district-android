@@ -1,10 +1,16 @@
 package com.distronode.districtai.ui.rooms
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -61,10 +67,11 @@ class RoomsLobbyScreenTest {
     private var closeTaps = 0
     private var retryTaps = 0
 
-    private fun render(state: RoomsLobbyUiState) {
+    private fun render(state: RoomsLobbyUiState, modifier: Modifier = Modifier) {
         composeRule.setContent {
             DistrictTheme {
                 RoomsLobbyScreen(
+                    modifier = modifier,
                     state = state,
                     onRoomNameChange = { typed += it },
                     onJoin = { joinTaps++ },
@@ -342,5 +349,70 @@ class RoomsLobbyScreenTest {
         render(ready(doneMeeting))
 
         composeRule.onNodeWithContentDescription(ROOMS_RECORD_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the caller's modifier reaches the lobby`() {
+        render(ready(), Modifier.testTag("lobby-host"))
+
+        composeRule.onNodeWithTag("lobby-host").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a blank title falls back to the room name, like a missing one`() {
+        render(ready(liveMeeting.copy(title = "   ")))
+
+        composeRule.onNodeWithText("standup").assertExists()
+    }
+
+    @Test
+    fun `a finished meeting with no preview says no minutes were saved, not that they are coming`() {
+        render(ready(doneMeeting.copy(summaryPreview = null)))
+
+        composeRule.onNodeWithText("No minutes were saved for this meeting.").assertExists()
+        composeRule.onNodeWithText("Minutes are written when the meeting ends.").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an opening record shows a placeholder, not an empty dialog`() {
+        render(ready(doneMeeting).copy(openMeeting = MeetingDetailState.Loading))
+
+        composeRule.onNodeWithContentDescription(ROOMS_RECORD_DESCRIPTION).assertExists()
+        composeRule.onNodeWithContentDescription(ROOMS_RECORD_FAILURE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText("Minutes").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a record with no minutes says so, whether the summary is missing or blank`() {
+        var summary: String? by mutableStateOf(null)
+        composeRule.setContent {
+            DistrictTheme {
+                MeetingRecordDialog(
+                    detail = MeetingDetailState.Ready(
+                        MeetingDetail(id = "m-done", summary = summary, transcript = "  "),
+                    ),
+                    onDismiss = {},
+                )
+            }
+        }
+
+        listOf(null, "  ").forEach { next ->
+            summary = next
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText("Minutes are written when the meeting ends.").assertExists()
+            // ⚠️ A blank transcript is no transcript: an empty heading over nothing reads as a
+            // failed load.
+            composeRule
+                .onNodeWithContentDescription(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION)
+                .assertDoesNotExist()
+        }
+    }
+
+    @Test
+    fun `the design preview draws the join form and both kinds of meeting`() {
+        composeRule.setContent { RoomsLobbyScreenPreview() }
+
+        composeRule.onNodeWithContentDescription(meetingRowDescription("m1")).assertExists()
+        composeRule.onNodeWithContentDescription(meetingRowDescription("m2")).assertExists()
     }
 }

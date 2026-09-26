@@ -306,7 +306,7 @@ const val ROOM_SHARE_DESCRIPTION: String = "district-room-share"
 
 @Preview(showBackground = true)
 @Composable
-private fun ActiveRoomScreenPreview() {
+internal fun ActiveRoomScreenPreview() {
     DistrictTheme {
         ActiveRoomScreen(
             state = ActiveRoomUiState(

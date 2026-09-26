@@ -480,6 +480,45 @@ class ActiveRoomViewModelTest {
         assertFalse(vm.state.value.cameraEnabled)
     }
 
+    @Test
+    fun `every control is a toggle, so a second press undoes the first`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(factory = factory)
+        vm.onPermissionsResult(microphoneGranted = true, cameraGranted = true)
+        advanceUntilIdle()
+
+        vm.toggleMicrophone()
+        advanceUntilIdle()
+        vm.toggleMicrophone()
+        vm.toggleCamera()
+        advanceUntilIdle()
+        vm.toggleCamera()
+        vm.toggleSpeaker()
+        vm.toggleSpeaker()
+        advanceUntilIdle()
+
+        assertTrue("unmuted again", vm.state.value.micEnabled)
+        assertFalse("camera off again", vm.state.value.cameraEnabled)
+        assertFalse("speaker off again", vm.state.value.speakerOn)
+        assertEquals(listOf("camera:true", "camera:false"), factory.engine.calls.filter { it.startsWith("camera:") })
+        assertEquals(listOf("speaker:true", "speaker:false"), factory.engine.calls.filter { it.startsWith("speaker:") })
+    }
+
+    @Test
+    fun `an unpermitted microphone cannot be toggled on, even with publish rights`() = runTest {
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(factory = factory)
+        vm.onPermissionsResult(microphoneGranted = false, cameraGranted = true)
+        advanceUntilIdle()
+
+        vm.toggleMicrophone()
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.canPublish)
+        assertFalse(factory.engine.calls.any { it.startsWith("mic:") })
+        assertFalse(vm.state.value.micEnabled)
+    }
+
     // ── The guest invite ─────────────────────────────────────────────────────
 
     @Test
@@ -550,6 +589,26 @@ class ActiveRoomViewModelTest {
 
         assertEquals(1, factory.engine.calls.count { it == "disconnect" })
         assertEquals(1, left)
+    }
+
+    @Test
+    fun `a permission answer arriving after leave does not join the room it left`() = runTest {
+        // ⚠️ REACHABLE: the permission dialog is still up when the user backs out, and the answer
+        // lands on a ViewModel that has already released its engine.
+        val factory = FakeCallEngineFactory()
+        val api = api()
+        val vm = viewModel(api = api, factory = factory)
+
+        vm.leave {}
+        // Before the disconnect has run, the engine still reads Idle: only the release stops a join.
+        vm.onPermissionsResult(microphoneGranted = true, cameraGranted = true)
+        advanceUntilIdle()
+        // And after it, when the engine reads Disconnected.
+        vm.onPermissionsResult(microphoneGranted = true, cameraGranted = true)
+        advanceUntilIdle()
+
+        assertTrue("no token is minted for a room already left", api.roomTokenRequests.isEmpty())
+        assertFalse(factory.engine.calls.any { it.startsWith("connect:") })
     }
 
     @Test

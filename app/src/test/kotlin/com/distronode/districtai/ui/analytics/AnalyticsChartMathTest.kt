@@ -141,6 +141,16 @@ class AnalyticsChartMathTest {
     }
 
     @Test
+    fun `a non-finite gap is treated as no gap rather than poisoning every slot`() {
+        for (gap in listOf(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)) {
+            val slots = barSlots(count = 2, width = 100f, gap = gap)
+
+            assertEquals("gap $gap", 50f, slots[0].width, tolerance)
+            assertEquals("gap $gap", 50f, slots[1].left, tolerance)
+        }
+    }
+
+    @Test
     fun `no bars are laid out for an empty series`() {
         assertTrue(barSlots(count = 0, width = 100f, gap = 4f).isEmpty())
         assertTrue(barSlots(count = -1, width = 100f, gap = 4f).isEmpty())
@@ -239,6 +249,8 @@ class AnalyticsChartMathTest {
         assertNull(parseHexArgb("#12345"))
         assertNull(parseHexArgb("#zzzzzz"))
         assertNull(parseHexArgb("emerald"))
+        // A separator sorts BELOW the hex letters, so it fails the other end of the range check.
+        assertNull(parseHexArgb("#10-981"))
     }
 
     // ── formatDurationSeconds ────────────────────────────────────────────────
@@ -387,6 +399,7 @@ class AnalyticsChartMathTest {
         assertEquals("2026", monthLabel("2026"))
         assertEquals("26-08", monthLabel("26-08"))
         assertEquals("20x6-08", monthLabel("20x6-08"))
+        assertEquals("2026-ab", monthLabel("2026-ab"))
         assertEquals("2026-08-15", monthLabel("2026-08-15"))
         assertEquals("", monthLabel(""))
     }

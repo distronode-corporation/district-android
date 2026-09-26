@@ -1,5 +1,8 @@
 package com.distronode.districtai.ui.analytics
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -354,6 +357,26 @@ class AnalyticsScreenTest {
     }
 
     @Test
+    fun `the chips keep reporting taps after the selected window moves`() {
+        // ⚠️ One screen, its window changed underneath it the way the ViewModel does after a tap:
+        // every chip is redrawn against the new selection and must still say which window it is.
+        val chosen = mutableListOf<AnalyticsRange>()
+        var state by mutableStateOf(content())
+        composeRule.setContent {
+            DistrictTheme {
+                AnalyticsScreen(state = state, onSelectRange = { chosen += it }, onRetry = {}, onBack = {})
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.THIRTY_DAYS)).performClick()
+        state = content(range = AnalyticsRange.THIRTY_DAYS)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.SEVEN_DAYS)).performClick()
+
+        assertEquals(listOf(AnalyticsRange.THIRTY_DAYS, AnalyticsRange.SEVEN_DAYS), chosen)
+    }
+
+    @Test
     fun `a reload over existing content is announced without blanking the figures`() {
         render(content(range = AnalyticsRange.NINETY_DAYS, refreshing = true))
 
@@ -417,6 +440,25 @@ class AnalyticsScreenTest {
     }
 
     @Test
+    fun `a month carrying only numbers and video lists those two and nothing else`() {
+        // ⚠️ The mirror image of the sparse fixture above: SMS, WhatsApp and inbound minutes are the
+        // metrics that month DOES carry, and here they are the ones absent.
+        render(
+            content(
+                usageCard = UsageCardState.Ready(
+                    UsageData(month = "2026-08", numberCount = 3.0, videoMinutes = 42.0),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("Phone numbers").assertIsDisplayed()
+        composeRule.onNodeWithText("Video minutes (tracked)").assertIsDisplayed()
+        composeRule.onNodeWithText("SMS sent").assertDoesNotExist()
+        composeRule.onNodeWithText("WhatsApp sent").assertDoesNotExist()
+        composeRule.onNodeWithText("Inbound call minutes").assertDoesNotExist()
+    }
+
+    @Test
     fun `an unmetered month says so and renders NO zeros`() {
         // ⛔ THE FAILURE THIS TEST EXISTS FOR. A DTO or a screen that defaulted a null month to a
         // zeroed row would state, with the authority of a billing figure, that a workspace sent
@@ -433,6 +475,27 @@ class AnalyticsScreenTest {
     }
 
     // ── Usage history ────────────────────────────────────────────────────────
+
+    @Test
+    fun `a month whose messages move while its minutes hold redraws only the new count`() {
+        // ⚠️ A reload that changed one month's message total and nothing about its minutes: the row
+        // re-renders the new figure while its bar, scaled against the same maximum, stays put.
+        var state by mutableStateOf(content())
+        composeRule.setContent {
+            DistrictTheme {
+                AnalyticsScreen(state = state, onSelectRange = {}, onRetry = {}, onBack = {})
+            }
+        }
+        composeRule.onNodeWithText("501").assertIsDisplayed()
+
+        val moved = listOf(months[0].copy(smsOutbound = 601.0)) + months.drop(1)
+        state = content(history = UsageHistoryCardState.Ready(moved))
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("601").assertIsDisplayed()
+        composeRule.onNodeWithText("501").assertDoesNotExist()
+        composeRule.onNodeWithText("500.75").assertIsDisplayed()
+    }
 
     @Test
     fun `the history card renders one labelled row per month, newest first`() {

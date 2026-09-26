@@ -118,13 +118,13 @@ fun Avatar(
         .ifEmpty { "·" }
 
     Box(
-        modifier = modifier.size(AVATAR_SIZE).background(tone.fill(), CircleShape),
+        modifier = modifier.size(AVATAR_SIZE).background(tone.fill(DistrictTheme.colors), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = initials,
             style = MaterialTheme.typography.labelMedium,
-            color = tone.ink(),
+            color = tone.ink(DistrictTheme.colors),
         )
     }
 }

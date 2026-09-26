@@ -29,26 +29,28 @@ enum class Tone { Neutral, District, Success, Warning, Danger, Info }
  * ⚠️ [Tone.Neutral] is the exception and uses the SOLID `muted` token rather than a tint. On the
  * web that is `bg-muted`, deliberately: a 12% tint of a grey on a near-black background is
  * invisible, so the neutral badge would lose its shape entirely.
+ *
+ * ⚠️ TAKES THE PALETTE RATHER THAN READING IT, and is not `@Composable`. A composable `when` wraps
+ * each arm in a group, which leaves the compiler's no-match `throw` looking like a reachable branch;
+ * a plain function keeps it the ordinary exhaustive-enum `when` it is.
  */
-@Composable
-internal fun Tone.fill(): Color = when (this) {
-    Tone.Neutral -> DistrictTheme.colors.muted
-    Tone.District -> DistrictTheme.colors.district.copy(alpha = ACCENT_CONTAINER_ALPHA)
-    Tone.Success -> DistrictTheme.colors.success.copy(alpha = ACCENT_CONTAINER_ALPHA)
-    Tone.Warning -> DistrictTheme.colors.warning.copy(alpha = ACCENT_CONTAINER_ALPHA)
-    Tone.Danger -> DistrictTheme.colors.destructive.copy(alpha = ACCENT_CONTAINER_ALPHA)
-    Tone.Info -> DistrictTheme.colors.info.copy(alpha = ACCENT_CONTAINER_ALPHA)
+internal fun Tone.fill(colors: DistrictColors): Color = when (this) {
+    Tone.Neutral -> colors.muted
+    Tone.District -> colors.district.copy(alpha = ACCENT_CONTAINER_ALPHA)
+    Tone.Success -> colors.success.copy(alpha = ACCENT_CONTAINER_ALPHA)
+    Tone.Warning -> colors.warning.copy(alpha = ACCENT_CONTAINER_ALPHA)
+    Tone.Danger -> colors.destructive.copy(alpha = ACCENT_CONTAINER_ALPHA)
+    Tone.Info -> colors.info.copy(alpha = ACCENT_CONTAINER_ALPHA)
 }
 
-/** The solid ink drawn on [fill]. */
-@Composable
-internal fun Tone.ink(): Color = when (this) {
-    Tone.Neutral -> DistrictTheme.colors.mutedForeground
-    Tone.District -> DistrictTheme.colors.district
-    Tone.Success -> DistrictTheme.colors.success
-    Tone.Warning -> DistrictTheme.colors.warning
-    Tone.Danger -> DistrictTheme.colors.destructive
-    Tone.Info -> DistrictTheme.colors.info
+/** The solid ink drawn on [fill]. Takes the palette for the same reason. */
+internal fun Tone.ink(colors: DistrictColors): Color = when (this) {
+    Tone.Neutral -> colors.mutedForeground
+    Tone.District -> colors.district
+    Tone.Success -> colors.success
+    Tone.Warning -> colors.warning
+    Tone.Danger -> colors.destructive
+    Tone.Info -> colors.info
 }
 
 /**
@@ -68,9 +70,9 @@ fun DistrictBadge(
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
-        color = tone.ink(),
+        color = tone.ink(DistrictTheme.colors),
         modifier = modifier
-            .background(tone.fill(), RoundedCornerShape(BADGE_RADIUS))
+            .background(tone.fill(DistrictTheme.colors), RoundedCornerShape(BADGE_RADIUS))
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
@@ -81,7 +83,7 @@ fun StatusDot(
     modifier: Modifier = Modifier,
     tone: Tone = Tone.Neutral,
 ) {
-    Box(modifier = modifier.size(DOT_SIZE).background(tone.ink(), CircleShape))
+    Box(modifier = modifier.size(DOT_SIZE).background(tone.ink(DistrictTheme.colors), CircleShape))
 }
 
 private val BADGE_RADIUS = 6.dp

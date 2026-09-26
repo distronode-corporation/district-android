@@ -84,6 +84,21 @@ class SupportRepositoryTest {
     }
 
     @Test
+    fun `a detail or a reply that does not affirm success is drift even with its payload present`() =
+        runTest {
+            val api = FakeSupportApi().apply {
+                detailResult = ApiResult.Success(
+                    SupportRequestDetailResponse(success = false, request = SupportRequestDetail()),
+                )
+                replyResult = ApiResult.Success(SupportReplyResponse(success = false, message = SupportMessage()))
+            }
+            val repository = SupportRepository(api)
+
+            assertTrue(repository.request("ws-1", "DA-42") is ApiResult.DecodeFailure)
+            assertTrue(repository.reply("ws-1", "DA-42", "Thanks") is ApiResult.DecodeFailure)
+        }
+
+    @Test
     fun `a 404 is passed through unchanged and is never interpreted`() = runTest {
         // ⛔ "no such request", "not this workspace's request" and "erased" answer IDENTICALLY, so
         // that a sequential key cannot be probed by anyone with a session and a loop. Telling them

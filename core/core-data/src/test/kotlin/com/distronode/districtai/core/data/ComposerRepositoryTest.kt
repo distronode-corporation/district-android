@@ -6,6 +6,7 @@ import com.distronode.districtai.core.model.DraftResponse
 import com.distronode.districtai.core.model.MediaUploadResponse
 import com.distronode.districtai.core.model.MessageDraft
 import com.distronode.districtai.core.network.ApiResult
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -286,5 +287,31 @@ class ComposerRepositoryTest {
             "Too many draft generations for this workspace.",
             (result as ApiResult.HttpFailure).message,
         )
+    }
+
+    @Test
+    fun `a refusal with no sentence is still a refusal, with an empty message`() = runTest {
+        val api = FakeDistrictApi().apply {
+            generateDraftResult = ApiResult.Success(AiDraftResponse(success = false))
+        }
+
+        assertEquals(ApiResult.HttpFailure(status = 200, message = ""), repo(api).generateDraft("ws-1", "c1", null))
+    }
+
+    @Test
+    fun `a failed upload, draft save or draft delete is passed through unchanged`() = runTest {
+        // ⚠️ None of these may report success on a failure: a lost upload would send a message
+        // with a dead attachment, and a lost save or delete would show a draft state that is not
+        // the one stored.
+        val offline = ApiResult.NetworkFailure(IOException("offline"))
+        val api = FakeDistrictApi().apply {
+            uploadMediaResult = offline
+            saveDraftResult = offline
+            deleteDraftResult = offline
+        }
+
+        assertEquals(offline, repo(api).uploadMedia("ws-1", "photo.png", "image/png", png))
+        assertEquals(offline, repo(api).saveDraft("ws-1", "contact:c1", "See you at noon"))
+        assertEquals(offline, repo(api).deleteDraft("ws-1", "contact:c1"))
     }
 }

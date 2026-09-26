@@ -89,6 +89,15 @@ class MessageSearchRepositoryTest {
     }
 
     @Test
+    fun `a search answer that does not affirm success is drift, not a list of hits`() = runTest {
+        val api = FakeInboxExtrasApi().apply {
+            searchResult = ApiResult.Success(MessageSearchResponse(success = false, results = listOf(hit("m1"))))
+        }
+
+        assertTrue(MessageSearchRepository(api).search("ws-1", "refund") is ApiResult.DecodeFailure)
+    }
+
+    @Test
     fun `a resolved thread is the target a push navigates on`() = runTest {
         val api = FakeInboxExtrasApi().apply {
             threadResult = ApiResult.Success(
@@ -141,6 +150,17 @@ class MessageSearchRepositoryTest {
 
         val missing = FakeCallControlApi().apply { result = ApiResult.NotFound("Call not found") }
         assertEquals(HangUpOutcome.AlreadyEnded, CallControlRepository(missing).hangUp("ws-1", "CA1"))
+    }
+
+    @Test
+    fun `a hang-up answer that does not affirm success is not reported as ended`() = runTest {
+        // ⛔ `ended:true` beside `success:false` is contradictory, and the refusal wins: claiming the
+        // call is over when the server did not say so could leave a carrier leg billing unseen.
+        val api = FakeCallControlApi().apply {
+            result = ApiResult.Success(CallHangUpResponse(success = false, ended = true))
+        }
+
+        assertTrue(CallControlRepository(api).hangUp("ws-1", "CA1") is HangUpOutcome.NotEnded)
     }
 
     @Test

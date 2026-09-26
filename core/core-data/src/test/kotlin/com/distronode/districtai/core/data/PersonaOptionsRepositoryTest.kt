@@ -134,4 +134,18 @@ class PersonaOptionsRepositoryTest {
 
         assertTrue(repository(api).previewToken("ws-1", PersonaPreviewForm()) is ApiResult.DecodeFailure)
     }
+
+    @Test
+    fun `a credential missing either half, or not affirmed at all, is refused and names the half`() = runTest {
+        val noUrl = FakePersonaApi().apply { previewResult = ApiResult.Success(okToken.copy(url = "")) }
+        val failure = repository(noUrl).previewToken("ws-1", PersonaPreviewForm()) as ApiResult.DecodeFailure
+        assertTrue(failure.bodyPreview.contains("token=true,url=false"))
+
+        val noToken = FakePersonaApi().apply { previewResult = ApiResult.Success(okToken.copy(token = "")) }
+        val tokenFailure = repository(noToken).previewToken("ws-1", PersonaPreviewForm()) as ApiResult.DecodeFailure
+        assertTrue(tokenFailure.bodyPreview.contains("token=false,url=true"))
+
+        val refused = FakePersonaApi().apply { previewResult = ApiResult.Success(okToken.copy(success = false)) }
+        assertTrue(repository(refused).previewToken("ws-1", PersonaPreviewForm()) is ApiResult.DecodeFailure)
+    }
 }

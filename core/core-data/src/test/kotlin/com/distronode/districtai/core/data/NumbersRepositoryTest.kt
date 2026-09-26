@@ -57,6 +57,19 @@ class NumbersRepositoryTest {
     }
 
     @Test
+    fun `the type and provider filters are normalised the same way as the others`() = runTest {
+        val api = FakeDistrictApi().apply {
+            searchResult = ApiResult.Success(NumberSearchResponse(success = true, provider = "telnyx"))
+        }
+
+        NumbersRepository(api).search("ws-1", type = " ", provider = "telnyx")
+        NumbersRepository(api).search("ws-1", type = "tollfree", provider = "")
+
+        assertEquals(listOf("ws-1", null, null, null, "telnyx"), api.searchRequests.first())
+        assertEquals(listOf("ws-1", null, null, "tollfree", null), api.searchRequests.last())
+    }
+
+    @Test
     fun `results are returned whole, provider included`() = runTest {
         val api = FakeDistrictApi().apply {
             searchResult = ApiResult.Success(

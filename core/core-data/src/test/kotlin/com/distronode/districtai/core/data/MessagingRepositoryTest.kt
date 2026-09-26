@@ -300,6 +300,10 @@ class MessagingRepositoryTest {
         }
         val rejected = MessagingRepository(drift).setChannelDefault("ws-1", "sms", "a")
         assertTrue(rejected is ApiResult.DecodeFailure)
+
+        val forbidden = ApiResult.Forbidden("Only an owner can change senders.")
+        val refused = api { setChannelDefaultResult = forbidden }
+        assertEquals(forbidden, MessagingRepository(refused).setChannelDefault("ws-1", "sms", "a"))
     }
 
     @Test

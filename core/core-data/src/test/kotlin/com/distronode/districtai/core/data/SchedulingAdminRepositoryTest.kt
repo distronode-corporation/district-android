@@ -99,6 +99,18 @@ class SchedulingAdminRepositoryTest {
     }
 
     @Test
+    fun `a 401 or 403 that arrives as a bare status is still forbidden, never unknown`() = runTest {
+        // ⚠️ The client maps both statuses to their own results before they get here, so this is
+        // the defensive half: a refusal that reaches the status mapping raw must not be read as a
+        // fault an operator could retry their way past.
+        api.failure = ApiResult.HttpFailure(status = 403, message = "forbidden")
+        assertEquals(SchedulingAdminFailureCode.FORBIDDEN, failureCode(SchedulingAdminOp.ME_GET))
+
+        api.failure = ApiResult.HttpFailure(status = 401, message = "unauthorized")
+        assertEquals(SchedulingAdminFailureCode.FORBIDDEN, failureCode(SchedulingAdminOp.ME_GET))
+    }
+
+    @Test
     fun `a 409 scheduling_not_ready is a state and not a fault`() = runTest {
         // ⛔ CHECKED ON THE `error` STRING BEFORE THE STATUS. The route answers 409 for exactly one
         // reason today, but `conflict` is a generic shape and a future 409 that is not about

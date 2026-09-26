@@ -69,10 +69,9 @@ fun BillingScreen(
     onRetry: () -> Unit,
     onOpenInvoice: (String) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = BILLING_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = BILLING_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.billing_title), onBack = onBack)
         },
@@ -168,11 +167,6 @@ private fun ContentState(
         ContentContainer { UsageMeterCard(usage = state.plan.usage, included = includedMinutes(detail)) }
 
         when (val stripe = state.stripe) {
-            StripeSectionState.Loading -> ContentContainer {
-                Column(modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter)) {
-                    SkeletonBlock(height = SKELETON_CARD_HEIGHT)
-                }
-            }
             // ⛔ ITS OWN CARD, WITH ITS OWN COPY. Never an empty invoice list, which would read as
             // "you have never been invoiced".
             StripeSectionState.Unavailable -> ContentContainer { StripeUnavailableCard() }
@@ -275,9 +269,11 @@ internal fun invoiceOpenDescription(invoiceId: String): String =
 internal fun renewalDescription(subscriptionId: String): String =
     "district-billing-renewal-$subscriptionId"
 
+// ⚠️ INTERNAL RATHER THAN PRIVATE so `BillingScreenTest` can render it: a preview that stopped
+// composing would break Android Studio's renderer without failing anything else.
 @Preview(showBackground = true)
 @Composable
-private fun BillingScreenPreview() {
+internal fun BillingScreenPreview() {
     DistrictTheme {
         BillingScreen(
             state = BillingUiState.Content(

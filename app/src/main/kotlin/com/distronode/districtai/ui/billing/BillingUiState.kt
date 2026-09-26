@@ -58,7 +58,8 @@ sealed interface BillingUiState {
  */
 sealed interface StripeSectionState {
 
-    data object Loading : StripeSectionState
+    // ⚠️ No `Loading` member: the ViewModel publishes `Content` only once both reads have landed, so
+    // the Stripe half is never still loading beside a drawn plan card.
 
     /**
      * @param detail ⚠️ May legitimately carry empty lists. Empty here means "no subscription and no

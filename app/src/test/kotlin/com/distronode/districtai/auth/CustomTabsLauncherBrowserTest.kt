@@ -80,11 +80,28 @@ class CustomTabsLauncherBrowserTest {
         assertTrue(CustomTabsLauncher.launchExternally(app, claimedUrl) is CustomTabsLauncher.LaunchResult.NoBrowser)
     }
 
+    /**
+     * AOSP's `resolveActivity` always fills `activityInfo` for an activity intent, so a stock
+     * device never answers this way. The field is platform-typed and filled by the device's own
+     * PackageManager, and OEM implementations are not AOSP, so the launcher guards the null.
+     * This holds that a non-conforming device falls back instead of crashing: no browser is
+     * named, sign-in still goes out as the implicit intent it used before App Links, and a
+     * claimed URL is refused.
+     */
     @Test
-    fun `a resolved entry with no activity behind it names no browser`() {
+    fun `a non-conforming package manager with no activity info falls back instead of crashing`() {
         stageWebHandler(packageName = null)
 
         assertNull(CustomTabsLauncher.browserPackage(app))
+
+        assertEquals(
+            CustomTabsLauncher.LaunchResult.OpenedCustomTab,
+            CustomTabsLauncher.launch(app, "https://www.distronode.com/auth/native"),
+        )
+        assertNull("sign-in goes out implicit", shadowOf(app).nextStartedActivity.`package`)
+
+        assertTrue(CustomTabsLauncher.launchExternally(app, claimedUrl) is CustomTabsLauncher.LaunchResult.NoBrowser)
+        assertNull(shadowOf(app).nextStartedActivity)
     }
 
     @Test

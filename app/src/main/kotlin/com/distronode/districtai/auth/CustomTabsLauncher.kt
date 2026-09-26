@@ -88,6 +88,7 @@ object CustomTabsLauncher {
     internal fun browserPackage(context: Context): String? {
         val probe = Intent(Intent.ACTION_VIEW, Uri.parse("http://"))
         val handler = context.packageManager.resolveActivity(probe, 0) ?: return null
+        // AOSP always fills activityInfo here; the guard is for non-conforming OEM PackageManagers.
         val packageName = handler.activityInfo?.packageName ?: return null
         return packageName.takeIf { it != ANDROID_RESOLVER_PACKAGE }
     }

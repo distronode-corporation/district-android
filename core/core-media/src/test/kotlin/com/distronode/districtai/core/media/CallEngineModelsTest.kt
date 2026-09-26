@@ -1,14 +1,14 @@
 package com.distronode.districtai.core.media
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The seam's data types. The SDK wrapper itself is deliberately thin and untestable off
- * a device (see LiveKitCallEngine's KDoc); what IS testable — and load-bearing for
- * Compose — is the model contract these types promise their consumers.
+ * The seam's data types, and the model contract they promise their consumers (load-bearing for
+ * Compose). The SDK wrapper is tested against a mocked SDK in `LiveKitCallEngineTest`.
  */
 class CallEngineModelsTest {
 
@@ -26,6 +26,13 @@ class CallEngineModelsTest {
             VideoTrackHandle(sdkTrackA, "TR_1").hashCode(),
             VideoTrackHandle(sdkTrackB, "TR_1").hashCode(),
         )
+    }
+
+    @Test
+    fun `a handle is never equal to its bare track sid`() {
+        // Equality is by sid, but only between handles: the sid string a handle wraps is not
+        // the same tile.
+        assertFalse(VideoTrackHandle(Any(), "TR_1").equals("TR_1"))
     }
 
     @Test

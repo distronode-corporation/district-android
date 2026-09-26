@@ -252,6 +252,7 @@ class DeskContractShapeTest {
         )
         assertEquals(DeskMessageAuthor.TEAM, DeskMessageAuthor.fromWire("TEAM"))
         assertNull(DeskMessageAuthor.fromWire("operator"))
+        assertNull(DeskMessageAuthor.fromWire(null))
     }
 
     @Test

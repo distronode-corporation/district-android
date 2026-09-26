@@ -141,6 +141,11 @@ class SupportContractShapeTest {
         // become a string this client sends: it would file into a type whose portal form we do not
         // populate, which 400s at Atlassian AFTER the local claim row already exists.
         assertNull(SupportRequestKind.fromWire("incident"))
+        assertNull(SupportRequestKind.fromWire(null))
+        // The message roles fail closed the same way: an unknown or absent role is no role at all.
+        assertEquals(SupportMessageRole.AGENT, SupportMessageRole.fromWire(" Agent "))
+        assertNull(SupportMessageRole.fromWire("system"))
+        assertNull(SupportMessageRole.fromWire(null))
     }
 
     @Test

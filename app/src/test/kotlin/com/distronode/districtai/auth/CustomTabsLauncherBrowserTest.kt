@@ -1,14 +1,20 @@
 package com.distronode.districtai.auth
 
 import android.app.Application
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Bundle
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -117,5 +123,42 @@ class CustomTabsLauncherBrowserTest {
         val refused = result as CustomTabsLauncher.LaunchResult.NoBrowser
         assertTrue(refused.customTabsReason.orEmpty().isNotEmpty())
         assertTrue(refused.browserReason.orEmpty().isNotEmpty())
+    }
+
+    @Test
+    fun `a browser without Custom Tabs support still opens the link, pinned and as a new task`() {
+        // ⚠️ THE DOCUMENTED DEGRADATION, NOT DEFENSIVE NOISE: some AOSP builds ship a browser that
+        // handles ACTION_VIEW but no Custom Tabs activity. The plain intent must keep the pin (or
+        // a claimed URL would loop back into this app) and the flag (or an application-context
+        // start would crash).
+        stageWebHandler("org.example.browser")
+        val context = NoCustomTabsContext(app)
+
+        val result = CustomTabsLauncher.launchExternally(context, claimedUrl)
+
+        assertEquals(CustomTabsLauncher.LaunchResult.OpenedBrowser, result)
+        val started = context.started.single()
+        assertEquals(Intent.ACTION_VIEW, started.action)
+        assertEquals(claimedUrl, started.data.toString())
+        assertEquals("org.example.browser", started.`package`)
+        assertTrue(started.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0)
+        assertFalse(
+            "the fallback is a plain view, not a second custom tab",
+            started.hasExtra(CustomTabsIntent.EXTRA_SESSION),
+        )
+    }
+
+    /** A device whose browser refuses a Custom Tabs intent and accepts a plain one. */
+    private class NoCustomTabsContext(base: Context) : ContextWrapper(base) {
+        val started = mutableListOf<Intent>()
+
+        override fun startActivity(intent: Intent) = startActivity(intent, null)
+
+        override fun startActivity(intent: Intent, options: Bundle?) {
+            if (intent.hasExtra(CustomTabsIntent.EXTRA_SESSION)) {
+                throw ActivityNotFoundException("no custom tabs provider")
+            }
+            started += intent
+        }
     }
 }

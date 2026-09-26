@@ -161,7 +161,7 @@ class InboxRequestBodyTest {
     fun `a thread read with no cursor sends exactly the parameters it always did`() = runTest {
         server.enqueue(MockResponse(code = 200, body = """{"success":true,"timeline":[]}"""))
 
-        api().timeline(workspaceId = "ws-1", contactId = "c1", address = null)
+        api().timeline(workspaceId = "ws-1", contactId = "c1", address = null, before = null, beforeId = null)
 
         val url = server.takeRequest().url
         assertEquals("/api/district/timeline", url.encodedPath)
@@ -206,6 +206,7 @@ class InboxRequestBodyTest {
             contactId = "c1",
             address = null,
             before = "2026-08-15T12:11:00.000Z",
+            beforeId = null,
         )
 
         val url = server.takeRequest().url

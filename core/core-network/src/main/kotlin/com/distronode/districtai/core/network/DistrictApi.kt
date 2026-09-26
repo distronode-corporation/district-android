@@ -336,8 +336,9 @@ interface InboxApi {
         workspaceId: String,
         contactId: String?,
         address: String?,
-        before: String? = null,
-        beforeId: String? = null,
+        // No defaults: every caller passes both explicitly, so a default could never be taken.
+        before: String?,
+        beforeId: String?,
     ): ApiResult<TimelineResponse>
 
     /**

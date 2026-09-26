@@ -372,7 +372,8 @@ class DistrictApiClient(
         //
         // ⚠️ Only fires on a content type that is PRESENT and not JSON. See
         // [NonJsonResponseException] for why an absent header must stay decodable.
-        val contentType = body?.contentType()
+        // OkHttp 5's Response.body is never null (an empty body stands in), so no null check here.
+        val contentType = body.contentType()
         if (contentType != null && !contentType.isJsonLike()) {
             return ApiResult.NetworkFailure(
                 NonJsonResponseException(contentType.toString(), response.code),
@@ -383,7 +384,7 @@ class DistrictApiClient(
         // time throws. Held in a var so the decode's failure preview can still quote it.
         var text = ""
         return try {
-            text = body?.string().orEmpty()
+            text = body.string()
             ApiResult.Success(json.decodeFromString(serializer, text))
         } catch (e: IOException) {
             // ⚠️ Carries the cause: "socket died mid-body" and "TLS rejected" need different
@@ -412,7 +413,8 @@ class DistrictApiClient(
     @Suppress("TooGenericExceptionCaught")
     private fun mapFailure(response: Response): ApiResult<Nothing> {
         val body = try {
-            response.body?.string().orEmpty()
+            // Never null in OkHttp 5 (see decodeBody), so there is no absent body to default.
+            response.body.string()
         } catch (e: IOException) {
             return ApiResult.NetworkFailure(e)
         } catch (e: RuntimeException) {

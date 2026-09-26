@@ -105,7 +105,8 @@ interface DeskApi {
      */
     suspend fun deskTickets(
         workspaceId: String,
-        status: DeskTicketStatus? = null,
+        // No default: every caller passes this explicitly, so a default could never be taken.
+        status: DeskTicketStatus?,
     ): ApiResult<DeskTicketsResponse>
 
     /**
@@ -122,7 +123,8 @@ interface DeskApi {
     suspend fun createDeskTicket(
         workspaceId: String,
         draft: DeskTicketDraft,
-        idempotencyKey: String? = null,
+        // No default: every caller passes this explicitly, so a default could never be taken.
+        idempotencyKey: String?,
     ): ApiResult<DeskTicketCreateResponse>
 
     /**
@@ -159,7 +161,8 @@ interface DeskApi {
         workspaceId: String,
         ticketId: String,
         message: String,
-        idempotencyKey: String? = null,
+        // No default: every caller passes this explicitly, so a default could never be taken.
+        idempotencyKey: String?,
     ): ApiResult<DeskReplyResponse>
 
     /**

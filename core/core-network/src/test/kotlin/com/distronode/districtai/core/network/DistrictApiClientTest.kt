@@ -1,11 +1,19 @@
 package com.distronode.districtai.core.network
 
+import com.distronode.districtai.core.auth.PersistedSession
 import com.distronode.districtai.core.auth.ReauthReason
 import com.distronode.districtai.core.auth.RefreshResult
+import com.distronode.districtai.core.auth.TokenRefreshCoordinator
+import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
+import okhttp3.Dispatcher
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import org.junit.After
@@ -413,7 +421,66 @@ class DistrictApiClientTest {
         )
     }
 
+    @Test
+    fun `falls back to a readable message when the error text is blank`() = runTest {
+        // A blank sentence is not a message; showing it would render an empty error banner.
+        server.enqueue(MockResponse(code = 500, body = """{"error":"   "}"""))
+
+        assertEquals(ApiResult.HttpFailure(500, ApiErrorEnvelope.FALLBACK_MESSAGE, null), get()())
+    }
+
     // ── Transport ────────────────────────────────────────────────────────────
+
+    @Test
+    fun `a request cancelled in flight never reaches the server and its late failure is swallowed`() =
+        runTest {
+            // OkHttp runs calls on its dispatcher's executor; holding the work here makes the order
+            // of "coroutine cancelled" and "OkHttp reports the cancelled call" deterministic.
+            val testDispatcher = StandardTestDispatcher(testScheduler)
+            val held = ArrayDeque<Runnable>()
+            val executor = object : AbstractExecutorService() {
+                override fun execute(command: Runnable) {
+                    held.addLast(command)
+                }
+                override fun shutdown() = Unit
+                override fun shutdownNow(): List<Runnable> = emptyList()
+                override fun isShutdown(): Boolean = false
+                override fun isTerminated(): Boolean = false
+                override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean = true
+            }
+            val client = DistrictApiClient(
+                baseUrl = server.url("/"),
+                httpClient = OkHttpClient.Builder().dispatcher(Dispatcher(executor)).build(),
+                tokens = TokenRefreshCoordinator(
+                    store = FakeTokenStore(
+                        PersistedSession(
+                            refreshToken = "refresh-0",
+                            refreshTokenExpiresAt = System.currentTimeMillis() + 24L * 60 * 60 * 1000,
+                            deviceId = "device-under-test",
+                        ),
+                    ),
+                    refreshApi = refreshApi,
+                    io = testDispatcher,
+                ),
+                io = testDispatcher,
+            )
+            var outcome: ApiResult<Payload>? = null
+
+            val request = launch { outcome = client.get(thingPath, Payload.serializer()) }
+            runCurrent()
+            assertEquals("the call must be handed to OkHttp and be waiting", 1, held.size)
+
+            request.cancel()
+            runCurrent()
+            // OkHttp now runs the call it was told to cancel. It reports a failure on its own
+            // thread, which must neither throw there nor resume a coroutine that is gone.
+            held.removeFirst().run()
+            runCurrent()
+
+            assertTrue(request.isCancelled)
+            assertNull("a cancelled request produces no result", outcome)
+            assertEquals("a cancelled call must not reach the server", 0, server.requestCount)
+        }
 
     @Test
     fun `reports an unreachable server as a network failure`() = runTest {

@@ -118,7 +118,7 @@ class DeskRequestTest {
         assertEquals("/api/district/desk/tickets/tkt_9", server.takeRequest().url.encodedPath)
 
         server.enqueue(ok("""{"success":true}"""))
-        api().replyToDeskTicket("ws-1", "tkt_9", "Tuesday.")
+        api().replyToDeskTicket("ws-1", "tkt_9", "Tuesday.", idempotencyKey = null)
         assertEquals("/api/district/desk/tickets/tkt_9/reply", server.takeRequest().url.encodedPath)
 
         server.enqueue(okTicket())
@@ -234,6 +234,42 @@ class DeskRequestTest {
     }
 
     @Test
+    fun `a create for a known contact sends its name, email and id, and no key when none was minted`() =
+        runTest {
+            server.enqueue(ok("""{"success":true,"deduplicated":true}"""))
+            api().createDeskTicket(
+                workspaceId = "ws-1",
+                draft = DeskTicketDraft(
+                    subject = "Leaking tap",
+                    message = "It drips.",
+                    requesterName = "Ada",
+                    requesterEmail = "ada@example.com",
+                    contactId = "c1",
+                ),
+                idempotencyKey = null,
+            )
+
+            val body = Json.parseToJsonElement(server.takeRequest().body!!.utf8()) as JsonObject
+            assertEquals(
+                setOf("subject", "message", "requesterName", "requesterEmail", "contactId"),
+                body.keys,
+            )
+            assertEquals(JsonPrimitive("Ada"), body["requesterName"])
+            assertEquals(JsonPrimitive("ada@example.com"), body["requesterEmail"])
+            assertEquals(JsonPrimitive("c1"), body["contactId"])
+        }
+
+    @Test
+    fun `a settings patch that only changes customer emails sends only that flag`() = runTest {
+        server.enqueue(okSettings())
+        api().saveDeskSettings("ws-1", DeskSettingsPatch(notifyCustomersByEmail = false))
+
+        val body = Json.parseToJsonElement(server.takeRequest().body!!.utf8()) as JsonObject
+        assertEquals(setOf("notifyCustomersByEmail"), body.keys)
+        assertEquals(JsonPrimitive(false), body["notifyCustomersByEmail"])
+    }
+
+    @Test
     fun `a settings patch sends only the fields it was given`() = runTest {
         server.enqueue(okSettings())
         api().saveDeskSettings("ws-1", DeskSettingsPatch(enabled = true))
@@ -311,7 +347,7 @@ class DeskRequestTest {
                 body = """{"success":false,"error":"Too many replies in the last hour."}""",
             ),
         )
-        val result = api().replyToDeskTicket("ws-1", "tkt_9", "hi")
+        val result = api().replyToDeskTicket("ws-1", "tkt_9", "hi", idempotencyKey = null)
 
         assertTrue(result is ApiResult.RateLimited)
         assertEquals("Too many replies in the last hour.", (result as ApiResult.RateLimited).message)

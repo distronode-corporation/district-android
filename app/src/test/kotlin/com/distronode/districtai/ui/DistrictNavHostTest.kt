@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.navigation.NavHostController
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.rememberNavController
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -82,12 +83,16 @@ import com.distronode.districtai.ui.settings.workspace.WORKSPACE_SETTINGS_ROUTIN
 import com.distronode.districtai.ui.support.SUPPORT_REQUEST_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.support.SUPPORT_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.workflows.WORKFLOWS_ROOT_DESCRIPTION
+import kotlinx.coroutines.cancel
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
@@ -109,13 +114,31 @@ import org.robolectric.annotation.Config
  * is built, so every destination's load fails locally and the screens draw their signed-out
  * states. The push and revoke seams are stubbed for the same reason `AppContainerTest` stubs
  * them.
+ *
+ * ⚠️ THE STORE HOLDS EVERY READ UNTIL A TEST RELEASES IT, AND THAT IS WHAT MAKES THIS CLASS'S
+ * COVERAGE REPEATABLE. The coordinator reads the store on `Dispatchers.IO`, so with an answering
+ * store each destination's `NoSession` result raced the navigation that follows it: whether a
+ * screen was ever recomposed from its loading state, and in what order two loads landed, varied
+ * from run to run, and so did the covered line and branch counts (measured: tens of branches
+ * between two runs of this class alone). Held, every destination is observed in its loading
+ * state and nothing else, whatever the thread timing. The two tests that need the signed-out
+ * answer release the reads explicitly, after the screen has settled. See [HeldCredentialReads].
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
 class DistrictNavHostTest {
 
+    private val heldReads = HeldCredentialReads()
+
+    private val composeRule = createComposeRule()
+
+    /**
+     * ⚠️ [heldReads] IS THE OUTER RULE, so the reads it holds are released only after the compose
+     * rule has closed the activity, which cancels every destination's ViewModel scope. A read
+     * released earlier would resume a load into whatever test happens to be running next.
+     */
     @get:Rule
-    val composeRule = createComposeRule()
+    val rules: RuleChain = RuleChain.outerRule(heldReads).around(composeRule)
 
     private lateinit var container: AppContainer
     private lateinit var overviewViewModel: OverviewViewModel
@@ -141,12 +164,33 @@ class DistrictNavHostTest {
     fun setUp() {
         container = AppContainer(
             ApplicationProvider.getApplicationContext(),
-            tokenStore = SignedOutTokenStore(),
+            tokenStore = SignedOutTokenStore(heldReads),
             revokeApi = NoRevokeApi(),
             pushApi = FakeInboundPushApi(),
             pushTokenSource = { null },
         )
         overviewViewModel = OverviewViewModel(container.workspaceRepository, container.overviewRepository)
+    }
+
+    /**
+     * The overview's own load is not part of what this class proves, and it is not in a
+     * ViewModelStore that the activity's teardown would clear, so its scope is cancelled here.
+     */
+    @After
+    fun tearDown() {
+        overviewViewModel.viewModelScope.cancel()
+    }
+
+    /**
+     * Let the held reads answer, once the screen under test has settled.
+     *
+     * The overview's load is cancelled first for the reason [tearDown] gives: left running, it would
+     * finish at an arbitrary point relative to the assertions that follow.
+     */
+    private fun answerReads() {
+        composeRule.waitForIdle()
+        overviewViewModel.viewModelScope.cancel()
+        heldReads.release()
     }
 
     private fun render(state: OverviewUiState = content()) {
@@ -500,6 +544,7 @@ class DistrictNavHostTest {
         // epoch. That advance is what swaps the whole graph for the sign-in screen.
         render()
         navigate(Routes.SETTINGS)
+        answerReads()
         val before = container.sessionSignal.epoch.value
 
         composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
@@ -517,6 +562,7 @@ class DistrictNavHostTest {
         // screen must hand the tap to the host rather than swallow it.
         render()
         navigate(Routes.callLog("ws-1"))
+        answerReads()
 
         val signIn = "Sign in"
         composeRule.waitUntil(timeoutMillis = WAIT_MILLIS) {
@@ -540,9 +586,15 @@ class DistrictNavHostTest {
  *
  * ⛔ EMPTY IS THE WHOLE POINT. The container's API client is built against production, and an empty
  * store is what makes every request fail as `NoSession` before a socket is opened.
+ *
+ * ⚠️ Its reads wait on [reads]; see the class doc of [DistrictNavHostTest] for why.
  */
-private class SignedOutTokenStore : TokenStore {
-    override fun read(): PersistedSession? = null
+private class SignedOutTokenStore(private val reads: HeldCredentialReads) : TokenStore {
+    override fun read(): PersistedSession? {
+        reads.await()
+        return null
+    }
+
     override fun write(session: PersistedSession) = Unit
     override fun clear() = Unit
     override fun pendingRefreshToken(): String? = null
@@ -551,6 +603,34 @@ private class SignedOutTokenStore : TokenStore {
     override fun pendingRevokeToken(): String? = null
     override fun markRevokePending(refreshToken: String) = Unit
     override fun clearRevokePending() = Unit
+}
+
+/**
+ * Holds every credential read until [release], then lets them all through.
+ *
+ * The reads happen on `Dispatchers.IO` threads, which block here rather than suspending: that is
+ * what keeps the coordinator's `NoSession` answer from reaching a screen at a moment decided by
+ * thread scheduling. A test holds at most a few dozen reads (one per load it navigates through),
+ * well inside the IO pool, and [after] releases whatever is still held once the test is over.
+ */
+private class HeldCredentialReads : ExternalResource() {
+    private val lock = Object()
+    private var held = true
+
+    fun await() {
+        synchronized(lock) {
+            while (held) lock.wait()
+        }
+    }
+
+    fun release() {
+        synchronized(lock) {
+            held = false
+            lock.notifyAll()
+        }
+    }
+
+    override fun after() = release()
 }
 
 /** Nothing to revoke with an empty store; answered locally so sign-out never reaches the network. */

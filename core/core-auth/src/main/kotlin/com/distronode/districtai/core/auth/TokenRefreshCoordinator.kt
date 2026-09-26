@@ -80,26 +80,6 @@ class TokenRefreshCoordinator(
     private var accessTokenExpiresAt: Long = 0L
 
     /**
-     * True only while a refresh request is actually outstanding in THIS process.
-     *
-     * ⛔ WITHOUT THIS, THE INTERRUPTED-REFRESH CHECK MISFIRES ON ITS OWN CONCURRENCY. The
-     * marker means "a refresh was sent and its outcome is unknown", which is only
-     * actionable when a PREVIOUS process left it behind. While a refresh is in flight here,
-     * the marker is legitimately set and the old session is legitimately still on disk —
-     * the exact state the check looks for. Queued callers therefore read it as an
-     * interrupted refresh and bailed out while a perfectly good refresh completed beside
-     * them. Caught by `concurrent callers trigger exactly one refresh`.
-     *
-     * ⛔ AND IT MUST BE CLEARED ON EVERY EXIT PATH, INCLUDING FAILURE. "This process set
-     * the marker at some point" is the wrong meaning: after a transport failure the marker
-     * stays set on purpose, and if this flag stayed true a retry in the same process would
-     * skip the interrupted check and re-send the possibly-spent token — reintroducing
-     * exactly the replay the marker exists to prevent.
-     */
-    @Volatile
-    private var refreshInFlight: Boolean = false
-
-    /**
      * A valid access token, refreshing if necessary.
      *
      * Callers should treat [AccessToken.ReauthRequired] as terminal: clear their state and
@@ -124,21 +104,14 @@ class TokenRefreshCoordinator(
     private suspend fun acquireToken(): AccessToken {
         val persisted = store.read() ?: return AccessToken.ReauthRequired(ReauthReason.NoSession)
 
-        // ── The interrupted-refresh check ────────────────────────────────────
-        // Checked BEFORE any network call. If the marker names the token still on disk, a
-        // previous refresh was sent and its response never landed, so this token is
-        // already spent server-side. Sending it would revoke the family and produce a
-        // security warning describing an attack that did not happen.
-        //
-        // ⛔ `!refreshInFlight` IS LOAD-BEARING — see the field's doc. A refresh in flight
-        // right now presents the identical on-disk state, and without this guard every
-        // caller queued behind it is told to re-authenticate.
-        val pending = store.pendingRefreshToken()
-        if (!refreshInFlight && pending != null && pending == persisted.refreshToken) {
-            store.clear()
-            return AccessToken.ReauthRequired(ReauthReason.InterruptedRefresh)
-        }
-
+        // ⛔ NO INTERRUPTED-REFRESH CHECK OUT HERE, ONLY THE ONE UNDER THE MUTEX BELOW. A copy of it
+        // used to run here, unlocked, guarded by an in-flight flag. The flag was cleared the moment
+        // the network call returned, but the successor is written and the marker cleared only
+        // after that, and on a 429 or an unsent request the marker is cleared later still. A
+        // caller arriving on another IO thread in that window saw the marker naming the token on
+        // disk, read it as an interrupted refresh, wiped the session and was told to
+        // re-authenticate, beside a refresh that was succeeding. Holding the mutex is the only
+        // proof that no refresh is running, so the check lives only where that proof is held.
         if (nowMillis() >= persisted.refreshTokenExpiresAt) {
             store.clear()
             return AccessToken.ReauthRequired(ReauthReason.RefreshTokenExpired)
@@ -154,19 +127,18 @@ class TokenRefreshCoordinator(
             val current = store.read()
                 ?: return@withLock AccessToken.ReauthRequired(ReauthReason.NoSession)
 
-            // ── The interrupted-refresh check, AUTHORITATIVELY ───────────────
-            // ⛔ THE COPY ABOVE IS A FAST PATH AND CANNOT BE THE ONLY ONE. It is skipped
-            // whenever `refreshInFlight` is true, which is exactly the state every caller
-            // queued behind a running refresh observes — so those callers reached here with
-            // the check never evaluated. If the refresh they were waiting on then ended in
-            // TransportFailure (marker left set, store deliberately unchanged), the next
-            // caller through this lock re-sent the very token that may already have been
-            // spent, and the server answers a second presentation by revoking the whole
-            // family: every device signed out, reported as a theft that never happened.
+            // ── The interrupted-refresh check ────────────────────────────────
+            // Checked BEFORE any network call. If the marker names the token still on disk, a
+            // previous refresh was sent and its response never landed, so this token is
+            // already spent server-side. Sending it would revoke the family and produce a
+            // security warning describing an attack that did not happen.
             //
-            // ⚠️ NO `refreshInFlight` GUARD HERE, and that is what makes it authoritative:
-            // holding this mutex IS the proof that no refresh is running, since the only
-            // call to performRefresh happens under it.
+            // ⛔ ONLY UNDER THIS MUTEX. Holding it is the proof that no refresh is running,
+            // since the only call to performRefresh happens under it, so a marker seen here was
+            // left by a refresh that is over: an earlier process, or a TransportFailure that
+            // deliberately left it set. Callers queued behind a running refresh reach here
+            // after it finished and either take the fresh token above or, if it ended in
+            // TransportFailure, stop here instead of re-sending a possibly spent token.
             val pending = store.pendingRefreshToken()
             if (pending != null && pending == current.refreshToken) {
                 store.clear()
@@ -273,16 +245,9 @@ class TokenRefreshCoordinator(
     private suspend fun performRefreshUninterruptible(current: PersistedSession): AccessToken {
         // ⛔ MARKER BEFORE NETWORK, AND IT MUST BE DURABLE. If this write is buffered, it
         // is lost in exactly the crash it exists to detect.
-        refreshInFlight = true
         store.markRefreshPending(current.refreshToken)
 
-        val outcome = try {
-            refreshApi.refresh(current.refreshToken)
-        } finally {
-            // Cleared here, before any branch below, so every exit path — including a
-            // thrown exception — leaves this false. See the field's doc.
-            refreshInFlight = false
-        }
+        val outcome = refreshApi.refresh(current.refreshToken)
 
         val rotated = when (outcome) {
             is RefreshResult.Success -> outcome.tokens

@@ -1,13 +1,16 @@
 package com.distronode.districtai.core.auth
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -328,6 +331,9 @@ class TokenRefreshCoordinatorTest {
         const val NOW = 1_800_000_000_000L
         const val TEN_MINUTES_MS = 10 * 60 * 1000L
         const val DAY_MS = 24 * 60 * 60 * 1000L
+
+        /** How long the probing caller waits on the lock before the probe records that it waited. */
+        const val SECOND_CALLER_WAIT_MS = 200L
     }
 
     // ── 5. Failures that must not cost the session ───────────────────────────
@@ -487,6 +493,86 @@ class TokenRefreshCoordinatorTest {
 
         assertEquals("the successor must be persisted", "refresh-r1", store.read()?.refreshToken)
         assertNull("and the marker cleared", store.pendingRefreshToken())
+    }
+
+    // ── The marker is read only under the lock ───────────────────────────────
+
+    @Test
+    fun `a caller arriving as a refresh lands waits for it instead of signing out`() {
+        val probe = secondCallerWhile(RefreshResult.Success(tokens("r1")), at = "write")
+
+        assertNull(
+            "the second caller must wait for the lock; answering at once meant it read the marker " +
+                "unlocked, took the refresh in progress for an interrupted one and wiped the session",
+            probe.second,
+        )
+        assertEquals(AccessToken.Available("access-r1"), probe.first)
+        assertEquals("refresh-r1", probe.store.read()?.refreshToken)
+        assertFalse("the session is never cleared", "clear" in probe.store.operations)
+    }
+
+    @Test
+    fun `a caller arriving as a rate-limited refresh ends keeps the session`() {
+        val probe = secondCallerWhile(RefreshResult.RateLimited, at = "clearPending")
+
+        assertNull("the second caller waits for the lock", probe.second)
+        assertEquals(AccessToken.RetryLater, probe.first)
+        assertEquals("a 429 must never sign anyone out", "r0", probe.store.read()?.refreshToken)
+        assertFalse("clear" in probe.store.operations)
+    }
+
+    @Test
+    fun `a caller arriving as an unsent refresh ends keeps the session`() {
+        val probe = secondCallerWhile(RefreshResult.NotSent, at = "clearPending")
+
+        assertNull("the second caller waits for the lock", probe.second)
+        assertEquals(AccessToken.RetryLater, probe.first)
+        assertEquals("being offline must never sign anyone out", "r0", probe.store.read()?.refreshToken)
+        assertFalse("clear" in probe.store.operations)
+    }
+
+    private class Probe(val second: AccessToken?, val first: AccessToken, val store: FakeTokenStore)
+
+    /**
+     * Runs one refresh to [outcome] and, just before the store records its result (the store
+     * operation named [at]), asks the same coordinator for a token as a second caller.
+     *
+     * ⚠️ THE SECOND CALLER RUNS INSIDE THE FIRST ONE'S REFRESH, WHICH HOLDS THE MUTEX. With the
+     * marker read only under that mutex it can do nothing but wait, and `withTimeoutOrNull` gives
+     * up after a short real wait, so [Probe.second] is null. The bug this pins answered at once,
+     * with ReauthRequired and a wiped store. Either way the outcome is fixed, not a race: this is
+     * the interleaving that `Dispatchers.IO` produced only sometimes.
+     */
+    private fun secondCallerWhile(outcome: RefreshResult, at: String): Probe = runBlocking {
+        val inner = FakeTokenStore(session("r0"))
+        lateinit var coordinator: TokenRefreshCoordinator
+        var second: AccessToken? = null
+        var probed = false
+        fun probe(op: String) {
+            if (op != at || probed) return
+            probed = true
+            second = runBlocking { withTimeoutOrNull(SECOND_CALLER_WAIT_MS) { coordinator.accessToken() } }
+        }
+        val store = object : TokenStore by inner {
+            override fun write(session: PersistedSession) {
+                probe("write")
+                inner.write(session)
+            }
+
+            override fun clearRefreshPending() {
+                probe("clearPending")
+                inner.clearRefreshPending()
+            }
+        }
+        coordinator = TokenRefreshCoordinator(
+            store,
+            CountingRefreshApi(null) { outcome },
+            nowMillis = { NOW },
+            io = Dispatchers.Unconfined,
+        )
+        val first = coordinator.accessToken()
+        check(probed) { "the store never reached $at" }
+        Probe(second, first, inner)
     }
 }
 

@@ -107,7 +107,8 @@ fun IncomingCallScreen(
 private fun RingingScreen(
     state: IncomingCallUiState,
     handlers: IncomingCallHandlers,
-    modifier: Modifier = Modifier,
+    // ⚠️ No default: the one caller always forwards its own modifier, so a default could never apply.
+    modifier: Modifier,
 ) {
     DistrictScaffold(
         modifier = modifier.semantics { contentDescription = INCOMING_ROOT_DESCRIPTION },
@@ -246,7 +247,7 @@ const val INCOMING_DISMISS_DESCRIPTION: String = "district-incoming-dismiss"
 
 @Preview(showBackground = true)
 @Composable
-private fun IncomingCallScreenPreview() {
+internal fun IncomingCallScreenPreview() {
     DistrictTheme {
         IncomingCallScreen(
             state = IncomingCallUiState(

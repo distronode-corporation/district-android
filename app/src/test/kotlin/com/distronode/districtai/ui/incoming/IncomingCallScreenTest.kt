@@ -1,9 +1,12 @@
 package com.distronode.districtai.ui.incoming
 
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.call.IncomingCallPhase
@@ -50,10 +53,11 @@ class IncomingCallScreenTest {
     private var dismisses = 0
     private var micTaps = 0
 
-    private fun render(state: IncomingCallUiState) {
+    private fun render(state: IncomingCallUiState, modifier: Modifier = Modifier) {
         composeRule.setContent {
             DistrictTheme {
                 IncomingCallScreen(
+                    modifier = modifier,
                     state = state,
                     handlers = IncomingCallHandlers(
                         onAnswer = { answers++ },
@@ -199,5 +203,41 @@ class IncomingCallScreenTest {
 
         assertEquals(1, hangUps)
         assertEquals("a hang-up is not a decline", 0, declines)
+    }
+
+    @Test
+    fun `the caller's modifier reaches the ringing screen`() {
+        render(ringing(), Modifier.testTag("host-ring"))
+        composeRule.onNodeWithTag("host-ring").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the caller's modifier reaches the in-call surface`() {
+        render(
+            ringing(IncomingCallPhase.IN_CALL).copy(call = ActiveCallUiState(number = "", answered = true)),
+            Modifier.testTag("host-call"),
+        )
+        composeRule.onNodeWithTag("host-call").assertIsDisplayed()
+    }
+
+    @Test
+    fun `in call with no session yet offers no ring buttons`() {
+        // ⚠️ REACHABLE for a frame: the controller marks the call IN_CALL once media is up, and the
+        // session's first state arrives through its mirror a dispatch later. Answer and Decline
+        // must not flash back in that gap.
+        render(ringing(IncomingCallPhase.IN_CALL))
+
+        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(INCOMING_DISMISS_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the design preview draws a ringing call`() {
+        composeRule.setContent { IncomingCallScreenPreview() }
+
+        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).assertIsDisplayed()
     }
 }

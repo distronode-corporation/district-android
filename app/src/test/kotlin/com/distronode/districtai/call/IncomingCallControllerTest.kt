@@ -8,6 +8,9 @@ import com.distronode.districtai.push.RecordingPushNotifier
 import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
+import com.distronode.districtai.core.media.CallConnectionState
+import com.distronode.districtai.core.media.CallEngine
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -99,7 +102,11 @@ class IncomingCallControllerTest {
         Dispatchers.resetMain()
     }
 
-    private inner class Harness(val engine: FakeCallEngine = FakeCallEngine()) {
+    private inner class Harness(
+        val engine: FakeCallEngine = FakeCallEngine(),
+        /** When set, the engine's connect waits for it: a join still in flight. */
+        joinGate: CompletableDeferred<Unit>? = null,
+    ) {
         val api = TestDistrictApi()
         val telecom = FakeTelecomBridge()
         val notifier = RecordingPushNotifier()
@@ -110,7 +117,16 @@ class IncomingCallControllerTest {
                 telecom = telecom,
                 notifier = notifier,
                 sessions = InboundCallSessionFactory(
-                    engineFactory = CallEngineFactory { engine },
+                    engineFactory = CallEngineFactory {
+                        joinGate?.let { gate ->
+                            object : CallEngine by engine {
+                                override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+                                    gate.await()
+                                    engine.connect(url, token, e2eeKeyBase64)
+                                }
+                            }
+                        } ?: engine
+                    },
                     telecom = telecom,
                     engineScopeFactory = { engineScope },
                     tickMillis = 1_000L,
@@ -163,8 +179,10 @@ class IncomingCallControllerTest {
      * every real exit goes through it. Only a test that asserts the middle of a live call leaves one
      * armed.
      */
-    private fun callTest(body: suspend TestScope.(Harness) -> Unit) = runTest {
-        val harness = Harness()
+    private fun callTest(
+        harness: Harness = Harness(),
+        body: suspend TestScope.(Harness) -> Unit,
+    ) = runTest {
         try {
             body(harness)
         } finally {
@@ -486,6 +504,92 @@ class IncomingCallControllerTest {
 
         assertTrue(h.engine.calls.contains("mic:false"))
         assertTrue(h.engine.calls.contains("speaker:true"))
+    }
+
+    @Test
+    fun `dismissing a call that connected and ended stops mirroring its session`() = callTest { h ->
+        // ⚠️ THE MIRROR OUTLIVES `finish` ON PURPOSE (the ended summary is drawn from its last
+        // emission), so it is `dismiss` that has to cut it: the old session emitting afterwards
+        // must not paint its finished call onto the NEXT call to ring.
+        h.answerable()
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+        h.controller.hangUp()
+        settle()
+        assertEquals(true, h.controller.state.value?.call?.ended)
+
+        h.controller.dismiss()
+        assertNull(h.controller.state.value)
+        h.controller.onIncomingCall("ws-1", "CA2")
+        h.engine.emitConnection(CallConnectionState.Reconnecting)
+        settle()
+
+        assertEquals("CA2", h.controller.state.value?.callId)
+        assertNull("the new ring carries no call from the old session", h.controller.state.value?.call)
+    }
+
+    @Test
+    fun `answer, decline and dismiss with no call are quiet no-ops`() = callTest { h ->
+        // ⚠️ REACHABLE: a system surface or a stale notification can fire any of these after the
+        // screen was cleared, and none may conjure a call or send anything.
+        h.controller.answer()
+        h.controller.decline()
+        h.controller.dismiss()
+        advanceUntilIdle()
+
+        assertNull(h.controller.state.value)
+        assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
+        assertEquals(emptyList<String>(), h.telecom.calls)
+    }
+
+    @Test
+    fun `a hang-up while the answer is joining stays hung up when the join completes`() {
+        // ⛔ THE BUG THIS PINS: `join` acted on the connect's outcome without asking whether the call
+        // had been ended while it was in flight. A headset or the OS's own call surface reaches
+        // `decline` at any phase, so a hang-up during the join left the screen ENDED only until the
+        // engine connected, then repainted it IN_CALL and started the `phoneCall` foreground service
+        // for a call that was over, with nothing left to stop it.
+        val gate = CompletableDeferred<Unit>()
+        callTest(Harness(joinGate = gate)) { h ->
+            h.answerable()
+            h.controller.onIncomingCall("ws-1", "CA1")
+            h.controller.answer()
+            settle()
+            assertEquals(IncomingCallPhase.ANSWERING, h.controller.state.value?.phase)
+
+            h.telecom.systemHangUp()
+            settle()
+            gate.complete(Unit)
+            settle()
+
+            assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+            assertNull("a hang-up is not a failure", h.controller.state.value?.message)
+            assertEquals("the service is never started for it", listOf(false), h.foreground.calls)
+        }
+    }
+
+    @Test
+    fun `a hang-up while a failing join is in flight keeps its own ending`() {
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine().apply { connectFailure = IllegalStateException("socket closed") }
+        callTest(Harness(engine = engine, joinGate = gate)) { h ->
+            h.answerable()
+            h.controller.onIncomingCall("ws-1", "CA1")
+            h.controller.answer()
+            settle()
+
+            h.controller.hangUp()
+            settle()
+            gate.complete(Unit)
+            settle()
+
+            assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+            assertNull(
+                "the media failure is not reported over the user's own hang-up",
+                h.controller.state.value?.message,
+            )
+        }
     }
 
     private companion object {

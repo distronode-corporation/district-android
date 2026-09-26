@@ -44,9 +44,9 @@ import com.distronode.districtai.push.DistrictFirebase
  * does not weaken that — both still complete before `onCreate` returns, which is before any
  * service callback can run.
  */
-class DistrictApplication : Application() {
+class DistrictApplication : Application(), AppContainerOwner {
 
-    val container: AppContainer by lazy { AppContainer(this) }
+    override val container: AppContainer by lazy { AppContainer(this) }
 
     /**
      * ⛔ THE ONLY WORK DONE EAGERLY, AND NEITHER HALF COSTS I/O. `initializeApp` builds an in-memory

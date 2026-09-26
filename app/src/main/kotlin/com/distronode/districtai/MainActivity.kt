@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
  */
 class MainActivity : ComponentActivity() {
 
-    private val container: AppContainer get() = (application as DistrictApplication).container
+    private val container: AppContainer get() = (application as AppContainerOwner).container
 
     /**
      * ⛔ NOT AN ACTIVITY FIELD ANY MORE, AND NOT A ViewModel EITHER. The status message, the

@@ -273,10 +273,8 @@ class DeskRepositoryTest {
             repository.uploadLogo("ws-1", "logo.png", "image/png", byteArrayOf(1)) is ApiResult.DecodeFailure,
         )
         assertTrue(repository.ticket("ws-1", "tkt_1") is ApiResult.DecodeFailure)
-        assertTrue(
-            repository.createTicket("ws-1", DeskTicketDraft(subject = "Leak", message = "Drips")) is
-                ApiResult.DecodeFailure,
-        )
+        val draft = DeskTicketDraft(subject = "Leak", message = "Drips")
+        assertTrue(repository.createTicket("ws-1", draft) is ApiResult.DecodeFailure)
         assertTrue(repository.reply("ws-1", "tkt_1", "Tuesday.") is ApiResult.DecodeFailure)
         assertTrue(repository.setStatus("ws-1", "tkt_1", DeskTicketStatus.RESOLVED) is ApiResult.DecodeFailure)
     }

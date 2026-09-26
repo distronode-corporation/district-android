@@ -136,3 +136,17 @@ extensions.configure<CommonExtension> {
 dependencies {
     add("coreLibraryDesugaring", libs.library("desugar-jdk-libs"))
 }
+
+// Coverage engine and the report variant the root gate reads. Both must match the root build
+// file: see "WHY JACOCO" and "THE GATE IS THE `unit` VARIANT" there.
+kover {
+    useJacoco("0.8.15")
+    currentProject {
+        // Debug only. The release compilation has the same class names and different bytes, and
+        // JaCoCo matches execution data by those bytes, so a report over both credits nothing
+        // to the classes the tests actually loaded.
+        createVariant("unit") {
+            add("debug")
+        }
+    }
+}

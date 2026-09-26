@@ -127,36 +127,39 @@ allprojects {
 // ── Coverage floors ──────────────────────────────────────────────────────────
 //
 // ⛔ SET BY DECISION, AND ONLY AFTER THE MEASUREMENT CLEARED THEM. Current measurement, on the
-// root `total` report that `koverVerify` checks (app plus the six core modules, with the
-// generated-code exclusions below applied):
+// root `unit` report that `koverVerifyUnit` checks (the debug variant of app plus the six core
+// modules, with the generated-code exclusions below applied), under JaCoCo 0.8.15:
 //
-//     line   17683/18415 = 96.02%  ->  floor 95
-//     branch 11626/15456 = 75.22%  ->  floor 65
+//     line   19106/19988 = 95.59%  ->  floor 95
+//     branch  5568/6899  = 80.71%  ->  floor 80
 //
-// The floors were 86 and 49, then 90 and 60. They moved to 95 and 65 once the core modules had
-// wire-shape, failure-path and keystore round-trip tests and the app's untested screens, readers
-// and effects had tests of their own; nothing was excluded to get there.
+// The floors were 86 and 49, then 90 and 60, then 95 and 65 under Kover's default IntelliJ
+// engine. They are being raised to 100 on both; these values hold the ratchet while that work
+// lands.
 //
-// ⚠️ THE BRANCH FIGURE IS STILL SHAPED BY GENERATED CODE THAT STAYS COUNTED.
-// kotlinx.serialization compiles each @Serializable class's `write$Self` encoder into the class
-// itself, so the `*$$serializer` exclusion below does not remove it: 6398 of the 15456 branches
-// are those encoders (4891 covered), almost all in core-model. The app never encodes a response;
-// the wire-shape tests in core-model encode them on purpose, against the committed fixtures,
-// which is what moved this figure. Without them the branch figure would be 6735/9058 = 74.35%.
-// They are left in on purpose, as a decision rather than an oversight.
+// ⛔ WHY JACOCO. Kover's IntelliJ engine counts the bytecode the compiler plugins emit as if
+// someone had written it: kotlinx.serialization's `write$Self` encoders (1507 missed branches on
+// the same tree) and the Compose compiler's `$changed`/`$default` bitmask branches (1431 more,
+// many of which no test can reach). JaCoCo 0.8.15 filters both, and suspend-function state
+// machines, as compiler output. That is a measuring decision, not an exclusion: every line and
+// branch a person wrote is still counted. Measured on the same tree, missed branches went from
+// 3829 to 1331 and missed lines from 716 to 882 (JaCoCo attributes more lines, mostly in
+// Compose files), both with the Sentry class below already excluded.
+//
+// ⛔ THE GATE IS THE `unit` VARIANT, NEVER `total`. JaCoCo matches execution data to classes by a
+// checksum of the class bytes, where the IntelliJ engine matched by name. `total` analyses the
+// debug AND release compilations, which share class names but not bytes; JaCoCo keeps one copy
+// per name, and for app it kept the release copy that no test loads, so `total` read 41.94% on
+// a tree whose tests had all run. `unit` holds the debug variant only (see the convention
+// plugin), which is the variant `testDebugUnitTest` executes.
 //
 // ⚠️ A HIGH LINE FLOOR IS UNREACHABLE WITHOUT COMPOSE UI TESTS, AND THAT IS ARITHMETIC RATHER
 // THAN A PREFERENCE: most missed lines live in Compose files, so screen-level tests are where
 // coverage moves. Rendering a screen in more than one state is also what moves branch coverage,
-// because a screen rendered in exactly one state exercises none of its `when` arms. The
-// remaining gap is concentrated in the parts of `DistrictNavHost` that need a live session or a
-// media engine, `MainActivity`, `LiveKitCallEngine` and `VideoTile`, the call foreground service
-// and the Telecom bridge, and Canvas drawing that runs only when a frame is rendered.
-// `KeystoreCipher` is no longer in that list: its round trip runs over a software AndroidKeyStore
-// in core-auth's tests, and hardware backing is still verified on a device.
+// because a screen rendered in exactly one state exercises none of its `when` arms.
 //
-// Measured with `./gradlew testDebugUnitTest :koverXmlReport :koverLog`. Reproduce it the same
-// way; the report-level counters are the last ones in build/reports/kover/report.xml.
+// Measured with `./gradlew testDebugUnitTest :koverXmlReportUnit :koverLogUnit`. Reproduce it the
+// same way; the report-level counters are the last ones in build/reports/kover/reportUnit.xml.
 //
 // ⚠️ BOTH FLOORS SIT BELOW THE MEASURED VALUE, ON PURPOSE. An exact-equality floor reds on any
 // rounding drift; the headroom (about one point of line, ten of branch) keeps the ratchet honest
@@ -178,7 +181,7 @@ allprojects {
 // zero when a property is unset is a gate that passes when it is misconfigured, which is the
 // exact failure a floor exists to prevent.
 val LINE_COVERAGE_FLOOR = 95
-val BRANCH_COVERAGE_FLOOR = 65
+val BRANCH_COVERAGE_FLOOR = 80
 
 // ── Coverage aggregation and the floor ───────────────────────────────────────
 //
@@ -205,17 +208,27 @@ dependencies {
 }
 
 kover {
+    // JaCoCo, not Kover's default IntelliJ engine: see "WHY JACOCO" above. The modules set the
+    // same engine and version in the `district.android.base` convention plugin; a module
+    // measured by the other engine writes execution data this report cannot read ("Invalid
+    // execution data file").
+    useJacoco("0.8.15")
+    currentProject {
+        // The merged gate. Empty here: a custom variant in the merging project collects the
+        // same-named variant from every `kover(...)` dependency above.
+        createVariant("unit") {}
+    }
     reports {
-        total {
+        variant("unit") {
             log {
                 // ⚠️ A DISTINCTIVE PREFIX, ON PURPOSE. Anything that scrapes the number
                 // out of a build log (a coverage badge, a CI summary) needs a string no
                 // other log line contains; a generic "line coverage" would also match
                 // text in an unrelated line and report a wrong number.
                 format = "ANDROID AGGREGATE line coverage: <value>%"
-                // ⚠️ FALSE: the number appears only when koverLog is named explicitly,
-                // which is exactly what CI does (`./gradlew :koverLog :koverVerify`). Left
-                // false deliberately — naming it in CI is deterministic, whereas relying
+                // ⚠️ FALSE: the number appears only when koverLogUnit is named explicitly,
+                // which is exactly what CI does (`./gradlew :koverLogUnit :koverVerifyUnit`).
+                // Left false deliberately: naming it in CI is deterministic, whereas relying
                 // on a `check` hook would put the number in the log only for whichever
                 // invocations happen to include one.
                 onCheck = false
@@ -246,6 +259,8 @@ kover {
                     // contract tests — but they are generated, so counting them
                     // inflates the number without anyone having written a test.
                     "*$\$serializer",
+                    // Sentry Gradle plugin: build-time options it writes as Java source.
+                    "io.sentry.android.core.SentryGeneratedBuildTimeOptions",
                 )
             }
         }

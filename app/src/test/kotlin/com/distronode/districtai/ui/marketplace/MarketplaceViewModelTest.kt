@@ -284,6 +284,20 @@ class MarketplaceViewModelTest {
     }
 
     @Test
+    fun `a search that never reached the server is a retryable failure, not an account state`() = runTest {
+        // ⚠️ Only an HTTP 400 means "finish connecting a carrier"; a dropped connection has no status.
+        val api = api().apply { searchResult = ApiResult.NetworkFailure(java.io.IOException("offline")) }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.search()
+        advanceUntilIdle()
+
+        val failed = vm.state.value.search as SearchState.Failed
+        assertTrue(failed.failure.retryable)
+    }
+
+    @Test
     fun `a tab switch made while the owned list loads survives the list landing`() = runTest {
         // ⛔ THE BUG THIS PINS. The owned read copied the state it saw when it STARTED, so an
         // operator who switched to Search (or typed a filter) while it loaded was put back.

@@ -1,11 +1,17 @@
 package com.distronode.districtai.ui.marketplace
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.AvailableNumber
@@ -13,6 +19,7 @@ import com.distronode.districtai.core.model.ListedNumber
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -364,6 +371,199 @@ class MarketplaceScreenTest {
             .assertDoesNotExist()
         composeRule.onNodeWithContentDescription(MARKETPLACE_READ_ONLY_DESCRIPTION)
             .assertIsDisplayed()
+    }
+
+    // ── Search in flight, a failed search, and rows the carrier left bare ────
+
+    @Test
+    fun `a search in flight holds the form and draws a placeholder for the results`() {
+        render(MarketplaceUiState(tab = MarketplaceTab.SEARCH, search = SearchState.Loading))
+
+        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCHING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_AREA_CODE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_COUNTRY_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a failed search is a card with a retry that runs the search again`() {
+        var searches = 0
+        render(
+            MarketplaceUiState(
+                tab = MarketplaceTab.SEARCH,
+                search = SearchState.Failed(FailureText(message = UiText.Literal("Carrier timed out"))),
+            ),
+            onSearch = { searches += 1 },
+        )
+
+        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("Carrier timed out").assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").performClick()
+        assertEquals(1, searches)
+    }
+
+    @Test
+    fun `a search that failed for good offers no retry`() {
+        render(
+            MarketplaceUiState(
+                tab = MarketplaceTab.SEARCH,
+                search = SearchState.Failed(
+                    FailureText(message = UiText.Literal("Unexpected response"), retryable = false),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("Unexpected response").assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a number with no published capabilities falls back to its type, and no carrier is named`() {
+        render(
+            MarketplaceUiState(
+                tab = MarketplaceTab.SEARCH,
+                search = SearchState.Ready(
+                    provider = null,
+                    numbers = listOf(available.copy(capabilities = emptyList(), type = "mobile")),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("mobile").assertIsDisplayed()
+        composeRule.onNodeWithText("sms · voice").assertDoesNotExist()
+        composeRule.onNodeWithText("twilio", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a blank friendly name draws no name line`() {
+        render(MarketplaceUiState(owned = OwnedState.Ready(listOf(ownNumber.copy(friendlyName = " ")))))
+
+        composeRule.onNodeWithText("+14165550100").assertIsDisplayed()
+        composeRule.onNodeWithText("Main line").assertDoesNotExist()
+    }
+
+    @Test
+    fun `switching tabs and back keeps each segment reporting its own tab`() {
+        // ⚠️ The segments are redrawn on every switch; each must still report the tab it names.
+        val selections = mutableListOf<MarketplaceTab>()
+        var state by mutableStateOf(MarketplaceUiState(owned = OwnedState.Ready(listOf(ownNumber))))
+        renderLive(
+            { state },
+            onSelectTab = {
+                selections += it
+                state = state.copy(tab = it)
+            },
+        )
+
+        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_SEARCH_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_OWNED_DESCRIPTION).performClick()
+        composeRule.onNodeWithText("+14165550100").assertIsDisplayed()
+
+        assertEquals(listOf(MarketplaceTab.SEARCH, MarketplaceTab.OWNED), selections)
+    }
+
+    @Test
+    fun `a type chip picked after typing an area code keeps the area code`() {
+        // ⚠️ The chip copies the CURRENT form; a chip holding the form it was first drawn with would
+        // silently drop what the operator typed since.
+        var state by mutableStateOf(MarketplaceUiState(tab = MarketplaceTab.SEARCH))
+        renderLive({ state }, onUpdateForm = { state = state.copy(form = it) })
+
+        composeRule.onNodeWithContentDescription(MARKETPLACE_AREA_CODE_DESCRIPTION).performTextInput("416")
+        composeRule.onNodeWithContentDescription(typeDescription(NUMBER_TYPE_MOBILE)).performClick()
+
+        assertEquals(NumberSearchForm(areaCode = "416", type = NUMBER_TYPE_MOBILE), state.form)
+    }
+
+    @Test
+    fun `typing a country reaches the form`() {
+        var state by mutableStateOf(MarketplaceUiState(tab = MarketplaceTab.SEARCH))
+        renderLive({ state }, onUpdateForm = { state = state.copy(form = it) })
+
+        composeRule.onNodeWithContentDescription(MARKETPLACE_COUNTRY_DESCRIPTION).performTextClearance()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_COUNTRY_DESCRIPTION).performTextInput("CA")
+
+        assertEquals("CA", state.form.country)
+    }
+
+    @Test
+    fun `a failure card follows a new failure and a new handle`() {
+        var failure by mutableStateOf(FailureText(message = UiText.Literal("First")))
+        var description by mutableStateOf("first-handle")
+        composeRule.setContent {
+            DistrictTheme {
+                MarketplaceFailure(title = "Title", failure = failure, description = description, onRetry = {})
+            }
+        }
+
+        failure = FailureText(message = UiText.Literal("Second"))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
+        composeRule.onNodeWithText("Second").assertIsDisplayed()
+
+        description = "second-handle"
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("first-handle").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a theme change redraws the search form with its chips and tabs still reporting`() {
+        val forms = mutableListOf<NumberSearchForm>()
+        val tabs = mutableListOf<MarketplaceTab>()
+        val theme = ThemeFlip(composeRule)
+        theme.setContent {
+            MarketplaceScreen(
+                state = MarketplaceUiState(tab = MarketplaceTab.SEARCH),
+                role = WorkspaceRole.CLIENT,
+                onSelectTab = { tabs += it },
+                onUpdateForm = { forms += it },
+                onSearch = {},
+                onRetryOwned = {},
+                onOpenWeb = {},
+                onBack = {},
+            )
+        }
+
+        theme.flip()
+
+        composeRule.onNodeWithContentDescription(typeDescription(NUMBER_TYPE_TOLL_FREE)).performClick()
+        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_OWNED_DESCRIPTION).performClick()
+        assertEquals(listOf(NUMBER_TYPE_TOLL_FREE), forms.map { it.type })
+        assertEquals(listOf(MarketplaceTab.OWNED), tabs)
+    }
+
+    /** Like [render], but the state is read on every composition so a test can move it. */
+    private fun renderLive(
+        state: () -> MarketplaceUiState,
+        onSelectTab: (MarketplaceTab) -> Unit = {},
+        onUpdateForm: (NumberSearchForm) -> Unit = {},
+    ) {
+        composeRule.setContent {
+            DistrictTheme {
+                MarketplaceScreen(
+                    state = state(),
+                    role = WorkspaceRole.CLIENT,
+                    onSelectTab = onSelectTab,
+                    onUpdateForm = onUpdateForm,
+                    onSearch = {},
+                    onRetryOwned = {},
+                    onOpenWeb = {},
+                    onBack = {},
+                )
+            }
+        }
+    }
+
+    // ── Price labels ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `a price with no currency, or a blank one, is shown bare rather than guessed at`() {
+        assertEquals("1.15", priceLabel(1.15, null))
+        assertEquals("1.15", priceLabel(1.15, " "))
+        assertEquals("1.15 CAD", priceLabel(1.15, "CAD"))
+        assertEquals(null, priceLabel(null, "USD"))
     }
 
     // ── The hand-off URL ─────────────────────────────────────────────────────

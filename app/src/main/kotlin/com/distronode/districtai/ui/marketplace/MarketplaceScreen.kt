@@ -64,10 +64,9 @@ fun MarketplaceScreen(
      */
     onOpenWeb: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = MARKETPLACE_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = MARKETPLACE_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.marketplace_title), onBack = onBack)
         },

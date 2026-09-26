@@ -212,8 +212,10 @@ class MainActivity : ComponentActivity() {
      * ⚠️ Cleared BEFORE the controller is called, and only after the scheme check, so an unrelated
      * VIEW intent is left untouched.
      */
-    private fun consumeCallback(intent: Intent?) {
-        val uri = intent?.data ?: return
+    private fun consumeCallback(intent: Intent) {
+        // ⚠️ `Intent`, not `Intent?`, in all three consumers: the system never starts or
+        // re-delivers to an activity without one, so a null branch here could never run.
+        val uri = intent.data ?: return
         // Only our callback scheme; ignore anything else that resolves here.
         if (uri.scheme != CALLBACK_SCHEME) return
         intent.data = null
@@ -229,17 +231,15 @@ class MainActivity : ComponentActivity() {
      * it a second time, and rotating on the inbox would yank the user back to it every time.
      *
      * ⛔ THE DECISION ITSELF IS IN [pushIntentAction], WHICH IS PURE AND TESTED. What is left here is
-     * reading four extras and dispatching, because an Activity is the one thing this project cannot
-     * exercise: it is `singleTask`, it is constructed by the system, and the interesting cases (a
-     * cold start from a notification, a stale pending intent) are precisely the ones a test host
-     * does not reproduce.
+     * reading four extras and dispatching, which `MainActivityPushIntentTest` drives through a
+     * cold start and a re-delivery under Robolectric.
      *
      * ⚠️ `AnswerCall` IS DELEGATED AND NOT VALIDATED HERE. The controller drops an answer request
      * for anything that is not still RINGING, so a stale pending intent for a call that already
      * ended does nothing — which is the correct outcome and is asserted where that rule lives.
      */
-    private fun consumePushIntent(intent: Intent?) {
-        val extras = intent?.extras ?: return
+    private fun consumePushIntent(intent: Intent) {
+        val extras = intent.extras ?: return
         val action = pushIntentAction(
             workspaceId = extras.getString(PushIntents.EXTRA_WORKSPACE_ID),
             messageId = extras.getString(PushIntents.EXTRA_MESSAGE_ID),
@@ -250,22 +250,30 @@ class MainActivity : ComponentActivity() {
         intent.removeExtra(PushIntents.EXTRA_MESSAGE_ID)
         intent.removeExtra(PushIntents.EXTRA_CALL_ID)
         intent.removeExtra(PushIntents.EXTRA_ANSWER)
+        dispatchPushAction(action)
+    }
+
+    /**
+     * ⚠️ AN EXPRESSION BODY, WITH THE `is` ARM LAST, AND BOTH ARE FOR THE SAME REASON: the `when`
+     * then ends in the compiler's `NoWhenBranchMatchedException` guard rather than in a silent
+     * fall-through after its last arm, which was a fifth path no [PushIntentAction] can take.
+     */
+    private fun dispatchPushAction(action: PushIntentAction?): Unit =
         when (action) {
             null -> Unit
+            // ⚠️ NOTHING TO DO: the ringing screen is drawn from the controller's state and is
+            // already on screen. Bringing the Activity forward WAS the whole request.
+            PushIntentAction.ShowCall -> Unit
+            // ⚠️ RECORDED, NOT ANSWERED: answering asks for the microphone first, and the launcher
+            // that can ask lives in the Compose tree (`IncomingCallHost`), not here. See the ⛔ on
+            // `IncomingCallController.answerRequested` for the lint rule that decided it.
+            PushIntentAction.AnswerCall -> container.incomingCallController.requestAnswerFromNotification()
             // ⚠️ RECORDED RATHER THAN NAVIGATED. The active workspace comes from two reads that are
             // still in flight on a cold start, so the graph consumes this when it can act on it.
             is PushIntentAction.OpenInbox -> container.pushDeepLinks.offer(
                 InboxDeepLink(action.workspaceId, action.messageId),
             )
-            // ⚠️ RECORDED, NOT ANSWERED: answering asks for the microphone first, and the launcher
-            // that can ask lives in the Compose tree (`IncomingCallHost`), not here — see the ⛔ on
-            // `IncomingCallController.answerRequested` for the lint rule that decided it.
-            PushIntentAction.AnswerCall -> container.incomingCallController.requestAnswerFromNotification()
-            // ⚠️ NOTHING TO DO: the ringing screen is drawn from the controller's state and is
-            // already on screen. Bringing the Activity forward WAS the whole request.
-            PushIntentAction.ShowCall -> Unit
         }
-    }
 
     /**
      * Act on a verified App Link, exactly once.
@@ -292,8 +300,8 @@ class MainActivity : ComponentActivity() {
      * anyway explains nothing. Doing nothing leaves the user on the overview, which is where the
      * app was going to put them.
      */
-    private fun consumeAppLink(intent: Intent?) {
-        val uri = intent?.data ?: return
+    private fun consumeAppLink(intent: Intent) {
+        val uri = intent.data ?: return
         when (val destination = appLinkDestination(host = uri.host, path = uri.path)) {
             AppLinkDestination.Ignore -> Unit
             AppLinkDestination.OpenInBrowser -> {

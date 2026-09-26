@@ -96,6 +96,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import java.util.concurrent.TimeUnit
 
 /**
  * The signed-in navigation graph, driven through its real destinations.
@@ -111,9 +112,10 @@ import org.robolectric.annotation.Config
  * ⚠️ A REAL [AppContainer] WITH NO SESSION, AND THAT IS WHAT KEEPS THIS OFF THE NETWORK. Its API
  * client is built from `ApiEnvironment.baseUrl`, so a stored session would refresh against
  * production. With an empty token store the coordinator answers `NoSession` before any request
- * is built, so every destination's load fails locally and the screens draw their signed-out
- * states. The push and revoke seams are stubbed for the same reason `AppContainerTest` stubs
- * them.
+ * is built, so no destination's load can reach the network. The credential reads are also HELD
+ * (below), so the destinations draw their LOADING state; only the tests that release the reads
+ * see a load fail as `NoSession`. The push and revoke seams are stubbed for the same reason
+ * `AppContainerTest` stubs them.
  *
  * ⚠️ THE STORE HOLDS EVERY READ UNTIL A TEST RELEASES IT, AND THAT IS WHAT MAKES THIS CLASS'S
  * COVERAGE REPEATABLE. The coordinator reads the store on `Dispatchers.IO`, so with an answering
@@ -610,16 +612,43 @@ private class SignedOutTokenStore(private val reads: HeldCredentialReads) : Toke
  *
  * The reads happen on `Dispatchers.IO` threads, which block here rather than suspending: that is
  * what keeps the coordinator's `NoSession` answer from reaching a screen at a moment decided by
- * thread scheduling. A test holds at most a few dozen reads (one per load it navigates through),
- * well inside the IO pool, and [after] releases whatever is still held once the test is over.
+ * thread scheduling. [after] releases whatever is still held once the test is over.
+ *
+ * ⚠️ EVERY HELD READ IS A PARKED IO THREAD, SO BOTH THE WAIT AND THE HEAD COUNT ARE BOUNDED. The
+ * IO pool has 64 threads by default, and a test that parked them all would starve every other IO
+ * task in the process and hang rather than fail. So a read gives up after [HOLD_TIMEOUT_MILLIS]
+ * with a message that names this class (and [after] fails the test if any did, because an
+ * exception on an IO thread can be swallowed by the caller), and [after] asserts the peak number
+ * of reads parked at once stayed under [MAX_PARKED_READS], well inside the pool.
  */
 private class HeldCredentialReads : ExternalResource() {
     private val lock = Object()
     private var held = true
+    private var parked = 0
+    private var peakParked = 0
+    private var timedOut = 0
 
     fun await() {
         synchronized(lock) {
-            while (held) lock.wait()
+            if (!held) return
+            parked += 1
+            peakParked = maxOf(peakParked, parked)
+            try {
+                val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(HOLD_TIMEOUT_MILLIS)
+                while (held) {
+                    val remaining = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime())
+                    if (remaining <= 0) {
+                        timedOut += 1
+                        error(
+                            "HeldCredentialReads: a credential read was held for $HOLD_TIMEOUT_MILLIS ms " +
+                                "and never released",
+                        )
+                    }
+                    lock.wait(remaining)
+                }
+            } finally {
+                parked -= 1
+            }
         }
     }
 
@@ -630,7 +659,26 @@ private class HeldCredentialReads : ExternalResource() {
         }
     }
 
-    override fun after() = release()
+    override fun after() {
+        release()
+        val (peak, timeouts) = synchronized(lock) { peakParked to timedOut }
+        // Read back by the gate run from the test report's system-out.
+        println("HeldCredentialReads: peak parked reads = $peak")
+        assertEquals("credential reads that timed out while held", 0, timeouts)
+        assertTrue(
+            "$peak credential reads were parked at once; the bound is $MAX_PARKED_READS, " +
+                "under the IO pool's 64 threads",
+            peak < MAX_PARKED_READS,
+        )
+    }
+
+    private companion object {
+        /** Far longer than any test in the class, so only a read that is never released reaches it. */
+        const val HOLD_TIMEOUT_MILLIS = 120_000L
+
+        /** Well under `Dispatchers.IO`'s default 64 threads. */
+        const val MAX_PARKED_READS = 48
+    }
 }
 
 /** Nothing to revoke with an empty store; answered locally so sign-out never reaches the network. */

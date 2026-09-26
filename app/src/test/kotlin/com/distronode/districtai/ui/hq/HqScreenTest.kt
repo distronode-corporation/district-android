@@ -1,9 +1,14 @@
 package com.distronode.districtai.ui.hq
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onChild
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -14,6 +19,7 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.HqPendingWrite
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.ui.UiText
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -112,7 +118,7 @@ class HqScreenTest {
     fun `a failure does NOT blank the transcript`() {
         // ⛔ THE CENTRAL GUARANTEE OF THIS SCREEN. The server keeps no conversation, so a screen
         // that cleared on failure would destroy the only copy of it.
-        render(HqUiState.Failed(failure()))
+        render(HqUiState.Failed(failure(), "How did we do?"))
 
         composeRule.onNodeWithText("How did we do this week?").assertIsDisplayed()
         composeRule.onNodeWithText("You had 19 calls this week.").assertIsDisplayed()
@@ -123,7 +129,7 @@ class HqScreenTest {
     @Test
     fun `a retryable failure offers retry and calls back`() {
         var retried = 0
-        render(HqUiState.Failed(failure()), callbacks = Callbacks(onRetry = { retried++ }))
+        render(HqUiState.Failed(failure(), "How did we do?"), callbacks = Callbacks(onRetry = { retried++ }))
 
         composeRule.onNodeWithText("Try again").performClick()
 
@@ -134,7 +140,7 @@ class HqScreenTest {
     fun `a non-retryable failure offers no retry`() {
         // ⚠️ Contract drift and a role refusal produce the identical failure on every attempt, so a
         // retry button there is a control that cannot succeed.
-        render(HqUiState.Failed(failure(retryable = false)))
+        render(HqUiState.Failed(failure(retryable = false), "How did we do?"))
 
         composeRule.onNodeWithContentDescription(HQ_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Try again").assertDoesNotExist()
@@ -267,5 +273,56 @@ class HqScreenTest {
         composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
+    }
+
+    @Test
+    fun `the newest-line handle moves to an answer as it arrives`() {
+        // ⚠️ The same bubble is redrawn with `isLast` flipped, which is the case a test asserting
+        // "the answer" depends on: the handle must leave the question when the answer lands.
+        var lines by mutableStateOf(transcript.take(1))
+        composeRule.setContent {
+            DistrictTheme {
+                HqScreen(
+                    state = HqUiState.Idle,
+                    messages = lines,
+                    canConfirm = true,
+                    onSend = {},
+                    onConfirm = {},
+                    onDismiss = {},
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
+            .assertTextEquals("How did we do this week?")
+
+        lines = transcript
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
+            .assertTextEquals("You had 19 calls this week.")
+    }
+
+    @Test
+    fun `a theme change keeps the newest-line handle on the newest line`() {
+        val theme = ThemeFlip(composeRule)
+        theme.setContent {
+            HqScreen(
+                state = HqUiState.Idle,
+                messages = transcript,
+                canConfirm = true,
+                onSend = {},
+                onConfirm = {},
+                onDismiss = {},
+                onRetry = {},
+                onBack = {},
+            )
+        }
+
+        theme.flip()
+
+        composeRule.onNodeWithContentDescription(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
+            .assertTextEquals("You had 19 calls this week.")
     }
 }

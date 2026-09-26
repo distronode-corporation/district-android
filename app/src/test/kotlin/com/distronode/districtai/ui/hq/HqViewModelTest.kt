@@ -490,4 +490,65 @@ class HqViewModelTest {
             history.firstOrNull { it.text.isBlank() },
         )
     }
+
+    @Test
+    fun `a question asked while a write is applying is refused`() = runTest(dispatcher) {
+        // ⛔ Two turns racing on the same transcript can interleave their appends; an apply is a
+        // turn in flight exactly as a prompt is.
+        val api = apiProposing()
+        val vm = viewModel(api)
+
+        vm.ask("Change the greeting")
+        advanceUntilIdle()
+        vm.confirmPending()
+        vm.ask("And another thing")
+        advanceUntilIdle()
+
+        assertEquals(1, api.hqPrompts.size)
+        assertFalse(vm.messages.value.any { it.text.literalOrNull == "And another thing" })
+    }
+
+    @Test
+    fun `a failed confirm can be dismissed, which sends nothing more`() = runTest(dispatcher) {
+        val api = apiProposing().apply {
+            hqConfirmResult = ApiResult.NetworkFailure(java.io.IOException("dropped"))
+        }
+        val vm = viewModel(api)
+
+        vm.ask("Change the greeting")
+        advanceUntilIdle()
+        vm.confirmPending()
+        advanceUntilIdle()
+        vm.dismissPending()
+
+        assertEquals(HqUiState.Idle, vm.state.value)
+        assertEquals(1, api.hqConfirms.size)
+    }
+
+    @Test
+    fun `dismissing while a write is applying does not pretend to cancel it`() = runTest(dispatcher) {
+        // ⚠️ The write is already on the wire. Dropping the card now would hide what is being done.
+        val api = apiProposing()
+        val vm = viewModel(api)
+
+        vm.ask("Change the greeting")
+        advanceUntilIdle()
+        vm.confirmPending()
+        vm.dismissPending()
+
+        assertTrue(vm.state.value is HqUiState.Applying)
+        advanceUntilIdle()
+        assertEquals(1, api.hqConfirms.size)
+    }
+
+    @Test
+    fun `a failed turn holds the prompt a retry will send`() = runTest(dispatcher) {
+        val api = TestDistrictApi().apply { hqPromptResult = ApiResult.HttpFailure(502, "Bad gateway") }
+        val vm = viewModel(api)
+
+        vm.ask("  Who called?  ")
+        advanceUntilIdle()
+
+        assertEquals("Who called?", (vm.state.value as HqUiState.Failed).prompt)
+    }
 }

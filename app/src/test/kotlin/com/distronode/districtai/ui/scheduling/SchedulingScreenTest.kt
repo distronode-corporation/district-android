@@ -493,4 +493,30 @@ class SchedulingScreenTest {
         composeRule.onNodeWithText("the provision was refused").assertIsDisplayed()
         composeRule.onNodeWithContentDescription(SCHEDULING_FAILURE_DESCRIPTION).assertIsDisplayed()
     }
+
+    // ── Blank values from the server, and the preview ────────────────────────
+
+    @Test
+    fun `a blank failure reason reads as no recorded reason, not as an empty line`() {
+        render(ready(tenant = tenant(status = "error", lastError = "  ")))
+
+        composeRule
+            .onNodeWithText(text(R.string.scheduling_setup_failed_no_reason))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `a blank bookingUrl is no link, and is never shown as one`() {
+        render(ready(tenant = tenant(status = "ready", bookingUrl = " ")))
+
+        composeRule.onNodeWithContentDescription(SCHEDULING_NO_LINK_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(SCHEDULING_LINK_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the preview renders a live booking page with its link`() {
+        composeRule.setContent { SchedulingScreenPreview() }
+
+        composeRule.onNodeWithContentDescription(SCHEDULING_LINK_DESCRIPTION).assertIsDisplayed()
+    }
 }

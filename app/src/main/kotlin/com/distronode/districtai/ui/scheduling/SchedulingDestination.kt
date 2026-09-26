@@ -14,6 +14,7 @@ import com.distronode.districtai.auth.CustomTabsLauncher
 import com.distronode.districtai.ui.ARG_WORKSPACE_ID
 import com.distronode.districtai.ui.OnSessionChanged
 import com.distronode.districtai.ui.Routes
+import com.distronode.districtai.ui.pathArgument
 
 /**
  * The workspace's booking page, as a navigation destination.
@@ -63,7 +64,7 @@ internal fun NavGraphBuilder.schedulingDestination(
     onShowMessage: (String) -> Unit,
 ) {
     composable(Routes.SCHEDULING) { entry ->
-        val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+        val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
         val viewModel: SchedulingViewModel = viewModel(
             // ⚠️ Keyed on the workspace ALONE — there is no role in this route to key on. An
             // unkeyed instance would show the previous tenant's booking URL under the new tenant's

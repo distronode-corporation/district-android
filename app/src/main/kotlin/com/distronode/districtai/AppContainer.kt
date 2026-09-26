@@ -45,18 +45,20 @@ import com.distronode.districtai.call.IncomingCallSurfaces
 import com.distronode.districtai.core.data.InboundCallRepository
 import com.distronode.districtai.core.data.PreferencesWorkspaceSelectionStore
 import com.distronode.districtai.core.data.PushTokenRepository
-import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.push.AndroidPushNotifier
 import com.distronode.districtai.push.FirebasePushTokenSource
 import com.distronode.districtai.push.PushDeepLinks
 import com.distronode.districtai.push.PushMessageHandler
 import com.distronode.districtai.push.PushNotifier
 import com.distronode.districtai.push.PushRegistrar
-import com.distronode.districtai.push.PushTokenSource
 import com.distronode.districtai.core.data.WorkflowsRepository
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.data.WorkspaceRepository
+import com.distronode.districtai.core.network.CallHandlingApi
+import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.core.network.DistrictApiClient
+import com.distronode.districtai.core.network.InboxExtrasApi
+import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.DistrictHttp
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.media.LiveKitCallEngine
@@ -122,41 +124,10 @@ class AppContainer(
     private val appScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
     /**
-     * Test seam for the credential store.
-     *
-     * ⚠️ NULLABLE-WITH-A-FALLBACK RATHER THAN A DEFAULT EXPRESSION, because a default argument
-     * cannot reference [appContext] (a property of the object being constructed). Same
-     * precedent as `appScope` above and `TokenRefreshCoordinator.io`: the seams exist so the
-     * sign-out sequence can be driven without an AndroidKeyStore, which Robolectric does not
-     * implement — under it a real store reads as "no session" and the whole revoke path is
-     * skipped, so the tests would assert nothing.
+     * What a test puts in place of the credential store, the network, the push token and the
+     * media engine. See [AppContainerSeams]; production passes nothing and gets the real ones.
      */
-    tokenStore: TokenStore? = null,
-    /**
-     * Test seam for the revoke call.
-     *
-     * ⚠️ Needed because `NativeAuthApi` is constructed from `ApiEnvironment.baseUrl`, a
-     * `BuildConfig` constant that cannot be pointed at a MockWebServer. Without this, an
-     * `AppContainer` test of sign-out would talk to PRODUCTION.
-     */
-    revokeApi: RevokeApi? = null,
-    /**
-     * Test seam for the two push-registration routes.
-     *
-     * ⚠️ NEEDED FOR THE SAME REASON [revokeApi] IS: the real one is built from `ApiEnvironment
-     * .baseUrl`, a `BuildConfig` constant, so an `AppContainer` test of the sign-out sequence would
-     * otherwise talk to PRODUCTION — and sign-out is exactly where the push unregister now sits.
-     */
-    pushApi: PushApi? = null,
-    /**
-     * Test seam for the FCM token.
-     *
-     * ⛔ NEEDED BECAUSE THE REAL SOURCE IS UNAVAILABLE ON EVERY MACHINE THIS PROJECT CAN TEST ON.
-     * `FirebaseMessaging.getInstance()` throws with no default `FirebaseApp`, and Waydroid has no
-     * Play Services at all, so the production implementation answers null on the only devices a test
-     * could run on — which would make every registration assertion pass for the wrong reason.
-     */
-    pushTokenSource: PushTokenSource? = null,
+    seams: AppContainerSeams = AppContainerSeams(),
 ) {
 
     private val appContext = context.applicationContext
@@ -171,9 +142,9 @@ class AppContainer(
      * the revoke outbox afterwards. Still exactly one instance: two would each hold their own
      * `SharedPreferences` editor and could interleave a write with a wipe.
      */
-    private val tokenStore: TokenStore = tokenStore ?: KeystoreTokenStore(appContext)
+    private val tokenStore: TokenStore = seams.tokenStore ?: KeystoreTokenStore(appContext)
 
-    private val revokeApi: RevokeApi = revokeApi ?: authApi
+    private val revokeApi: RevokeApi = seams.revokeApi ?: authApi
 
     /** See the ⛔ above: exactly one, for the process lifetime. */
     val tokenCoordinator: TokenRefreshCoordinator = TokenRefreshCoordinator(
@@ -199,7 +170,7 @@ class AppContainer(
         tokens = tokenCoordinator,
     )
 
-    private val districtApi = HttpDistrictApi(apiClient)
+    private val districtApi: DistrictApi = seams.districtApi ?: HttpDistrictApi(apiClient)
 
     /**
      * ⚠️ SEVERAL SMALL INTERFACES BESIDE [HttpDistrictApi] RATHER THAN MORE SECTIONS OF IT, for a
@@ -207,9 +178,9 @@ class AppContainer(
      * 85-method interface is the one file four authors cannot edit at once. They share [apiClient],
      * so nothing about authentication or error mapping differs between them.
      */
-    private val personaApi = HttpPersonaApi(apiClient)
-    private val callHandlingApi = HttpCallHandlingApi(apiClient)
-    private val inboxExtrasApi = HttpInboxExtrasApi(apiClient)
+    private val personaApi: PersonaApi = seams.personaApi ?: HttpPersonaApi(apiClient)
+    private val callHandlingApi: CallHandlingApi = seams.callHandlingApi ?: HttpCallHandlingApi(apiClient)
+    private val inboxExtrasApi: InboxExtrasApi = seams.inboxExtrasApi ?: HttpInboxExtrasApi(apiClient)
     private val callControlApi = HttpCallControlApi(apiClient)
     private val schedulingAdminApi = HttpSchedulingAdminApi(apiClient)
 
@@ -277,7 +248,7 @@ class AppContainer(
      * ⚠️ STATELESS AND CACHES NOTHING. It mints its own idempotency key per create, which is per
      * submit — see [DeskRepository].
      */
-    val deskRepository: DeskRepository = DeskRepository(HttpDeskApi(apiClient))
+    val deskRepository: DeskRepository = DeskRepository(seams.deskApi ?: HttpDeskApi(apiClient))
 
     /**
      * This workspace's own support requests WITH DISTRONODE.
@@ -290,7 +261,7 @@ class AppContainer(
      * ⛔ NOTHING IT SENDS IDENTIFIES THE REQUESTER. The workspace is the only scope on the wire and
      * the server derives and hashes the requester from the session — see [SupportRepository].
      */
-    val supportRepository: SupportRepository = SupportRepository(HttpSupportApi(apiClient))
+    val supportRepository: SupportRepository = SupportRepository(seams.supportApi ?: HttpSupportApi(apiClient))
 
     /**
      * Whether the active workspace's owner still has web setup to finish, for the overview's
@@ -539,7 +510,7 @@ class AppContainer(
      * Robolectric does not model and which can throw depending on device state. See
      * [TelecomBridge].
      */
-    val telecomBridge: TelecomBridge = AndroidTelecomBridge(appContext)
+    val telecomBridge: TelecomBridge = seams.telecomBridge ?: AndroidTelecomBridge(appContext)
 
     /**
      * Builds the one media engine a room ViewModel owns.
@@ -558,8 +529,8 @@ class AppContainer(
      * is reachable only because core-media exports the class itself. Its SDK dependency is
      * `implementation`, so nothing here can name a LiveKit type.
      */
-    val callEngineFactory: CallEngineFactory =
-        CallEngineFactory { scope -> LiveKitCallEngine(appContext, scope) }
+    val callEngineFactory: CallEngineFactory = seams.callEngineFactory
+        ?: CallEngineFactory { scope -> LiveKitCallEngine(appContext, scope) }
 
     /**
      * This installation's push registration.
@@ -568,7 +539,7 @@ class AppContainer(
      * when to withdraw, how long a sign-out may wait for it — lives in [pushRegistrar].
      */
     private val pushTokenRepository: PushTokenRepository =
-        PushTokenRepository(pushApi ?: districtApi)
+        PushTokenRepository(seams.pushApi ?: districtApi)
 
     /**
      * When push is registered and withdrawn.
@@ -583,7 +554,7 @@ class AppContainer(
      */
     internal val pushRegistrar: PushRegistrar = PushRegistrar(
         repository = pushTokenRepository,
-        tokens = pushTokenSource ?: FirebasePushTokenSource(),
+        tokens = seams.pushTokenSource ?: FirebasePushTokenSource(),
         scope = appScope,
     )
 

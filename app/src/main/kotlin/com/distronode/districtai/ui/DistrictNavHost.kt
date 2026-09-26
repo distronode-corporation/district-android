@@ -203,9 +203,6 @@ fun DistrictNavHost(
         route == Routes.CALL_LOG ||
         route == Routes.CONTACTS
 
-    // ⚠️ And only once a workspace has resolved: before that the two workspace-scoped tabs have
-    // nowhere to go, and a tab that does nothing is worse than an absent one.
-    val showNavBar = topLevel && workspaceId != null
 
     // ⚠️ OUTSIDE THE NavHost, LIKE THE NAV BAR, BECAUSE IT MUST OUTLIVE A DESTINATION. A message
     // notification tapped while a detail screen is open resolves here and navigates; an effect
@@ -411,7 +408,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.CALL_LOG) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val viewModel: CallLogViewModel = viewModel(
                         // ⚠️ Keyed on the workspace so the ViewModelStore holds one instance per tenant.
                         // Without the key, switching workspace would reuse an instance whose cached pages
@@ -438,8 +435,8 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.INBOX) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: InboxViewModel = viewModel(
                         factory = InboxViewModel.Factory(
                             repository = container.inboxRepository,
@@ -524,15 +521,15 @@ fun DistrictNavHost(
                         },
                     ),
                 ) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
-                    val threadKey = entry.arguments?.getString(ARG_THREAD_KEY).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
+                    val threadKey = entry.pathArgument(ARG_THREAD_KEY)
                     val selector = parseThreadKey(threadKey)
-                    val replyTo = entry.arguments?.getString(ARG_REPLY_TO)?.takeIf { it.isNotBlank() }
+                    val replyTo = entry.routeArguments().getString(ARG_REPLY_TO)?.takeIf { it.isNotBlank() }
                     val replyChannel =
-                        entry.arguments?.getString(ARG_REPLY_CHANNEL)?.takeIf { it.isNotBlank() }
+                        entry.routeArguments().getString(ARG_REPLY_CHANNEL)?.takeIf { it.isNotBlank() }
                     val threadTitle =
-                        entry.arguments?.getString(ARG_THREAD_TITLE)?.takeIf { it.isNotBlank() }
+                        entry.routeArguments().getString(ARG_THREAD_TITLE)?.takeIf { it.isNotBlank() }
                     val context = LocalContext.current
                     val viewModel: ThreadViewModel = viewModel(
                         factory = ThreadViewModel.Factory(
@@ -605,10 +602,10 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.CONTACTS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⚠️ Parsed through fromWire, which fails CLOSED to null for anything unrecognised — so a
                     // corrupted or renamed role offers no mutations rather than defaulting to permissive.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: ContactsViewModel = viewModel(
                         key = "contacts-$workspaceId",
                         factory = ContactsViewModel.factory(container.contactsRepository, workspaceId, role),
@@ -636,11 +633,11 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.HQ) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⚠️ fromWire fails CLOSED to null, so a corrupted role offers no confirm
                     // control. A viewer never sees one anyway — the server declines their writes
                     // before a proposal exists — but the UI must not be the thing that decides that.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: HqViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: the transcript belongs to ONE tenant, and an
                         // unkeyed instance would carry one workspace's conversation — and its
@@ -669,7 +666,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.ANALYTICS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val viewModel: AnalyticsViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: the figures and the selected window belong
                         // to ONE tenant, and an unkeyed instance would show the previous
@@ -697,10 +694,10 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.MARKETPLACE) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⚠️ Not a gate — both routes admit viewers. The role only decides the
                     // wording of the read-only caption. See the ⚠️ on Routes.MARKETPLACE.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: MarketplaceViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: an unkeyed instance would show the previous
                         // tenant's phone numbers under the new tenant's name until the reload
@@ -750,12 +747,12 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKFLOWS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⚠️ A PARTIAL GATE, unlike every neighbour here. The list, the run history
                     // and the campaign status all admit viewers; only the PATCH that flips a
                     // workflow excludes them. So the screen opens for every role and the switch
                     // is what the role decides. See the ⚠️ on Routes.WORKFLOWS.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: WorkflowsViewModel = viewModel(
                         // ⚠️ Keyed on the workspace AND the role: the role is a constructor
                         // argument that decides whether the switch works at all, so an instance
@@ -801,10 +798,10 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.BILLING) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⚠️ Not a gate — the workspace route admits viewers and `/api/billing` is
                     // caller-scoped. The role only decides the wording of the read-only caption.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: BillingViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: the plan, the cap and the month's minutes
                         // belong to ONE tenant, and an unkeyed instance would show the previous
@@ -871,12 +868,12 @@ fun DistrictNavHost(
                 // from a baseline it never read.
 
                 composable(Routes.WORKSPACE_SETTINGS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⛔ THE ROLE IS A REAL GATE ON THIS HUB, WHICH VIEWERS CAN OPEN. `fromWire`
                     // fails CLOSED to null and
                     // `allowsMutation()` answers false for null, so a corrupted or renamed role
                     // segment shows the viewer's two rows rather than all eight.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     WorkspaceSettingsScreen(
                         canMutate = role.allowsMutation(),
                         onOpenPersona = {
@@ -909,7 +906,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_DIRECTORY) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val viewModel: DirectoryEditorViewModel = viewModel(
                         // ⚠️ Keyed on the workspace, and here it is as load-bearing as on the
                         // capabilities screen: the draft is the array a save REPLACES, so a reused
@@ -940,7 +937,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_ROUTING) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val viewModel: RoutingRulesViewModel = viewModel(
                         key = "workspace-routing-$workspaceId",
                         factory = RoutingRulesViewModel.factory(
@@ -964,13 +961,13 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_KNOWLEDGE) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⛔ A REAL GATE. The two READS admit `viewer` and all three
                     // writes exclude one — the add buys an embedding run, the delete cascades
                     // chunks, and the mode switch is a data-residency change — so a viewer gets the
                     // document list and the mode with no affordance to change either.
                     // ⚠️ `fromWire` fails CLOSED, so a corrupted role offers no write.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: KnowledgeViewModel = viewModel(
                         // ⚠️ Keyed on the workspace AND the role: the role is a constructor
                         // argument, so an instance retained across a role change would keep the
@@ -1002,11 +999,11 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_MESSAGING) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⛔ A REAL GATE. The GET admits `viewer` and all five writes exclude one, so a
                     // viewer sees a read-only render with no controls.
                     // ⚠️ `fromWire` fails CLOSED, so a corrupted role offers no control.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: MessagingViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: an unkeyed instance would show the previous
                         // tenant's sending identities under this one's name until the reload
@@ -1048,11 +1045,11 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_MEMBERS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⛔ THE ROLE IS A REAL GATE HERE, AND IT GATES TWO THINGS AT DIFFERENT
                     // WIDTHS: membership writes are agency-only, the rename admits client too.
                     // `fromWire` fails closed to null, so a corrupted segment offers neither.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: MembersViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: a roster is the one list where showing the
                         // previous tenant's rows under this tenant's name would invite an operator
@@ -1088,11 +1085,11 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_CALLS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     // ⛔ A REAL GATE, AND A PARTIAL ONE. Both reads admit `viewer` and both PATCHes
                     // exclude one, so the screen renders for every role and withholds the controls.
                     // ⚠️ `fromWire` fails CLOSED, so a corrupted role offers no write.
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: CallHandlingViewModel = viewModel(
                         // ⚠️ Keyed on the workspace AND the role: the role is a constructor
                         // argument, so an instance retained across a role change would keep the
@@ -1120,7 +1117,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_PERSONA) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val viewModel: PersonaFormViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: the draft and the loaded baseline both belong
                         // to ONE tenant, and an unkeyed instance would carry a half-typed greeting
@@ -1163,7 +1160,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_CAPABILITIES) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val viewModel: CapabilitiesViewModel = viewModel(
                         // ⚠️ Keyed on the workspace, and here it is stronger than a nicety: the
                         // cached baseline is the array a save REPLACES, so a reused instance could
@@ -1190,9 +1187,9 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.CONTACT_DETAIL) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val contactId = entry.arguments?.getString(ARG_CONTACT_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val contactId = entry.pathArgument(ARG_CONTACT_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: ContactDetailViewModel = viewModel(
                         key = "contact-detail-$workspaceId-$contactId",
                         factory = ContactDetailViewModel.factory(
@@ -1228,8 +1225,8 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.CALL_DETAIL) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val callId = entry.arguments?.getString(ARG_CALL_ID).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val callId = entry.pathArgument(ARG_CALL_ID)
                     val viewModel: CallDetailViewModel = viewModel(
                         key = "call-detail-$workspaceId-$callId",
                         factory = CallDetailViewModel.factory(
@@ -1272,8 +1269,8 @@ fun DistrictNavHost(
                 // Inbox and HQ, but it gates the whole destination rather than one control, and
                 // `fromWire` fails CLOSED: a corrupted segment shows the refusal, never the queue.
                 composable(Routes.DESK) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: DeskViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: the queue and the half-typed ticket belong to
                         // ONE tenant, and an unkeyed instance would carry one workspace's customer
@@ -1338,11 +1335,11 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.DESK_TICKET) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     // ⚠️ THE TICKET'S UUID, not its `T-n` display reference. The reference is per
                     // workspace and is a string the server formats; only the id addresses the route.
-                    val ticketId = entry.arguments?.getString(ARG_TICKET_ID).orEmpty()
+                    val ticketId = entry.pathArgument(ARG_TICKET_ID)
                     val viewModel: DeskTicketViewModel = viewModel(
                         key = "desk-ticket-$workspaceId-$ticketId",
                         factory = DeskTicketViewModel.factory(
@@ -1372,8 +1369,8 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.DESK_SETTINGS) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: DeskSettingsViewModel = viewModel(
                         key = "desk-settings-$workspaceId",
                         factory = DeskSettingsViewModel.factory(
@@ -1416,8 +1413,8 @@ fun DistrictNavHost(
 
                 // ══ Support (this workspace's requests with Distronode) ════════════════════
                 composable(Routes.SUPPORT) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: SupportViewModel = viewModel(
                         // ⚠️ Keyed on the workspace. It also holds the draft's IDEMPOTENCY KEY,
                         // which must not follow the operator into another tenant — a key reused
@@ -1491,9 +1488,9 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.SUPPORT_REQUEST) { entry ->
-                    val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
-                    val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
-                    val requestKey = entry.arguments?.getString(ARG_REQUEST_KEY).orEmpty()
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
+                    val requestKey = entry.pathArgument(ARG_REQUEST_KEY)
                     val viewModel: SupportRequestViewModel = viewModel(
                         key = "support-request-$workspaceId-$requestKey",
                         factory = SupportRequestViewModel.factory(
@@ -1536,7 +1533,10 @@ fun DistrictNavHost(
             }
         }
 
-        if (showNavBar) {
+        // ⚠️ And only once a workspace has resolved: before that the two workspace-scoped tabs have
+        // nowhere to go, and a tab that does nothing is worse than an absent one. Tested inline so
+        // the id is smart-cast inside: the tabs below cannot be built without one.
+        if (topLevel && workspaceId != null) {
             DistrictNavBar {
                 DistrictNavItem(
                     label = stringResource(R.string.nav_overview),
@@ -1544,29 +1544,26 @@ fun DistrictNavHost(
                     description = NAV_OVERVIEW_DESCRIPTION,
                     onClick = { navController.navigateTopLevel(Routes.OVERVIEW) },
                 )
-                // ⚠️ `orEmpty()` rather than `!!`: showNavBar already gates on a non-null id, and an
-                // assertion here would turn a state-ordering mistake into a crash on the navigation
-                // bar — the one control that must never be the thing that kills the app.
                 DistrictNavItem(
                     label = stringResource(R.string.nav_inbox),
                     selected = route == Routes.INBOX,
                     description = NAV_INBOX_DESCRIPTION,
                     onClick = {
-                        navController.navigateTopLevel(Routes.inbox(workspaceId.orEmpty(), role))
+                        navController.navigateTopLevel(Routes.inbox(workspaceId, role))
                     },
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_calls),
                     selected = route == Routes.CALL_LOG,
                     description = NAV_CALLS_DESCRIPTION,
-                    onClick = { navController.navigateTopLevel(Routes.callLog(workspaceId.orEmpty())) },
+                    onClick = { navController.navigateTopLevel(Routes.callLog(workspaceId)) },
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_contacts),
                     selected = route == Routes.CONTACTS,
                     description = NAV_CONTACTS_DESCRIPTION,
                     onClick = {
-                        navController.navigateTopLevel(Routes.contacts(workspaceId.orEmpty(), role))
+                        navController.navigateTopLevel(Routes.contacts(workspaceId, role))
                     },
                 )
                 DistrictNavItem(
@@ -1700,10 +1697,10 @@ private fun NavGraphBuilder.roomsLobbyDestination(
     sessionEpoch: Int,
 ) {
     composable(Routes.ROOMS) { entry ->
-        val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+        val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
         // ⚠️ Not a gate on this screen — all three roles may read meetings. It is
         // carried so the room it launches has one. See the ⚠️ on Routes.ROOMS.
-        val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+        val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
         val viewModel: RoomsLobbyViewModel = viewModel(
             // ⚠️ Keyed on the workspace: an unkeyed instance would show the previous
             // tenant's meeting minutes under the new tenant's name until the reload
@@ -1771,8 +1768,8 @@ private fun NavGraphBuilder.activeRoomDestination(
         //
         // ⚠️ The role IS parsed, through fromWire, which fails CLOSED to null — so a corrupted
         // role publishes nothing rather than defaulting to a permissive one.
-        val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
-        val roomName = entry.arguments?.getString(ARG_ROOM_NAME).orEmpty()
+        val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
+        val roomName = entry.pathArgument(ARG_ROOM_NAME)
         val viewModel: ActiveRoomViewModel = viewModel(
             // ⛔ KEYED ON THE ROOM, NOT THE WORKSPACE. An unkeyed or workspace-keyed
             // instance would hand a second room the FIRST room's engine, which is
@@ -1858,9 +1855,9 @@ private fun NavGraphBuilder.dialerDestination(
     sessionEpoch: Int,
 ) {
     composable(Routes.DIALER) { entry ->
-        val workspaceId = entry.arguments?.getString(ARG_WORKSPACE_ID).orEmpty()
+        val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
         // ⚠️ Parsed through fromWire, which fails CLOSED to null — so a corrupted role cannot dial.
-        val role = WorkspaceRole.fromWire(entry.arguments?.getString(ARG_ROLE))
+        val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
         val viewModel: DialerViewModel = viewModel(
             // ⚠️ Keyed on the workspace: the call-back list and the number that would be dialled
             // both belong to one tenant, and an unkeyed instance would offer the previous

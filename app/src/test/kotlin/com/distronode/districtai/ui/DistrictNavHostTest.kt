@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.AppContainer
+import com.distronode.districtai.AppContainerSeams
 import com.distronode.districtai.core.auth.PersistedSession
 import com.distronode.districtai.core.auth.RevokeApi
 import com.distronode.districtai.core.auth.RevokeResult
@@ -166,10 +167,12 @@ class DistrictNavHostTest {
     fun setUp() {
         container = AppContainer(
             ApplicationProvider.getApplicationContext(),
-            tokenStore = SignedOutTokenStore(heldReads),
-            revokeApi = NoRevokeApi(),
-            pushApi = FakeInboundPushApi(),
-            pushTokenSource = { null },
+            seams = AppContainerSeams(
+                tokenStore = SignedOutTokenStore(heldReads),
+                revokeApi = NoRevokeApi(),
+                pushApi = FakeInboundPushApi(),
+                pushTokenSource = { null },
+            ),
         )
         overviewViewModel = OverviewViewModel(container.workspaceRepository, container.overviewRepository)
     }

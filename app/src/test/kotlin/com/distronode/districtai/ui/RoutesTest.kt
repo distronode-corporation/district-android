@@ -271,6 +271,34 @@ class RoutesTest {
     }
 
     @Test
+    fun `a null role fails closed on the contacts, HQ and billing routes too`() {
+        // ⚠️ The same placeholder as the inbox, on the three builders whose null case nothing
+        // else exercises. Each is a destination whose role decides a control.
+        listOf(
+            Routes.contacts("ws1", null),
+            Routes.contactDetail("ws1", "c1", null).substringBeforeLast("/"),
+            Routes.hq("ws1", null),
+            Routes.billing("ws1", null),
+        ).forEach { route -> assertTrue(route, route.endsWith("/none")) }
+    }
+
+    @Test
+    fun `a blank reply target or title is left out of a thread route rather than sent empty`() {
+        // ⛔ A BLANK `replyTo` MUST NOT BECOME A RECIPIENT. The destination drops blanks too, but the
+        // builder never writing one is what keeps a blank off the back stack in the first place.
+        val route = Routes.thread(
+            "ws1",
+            WorkspaceRole.CLIENT,
+            "contact:c1",
+            replyTo = " ",
+            replyChannel = "",
+            title = "  ",
+        )
+        assertFalse("no query string at all: $route", route.contains("?"))
+        assertEquals(Routes.thread("ws1", WorkspaceRole.CLIENT, "contact:c1"), route)
+    }
+
+    @Test
     fun `every role round-trips through the path`() {
         for (role in WorkspaceRole.entries) {
             val segment = Routes.inbox("ws1", role).substringAfterLast("/")

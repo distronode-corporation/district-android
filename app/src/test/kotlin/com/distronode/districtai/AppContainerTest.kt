@@ -73,8 +73,7 @@ class AppContainerTest {
             // so without these the graph-shape tests would POST to PRODUCTION and then sit on the
             // registrar's five-second bound, which is the same order of magnitude as this class's
             // own await timeout.
-            pushApi = RecordingPushApi(),
-            pushTokenSource = { null },
+            seams = AppContainerSeams(pushApi = RecordingPushApi(), pushTokenSource = { null }),
         )
 
     /**
@@ -94,16 +93,18 @@ class AppContainerTest {
     ) = AppContainer(
         ApplicationProvider.getApplicationContext(),
         appScope = scope,
-        tokenStore = store,
-        revokeApi = api,
-        // ⛔ A THIRD SEAM, FOR THE SAME REASON AS THE REVOKE ONE AND WITH A SHARPER EDGE: the push
-        // unregister is the FIRST thing `signOut` does, so an unstubbed one would spend the whole of
-        // this class's await budget on a request to production before the revoke under test was even
-        // attempted — and every assertion below would fail as a timeout rather than as a wrong order.
-        pushApi = push,
-        // ⚠️ Null token: nothing here exercises registration, and a source that answered one would
-        // make the graph-construction tests issue a register too.
-        pushTokenSource = { null },
+        seams = AppContainerSeams(
+            tokenStore = store,
+            revokeApi = api,
+            // ⛔ A THIRD SEAM, FOR THE SAME REASON AS THE REVOKE ONE AND WITH A SHARPER EDGE: the push
+            // unregister is the FIRST thing `signOut` does, so an unstubbed one would spend the whole of
+            // this class's await budget on a request to production before the revoke under test was even
+            // attempted, and every assertion below would fail as a timeout rather than as a wrong order.
+            pushApi = push,
+            // ⚠️ Null token: nothing here exercises registration, and a source that answered one would
+            // make the graph-construction tests issue a register too.
+            pushTokenSource = { null },
+        ),
     )
 
     /**

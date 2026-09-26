@@ -154,7 +154,7 @@ class CallForegroundServiceTest {
             override fun getApplicationContext(): Context = this
 
             override fun startForegroundService(service: Intent?): ComponentName =
-                throw IllegalStateException("ForegroundServiceStartNotAllowedException")
+                error("ForegroundServiceStartNotAllowedException")
 
             override fun stopService(name: Intent?): Boolean = throw SecurityException("not ours")
         }

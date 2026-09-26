@@ -87,17 +87,17 @@ private fun DossierStatus(contact: Contact) {
         contact.dgiError != null -> LabelledCard(
             label = stringResource(R.string.contact_detail_dossier),
             value = stringResource(R.string.contact_detail_dossier_failed, contact.dgiError!!),
-            description = CONTACT_DETAIL_DOSSIER_FAILED_DESCRIPTION,
+            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_FAILED_DESCRIPTION },
         )
         contact.intelligence == null -> LabelledCard(
             label = stringResource(R.string.contact_detail_dossier),
             value = stringResource(R.string.contact_detail_dossier_none),
-            description = CONTACT_DETAIL_DOSSIER_DESCRIPTION,
+            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_DESCRIPTION },
         )
         else -> LabelledCard(
             label = stringResource(R.string.contact_detail_dossier),
             value = stringResource(R.string.contact_detail_dossier_ready),
-            description = CONTACT_DETAIL_DOSSIER_DESCRIPTION,
+            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_DESCRIPTION },
         )
     }
 }
@@ -115,11 +115,11 @@ private fun CompanyCard(contact: Contact) {
     val company = contact.company ?: return
     val children = listOfNotNull(
         company.name?.takeIf { it.isNotBlank() }
-            ?.let { DossierField(stringResource(R.string.contact_detail_company_name), it) },
+            ?.let { DossierEntry(stringResource(R.string.contact_detail_company_name), it) },
         company.domain?.takeIf { it.isNotBlank() }
-            ?.let { DossierField(stringResource(R.string.contact_detail_company_domain), it) },
+            ?.let { DossierEntry(stringResource(R.string.contact_detail_company_domain), it) },
         company.industry?.takeIf { it.isNotBlank() }
-            ?.let { DossierField(stringResource(R.string.contact_detail_company_industry), it) },
+            ?.let { DossierEntry(stringResource(R.string.contact_detail_company_industry), it) },
     )
     // Every field empty is the same as no company at all — the column is `Json?` and an empty
     // object is a shape the pipeline genuinely writes.
@@ -130,22 +130,15 @@ private fun CompanyCard(contact: Contact) {
             label = stringResource(R.string.contact_detail_company),
             children = children,
         ),
-        description = CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION,
+        modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION },
     )
 }
 
 /** One dossier row: a scalar, a joined list, a heading with children, or raw JSON. */
 @Composable
-private fun DossierFieldCard(field: DossierField, description: String? = null) {
+private fun DossierFieldCard(field: DossierField, modifier: Modifier = Modifier) {
     DistrictCard {
-        Column(
-            modifier = Modifier
-                .padding(DistrictTheme.spacing.gutter)
-                .then(
-                    description?.let { Modifier.semantics { contentDescription = it } }
-                        ?: Modifier,
-                ),
-        ) {
+        Column(modifier = modifier.padding(DistrictTheme.spacing.gutter)) {
             Text(text = field.label, style = MaterialTheme.typography.labelSmall)
             field.value?.let {
                 Text(
@@ -183,16 +176,14 @@ private fun DossierFieldCard(field: DossierField, description: String? = null) {
 
 /** ⚠️ One level deep only — see [dossierFields]. A grandchild arrives already flattened to JSON. */
 @Composable
-private fun DossierChildRow(child: DossierField) {
+private fun DossierChildRow(child: DossierEntry) {
     Column(modifier = Modifier.padding(top = DistrictTheme.spacing.tight)) {
         Text(text = child.label, style = MaterialTheme.typography.labelSmall)
-        child.value?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.foreground,
-            )
-        }
+        Text(
+            text = child.value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = DistrictTheme.colors.foreground,
+        )
     }
 }
 
@@ -279,17 +270,10 @@ internal fun ClearIntelDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
  * ceiling; it is still used by the contact's own attributes.
  */
 @Composable
-internal fun LabelledCard(label: String, value: String, description: String? = null) {
+internal fun LabelledCard(label: String, value: String, modifier: Modifier = Modifier) {
     if (value.isBlank()) return
     DistrictCard {
-        Column(
-            modifier = Modifier
-                .padding(DistrictTheme.spacing.gutter)
-                .then(
-                    description?.let { Modifier.semantics { contentDescription = it } }
-                        ?: Modifier,
-                ),
-        ) {
+        Column(modifier = modifier.padding(DistrictTheme.spacing.gutter)) {
             Text(text = label, style = MaterialTheme.typography.labelSmall)
             Text(
                 text = value,

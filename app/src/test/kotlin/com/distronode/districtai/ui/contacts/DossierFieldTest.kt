@@ -155,4 +155,37 @@ class DossierFieldTest {
 
         assertEquals(listOf("Zeta", "Alpha"), fields.map { it.label })
     }
+
+    @Test
+    fun `a list whose every entry is blank is dropped rather than rendered as an empty row`() {
+        val fields = dossierFields(obj("objections" to JsonArray(listOf(JsonPrimitive(""), JsonPrimitive("  ")))))
+
+        assertEquals(emptyList<DossierField>(), fields)
+    }
+
+    @Test
+    fun `under a heading, blanks and empty containers are dropped while a list is joined`() {
+        val fields = dossierFields(
+            obj(
+                "firmographics" to obj(
+                    "hq" to JsonPrimitive("  "),
+                    "offices" to JsonArray(listOf(JsonPrimitive("Toronto"), JsonPrimitive("Ottawa"))),
+                    "tags" to JsonArray(emptyList()),
+                    "parent" to obj(),
+                    "size" to JsonPrimitive("50-100"),
+                ),
+            ),
+        )
+
+        val children = fields.single().children
+        assertEquals(listOf("Offices", "Size"), children.map { it.label })
+        assertEquals("Toronto · Ottawa", children.first().value)
+    }
+
+    @Test
+    fun `a key made only of separators keeps its own spelling rather than becoming blank`() {
+        val fields = dossierFields(obj("__" to JsonPrimitive("x")))
+
+        assertEquals(listOf("__"), fields.map { it.label })
+    }
 }

@@ -51,11 +51,10 @@ fun ContactsScreen(
     canMutate: Boolean,
     onOpenContact: (String) -> Unit,
     onSignIn: () -> Unit,
-    createState: CreateContactUiState = CreateContactUiState.Idle,
-    onCreate: (name: String, phoneNumber: String, email: String) -> Unit = { _, _, _ -> },
-    onCreateHandled: () -> Unit = {},
-    onBack: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    createState: CreateContactUiState,
+    onCreate: (name: String, phoneNumber: String, email: String) -> Unit,
+    onCreateHandled: () -> Unit,
+    onBack: () -> Unit,
 ) {
     // ⛔ rememberSaveable, NOT remember. This is the only step in the app that holds user input, and
     // a plain `remember` meant a rotation — or a dark-mode toggle, or a font-size change — closed the
@@ -86,8 +85,9 @@ fun ContactsScreen(
         )
     }
 
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = CONTACTS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = CONTACTS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.contacts_title), onBack = onBack)
         },

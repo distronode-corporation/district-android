@@ -163,8 +163,10 @@ class ContactDetailViewModel(
             return
         }
         // Already watching this contact — a second collector would double the read rate and
-        // learn nothing the first one does not.
-        if (pollJob?.isActive == true) return
+        // learn nothing the first one does not. ⚠️ Non-null means RUNNING: both ways a poll ends
+        // (the flow completing, or the cancel above) clear the field, so there is no finished job
+        // left in it to ask about.
+        if (pollJob != null) return
 
         pollJob = viewModelScope.launch {
             repository.dossierUpdates(workspaceId, contactId).collect { result ->

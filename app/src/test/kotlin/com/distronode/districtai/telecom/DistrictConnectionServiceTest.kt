@@ -106,6 +106,18 @@ class DistrictConnectionServiceTest {
     }
 
     @Test
+    fun `a missing request or a blank number is refused the same way`() {
+        listOf(
+            service.onCreateOutgoingConnection(null, null),
+            service.onCreateOutgoingConnection(null, request(number = "  ")),
+        ).forEach { connection ->
+            assertEquals(Connection.STATE_DISCONNECTED, connection!!.state)
+            assertEquals(DisconnectCause.ERROR, connection.disconnectCause.code)
+        }
+        assertNull("nothing refused is published", DistrictCallRegistry.current())
+    }
+
+    @Test
     fun `the connection is published so the bridge can drive it`() {
         // ⛔ A PROCESS-SCOPED REGISTRY EXISTS BECAUSE THE API GIVES NO OTHER ANSWER: `placeCall`
         // returns void and the connection is constructed later, by the framework, on a different
@@ -172,6 +184,26 @@ class DistrictConnectionServiceTest {
         val second = service.onCreateOutgoingConnection(null, request("+14165550111")) as DistrictConnection
 
         assertEquals(Connection.STATE_DISCONNECTED, first.state)
+        assertSame(second, DistrictCallRegistry.current())
+    }
+
+    @Test
+    fun `adopting the connection already held does not disconnect it`() {
+        val connection = service.onCreateOutgoingConnection(null, request()) as DistrictConnection
+
+        DistrictCallRegistry.adopt(connection)
+
+        assertEquals(Connection.STATE_DIALING, connection.state)
+        assertSame(connection, DistrictCallRegistry.current())
+    }
+
+    @Test
+    fun `a late teardown of an old connection does not evict the newer call`() {
+        val first = service.onCreateOutgoingConnection(null, request()) as DistrictConnection
+        val second = service.onCreateOutgoingConnection(null, request("+14165550111")) as DistrictConnection
+
+        DistrictCallRegistry.release(first)
+
         assertSame(second, DistrictCallRegistry.current())
     }
 

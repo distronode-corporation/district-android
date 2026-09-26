@@ -30,7 +30,7 @@ package com.distronode.districtai.ui.analytics
  */
 fun normalizedHeights(values: List<Int>): List<Float> {
     if (values.isEmpty()) return emptyList()
-    val max = values.maxOf { it }.coerceAtLeast(0)
+    val max = values.max().coerceAtLeast(0)
     if (max == 0) return values.map { 0f }
     return values.map { it.coerceAtLeast(0).toFloat() / max.toFloat() }
 }
@@ -97,7 +97,9 @@ fun parseHexArgb(hex: String): Long? {
         RGB_LENGTH, ARGB_LENGTH -> digits
         else -> return null
     }
-    val value = expanded.toLongOrNull(HEX_RADIX) ?: return null
+    // ⚠️ `toLong`, not `toLongOrNull`: every character was checked as a hex digit above and there
+    // are at most eight of them, which always fits, so a null here could never happen.
+    val value = expanded.toLong(HEX_RADIX)
     return if (expanded.length == ARGB_LENGTH) value else value or OPAQUE_ALPHA
 }
 

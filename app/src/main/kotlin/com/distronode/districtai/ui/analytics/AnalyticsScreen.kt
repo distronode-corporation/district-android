@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.analytics
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -58,10 +59,10 @@ fun AnalyticsScreen(
     onSelectRange: (AnalyticsRange) -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
+    // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = ANALYTICS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = ANALYTICS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.analytics_title), onBack = onBack)
         },
@@ -158,7 +159,7 @@ private fun ContentState(
                 CardFailure(
                     title = stringResource(R.string.analytics_failed),
                     failure = analytics.failure,
-                    description = ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION },
                     onRetry = onRetry,
                 )
             }
@@ -170,7 +171,7 @@ private fun ContentState(
                 is UsageCardState.Failed -> CardFailure(
                     title = stringResource(R.string.analytics_usage_failed),
                     failure = usage.failure,
-                    description = ANALYTICS_USAGE_FAILURE_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = ANALYTICS_USAGE_FAILURE_DESCRIPTION },
                     onRetry = onRetry,
                 )
             }
@@ -185,7 +186,7 @@ private fun ContentState(
                 is UsageHistoryCardState.Failed -> CardFailure(
                     title = stringResource(R.string.analytics_history_failed),
                     failure = history.failure,
-                    description = ANALYTICS_HISTORY_FAILURE_DESCRIPTION,
+                    modifier = Modifier.semantics { contentDescription = ANALYTICS_HISTORY_FAILURE_DESCRIPTION },
                     onRetry = onRetry,
                 )
             }
@@ -211,21 +212,27 @@ private fun RangeChips(selected: AnalyticsRange, onSelectRange: (AnalyticsRange)
             .padding(horizontal = DistrictTheme.spacing.gutter),
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
-        RangeChip(AnalyticsRange.SEVEN_DAYS, selected, R.string.analytics_range_7d, onSelectRange)
-        RangeChip(AnalyticsRange.THIRTY_DAYS, selected, R.string.analytics_range_30d, onSelectRange)
-        RangeChip(AnalyticsRange.NINETY_DAYS, selected, R.string.analytics_range_90d, onSelectRange)
+        // ⚠️ EVERY WINDOW THE MODEL DEFINES, IN ITS DECLARED ORDER, so a new window cannot ship
+        // without a chip; [rangeLabel] is exhaustive and makes it name its label.
+        AnalyticsRange.entries.forEach { range -> RangeChip(range, selected, onSelectRange) }
     }
+}
+
+@StringRes
+private fun rangeLabel(range: AnalyticsRange): Int = when (range) {
+    AnalyticsRange.SEVEN_DAYS -> R.string.analytics_range_7d
+    AnalyticsRange.THIRTY_DAYS -> R.string.analytics_range_30d
+    AnalyticsRange.NINETY_DAYS -> R.string.analytics_range_90d
 }
 
 @Composable
 private fun RangeChip(
     range: AnalyticsRange,
     selected: AnalyticsRange,
-    labelRes: Int,
     onSelectRange: (AnalyticsRange) -> Unit,
 ) {
     DistrictButton(
-        text = stringResource(labelRes),
+        text = stringResource(rangeLabel(range)),
         onClick = { onSelectRange(range) },
         variant = if (range == selected) ButtonVariant.Primary else ButtonVariant.Secondary,
         size = ButtonSize.Sm,
@@ -250,18 +257,20 @@ private fun AnalyticsSections(report: AnalyticsResponse) {
  *
  * ⚠️ A CARD, NOT A WHOLE-SCREEN STATE. The other half of this screen may have loaded fine, and
  * replacing everything with one message would discard a correct answer already on screen.
+ *
+ * ⚠️ Each caller hands in its own test handle as a finished [modifier] rather than as a string: the
+ * three handles are compile-time constants, and a string parameter made the handle's lambda
+ * re-key on a change that no caller could ever make.
  */
 @Composable
 private fun CardFailure(
     title: String,
     failure: FailureText,
-    description: String,
     onRetry: () -> Unit,
+    modifier: Modifier,
 ) {
     DistrictCard(
-        modifier = Modifier
-            .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = description },
+        modifier = modifier.padding(horizontal = DistrictTheme.spacing.gutter),
     ) {
         Eyebrow(title)
         Text(

@@ -1438,13 +1438,17 @@ fun DistrictNavHost(
                     // and a human will see it; only the reference to quote is missing. Showing it
                     // as an error is what makes people send the same request twice.
                     submitted?.let { outcome ->
-                        val message = when (outcome.outcome) {
-                            SupportSubmitOutcome.FILED ->
-                                stringResource(R.string.support_filed, outcome.issueKey.orEmpty())
-                            SupportSubmitOutcome.DEDUPLICATED ->
-                                stringResource(R.string.support_duplicate)
-                            SupportSubmitOutcome.PENDING -> stringResource(R.string.support_pending)
+                        // ⚠️ THE RESOURCE IS CHOSEN FIRST AND RESOLVED ONCE. Only FILED carries an
+                        // issue key and it always does (see SupportSubmitted), so the key list is
+                        // empty for the other two and their strings take no argument. Resolving
+                        // inside each arm needed an `orEmpty()` for a null FILED key that cannot
+                        // occur.
+                        val messageRes = when (outcome.outcome) {
+                            SupportSubmitOutcome.FILED -> R.string.support_filed
+                            SupportSubmitOutcome.DEDUPLICATED -> R.string.support_duplicate
+                            SupportSubmitOutcome.PENDING -> R.string.support_pending
                         }
+                        val message = stringResource(messageRes, *listOfNotNull(outcome.issueKey).toTypedArray())
                         LaunchedEffect(outcome) {
                             composing = false
                             onShowMessage(message)

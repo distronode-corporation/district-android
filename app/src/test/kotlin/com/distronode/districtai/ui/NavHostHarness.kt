@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -125,7 +126,13 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
 
     lateinit var navController: NavHostController
 
-    fun render(ownController: Boolean = false) {
+    /**
+     * @param ownController let the host build its own controller, as the activity does.
+     * @param forwarded call the host from a composable that takes the state and the epoch as its own
+     *   parameters, as the activity's content does, so the host is handed the caller's own
+     *   changed flags rather than the "uncertain" a lambda passes.
+     */
+    fun render(ownController: Boolean = false, forwarded: Boolean = false) {
         composeRule.setContent {
             val base = LocalContext.current
             val context = remember { LaunchRecordingContext(base, this) }
@@ -134,7 +141,18 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
                 LocalActivityResultRegistryOwner provides registry.owner,
             ) {
                 DistrictTheme {
-                    if (ownController) {
+                    if (forwarded) {
+                        val controller = rememberNavController()
+                        navController = controller
+                        ForwardingNavHost(
+                            container = container,
+                            overviewViewModel = overviewViewModel,
+                            overviewState = overviewState as OverviewUiState.Content,
+                            sessionEpoch = sessionEpoch,
+                            controller = controller,
+                            onShowMessage = { messages += it },
+                        )
+                    } else if (ownController) {
                         DistrictNavHost(
                             container = container,
                             overviewViewModel = overviewViewModel,
@@ -265,6 +283,33 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
                 showFinishSetup = showFinishSetup,
             )
     }
+}
+
+/**
+ * A caller that hands its own parameters on, the shape of the activity's content lambda.
+ *
+ * ⚠️ THE STATE IS TYPED AS THE CONCRETE `Content`, which Compose knows to be unstable (it holds
+ * lists), so the host is told so in its changed flags and compares the state by instance. A lambda
+ * caller passing the interface type never tells it that.
+ */
+@Composable
+private fun ForwardingNavHost(
+    container: AppContainer,
+    overviewViewModel: OverviewViewModel,
+    overviewState: OverviewUiState.Content,
+    sessionEpoch: Int,
+    controller: NavHostController,
+    onShowMessage: (String) -> Unit,
+) {
+    DistrictNavHost(
+        container = container,
+        overviewViewModel = overviewViewModel,
+        overviewState = overviewState,
+        sessionEpoch = sessionEpoch,
+        onSignIn = {},
+        onShowMessage = onShowMessage,
+        navController = controller,
+    )
 }
 
 /**

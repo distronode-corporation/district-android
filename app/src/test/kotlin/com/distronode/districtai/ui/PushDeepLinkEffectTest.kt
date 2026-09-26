@@ -34,8 +34,10 @@ import org.robolectric.annotation.Config
  * workspace is dropped rather than opened in the wrong one, and a resolved message lands on its
  * thread carrying the RESOLVER's reply target rather than anything derived from the thread key.
  *
- * The graph here declares the inbox and thread routes with the same templates and optional
- * arguments as `DistrictNavHost`, so navigating to a built route proves the two agree. The
+ * The graph here declares the inbox and thread routes with the same [Routes] templates as
+ * `DistrictNavHost`, so navigating to a built route proves the builders and the templates agree.
+ * Only the templates are shared: the argument declarations below are a COPY of the host's, so a
+ * change to the host's optional arguments is not caught here. The
  * repository is the real one over [TestInboxExtrasApi], which answers without a dispatcher hop,
  * so every step completes on the compose clock and nothing waits on wall time.
  */

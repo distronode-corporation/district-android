@@ -143,7 +143,12 @@ class InboxSearchScreenTest {
             InboxSearchState(
                 query = "refund",
                 hits = listOf(
-                    hit("m1").copy(kind = "email", subject = "Refund request #1042"),
+                    hit("m1").copy(
+                        kind = "email",
+                        key = "email:ada@example.com",
+                        counterpart = "ada@example.com",
+                        subject = "Refund request #1042",
+                    ),
                     hit("m2").copy(contactName = "Grace", body = "Refund please", subject = " "),
                 ),
             ),

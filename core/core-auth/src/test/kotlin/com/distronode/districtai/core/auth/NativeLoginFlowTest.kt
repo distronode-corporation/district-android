@@ -224,7 +224,7 @@ class NativeLoginFlowTest {
     }
 
     @Test
-    fun `an exchange that could not reach the server reports unreachable and stores nothing`() = runTest {
+    fun `a 5xx exchange reports unreachable and stores nothing`() = runTest {
         val state = stateFrom(flow.authorizeUrl())
         server.enqueue(MockResponse.Builder().code(502).body("<html>Bad Gateway</html>").build())
 

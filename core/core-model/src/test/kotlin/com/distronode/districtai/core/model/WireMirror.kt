@@ -40,7 +40,15 @@ internal object WireMirror {
         explicitNulls = true
     }
 
-    /** The production encoder's shape: defaults and nulls omitted. */
+    /**
+     * The production encoder's shape: defaults and nulls omitted.
+     *
+     * ⚠️ A COPY, BECAUSE THE ORIGINAL IS OUT OF REACH. `DistrictApiClient.DEFAULT_JSON` lives in
+     * :core:core-network, which depends on this module, so this test source set cannot name it
+     * without adding that module (and its locked dependency set) to this module's test classpath.
+     * `DefaultJsonShapeTest` in :core:core-network holds DEFAULT_JSON to this exact declaration;
+     * change the two together.
+     */
     val terse: Json = Json {
         encodeDefaults = false
         explicitNulls = false

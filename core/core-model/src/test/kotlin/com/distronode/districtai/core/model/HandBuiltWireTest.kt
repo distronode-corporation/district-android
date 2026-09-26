@@ -38,7 +38,7 @@ class HandBuiltWireTest {
             key = "+14165550142",
             threadKey = "contact:c1",
             counterpart = "+14165550142",
-            kind = "sms",
+            kind = "phone",
             contactId = "c1",
             contactName = "Ada Lovelace",
             contactEmail = "ada@example.com",
@@ -53,7 +53,7 @@ class HandBuiltWireTest {
             MessageSearchHit.serializer(),
             hit,
             """{"messageId":"msg-1","key":"+14165550142","threadKey":"contact:c1",""" +
-                """"counterpart":"+14165550142","kind":"sms","contactId":"c1","contactName":"Ada Lovelace",""" +
+                """"counterpart":"+14165550142","kind":"phone","contactId":"c1","contactName":"Ada Lovelace",""" +
                 """"contactEmail":"ada@example.com","body":"See you at noon","subject":"Lunch",""" +
                 """"direction":"inbound","type":"sms","createdAt":"2026-09-20T12:00:00.000Z"}""",
         )

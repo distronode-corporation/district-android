@@ -55,9 +55,11 @@ class NativeAuthApiAmbiguityTest {
     @Test
     fun `a code exchange that never reached a server is a transport failure, not a rejection`() = runTest {
         // A rejection tells the user their login failed; an unreachable server is a retry.
+        // The client is built first: it reads the server's URL, which is not asked of a closed server.
+        val api = api()
         server.close()
 
-        assertEquals(CodeExchangeResult.TransportFailure, api().exchangeCode(request))
+        assertEquals(CodeExchangeResult.TransportFailure, api.exchangeCode(request))
     }
 
     @Test

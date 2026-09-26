@@ -90,9 +90,12 @@ class BodyReadFailureTest {
 
     @Test
     fun `an error body that throws a runtime fault still reports its status and the fault's type`() = runTest {
-        // A body already consumed, or a read on the wrong thread, throws a RuntimeException rather
-        // than an IOException. Neither invalidates the status code, so the 503 is still reported,
-        // and the exception's type is carried in the message because HttpFailure has no cause.
+        // Production wiring cannot currently produce this: the client reads each body once, on the
+        // IO dispatcher. A body already consumed, or a read on the main thread, would throw a
+        // RuntimeException rather than an IOException, and the client guards against that anyway
+        // so a future caller cannot turn it into a crash; this holds that guard. Such a fault does
+        // not invalidate the status code, so the 503 is still reported, and the exception's type
+        // is carried in the message because HttpFailure has no cause.
         server.enqueue(MockResponse(code = 503, body = """{"success":false,"error":"busy"}"""))
 
         val result = clientFailingBodiesWith(IllegalStateException("closed"))

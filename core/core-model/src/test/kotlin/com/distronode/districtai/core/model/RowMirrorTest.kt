@@ -7,12 +7,12 @@ import org.junit.Test
 /**
  * Every row type, read on its own from the exact bytes a response nests it in.
  *
- * WHY THE ROW'S OWN SERIALIZER. [ResponseMirrorTest] reaches these types only through their
- * parents, whose generated code calls the row serializer's instance directly. A row type's public
- * `serializer()` is a separate entry point, used by any caller that decodes one row by itself (the
- * scheduling-admin RPC is generic over exactly that), and a parent-only check would never notice
- * that entry point disagreeing with the nested shape. Each row here must decode standalone, strictly,
- * from its subtree, and both of its encodings must mirror that subtree.
+ * WHAT THIS ADDS. A row type's public `serializer()` returns the same generated `$serializer` its
+ * parent's generated code calls, so reading a row on its own exercises no separate code path. What
+ * these checks add is MIRRORING for rows in fixtures [ResponseMirrorTest] does not cover: each row
+ * here must decode strictly from the exact subtree a response nests it in, and both of its
+ * encodings must mirror that subtree, key for key. Where [ResponseMirrorTest] already mirrors the
+ * parent fixture, the row line repeats that subtree and adds only a failure that names the row.
  *
  * ONE LINE PER ROW TYPE, grouped by surface, and every path is asserted to lead to an object.
  */

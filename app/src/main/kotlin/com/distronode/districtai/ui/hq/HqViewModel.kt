@@ -55,15 +55,6 @@ class HqViewModel(
     val state: StateFlow<HqUiState> = _state.asStateFlow()
 
     /**
-     * The prompt whose turn has not been answered yet.
-     *
-     * ⚠️ Held so a failed turn can be re-sent WITHOUT re-appending the operator's message — the
-     * message is already in the transcript, and a retry that appended it again would show the
-     * question twice and then send it as its own history.
-     */
-    private var unansweredPrompt: String? = null
-
-    /**
      * Ask a question, or ask for a change.
      *
      * ⛔ REFUSED WHILE A TURN IS IN FLIGHT. Every prompt runs a Gemini function-calling loop against
@@ -79,7 +70,6 @@ class HqViewModel(
         if (text.isEmpty() || inFlight()) return
 
         _messages.value += HqMessage(HqRole.OPERATOR, UiText.Literal(text))
-        unansweredPrompt = text
         sendPrompt(text)
     }
 
@@ -90,8 +80,8 @@ class HqViewModel(
      * duplicate a turn that already succeeded.
      */
     fun retry() {
-        if (_state.value !is HqUiState.Failed) return
-        sendPrompt(unansweredPrompt ?: return)
+        val failed = _state.value as? HqUiState.Failed ?: return
+        sendPrompt(failed.prompt)
     }
 
     /**
@@ -118,7 +108,6 @@ class HqViewModel(
         viewModelScope.launch {
             when (val result = repository.ask(workspaceId, text, history())) {
                 is ApiResult.Success -> {
-                    unansweredPrompt = null
                     _messages.value += HqMessage(HqRole.CONSOLE, UiText.Literal(result.value.answer))
                     _state.value = result.value.pendingWrite
                         ?.let { HqUiState.Confirming(it) }
@@ -126,7 +115,7 @@ class HqViewModel(
                 }
                 // ⛔ The transcript is untouched, including the operator's unanswered message. See
                 // the ⛔ on the class.
-                is ApiResult.Failure -> _state.value = HqUiState.Failed(result.toFailureText())
+                is ApiResult.Failure -> _state.value = HqUiState.Failed(result.toFailureText(), text)
             }
         }
     }
@@ -134,18 +123,20 @@ class HqViewModel(
     /**
      * The turns to replay, oldest first.
      *
-     * ⛔ EXCLUDES A TRAILING OPERATOR MESSAGE, because that message IS the prompt being sent. The
+     * ⛔ EXCLUDES THE TRAILING OPERATOR MESSAGE, because that message IS the prompt being sent. The
      * route appends `prompt` to whatever `history` contains, so leaving it in would send the
      * question twice in one request — once as context and once as the ask — and the model answers
      * the duplicate as though the operator had repeated themselves.
+     *
+     * ⚠️ The last message is ALWAYS that prompt, so it is dropped unconditionally: [ask] appends it
+     * just before sending, and a failed turn leaves it last for [retry] (nothing else can append
+     * while the state is `Failed`).
      *
      * ⚠️ Sent whole otherwise. The server keeps the last 6 turns; trimming here as well would be two
      * places deciding the same thing.
      */
     private fun history(): List<HqTurn> {
-        val all = _messages.value
-        val turns = if (all.lastOrNull()?.role == HqRole.OPERATOR) all.dropLast(1) else all
-        return turns.mapNotNull { message ->
+        return _messages.value.dropLast(1).mapNotNull { message ->
             // Client-authored notes (the "applied" receipt) are UiText.Resource and have no wire
             // text. They are OUR bookkeeping, not something either party said, so they are not
             // replayed as conversation.
@@ -268,8 +259,15 @@ sealed interface HqUiState {
     /** The approved write is executing. */
     data class Applying(val pending: HqPendingWrite) : HqUiState
 
-    /** A prompt turn failed. The transcript is intact; [HqViewModel.retry] re-sends it. */
-    data class Failed(val failure: FailureText) : HqUiState
+    /**
+     * A prompt turn failed. The transcript is intact; [HqViewModel.retry] re-sends it.
+     *
+     * @param prompt the unanswered prompt. ⚠️ Held HERE rather than beside the state so a failed turn
+     *   can never be without one: a retry re-sends it WITHOUT re-appending the operator's message,
+     *   which is already in the transcript (appending it again would show the question twice and
+     *   then send it as its own history).
+     */
+    data class Failed(val failure: FailureText, val prompt: String) : HqUiState
 
     /**
      * A confirm failed.

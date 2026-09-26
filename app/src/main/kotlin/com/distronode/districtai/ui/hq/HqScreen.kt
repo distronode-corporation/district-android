@@ -64,10 +64,9 @@ fun HqScreen(
     onDismiss: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = HQ_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = HQ_ROOT_DESCRIPTION },
         topBar = { DistrictTopBar(title = stringResource(R.string.hq_title), onBack = onBack) },
     ) { inset ->
         Column(modifier = inset.fillMaxSize()) {

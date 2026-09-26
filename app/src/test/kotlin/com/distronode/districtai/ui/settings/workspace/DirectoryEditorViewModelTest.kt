@@ -377,4 +377,60 @@ class DirectoryEditorViewModelTest {
         assertNull(vm.state.value.draft)
         assertEquals("Ops desk", vm.state.value.entries[0].value(DirectoryField.NAME))
     }
+
+    @Test
+    fun `nothing can change the list while a save is in flight`() = runTest {
+        // ⛔ THE ARRAY ON THE WIRE IS THE ONE THE OPERATOR CONFIRMED. An add, an edit or a removal
+        // landing between the tap and the answer would leave the screen showing a list the server
+        // never received, and the re-read would then quietly throw it away.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.edit(0, DirectoryField.NAME, "Ops (day)")
+        vm.editNewEntry(DirectoryField.NAME, "Front desk")
+        vm.editNewEntry(DirectoryField.PHONE_NUMBER, "+14165550100")
+        vm.save()
+        vm.addEntry()
+        vm.edit(1, DirectoryField.NAME, "late edit")
+        vm.remove(0)
+
+        assertEquals(SaveState.Saving, vm.state.value.save)
+        assertEquals(2, vm.state.value.entries.size)
+        assertEquals("Ops (day)", vm.state.value.entries[0].value(DirectoryField.NAME))
+        assertEquals("On-call engineer", vm.state.value.entries[1].value(DirectoryField.NAME))
+        assertEquals("the pending row is not consumed", "Front desk", vm.state.value.newName)
+        advanceUntilIdle()
+
+        val sent = api.directoryPatches.single().callDirectory
+        assertEquals(2, sent.size)
+        assertEquals(JsonPrimitive("Ops (day)"), (sent[0] as JsonObject)["name"])
+    }
+
+    @Test
+    fun `removing a row that does not exist changes nothing`() = runTest {
+        // ⚠️ Both ends of the range: a stale index from a recomposition must not become a deletion
+        // of some other row, and must not make an untouched list dirty.
+        val vm = viewModel(api())
+        advanceUntilIdle()
+
+        vm.remove(-1)
+        vm.remove(2)
+
+        assertNull(vm.state.value.draft)
+        assertEquals(2, vm.state.value.entries.size)
+        assertFalse(vm.state.value.hasUnsavedChanges)
+    }
+
+    @Test
+    fun `the factory builds a ViewModel that reads the workspace it was given`() = runTest {
+        val api = api()
+        val vm = DirectoryEditorViewModel
+            .factory(WorkspaceConfigRepository(api), "ws-1")
+            .create(DirectoryEditorViewModel::class.java)
+        advanceUntilIdle()
+
+        assertEquals(listOf("ws-1"), api.configRequests)
+        assertEquals("Ops desk", vm.state.value.entries[0].value(DirectoryField.NAME))
+    }
 }

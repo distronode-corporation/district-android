@@ -92,14 +92,14 @@ class CapabilitiesViewModel(
      * Replace the allowlist.
      *
      * ⛔ SENDS `pendingTools`, WHICH IS THE LOADED LIST WITH THE TOGGLES APPLIED. Not the catalog,
-     * not the enabled rows rebuilt from scratch. The `?: return` is the last line of defence
-     * behind [CapabilitiesUiState.canSaveTools]: with no loaded config there is no list, and with
-     * no list there is nothing that may be sent to a route that replaces the stored one.
+     * not the enabled rows rebuilt from scratch. The list is taken FIRST and the gate applied to
+     * it: with no loaded config there is no list, and with no list there is nothing that may be
+     * sent to a route that replaces the stored one, whatever [CapabilitiesUiState.canSaveTools]
+     * says.
      */
     fun saveTools() {
         val current = _state.value
-        if (!current.canSaveTools) return
-        val tools = current.pendingTools ?: return
+        val tools = current.pendingTools?.takeIf { current.canSaveTools } ?: return
 
         _state.value = current.copy(toolsSave = SaveState.Saving)
         viewModelScope.launch {
@@ -119,8 +119,8 @@ class CapabilitiesViewModel(
      */
     fun saveEnrichment() {
         val current = _state.value
-        if (!current.canSaveEnrichment) return
-        val enabled = current.enrichmentDraft ?: return
+        // ⚠️ The draft is taken first: only an explicit toggle may put a boolean on the wire.
+        val enabled = current.enrichmentDraft?.takeIf { current.canSaveEnrichment } ?: return
 
         _state.value = current.copy(enrichmentSave = SaveState.Saving)
         viewModelScope.launch {

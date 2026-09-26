@@ -256,4 +256,60 @@ class RoutingRulesViewModelTest {
         assertEquals("Kore", vm.state.value.rules[1].value(RoutingRuleField.VOICE))
         assertTrue(vm.state.value.canSave)
     }
+
+    @Test
+    fun `nothing can change the rules while a save is in flight`() = runTest {
+        // ⛔ THE ARRAY ON THE WIRE IS THE ONE THE OPERATOR CONFIRMED. See the directory editor's
+        // test of the same name: a change landing mid-save would be shown and then thrown away.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.edit(1, RoutingRuleField.VOICE, "Kore")
+        vm.save()
+        vm.addRule()
+        vm.edit(0, RoutingRuleField.VOICE, "Charon")
+        vm.remove(0)
+
+        assertEquals(SaveState.Saving, vm.state.value.save)
+        assertEquals(2, vm.state.value.rules.size)
+        assertEquals("", vm.state.value.rules[0].value(RoutingRuleField.VOICE))
+        advanceUntilIdle()
+
+        val sent = api.routingPatches.single().routingRules
+        assertEquals(2, sent.size)
+        assertEquals(JsonPrimitive("Kore"), (sent[1] as JsonObject)["voice"])
+    }
+
+    @Test
+    fun `removing a rule that does not exist changes nothing`() = runTest {
+        val vm = viewModel(api())
+        advanceUntilIdle()
+
+        vm.remove(-1)
+        vm.remove(2)
+
+        assertNull(vm.state.value.draft)
+        assertEquals(2, vm.state.value.rules.size)
+        assertFalse(vm.state.value.hasUnsavedChanges)
+    }
+
+    @Test
+    fun `the factory builds a ViewModel whose new rules get fresh random ids`() = runTest {
+        // ⚠️ THE PRODUCTION DEFAULT, which mirrors the web builder's `crypto.randomUUID()`: two
+        // added rules must never share an id, or the builder could not tell them apart.
+        val api = api()
+        val vm = RoutingRulesViewModel
+            .factory(WorkspaceConfigRepository(api), "ws-1")
+            .create(RoutingRulesViewModel::class.java)
+        advanceUntilIdle()
+
+        vm.addRule()
+        vm.addRule()
+
+        assertEquals(listOf("ws-1"), api.configRequests)
+        val ids = vm.state.value.rules.drop(2).map { it.id }
+        assertEquals(2, ids.toSet().size)
+        ids.forEach { id -> java.util.UUID.fromString(id) }
+    }
 }

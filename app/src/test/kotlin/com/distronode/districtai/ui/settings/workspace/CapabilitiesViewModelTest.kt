@@ -346,4 +346,82 @@ class CapabilitiesViewModelTest {
         assertEquals(SaveState.Idle, vm.state.value.toolsSave)
         assertEquals(SaveState.Idle, vm.state.value.enrichmentSave)
     }
+
+    @Test
+    fun `an enrichment flip before the read lands is dropped`() = runTest {
+        // ⛔ NO BASELINE, NO DRAFT. Only an explicit toggle against a KNOWN stored value may put a
+        // boolean on the wire.
+        val api = api()
+        val vm = viewModel(api)
+
+        vm.toggleEnrichment(true)
+        vm.saveEnrichment()
+        advanceUntilIdle()
+
+        assertNull(vm.state.value.enrichmentDraft)
+        assertTrue(api.personaPatches.isEmpty())
+    }
+
+    @Test
+    fun `an enrichment switch flipped and flipped back saves nothing`() = runTest {
+        // ⚠️ A draft that agrees with what is stored is not a change, so the button refuses it even
+        // though a boolean is sitting in the draft.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.toggleEnrichment(true)
+        vm.toggleEnrichment(false)
+        vm.saveEnrichment()
+        advanceUntilIdle()
+
+        assertEquals(false, vm.state.value.enrichmentDraft)
+        assertTrue(api.personaPatches.isEmpty())
+    }
+
+    @Test
+    fun `an enrichment write that landed but could not be re-read reports SavedButStale`() =
+        runTest {
+            // ⛔ NOT A FAILURE. The draft is cleared because the write landed, and the banner says
+            // the screen cannot vouch for what is stored rather than inviting a second save.
+            val api = api()
+            val vm = viewModel(api)
+            advanceUntilIdle()
+
+            vm.toggleEnrichment(true)
+            api.workspaceConfigResult = ApiResult.NetworkFailure(IOException("offline"))
+            vm.saveEnrichment()
+            advanceUntilIdle()
+
+            assertTrue(vm.state.value.enrichmentSave is SaveState.SavedButStale)
+            assertNull(vm.state.value.enrichmentDraft)
+            assertEquals(true, api.personaPatches.single().dgiEnabled)
+        }
+
+    @Test
+    fun `the factory builds a ViewModel that reads the workspace it was given`() = runTest {
+        val api = api()
+        val vm = CapabilitiesViewModel
+            .factory(WorkspaceConfigRepository(api), "ws-1")
+            .create(CapabilitiesViewModel::class.java)
+        advanceUntilIdle()
+
+        assertEquals(listOf("ws-1"), api.configRequests)
+        assertTrue(vm.state.value.load is ConfigState.Ready)
+    }
+
+    @Test
+    fun `saving an untouched allowlist sends nothing`() = runTest {
+        // ⚠️ HARMLESS IN CONTENT, since the array would be identical, and still a write nobody asked
+        // for: it spends a request and stamps the row as changed.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.saveTools()
+        advanceUntilIdle()
+
+        assertTrue(api.toolsPatches.isEmpty())
+        assertEquals(SaveState.Idle, vm.state.value.toolsSave)
+    }
 }

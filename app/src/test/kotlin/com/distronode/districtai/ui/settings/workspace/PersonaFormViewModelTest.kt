@@ -301,4 +301,112 @@ class PersonaFormViewModelTest {
             vm.state.value.save,
         )
     }
+
+    // ── The engine half ──────────────────────────────────────────────────────
+
+    private fun catalogueApi() = TestPersonaApi().apply {
+        optionsResult = ApiResult.Success(TEST_PERSONA_OPTIONS)
+    }
+
+    @Test
+    fun `a failed catalogue read leaves the text fields savable and sends no engine field`() =
+        runTest {
+            // ⛔ THE TEXT HALF SURVIVES A FAILED CATALOGUE READ, AND THE ENGINE HALF SENDS NOTHING.
+            // Any engine value on the wire here would come from a picker that was never offered.
+            val api = api()
+            val personaApi = TestPersonaApi().apply {
+                optionsResult = ApiResult.NetworkFailure(IOException("down"))
+            }
+            val vm = viewModel(api, personaApi)
+            advanceUntilIdle()
+
+            assertTrue(vm.state.value.options is PersonaOptionsState.LoadFailed)
+            vm.selectEngine("gemini-live-2.5-flash-native-audio")
+            assertNull("an engine edit without a catalogue is a no-op", vm.state.value.draft)
+
+            vm.edit(PersonaField.PERSONALITY, "Brisk.")
+            vm.save()
+            advanceUntilIdle()
+
+            val sent = api.personaPatches.single()
+            assertEquals("Brisk.", sent.personality)
+            assertNull(sent.modelId)
+            assertNull(sent.voice)
+            assertNull(sent.responseLength)
+            assertEquals(SaveState.Saved, vm.state.value.save)
+            assertTrue(
+                "a save does not conjure a catalogue it never read",
+                vm.state.value.options is PersonaOptionsState.LoadFailed,
+            )
+        }
+
+    @Test
+    fun `a failed config read reports itself in the engine section too`() = runTest {
+        // ⛔ HYDRATING FROM A CATALOGUE WITHOUT THE STORED PERSONA would start every picker on a
+        // default, and saving that would replace the workspace's voice with one nobody chose.
+        val api = api().apply { workspaceConfigResult = ApiResult.NetworkFailure(IOException("down")) }
+        val vm = viewModel(api, catalogueApi())
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.options is PersonaOptionsState.LoadFailed)
+        assertNull(vm.state.value.draft)
+        assertFalse(vm.state.value.canPreview)
+    }
+
+    @Test
+    fun `engine edits cascade, mark the form dirty, and save only what changed`() = runTest {
+        val api = api()
+        val vm = viewModel(api, catalogueApi())
+        advanceUntilIdle()
+        assertTrue(vm.state.value.canPreview)
+
+        vm.selectLanguage("it-IT")
+        assertEquals("aura-2-alba-it", vm.state.value.draft!!.values.voice)
+        vm.updateValues(vm.state.value.draft!!.values.copy(temperature = 0.2))
+        vm.selectEngine("gemini-live-2.5-flash-native-audio")
+        assertEquals("Puck", vm.state.value.draft!!.values.voice)
+        assertTrue(vm.state.value.hasUnsavedChanges)
+
+        // The re-read after the save reports what was written, which becomes the new baseline.
+        api.workspaceConfigResult = ApiResult.Success(
+            WorkspaceConfigResponse(
+                success = true,
+                config = WorkspaceConfig(
+                    aiPersona = storedPersona.copy(
+                        modelId = "gemini-live-2.5-flash-native-audio",
+                        voice = "Puck",
+                        temperature = 0.2,
+                    ),
+                ),
+            ),
+        )
+        vm.save()
+        advanceUntilIdle()
+
+        val sent = api.personaPatches.single()
+        assertEquals("gemini-live-2.5-flash-native-audio", sent.modelId)
+        assertEquals("Puck", sent.voice)
+        assertEquals(0.2, sent.temperature!!, 0.0001)
+        assertNull("no free-text field was touched", sent.name)
+        assertEquals(SaveState.Saved, vm.state.value.save)
+        assertFalse(
+            "the draft is rehydrated from the re-read, so nothing is dirty",
+            vm.state.value.hasUnsavedChanges,
+        )
+        assertEquals("Puck", vm.state.value.draft!!.values.voice)
+    }
+
+    @Test
+    fun `the factory builds a ViewModel that reads both halves for the workspace it was given`() =
+        runTest {
+            val api = api()
+            val vm = PersonaFormViewModel
+                .factory(WorkspaceConfigRepository(api), PersonaOptionsRepository(catalogueApi()), "ws-1")
+                .create(PersonaFormViewModel::class.java)
+            advanceUntilIdle()
+
+            assertEquals(listOf("ws-1"), api.configRequests)
+            assertEquals("Ada", vm.state.value.value(PersonaField.NAME))
+            assertTrue(vm.state.value.options is PersonaOptionsState.Ready)
+        }
 }

@@ -350,4 +350,54 @@ class KnowledgeViewModelTest {
         assertFalse(model.state.value.canWrite)
         assertFalse(model.state.value.canChangeMode)
     }
+
+    @Test
+    fun `a delete tapped while an upload is in flight is dropped`() = runTest {
+        // ⚠️ ONE WRITE AT A TIME. The upload's re-read would race the delete's, and whichever
+        // landed second would decide which list the operator sees.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.editTitle("Hours")
+        vm.editContent("Open nine to five.")
+        vm.addDocument()
+        vm.deleteDocument("doc-2")
+        advanceUntilIdle()
+
+        assertEquals(1, api.knowledgeCreates.size)
+        assertTrue("no delete may be sent mid-upload", api.knowledgeDeletes.isEmpty())
+        assertEquals(SaveState.Idle, vm.state.value.deleteSave)
+    }
+
+    @Test
+    fun `a re-read that fails after a delete says so rather than showing the old list`() = runTest {
+        // ⛔ THE OLD LIST WOULD BE A CLAIM. The delete may or may not have removed the row, and only
+        // a successful read can say which, so a failed one is shown as a failure.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        api.knowledgeListResult = ApiResult.NetworkFailure(IOException("offline"))
+        vm.deleteDocument("doc-2")
+        advanceUntilIdle()
+
+        assertEquals(SaveState.Saved, vm.state.value.deleteSave)
+        assertTrue(vm.state.value.list is KnowledgeListState.Failed)
+        assertTrue(vm.state.value.documents.isEmpty())
+    }
+
+    @Test
+    fun `the factory builds a ViewModel that reads the workspace and carries the role gate`() =
+        runTest {
+            val api = api()
+            val vm = KnowledgeViewModel
+                .factory(KnowledgeRepository(api), "ws-1", WorkspaceRole.VIEWER)
+                .create(KnowledgeViewModel::class.java)
+            advanceUntilIdle()
+
+            assertEquals(listOf("ws-1"), api.knowledgeListRequests)
+            assertEquals(documents, vm.state.value.documents)
+            assertFalse("a viewer's ViewModel offers no writes", vm.state.value.canWrite)
+        }
 }

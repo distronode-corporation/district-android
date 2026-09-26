@@ -832,4 +832,47 @@ class MessagingViewModelTest {
         assertEquals("AC_new", sent.providerConfig.accountSid)
         assertEquals(SaveState.Saved, model.state.value.accountSave)
     }
+
+    @Test
+    fun `a second probe press while the first is running sends nothing`() = runTest {
+        // ⛔ ONE PRESS, ONE AUTHENTICATED THIRD-PARTY CALL. The route is capped at 10/min per
+        // workspace, and a double tap would spend two of them to learn one answer.
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+        model.startEditing(null)
+        model.editDraft(
+            model.state.value.draft!!.copy(
+                provider = MESSAGING_PROVIDER_SINCH,
+                secrets = mapOf(
+                    "projectId" to "proj",
+                    "keyId" to "kid",
+                    "keySecret" to "ksec",
+                    "applicationKey" to "akey",
+                    "applicationSecret" to "asec",
+                ),
+            ),
+        )
+
+        model.testCredentials()
+        assertEquals(MessagingTestState.Running, model.state.value.test)
+        model.testCredentials()
+        advanceUntilIdle()
+
+        assertEquals(1, api.messagingApi.messagingTests.size)
+    }
+
+    @Test
+    fun `the factory builds a ViewModel that reads the workspace and carries the role gate`() =
+        runTest {
+            val api = api()
+            val model = MessagingViewModel
+                .factory(MessagingRepository(api), "ws-1", WorkspaceRole.VIEWER)
+                .create(MessagingViewModel::class.java)
+            advanceUntilIdle()
+
+            assertEquals(listOf("ws-1"), api.messagingApi.messagingRequests)
+            assertEquals(populated, (model.state.value.load as MessagingLoadState.Ready).messaging)
+            assertFalse("a viewer's ViewModel offers no edits", model.state.value.canEdit)
+        }
 }

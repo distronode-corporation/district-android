@@ -13,15 +13,20 @@ import com.distronode.districtai.core.model.responseLengthsForEngine
 import com.distronode.districtai.core.model.voiceExists
 import com.distronode.districtai.core.model.voiceGroups
 
-/** The seven engine fields a persona form edits, as one value. */
+/**
+ * The seven engine fields a persona form edits, as one value.
+ *
+ * ⚠️ NO DEFAULTS: [PersonaEngineDraft.hydrate] is the only constructor call and it passes all
+ * seven, from what is stored or from the server's published defaults.
+ */
 data class PersonaEngineValues(
-    val modelId: String = "",
-    val language: String = "",
-    val voice: String = "",
-    val responseLength: String = "",
-    val temperature: Double = 0.0,
-    val voiceStyle: String = "",
-    val preemptiveTts: Boolean = false,
+    val modelId: String,
+    val language: String,
+    val voice: String,
+    val responseLength: String,
+    val temperature: Double,
+    val voiceStyle: String,
+    val preemptiveTts: Boolean,
 )
 
 /**

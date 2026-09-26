@@ -199,9 +199,10 @@ class PersonaPreviewViewModel(
      * this session.
      */
     private fun applyConnection(connection: CallConnectionState) {
-        if (released || connection == CallConnectionState.Idle) return
+        if (released) return
         _state.value = when (connection) {
-            CallConnectionState.Idle -> _state.value
+            // ⚠️ The engine's resting state before a join and after a teardown: nothing to show.
+            CallConnectionState.Idle -> return
             CallConnectionState.Connecting -> _state.value.copy(phase = PersonaPreviewPhase.Connecting)
             CallConnectionState.Connected -> _state.value.copy(
                 phase = if (_state.value.agentPresent) {

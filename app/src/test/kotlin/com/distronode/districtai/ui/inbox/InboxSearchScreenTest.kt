@@ -136,4 +136,22 @@ class InboxSearchScreenTest {
 
         assertEquals("m1", opened?.messageId)
     }
+
+    @Test
+    fun `an email hit shows its subject line, and a blank subject draws no empty line`() {
+        render(
+            InboxSearchState(
+                query = "refund",
+                hits = listOf(
+                    hit("m1").copy(kind = "email", subject = "Refund request #1042"),
+                    hit("m2").copy(contactName = "Grace", body = "Refund please", subject = " "),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("Refund request #1042").assertIsDisplayed()
+        // The blank subject is dropped rather than drawn as an empty line.
+        composeRule.onNodeWithText("Grace").assertIsDisplayed()
+        composeRule.onNodeWithText(" ").assertDoesNotExist()
+    }
 }

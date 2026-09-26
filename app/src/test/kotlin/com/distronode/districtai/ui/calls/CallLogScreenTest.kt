@@ -201,4 +201,32 @@ class CallLogScreenTest {
         composeRule.onNodeWithText("Live").assertIsDisplayed()
         composeRule.onNodeWithText("no-answer").assertIsDisplayed()
     }
+
+    @Test
+    fun `a failed transfer is flagged on its row, and a completed one is marked transferred`() {
+        // A transfer that failed means the caller never reached the human they were handed to,
+        // which is the single most actionable thing in the log, so it must be on the row itself.
+        render(
+            listOf(
+                testCall(id = "handed").copy(number = "Ada Lovelace", transferStatus = "success"),
+                testCall(id = "dropped").copy(number = "Bob Barker", transferStatus = "failed"),
+            ),
+        )
+
+        composeRule.onNodeWithText("Transferred").assertIsDisplayed()
+        composeRule.onNodeWithText("Transfer failed").assertIsDisplayed()
+    }
+
+    @Test
+    fun `an outbound call says so, and an inbound one says inbound`() {
+        render(
+            listOf(
+                testCall(id = "out").copy(number = "Ada Lovelace", direction = "outbound"),
+                testCall(id = "in").copy(number = "Bob Barker"),
+            ),
+        )
+
+        composeRule.onNodeWithText("Outbound", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Inbound", substring = true).assertIsDisplayed()
+    }
 }

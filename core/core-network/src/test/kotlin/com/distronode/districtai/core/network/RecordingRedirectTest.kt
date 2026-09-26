@@ -110,6 +110,16 @@ class RecordingRedirectTest {
     }
 
     @Test
+    fun `a redirect with an empty Location is reported the same way`() = runTest {
+        server.enqueue(MockResponse(code = 302, headers = Headers.headersOf("Location", "")))
+
+        val result = api().callRecordingUrl("ws-1", "call-1")
+
+        assertTrue("expected HttpFailure, got $result", result is ApiResult.HttpFailure)
+        assertEquals(302, (result as ApiResult.HttpFailure).status)
+    }
+
+    @Test
     fun `still refreshes and retries once on a rejected token`() = runTest {
         // The redirect path shares the auth/retry loop, so it inherits the single retry. Asserted
         // because it is easy to reimplement a bespoke request and lose it.

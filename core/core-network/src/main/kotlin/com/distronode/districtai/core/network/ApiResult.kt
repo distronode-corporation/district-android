@@ -157,5 +157,4 @@ class NonJsonResponseException(
     val status: Int,
 ) : IOException("Expected a JSON body but the response was $contentType (HTTP $status)")
 
-/** The decoded value, or null on any failure. Convenience for call sites that genuinely do not branch. */
-fun <T> ApiResult<T>.valueOrNull(): T? = (this as? ApiResult.Success)?.value
+// No `valueOrNull()` shortcut: it had no caller, because every call site branches on the failure.

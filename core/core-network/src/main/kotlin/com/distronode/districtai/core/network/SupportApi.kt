@@ -59,7 +59,8 @@ interface SupportApi {
     suspend fun createSupportRequest(
         workspaceId: String,
         draft: SupportRequestDraft,
-        idempotencyKey: String? = null,
+        // No default: every caller passes this explicitly, so a default could never be taken.
+        idempotencyKey: String?,
     ): ApiResult<SupportRequestCreateResponse>
 
     /**

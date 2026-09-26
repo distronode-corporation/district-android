@@ -1,14 +1,19 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.AiPersona
@@ -247,5 +252,105 @@ class PersonaEngineSectionTest {
             PERSONA_VOICE_PICKER_DESCRIPTION,
             PERSONA_RESPONSE_LENGTH_DESCRIPTION,
         ).forEach { composeRule.onNodeWithContentDescription(it).assertHasClickAction() }
+    }
+
+    @Test
+    fun `values the catalogue cannot name are shown as stored, and absent ones as not set`() {
+        // ⚠️ AN ENGINE WITH NO CATALOGUE ENTRIES STILL SHOWS WHAT IS STORED. The level the route
+        // holds is named verbatim, and a picker with nothing chosen says so rather than blank.
+        render(
+            PersonaEngineDraft.hydrate(
+                persona = AiPersona(modelId = "elevenlabs-pipeline", voice = ""),
+                options = options,
+            ),
+        )
+
+        composeRule.onNodeWithText("ElevenLabs Pipeline (processed outside your region)")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("concise").assertIsDisplayed()
+        // The language and the voice are both unset.
+        composeRule.onAllNodesWithText("not set").assertCountEquals(2)
+    }
+
+    @Test
+    fun `an engine the catalogue does not list reads as not set`() {
+        render(PersonaEngineDraft.hydrate(persona = null, options = options))
+
+        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_PICKER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onAllNodesWithText("not set").assertCountEquals(3)
+    }
+
+    @Test
+    fun `every control writes back through the same callback after the section redraws`() {
+        // ⚠️ A REDRAW WITH THE SAME DRAFT AND THE SAME CALLBACKS, which is what a save starting
+        // and finishing does to this section. Each control must still write exactly its own field.
+        val start = draft(PERSONA_GEMINI_LIVE_ENGINE, voice = "Puck", voiceStyle = "warm")
+        val enabled = mutableStateOf(true)
+        val onSelectEngine: (String) -> Unit = { engines += it }
+        val onSelectLanguage: (String) -> Unit = { languages += it }
+        val onUpdateValues: (PersonaEngineValues) -> Unit = { updates += it }
+        composeRule.setContent {
+            DistrictTheme {
+                PersonaEngineSection(
+                    draft = start,
+                    enabled = enabled.value,
+                    onSelectEngine = onSelectEngine,
+                    onSelectLanguage = onSelectLanguage,
+                    onUpdateValues = onUpdateValues,
+                )
+            }
+        }
+        enabled.value = false
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(PERSONA_VOICE_PICKER_DESCRIPTION).assertHasNoClickAction()
+        enabled.value = true
+        composeRule.waitForIdle()
+
+        open(PERSONA_VOICE_PICKER_DESCRIPTION)
+        composeRule.onAllNodesWithText("Puck")[1].performClick()
+        composeRule.waitForIdle()
+        open(PERSONA_RESPONSE_LENGTH_DESCRIPTION)
+        composeRule.onAllNodesWithText("Concise")[1].performClick()
+        composeRule.waitForIdle()
+        open(PERSONA_VOICE_STYLE_DESCRIPTION)
+        composeRule.onNodeWithText("Crisp").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(PERSONA_TEMPERATURE_DESCRIPTION)
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(0.25f) }
+
+        assertEquals(
+            listOf(
+                start.values.copy(voice = "Puck"),
+                start.values.copy(responseLength = "concise"),
+                start.values.copy(voiceStyle = "crisp"),
+                start.values.copy(temperature = 0.25),
+            ),
+            updates,
+        )
+    }
+
+    @Test
+    fun `the preemptive switch writes back after a redraw too`() {
+        val start = draft(PERSONA_LANGUAGE_KEYED_ENGINE, voice = "asteria")
+        val enabled = mutableStateOf(false)
+        val onUpdateValues: (PersonaEngineValues) -> Unit = { updates += it }
+        composeRule.setContent {
+            DistrictTheme {
+                PersonaEngineSection(
+                    draft = start,
+                    enabled = enabled.value,
+                    onSelectEngine = {},
+                    onSelectLanguage = {},
+                    onUpdateValues = onUpdateValues,
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription(PERSONA_PREEMPTIVE_TTS_DESCRIPTION).assertIsNotEnabled()
+        enabled.value = true
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription(PERSONA_PREEMPTIVE_TTS_DESCRIPTION).performClick()
+
+        assertEquals(listOf(start.values.copy(preemptiveTts = !start.values.preemptiveTts)), updates)
     }
 }

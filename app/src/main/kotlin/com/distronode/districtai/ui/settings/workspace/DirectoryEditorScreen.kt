@@ -63,7 +63,6 @@ fun DirectoryEditorScreen(
     onSave: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var confirmingExit by remember { mutableStateOf(false) }
     var confirmingSave by remember { mutableStateOf(false) }
@@ -93,7 +92,7 @@ fun DirectoryEditorScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = DIRECTORY_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = DIRECTORY_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.directory_title),

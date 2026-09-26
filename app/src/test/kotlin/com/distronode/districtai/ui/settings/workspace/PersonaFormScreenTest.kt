@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -125,6 +127,10 @@ class PersonaFormScreenTest {
                     onSave = onSave,
                     onRetry = onRetry,
                     onBack = onBack,
+                    onSelectEngine = {},
+                    onSelectLanguage = {},
+                    onUpdateEngineValues = {},
+                    onPreview = {},
                 )
             }
         }
@@ -399,5 +405,81 @@ class PersonaFormScreenTest {
         composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
             .assertDoesNotExist()
         assertEquals(1, backs)
+    }
+
+    // ── The rest of the states ───────────────────────────────────────────────
+
+    @Test
+    fun `a failed catalogue read on a workspace with no persona says every engine value is not set`() {
+        // ⚠️ "NOT SET" RATHER THAN BLANK. A blank panel would read as a rendering fault, not as a
+        // workspace that has never chosen.
+        render(
+            PersonaFormUiState(
+                load = ConfigState.Ready(WorkspaceConfig()),
+                options = PersonaOptionsState.LoadFailed(FailureText(UiText.Literal("Offline."))),
+            ),
+        )
+
+        composeRule.onNodeWithText("Engine not set · Voice not set · Language not set")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `saving locks the engine pickers as well as the text boxes`() {
+        render(
+            PersonaFormUiState(
+                load = loaded,
+                options = PersonaOptionsState.Ready(catalogue),
+                edits = mapOf(PersonaField.NAME to "Bea"),
+                save = SaveState.Saving,
+            ),
+        )
+
+        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_PICKER_DESCRIPTION)
+            .assertHasNoClickAction()
+        composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `every box and the discard still report correctly after the form redraws`() {
+        // ⚠️ EVERY KEYSTROKE REDRAWS THIS FORM FROM A NEW STATE WITH THE SAME CALLBACKS. A box that
+        // kept a stale callback, or a dialog that did, would edit or leave the wrong way.
+        val calls = mutableListOf<String>()
+        val current = mutableStateOf(PersonaFormUiState(load = loaded))
+        // ⚠️ Folded back into the state the way the ViewModel does, so a box shows what was typed.
+        val onEdit: (PersonaField, String) -> Unit = { field, value ->
+            calls += "$field:$value"
+            current.value = current.value.copy(edits = current.value.edits + (field to value))
+        }
+        val onBack: () -> Unit = { calls += "back" }
+        composeRule.setContent {
+            DistrictTheme {
+                PersonaFormScreen(
+                    state = current.value,
+                    onEdit = onEdit,
+                    onSave = {},
+                    onRetry = {},
+                    onBack = onBack,
+                    onSelectEngine = {},
+                    onSelectLanguage = {},
+                    onUpdateEngineValues = {},
+                    onPreview = {},
+                )
+            }
+        }
+
+        current.value = PersonaFormUiState(load = loaded, edits = mapOf(PersonaField.NAME to "Bea"))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).performTextReplacement("Cara")
+        composeRule.onNodeWithContentDescription(PERSONA_GREETING_DESCRIPTION).performTextReplacement("Hi.")
+        composeRule.onNodeWithContentDescription(PERSONA_PERSONALITY_DESCRIPTION)
+            .performTextReplacement("Brisk.")
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        current.value = current.value.copy(edits = mapOf(PersonaField.NAME to "Dee"))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+
+        assertEquals(listOf("NAME:Cara", "GREETING:Hi.", "PERSONALITY:Brisk.", "back"), calls)
     }
 }

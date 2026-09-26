@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -7,8 +8,10 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DirectoryEntry
 import com.distronode.districtai.core.model.DirectoryField
 import com.distronode.districtai.core.model.WorkspaceConfig
@@ -323,5 +326,128 @@ class DirectoryEditorScreenTest {
 
         composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).assertIsNotEnabled()
         composeRule.onNodeWithContentDescription(DIRECTORY_ADD_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    // ── Leaving with pending edits ───────────────────────────────────────────
+
+    private fun edited() = ready().let { it.copy(draft = it.entries.take(1)) }
+
+    @Test
+    fun `back with an unsaved list asks first, and keeping editing stays`() {
+        // ⛔ A LOST DIRECTORY EDIT IS A LOST LIST OF HUMANS TO TRANSFER TO, typed by hand.
+        var backs = 0
+        render(edited(), onBack = { backs += 1 })
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+            .performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+            .assertDoesNotExist()
+        assertEquals("the screen must not have left", 0, backs)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `back with nothing pending leaves at once`() {
+        var backs = 0
+        render(ready(), onBack = { backs += 1 })
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+            .assertDoesNotExist()
+        assertEquals(1, backs)
+    }
+
+    // ── A save in flight ─────────────────────────────────────────────────────
+
+    @Test
+    fun `a save in flight locks every row and says it is saving`() {
+        render(edited().copy(save = SaveState.Saving))
+
+        composeRule.onNodeWithContentDescription(directoryFieldDescription(0, DirectoryField.NAME))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(
+            directoryFieldDescription(0, DirectoryField.PHONE_NUMBER),
+        ).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(directoryRemoveDescription(0)).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(DIRECTORY_NEW_NAME_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
+    }
+
+    // ── Every control after the list changes under it ────────────────────────
+
+    @Test
+    fun `every control reports its own row and field after the screen recomposes`() {
+        // ⚠️ THE SCREEN IS REDRAWN FROM A NEW STATE WITH THE SAME CALLBACKS, which is what happens
+        // on every keystroke in production. A control that kept a stale index or a stale callback
+        // across that redraw would edit the wrong transfer target.
+        val calls = mutableListOf<String>()
+        val current = mutableStateOf(ready())
+        composeRule.setContent {
+            DistrictTheme {
+                DirectoryEditorScreen(
+                    state = current.value,
+                    // ⚠️ Each edit is folded back into the state the way the ViewModel does, so a
+                    // box shows what was typed rather than snapping back to its old value.
+                    onEditNew = { field, value ->
+                        calls += "new:$field:$value"
+                        current.value = when (field) {
+                            DirectoryField.NAME -> current.value.copy(newName = value)
+                            DirectoryField.PHONE_NUMBER -> current.value.copy(newPhoneNumber = value)
+                        }
+                    },
+                    onAdd = { calls += "add" },
+                    onEdit = { index, field, value ->
+                        calls += "edit:$index:$field:$value"
+                        val rows = current.value.entries.toMutableList()
+                        rows[index] = rows[index].with(field, value)
+                        current.value = current.value.copy(draft = rows)
+                    },
+                    onRemove = { calls += "remove:$it" },
+                    onSave = { calls += "save" },
+                    onRetry = { calls += "retry" },
+                    onBack = { calls += "back" },
+                )
+            }
+        }
+
+        current.value = ready().let {
+            it.copy(draft = listOf(it.entries[0].with(DirectoryField.NAME, "Ops (day)"), it.entries[1]))
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Ops (day)").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription(DIRECTORY_NEW_NAME_DESCRIPTION)
+            .performTextReplacement("Front desk")
+        composeRule.onNodeWithContentDescription(DIRECTORY_NEW_PHONE_DESCRIPTION)
+            .performTextReplacement("+14165550100")
+        composeRule.onNodeWithContentDescription(directoryFieldDescription(1, DirectoryField.NAME))
+            .performTextReplacement("Night desk")
+        composeRule.onNodeWithContentDescription(
+            directoryFieldDescription(1, DirectoryField.PHONE_NUMBER),
+        ).performTextReplacement("+14165550199")
+        composeRule.onNodeWithContentDescription(directoryRemoveDescription(1)).performClick()
+
+        // The confirmation, opened and then carried across another redraw before it is accepted.
+        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).performClick()
+        current.value = current.value.copy(newName = "Front desk, again")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(DIRECTORY_CONFIRM_DESCRIPTION).performClick()
+
+        assertEquals(
+            listOf(
+                "new:NAME:Front desk",
+                "new:PHONE_NUMBER:+14165550100",
+                "edit:1:NAME:Night desk",
+                "edit:1:PHONE_NUMBER:+14165550199",
+                "remove:1",
+                "save",
+            ),
+            calls,
+        )
     }
 }

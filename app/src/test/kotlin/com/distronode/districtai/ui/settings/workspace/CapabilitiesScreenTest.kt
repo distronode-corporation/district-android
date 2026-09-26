@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -312,5 +313,85 @@ class CapabilitiesScreenTest {
         composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
             .assertDoesNotExist()
         assertEquals(1, backs)
+    }
+
+    // ── The rest of the states ───────────────────────────────────────────────
+
+    @Test
+    fun `an unconfigured workspace, or a blank support number, is told what transfer-to-human needs`() {
+        // ⚠️ AN ABSENT `toolConfig` AND A BLANK NUMBER ARE THE SAME MISSING PREREQUISITE.
+        val config = mutableStateOf(WorkspaceConfig())
+        composeRule.setContent {
+            DistrictTheme {
+                CapabilitiesScreen(
+                    state = CapabilitiesUiState(load = ConfigState.Ready(config.value)),
+                    onToggleTool = { _, _ -> },
+                    onSaveTools = {},
+                    onToggleEnrichment = {},
+                    onSaveEnrichment = {},
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+        val hint = "Needs a support team number, which cannot be set in this app."
+        composeRule.onNodeWithText(hint).assertIsDisplayed()
+
+        config.value = WorkspaceConfig(
+            toolConfig = ToolConfig(allowedTools = storedTools, supportPhoneNumber = " "),
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(hint).assertIsDisplayed()
+    }
+
+    @Test
+    fun `an enrichment save in flight locks the allowlist too and says it is saving`() {
+        render(
+            CapabilitiesUiState(
+                load = loaded,
+                enrichmentDraft = true,
+                enrichmentSave = SaveState.Saving,
+            ),
+        )
+
+        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
+            .assertIsNotEnabled()
+        composeRule.onNodeWithText("Saving…").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a switch and the discard still report through their callbacks after a redraw`() {
+        // ⚠️ EVERY TOGGLE REDRAWS THE SCREEN FROM A NEW STATE WITH THE SAME CALLBACKS.
+        val calls = mutableListOf<String>()
+        val current = mutableStateOf(CapabilitiesUiState(load = loaded))
+        val onToggleTool: (String, Boolean) -> Unit = { id, on -> calls += "$id:$on" }
+        val onBack: () -> Unit = { calls += "back" }
+        composeRule.setContent {
+            DistrictTheme {
+                CapabilitiesScreen(
+                    state = current.value,
+                    onToggleTool = onToggleTool,
+                    onSaveTools = {},
+                    onToggleEnrichment = {},
+                    onSaveEnrichment = {},
+                    onRetry = {},
+                    onBack = onBack,
+                )
+            }
+        }
+
+        current.value = CapabilitiesUiState(load = loaded, toolToggles = mapOf("send_sms" to true))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+            .performClick()
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        current.value = current.value.copy(toolToggles = mapOf("send_sms" to true, "dispatch_email" to true))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+
+        assertEquals(listOf("leave_message:false", "back"), calls)
     }
 }

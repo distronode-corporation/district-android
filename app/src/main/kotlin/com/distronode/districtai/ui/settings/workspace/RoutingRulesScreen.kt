@@ -69,7 +69,6 @@ fun RoutingRulesScreen(
     onSave: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var confirmingExit by remember { mutableStateOf(false) }
     var confirmingSave by remember { mutableStateOf(false) }
@@ -99,7 +98,7 @@ fun RoutingRulesScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = ROUTING_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = ROUTING_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.routing_title),

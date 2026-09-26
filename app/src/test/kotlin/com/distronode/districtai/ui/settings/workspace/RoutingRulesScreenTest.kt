@@ -1,13 +1,16 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.RoutingRule
 import com.distronode.districtai.core.model.RoutingRuleField
 import com.distronode.districtai.core.model.WorkspaceConfig
@@ -221,5 +224,146 @@ class RoutingRulesScreenTest {
 
         composeRule.onNodeWithText("Invalid voice identifier: Nova", substring = true)
             .assertIsDisplayed()
+    }
+
+    // ── Loading, leaving and saving ──────────────────────────────────────────
+
+    @Test
+    fun `loading draws skeletons and no controls`() {
+        render(RoutingRulesUiState())
+
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+            .assertIsDisplayed()
+        ROUTING_MUTATING_DESCRIPTIONS.forEach { handle ->
+            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+        }
+    }
+
+    @Test
+    fun `back with unsaved rules asks first, and keeping editing stays`() {
+        var backs = 0
+        render(ready().copy(draft = emptyList()), onBack = { backs += 1 })
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+            .performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+            .assertDoesNotExist()
+        assertEquals(0, backs)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `back with nothing pending leaves at once`() {
+        var backs = 0
+        render(ready(), onBack = { backs += 1 })
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        assertEquals(1, backs)
+    }
+
+    @Test
+    fun `a save in flight locks every rule and says it is saving`() {
+        render(ready().copy(draft = ready().rules.take(1), save = SaveState.Saving))
+
+        composeRule.onNodeWithContentDescription(routingFieldDescription(0, RoutingRuleField.VOICE))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(routingFieldDescription(0, RoutingRuleField.VALUE))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(routingRemoveDescription(0)).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(ROUTING_ADD_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a stored voice outside the list is offered as its own option rather than replaced`() {
+        // ⛔ THE REAL ALLOW-LIST IS PER WORKSPACE AND INVISIBLE HERE, so a voice this list does not
+        // carry is not necessarily wrong, and a picker that could not re-select it would turn
+        // "open the menu and close it" into an edit.
+        var edited: Pair<RoutingRuleField, String>? = null
+        render(
+            ready(Json.parseToJsonElement("""[{"id":"r","field":"industry","voice":"Nova"}]""")),
+            onEdit = { _, field, value -> edited = field to value },
+        )
+        val picker = routingFieldDescription(0, RoutingRuleField.VOICE)
+
+        composeRule.onNodeWithContentDescription(picker).performClick()
+        composeRule.onNodeWithContentDescription(routingOptionDescription(picker, "Nova")).performClick()
+
+        assertEquals(RoutingRuleField.VOICE to "Nova", edited)
+    }
+
+    @Test
+    fun `every control reports its own rule and field after the screen recomposes`() {
+        // ⚠️ REDRAWN FROM A NEW STATE WITH THE SAME CALLBACKS, as on every edit in production. A
+        // control that kept a stale index across the redraw would rewrite the wrong rule.
+        val calls = mutableListOf<String>()
+        val current = mutableStateOf(ready())
+        composeRule.setContent {
+            DistrictTheme {
+                RoutingRulesScreen(
+                    state = current.value,
+                    onAdd = { calls += "add" },
+                    // ⚠️ Folded back into the state the way the ViewModel does, so a box shows what
+                    // was typed rather than snapping back to its old value.
+                    onEdit = { index, field, value ->
+                        calls += "edit:$index:$field:$value"
+                        val rules = current.value.rules.toMutableList()
+                        rules[index] = rules[index].with(field, value)
+                        current.value = current.value.copy(draft = rules)
+                    },
+                    onRemove = { calls += "remove:$it" },
+                    onSave = { calls += "save" },
+                    onRetry = { calls += "retry" },
+                    onBack = { calls += "back" },
+                )
+            }
+        }
+
+        current.value = ready().let {
+            it.copy(draft = listOf(it.rules[0], it.rules[1].with(RoutingRuleField.VALUE, "health")))
+        }
+        composeRule.waitForIdle()
+
+        fun pick(field: RoutingRuleField, option: String) {
+            val picker = routingFieldDescription(1, field)
+            composeRule.onNodeWithContentDescription(picker).performClick()
+            composeRule.onNodeWithContentDescription(routingOptionDescription(picker, option))
+                .performClick()
+        }
+        pick(RoutingRuleField.FIELD, "industry")
+        pick(RoutingRuleField.OPERATOR, "equals")
+        pick(RoutingRuleField.VOICE, "Kore")
+        composeRule.onNodeWithContentDescription(routingFieldDescription(1, RoutingRuleField.VALUE))
+            .performTextReplacement("retail")
+        composeRule.onNodeWithContentDescription(
+            routingFieldDescription(1, RoutingRuleField.INSTRUCTION),
+        ).performTextReplacement("Be kind.")
+        composeRule.onNodeWithContentDescription(routingRemoveDescription(1)).performClick()
+        composeRule.onNodeWithContentDescription(ROUTING_ADD_DESCRIPTION).performClick()
+
+        // The confirmation, carried across another redraw before it is accepted.
+        composeRule.onNodeWithContentDescription(ROUTING_SAVE_DESCRIPTION).performClick()
+        current.value = current.value.copy(draft = current.value.rules.take(1))
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(ROUTING_CONFIRM_DESCRIPTION).performClick()
+
+        assertEquals(
+            listOf(
+                "edit:1:FIELD:industry",
+                "edit:1:OPERATOR:equals",
+                "edit:1:VOICE:Kore",
+                "edit:1:VALUE:retail",
+                "edit:1:INSTRUCTION:Be kind.",
+                "remove:1",
+                "add",
+                "save",
+            ),
+            calls,
+        )
     }
 }

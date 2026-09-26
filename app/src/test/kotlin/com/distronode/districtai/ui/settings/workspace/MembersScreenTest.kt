@@ -1,6 +1,8 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
@@ -423,5 +425,74 @@ class MembersScreenTest {
 
         composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).performClick()
         assertEquals(true, renamed)
+    }
+
+    // ── The rest of the states ───────────────────────────────────────────────
+
+    @Test
+    fun `a member with no stored role says so rather than guessing one`() {
+        render(ready(members = listOf(WorkspaceMember("blank@example.com", null))))
+
+        composeRule.onNodeWithText("Unrecognised role “”").assertIsDisplayed()
+    }
+
+    @Test
+    fun `every dialog stays wired to its callback, and locks while a write is in flight`() {
+        // ⚠️ THE ADD DIALOG STAYS OPEN ACROSS ITS OWN ROUND TRIP, so it is drawn again from a busy
+        // state with the same callbacks. Its inputs must lock, and once the write lands its
+        // confirm must still reach the same callback. The two other dialogs are redrawn under too.
+        val calls = mutableListOf<String>()
+        val current = mutableStateOf(ready())
+        val onAdd: () -> Unit = { calls += "add" }
+        val onRemove: (String) -> Unit = { calls += "remove:$it" }
+        val onChangeRole: (String, WorkspaceRole) -> Unit = { email, role -> calls += "role:$email:$role" }
+        composeRule.setContent {
+            DistrictTheme {
+                MembersScreen(
+                    state = current.value,
+                    onEditEmail = {},
+                    onEditRole = {},
+                    onAdd = onAdd,
+                    onChangeRole = onChangeRole,
+                    onRemove = onRemove,
+                    onEditName = {},
+                    onRename = {},
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+        fun redraw(next: MembersUiState) {
+            current.value = next
+            composeRule.waitForIdle()
+        }
+
+        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
+        redraw(ready().copy(draftEmail = "new@example.com", addSave = SaveState.Saving))
+        composeRule.onNodeWithContentDescription(MEMBERS_ADD_EMAIL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(memberAddRoleDescription(WorkspaceRole.VIEWER))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CONFIRM_DESCRIPTION).assertIsNotEnabled()
+        redraw(ready().copy(draftEmail = "new@example.com"))
+        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CONFIRM_DESCRIPTION)
+            .assertIsEnabled()
+            .performClick()
+
+        composeRule.onNodeWithContentDescription(memberRemoveDescription("auditor@example.com"))
+            .performClick()
+        redraw(ready().copy(renameDraft = "A"))
+        composeRule.onNodeWithContentDescription(MEMBERS_REMOVE_CONFIRM_DESCRIPTION).performClick()
+
+        composeRule.onNodeWithContentDescription(memberRoleDescription("operator@example.com"))
+            .performClick()
+        redraw(ready().copy(renameDraft = "Ac"))
+        composeRule.onNodeWithContentDescription(memberRoleOptionDescription(WorkspaceRole.VIEWER))
+            .performClick()
+        composeRule.onNodeWithContentDescription(MEMBERS_ROLE_CONFIRM_DESCRIPTION).performClick()
+
+        assertEquals(
+            listOf("add", "remove:auditor@example.com", "role:operator@example.com:VIEWER"),
+            calls,
+        )
     }
 }

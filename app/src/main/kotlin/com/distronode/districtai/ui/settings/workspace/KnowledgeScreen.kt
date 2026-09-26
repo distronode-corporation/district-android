@@ -69,7 +69,6 @@ fun KnowledgeScreen(
     onSelectMode: (String) -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var pendingDelete by remember { mutableStateOf<KnowledgeDocument?>(null) }
     var pendingLinkedMode by remember { mutableStateOf(false) }
@@ -96,7 +95,7 @@ fun KnowledgeScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = KNOWLEDGE_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = KNOWLEDGE_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.knowledge_title), onBack = onBack)
         },

@@ -74,7 +74,6 @@ fun MessagingScreen(
     onSaveCreatorCell: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     // ⚠️ `remember`, not `rememberSaveable`: a `MessagingAccount` is not Parcelable, and a delete
     // dialog that outlived a rotation holding a stale row would confirm a release against whichever
@@ -118,7 +117,7 @@ fun MessagingScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = MESSAGING_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = MESSAGING_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.messaging_title), onBack = onBack)
         },

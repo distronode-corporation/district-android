@@ -56,7 +56,6 @@ fun CapabilitiesScreen(
     onSaveEnrichment: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var confirmingExit by remember { mutableStateOf(false) }
 
@@ -74,7 +73,7 @@ fun CapabilitiesScreen(
     }
 
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = CAPABILITIES_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = CAPABILITIES_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.capabilities_title),
@@ -92,7 +91,14 @@ fun CapabilitiesScreen(
                     ConfigLoadFailure(failure = load.failure, onRetry = onRetry)
                 }
                 is ConfigState.Ready -> {
-                    ContentContainer { ToolSection(state, onToggleTool, onSaveTools) }
+                    ContentContainer {
+                        ToolSection(
+                            state = state,
+                            supportNumber = load.config.toolConfig?.supportPhoneNumber,
+                            onToggleTool = onToggleTool,
+                            onSaveTools = onSaveTools,
+                        )
+                    }
                     ContentContainer {
                         EnrichmentSection(state, onToggleEnrichment, onSaveEnrichment)
                     }
@@ -115,11 +121,13 @@ fun CapabilitiesScreen(
 @Composable
 private fun ToolSection(
     state: CapabilitiesUiState,
+    // ⚠️ Handed in from the `Ready` arm that draws this section, which is the only place it is
+    // drawn, rather than re-derived here through a cast that could never fail.
+    supportNumber: String?,
     onToggleTool: (String, Boolean) -> Unit,
     onSaveTools: () -> Unit,
 ) {
     val busy = state.toolsSave.busy || state.enrichmentSave.busy
-    val supportNumber = (state.load as? ConfigState.Ready)?.config?.toolConfig?.supportPhoneNumber
     Column(
         modifier = Modifier.padding(vertical = DistrictTheme.spacing.gutter),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),

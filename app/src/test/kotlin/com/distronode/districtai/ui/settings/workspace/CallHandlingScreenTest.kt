@@ -1,19 +1,29 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.AvailabilityReason
 import com.distronode.districtai.core.model.AvailabilityResponse
 import com.distronode.districtai.core.model.CallHandling
 import com.distronode.districtai.core.model.CallHandlingResponse
+import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -161,5 +171,126 @@ class CallHandlingScreenTest {
         render(state())
 
         composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    // ── Every state, with every callback wired ───────────────────────────────
+
+    private val calls = mutableListOf<String>()
+
+    /** ⚠️ Callbacks built ONCE, so a redraw from a new state keeps the same instances. */
+    private fun renderHoisted(initial: CallHandlingUiState): MutableState<CallHandlingUiState> {
+        val current = mutableStateOf(initial)
+        val onSelectMode: (String) -> Unit = { calls += "mode:$it" }
+        val onSelectRing: (Int) -> Unit = { calls += "ring:$it" }
+        val onSave: () -> Unit = { calls += "save" }
+        val onSetAvailability: (Boolean) -> Unit = { calls += "available:$it" }
+        val onRetry: () -> Unit = { calls += "retry" }
+        val onBack: () -> Unit = { calls += "back" }
+        composeRule.setContent {
+            DistrictTheme {
+                CallHandlingScreen(
+                    state = current.value,
+                    onSelectMode = onSelectMode,
+                    onSelectRingSeconds = onSelectRing,
+                    onSave = onSave,
+                    onSetAvailability = onSetAvailability,
+                    onRetry = onRetry,
+                    onBack = onBack,
+                )
+            }
+        }
+        return current
+    }
+
+    @Test
+    fun `before either read lands both sections draw skeletons and no control`() {
+        renderHoisted(CallHandlingUiState(canMutate = true))
+
+        composeRule.onAllNodesWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+            .assertCountEquals(2)
+        composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `two failed reads each offer their own retry and no control`() {
+        val failure = FailureText(UiText.Literal("Could not reach the server."))
+        renderHoisted(
+            CallHandlingUiState(
+                canMutate = true,
+                load = CallHandlingLoad.LoadFailed(failure),
+                availability = AvailabilityLoad.LoadFailed(failure),
+            ),
+        )
+
+        composeRule.onAllNodesWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+            .assertCountEquals(2)
+        composeRule.onAllNodesWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)[1]
+            .performClick()
+        assertEquals(listOf("retry"), calls)
+        composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `back with an unsaved mode asks first, and keeping editing stays`() {
+        renderHoisted(state().copy(modeDraft = CallHandling.APP_FIRST))
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+            .performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+            .assertDoesNotExist()
+        assertEquals(emptyList<String>(), calls)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        assertEquals(listOf("back"), calls)
+    }
+
+    @Test
+    fun `back with nothing pending leaves at once`() {
+        renderHoisted(state())
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        assertEquals(listOf("back"), calls)
+    }
+
+    @Test
+    fun `a save in flight locks the mode and the slider and says it is saving`() {
+        renderHoisted(state().copy(modeDraft = CallHandling.APP_FIRST, save = SaveState.Saving))
+
+        composeRule.onNodeWithContentDescription(callHandlingModeDescription(CallHandling.AI_FIRST))
+            .assertHasNoClickAction()
+        composeRule.onNodeWithContentDescription(CALL_HANDLING_RING_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a switch that is off with no reason says the phones do not ring`() {
+        renderHoisted(
+            state(availability = AvailabilityResponse(success = true, availableForCalls = false)),
+        )
+
+        composeRule.onNodeWithText("Your phones do not ring for this workspace.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+            .assertIsEnabled()
+    }
+
+    @Test
+    fun `the mode rows and the slider still report their own values after a redraw`() {
+        // ⚠️ A NEW STATE WITH THE SAME CALLBACKS, as after every pick in production.
+        val current = renderHoisted(state())
+        current.value = state().copy(ringDraft = 25)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("25 seconds").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription(callHandlingModeDescription(CallHandling.APP_FIRST))
+            .performClick()
+        composeRule.onNodeWithContentDescription(CALL_HANDLING_RING_DESCRIPTION)
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(12f) }
+
+        assertEquals(listOf("mode:${CallHandling.APP_FIRST}", "ring:12"), calls)
     }
 }

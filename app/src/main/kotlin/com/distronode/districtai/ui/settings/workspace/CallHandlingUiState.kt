@@ -69,8 +69,13 @@ data class CallHandlingUiState(
     val modeDirty: Boolean
         get() = stored.let { it != null && modeDraft != null && modeDraft != it.callHandling }
 
+    // ⚠️ The draft is read into a local too: an `Int?` property compared twice is null-checked
+    // twice, and the second check could never fail.
     val ringDirty: Boolean
-        get() = stored.let { it != null && ringDraft != null && ringDraft != it.appRingSeconds }
+        get() {
+            val draft = ringDraft
+            return stored.let { it != null && draft != null && draft != it.appRingSeconds }
+        }
 
     val hasUnsavedChanges: Boolean get() = modeDirty || ringDirty
 

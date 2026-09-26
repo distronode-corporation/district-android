@@ -59,10 +59,9 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onOpenDevices: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = SETTINGS_ROOT_DESCRIPTION },
+        modifier = Modifier.semantics { contentDescription = SETTINGS_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(title = stringResource(R.string.settings_title), onBack = onBack)
         },
@@ -156,9 +155,11 @@ const val SETTINGS_DELETE_ACCOUNT_DESCRIPTION: String = "district-settings-delet
  */
 const val ACCOUNT_DELETION_URL: String = "https://www.distronode.com/privacy/account-deletion"
 
+// ⚠️ INTERNAL RATHER THAN PRIVATE so `SettingsScreenTest` can render it: a preview that stopped
+// composing would break Android Studio's renderer without failing anything else.
 @Preview(showBackground = true)
 @Composable
-private fun SettingsScreenPreview() {
+internal fun SettingsScreenPreview() {
     DistrictTheme {
         SettingsScreen(onBack = {}, onSignOut = {}, onDeleteAccount = {}, onOpenDevices = {})
     }

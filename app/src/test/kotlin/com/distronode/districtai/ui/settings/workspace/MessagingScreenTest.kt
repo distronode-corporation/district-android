@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -7,9 +8,11 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.MESSAGING_PROVIDER_SINCH
+import com.distronode.districtai.core.model.MESSAGING_PROVIDER_TELNYX
 import com.distronode.districtai.core.model.MESSAGING_PROVIDER_TWILIO
 import com.distronode.districtai.core.model.MESSAGING_SOURCE_MANAGED
 import com.distronode.districtai.core.model.ManagedAccount
@@ -561,5 +564,254 @@ class MessagingScreenTest {
         assertEquals(true, rec.drafts?.numbersEdited)
         composeRule.onNodeWithContentDescription(MESSAGING_NUMBERS_HELP_DESCRIPTION)
             .assertIsDisplayed()
+    }
+
+    // ── What the form looks like in every other state ────────────────────────
+
+    private val twilioEdit get() = MessagingDraft.of(populated.accounts.first())
+
+    private val typedTwilio
+        get() = twilioEdit.copy(secrets = mapOf("accountSid" to "AC_typed", "authToken" to "typed"))
+
+    @Test
+    fun `an account the read carried with no label, provider or source reads as unknown`() {
+        // ⚠️ THE ROW STILL RENDERS. A legacy row with nulls is an account that still sends, and the
+        // operator has to be able to see it in order to fix it.
+        val bare = populated.copy(
+            accounts = listOf(MessagingAccount(id = "acct-bare")),
+            managedAccount = ManagedAccount(provider = null, phoneNumbers = emptyList()),
+            channelDefaults = mapOf("sms" to "acct-bare", "voice" to "acct-bare"),
+        )
+        render(MessagingUiState(load = MessagingLoadState.Ready(bare), canEdit = true))
+
+        composeRule.onNodeWithText("unknown · unknown · 0 numbers").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(messagingChannelDescription("voice")).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a write in flight locks every row's controls`() {
+        render(ready().copy(defaultSave = SaveState.Saving))
+
+        composeRule.onNodeWithContentDescription(messagingDefaultDescription("acct-twilio"))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(messagingEditDescription("acct-twilio"))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-twilio"))
+            .assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `an account save in flight locks the whole form and says it is saving`() {
+        render(ready(draft = typedTwilio).copy(accountSave = SaveState.Saving))
+
+        listOf(
+            MESSAGING_LABEL_DESCRIPTION,
+            messagingProviderDescription(MESSAGING_PROVIDER_SINCH),
+            messagingSourceDescription(MESSAGING_SOURCE_MANAGED),
+            messagingCredentialDescription("accountSid"),
+            MESSAGING_TEST_DESCRIPTION,
+            MESSAGING_NUMBERS_DESCRIPTION,
+            MESSAGING_MAKE_DEFAULT_DESCRIPTION,
+            MESSAGING_SAVE_DESCRIPTION,
+        ).forEach { composeRule.onNodeWithContentDescription(it).assertIsNotEnabled() }
+        composeRule.onNodeWithText("Saving…").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a probe in flight says it is asking the carrier and shows no result yet`() {
+        render(ready(draft = typedTwilio).copy(test = MessagingTestState.Running))
+
+        composeRule.onNodeWithText("Checking with the carrier…").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MESSAGING_TEST_RESULT_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a typed form that has not been probed shows no result`() {
+        render(ready(draft = typedTwilio))
+
+        composeRule.onNodeWithContentDescription(MESSAGING_TEST_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MESSAGING_TEST_RESULT_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a pass with no account name still says the keys were accepted`() {
+        render(ready(draft = typedTwilio).copy(test = MessagingTestState.Passed(null)))
+        composeRule.onNodeWithText("The carrier accepted these keys.").assertIsDisplayed()
+    }
+
+    @Test
+    fun `an unreachable carrier says so and does not blame the keys`() {
+        render(
+            ready(draft = typedTwilio).copy(
+                test = MessagingTestState.Unreachable(FailureText(UiText.Literal("Too many checks."))),
+            ),
+        )
+
+        composeRule.onNodeWithText("Too many checks.").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a create with a half-typed key set cannot be saved`() {
+        // ⛔ A SID WITH NO TOKEN STORES A CREDENTIAL THAT CAN NEVER AUTHENTICATE.
+        render(ready(draft = MessagingDraft(secrets = mapOf("accountSid" to "AC_only"))))
+
+        composeRule.onNodeWithContentDescription(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `picking another provider clears every typed key`() {
+        // ⚠️ A HALF-TYPED KEY FOR ONE CARRIER would otherwise be sent as a plaintext identifier for
+        // another, and stored in the clear.
+        val rec = render(ready(draft = typedTwilio))
+
+        composeRule.onNodeWithContentDescription(messagingProviderDescription(MESSAGING_PROVIDER_TELNYX))
+            .performClick()
+
+        assertEquals(MESSAGING_PROVIDER_TELNYX, rec.drafts?.provider)
+        assertEquals(emptyMap<String, String>(), rec.drafts?.secrets)
+    }
+
+    @Test
+    fun `typing a key adds it to the draft and keeps the others`() {
+        val rec = render(ready(draft = twilioEdit.copy(secrets = mapOf("accountSid" to "AC_typed"))))
+
+        composeRule.onNodeWithContentDescription(messagingCredentialDescription("authToken"))
+            .performTextInput("tok")
+
+        assertEquals(mapOf("accountSid" to "AC_typed", "authToken" to "tok"), rec.drafts?.secrets)
+    }
+
+    @Test
+    fun `a Telnyx form asks for an API key by that name`() {
+        render(ready(draft = MessagingDraft(provider = MESSAGING_PROVIDER_TELNYX)))
+
+        composeRule.onNodeWithText("API KEY").assertIsDisplayed()
+    }
+
+    @Test
+    fun `an account on a carrier this build does not know offers no key boxes and no probe`() {
+        // ⚠️ THE FORM STILL OPENS, so the label and numbers stay editable, but there is no field
+        // list to draw and nothing a probe could be dispatched on.
+        render(
+            ready(
+                draft = MessagingDraft.of(
+                    MessagingAccount(id = "acct-new", provider = "vonage", label = "Vonage"),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithContentDescription(MESSAGING_LABEL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MESSAGING_SECRET_KEEP_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(MESSAGING_TEST_UNAVAILABLE_DESCRIPTION)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a delete of an unlabelled account names it by its id`() {
+        render(
+            MessagingUiState(
+                load = MessagingLoadState.Ready(
+                    populated.copy(accounts = listOf(MessagingAccount(id = "acct-bare", provider = "twilio"))),
+                ),
+                canEdit = true,
+            ),
+        )
+
+        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-bare")).performClick()
+
+        composeRule.onNodeWithText("acct-bare", substring = true).assertIsDisplayed()
+    }
+
+    // ── Every dialog after the screen redraws under it ───────────────────────
+
+    @Test
+    fun `every dialog and control still reports through its callback after a redraw`() {
+        // ⚠️ A NEW STATE WITH THE SAME CALLBACKS, which is what every write's re-read does to this
+        // screen while a dialog may be open over it.
+        val rec = Recorder()
+        val current = mutableStateOf(ready())
+        val onStartEditing: (String?) -> Unit = { rec.edited += it }
+        val onEditDraft: (MessagingDraft?) -> Unit = {
+            if (it == null) rec.draftCleared = true else rec.drafts = it
+        }
+        val onSetChannelDefault: (String, String) -> Unit = { channel, id -> rec.channels += channel to id }
+        val onDelete: (String) -> Unit = { rec.deletes += it }
+        composeRule.setContent {
+            DistrictTheme {
+                MessagingScreen(
+                    state = current.value,
+                    onStartEditing = onStartEditing,
+                    onEditDraft = onEditDraft,
+                    onSaveAccount = {},
+                    onTestCredentials = {},
+                    onSetDefault = {},
+                    onSetChannelDefault = onSetChannelDefault,
+                    onDelete = onDelete,
+                    onEditCreatorCell = {},
+                    onSaveCreatorCell = {},
+                    onRetry = {},
+                    onBack = {},
+                )
+            }
+        }
+        fun redraw(next: MessagingUiState) {
+            current.value = next
+            composeRule.waitForIdle()
+        }
+
+        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-telnyx")).performClick()
+        redraw(ready().copy(creatorCellDraft = "+1"))
+        composeRule.onNodeWithContentDescription(MESSAGING_DELETE_CONFIRM_DESCRIPTION).performClick()
+
+        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("voice")).performClick()
+        redraw(ready().copy(creatorCellDraft = "+14"))
+        composeRule.onNodeWithContentDescription(messagingChannelOptionDescription("acct-telnyx"))
+            .performClick()
+        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).performClick()
+
+        redraw(ready(draft = twilioEdit))
+        redraw(ready(draft = twilioEdit).copy(creatorCellDraft = "+141"))
+        composeRule.onNodeWithContentDescription(MESSAGING_NUMBERS_DESCRIPTION)
+            .performTextReplacement("+14165550149")
+        composeRule.onNodeWithContentDescription(MESSAGING_CANCEL_DESCRIPTION).performClick()
+
+        assertEquals(listOf("acct-telnyx"), rec.deletes)
+        assertEquals(listOf("voice" to "acct-telnyx"), rec.channels)
+        assertEquals("+14165550149", rec.drafts?.phoneNumbers)
+        assertEquals(true, rec.draftCleared)
+    }
+
+    @Test
+    fun `the channel picker names an unlabelled account by its id`() {
+        var chosen: String? = null
+        composeRule.setContent {
+            DistrictTheme {
+                ChannelDefaultDialog(
+                    channel = "sms",
+                    accounts = listOf(MessagingAccount(id = "acct-bare", provider = "twilio")),
+                    onConfirm = { chosen = it },
+                    onDismiss = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("acct-bare").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).performClick()
+        assertEquals("acct-bare", chosen)
+    }
+
+    @Test
+    fun `a channel picker with no account to point at cannot be confirmed`() {
+        // ⚠️ THE SCREEN HIDES THE LAUNCHER WITH NO ACCOUNTS; the dialog holds the same line on its
+        // own, with nothing selected there is no id to send and the button says so.
+        composeRule.setContent {
+            DistrictTheme {
+                ChannelDefaultDialog(channel = "sms", accounts = emptyList(), onConfirm = {}, onDismiss = {})
+            }
+        }
+
+        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).assertIsNotEnabled()
     }
 }

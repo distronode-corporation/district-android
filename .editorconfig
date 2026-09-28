@@ -21,7 +21,7 @@ trim_trailing_whitespace = false
 end_of_line = crlf
 
 # Copies of files generated elsewhere, compared byte for byte. An editor must not touch them.
-[{contracts/*.json,parity/EndpointID.swift}]
+[{contracts/*.json,parity/EndpointID.swift,third_party/geist/OFL.txt,core/core-designsystem/src/main/res/raw/license_geist.txt}]
 insert_final_newline = unset
 trim_trailing_whitespace = unset
 indent_size = unset

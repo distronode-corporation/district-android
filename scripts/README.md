@@ -3,13 +3,14 @@
 Checks that the ordinary Gradle gate cannot make.
 
 ⛔ **These live in the repo because they find real defects.** A throwaway script has to be re-derived
-from scratch for each new section and the reasoning it encodes is never reviewable. Everything here is
-reusable for new dashboard sections.
+from scratch for each new screen and the reasoning it encodes is never reviewable. Everything here is
+reusable when the app gains a new screen.
 
 ## `verify-release-minification.sh`
 
 Builds the R8'd release artifact and asserts every **referenced** `@Serializable` model kept its
-serializer.
+serializer. It also checks that the Geist licence text survived resource shrinking, because the
+font's licence requires it to ship with the font files.
 
 ⛔ **`assembleDebug` proves nothing about this.** Debug builds do not minify, so a missing keep rule is
 invisible locally and surfaces as a decode failure in a Play track. R8 can be enabled with
@@ -52,7 +53,7 @@ authenticated screens work.
 ## `verify-{overview,calls,contacts}-against-db.sh`
 
 Drive the real route handlers against a real PostgreSQL, with a real bearer token, and compare the
-responses against the committed contract fixtures — keys and types, every row.
+responses against the committed contract fixtures: keys and types, every row.
 
 ⛔ **The committed fixtures are generated with the data layer MOCKED, which cannot catch a column whose
 real values differ in shape from the seed data.** That is the entire reason these exist. The kinds of
@@ -65,30 +66,37 @@ defect they catch:
 | Offset paging **repeats a row** when one is inserted mid-scroll | Reproduced by fetching page 1, inserting a call, fetching page 2. A duplicate key crashes a `LazyColumn`, so this is a crash on the most ordinary event on that screen. |
 | A missing `createdAt` tie-break **loses rows** | Without `id desc` in the contacts ordering, **2 of 40** rows become unreachable and 2 duplicate. Bulk imports write hundreds of rows sharing one timestamp. |
 
-Run one after regenerating any fixture, and write a new one for each new section. They need the
-District server running locally, and the server is not public, so these three are maintainer
-tools; CI runs only `verify-release-minification.sh`.
+Run one after regenerating any fixture, and write a new one for each new screen. They need a
+local copy of the District AI server with a test database, and the server is not public, so these
+three are maintainer tools; CI runs only `verify-release-minification.sh`.
 
 ### What they need
 
-```bash
-# Postgres with the dev databases, and Redis
-docker ps --format '{{.Names}}'      # expects distronode-test-pg and a redis container
+- **A local copy of the District AI server** from its (private) repository, run in development mode
+  with its local mock session turned on, so that a sign-in resolves to a real user in the test
+  database. Its Redis must be running too. The scripts reach it at `http://127.0.0.1:3100`; set
+  `DISTRICT_BASE_URL` to use another address.
+- **Its test database, reachable with `psql`.** The calls and contacts scripts seed rows with it.
+  The default command is the maintainers' own local container; set `DISTRICT_PSQL` to any `psql`
+  invocation that reaches the database, with `-qtAX` so the output is bare values.
+- **`DISTRICT_WS`**: the id of a workspace in that database.
 
-# The District server, run from its own checkout with the local-dev mock session enabled
-MOCK_SESSION=true REDIS_URL=redis://127.0.0.1:6379 PORT=3100 npm run dev
+```bash
+DISTRICT_WS=<workspace id> DISTRICT_PSQL='psql -h 127.0.0.1 -U postgres -d <database> -qtAX' \
+  scripts/verify-calls-against-db.sh
 ```
 
-`MOCK_SESSION` is hard-false in production. `/auth/native` resolves the user from the database by
-email, so a mock session maps to a real user and the full PKCE exchange works locally.
+The mock session is off in production by construction. The native sign-in route resolves the user
+from the database by email, so a mock session maps to a real user and the full PKCE exchange works
+locally.
 
-⚠️ **Every script warms the routes first, and that is not optional.** Next dev compiles a route on its
-first hit (several seconds for `/auth/native`) while the authorization code's TTL is 120s, so an unwarmed
-run spends the budget on compilation and fails with an opaque `refused (unknown)` that reads like a
-PKCE bug.
+⚠️ **Every script warms the routes first, and that is not optional.** The server in development mode
+compiles a route on its first hit (several seconds for the native sign-in route) while the
+authorization code's TTL is 120s, so an unwarmed run spends the budget on compilation and fails
+with an opaque `refused (unknown)` that reads like a PKCE bug.
 
 ⚠️ **Capture the token-exchange response before parsing it.** Piping `curl` straight into a JSON
 extractor turns any failure into a bare "no access token" with no clue why.
 
-⚠️ Seeded rows use an `id` prefix (`t9seed-`, `t10seed-`) and are removed by an `EXIT` trap, so an
-interrupted run still cleans up.
+⚠️ Seeded rows use a fixed `id` prefix and are removed by an `EXIT` trap, so an interrupted run
+still cleans up.

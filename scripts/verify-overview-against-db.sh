@@ -12,7 +12,9 @@
 # SETS and VALUE TYPES against the committed fixtures.
 set -u
 
-BASE="http://127.0.0.1:3100"
+# The local server and a psql command for its database. Both can be overridden; the defaults
+# are the maintainers' own setup, described in scripts/README.md.
+BASE="${DISTRICT_BASE_URL:-http://127.0.0.1:3100}"
 REDIRECT="districtai://auth"
 DEVICE_ID="t8-validate-$(date +%s)"
 CONTRACTS="$(cd "$(dirname "$0")/.." && pwd)/contracts"
@@ -29,7 +31,7 @@ echo "== warming routes (next dev compiles on first hit) =="
 for path in \
   "/auth/native?code_challenge=x&state=y&redirect_uri=z" \
   "/api/district/workspace/list" \
-  "/api/district/overview?workspaceId=${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local dev_hub}"; do
+  "/api/district/overview?workspaceId=${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local server database}"; do
   curl -sS -o /dev/null --max-time 90 -H 'Cookie: distronode_session=local-dev-mock' "$BASE$path" 2>/dev/null
 done
 curl -sS -o /dev/null --max-time 90 -X POST "$BASE/api/auth/native/token" \

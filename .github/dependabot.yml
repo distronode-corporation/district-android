@@ -19,8 +19,9 @@ version: 2
 # is kept out of the weekly group. Those move together and can break the build together: AGP
 # 9.4.1, Kotlin 2.4.20 and Robolectric 4.17 arriving in one grouped pull request failed 11
 # DeskSupportRoutesTest cases with an IllegalAccessException inside Robolectric, and took the
-# routine bumps down with them. Each now arrives as its own pull request, and a toolchain
-# upgrade is done deliberately.
+# routine bumps down with them. AGP, Robolectric and the Gradle wrapper now each arrive as their
+# own pull request, and a toolchain upgrade is done deliberately. Kotlin and the Compose compiler
+# plugin do not arrive at all: they are ignored below and bumped by hand together with AGP.
 #
 # protobuf majors are ignored. The runtime is forced in build.gradle.kts to the 3.25 line
 # that LiveKit and Firebase Messaging generate their code against; a 4.x runtime under that

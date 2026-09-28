@@ -22,6 +22,11 @@ name: Dependency submission
 # below 1.85 anywhere in the graph. A new plugin that
 # drags in an older version of something is reported the same way, so keep those forces in step.
 #
+# ⚠️ THIS WORKFLOW IS THE ONE SUBMITTER. GitHub's "Automatic dependency submission" (a repository
+# code security setting, not a file) also submits a Gradle graph, from a build it sets up itself
+# rather than the one described here. Keep that setting OFF: two submitters mean two graphs for one
+# commit, and duplicated or disagreeing alerts.
+#
 # Action pins follow ci.yml: allowlisted, full commit SHA, `# vX.Y.Z` naming that SHA's version.
 on:
   push:

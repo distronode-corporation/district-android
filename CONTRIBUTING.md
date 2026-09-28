@@ -1,5 +1,10 @@
 # Contributing to District AI for Android
 
+Questions, ideas and "how do I…" go to
+[GitHub Discussions](https://github.com/distronode-corporation/district-android/discussions).
+Issues are for reproducible bugs in this app's code, and security reports go through
+[SECURITY.md](SECURITY.md).
+
 ## Layout
 
 ```
@@ -75,8 +80,10 @@ lockfiles" note in `build.gradle.kts` and commit them in the same change. A rais
 without its lockfiles fails dependency resolution ("enforced by Dependency Locking"), and a
 lowered one is silently overridden by the lock, so neither does what the diff says.
 Dependabot regenerates every module's lockfile in its own pull requests, so a red one is a
-real failure of the upgrade. The toolchain (AGP, Kotlin, Robolectric, the Gradle wrapper)
-arrives one pull request at a time, outside the weekly group; see `.github/dependabot.yml`.
+real failure of the upgrade. AGP, Robolectric and the Gradle wrapper arrive one pull request
+at a time, outside the weekly group. Kotlin (with the Compose compiler plugin) gets no
+Dependabot pull request at all: it follows the version AGP bundles and is bumped by hand in the
+same change as AGP. See `.github/dependabot.yml`.
 
 New dependencies are a supply-chain decision. `settings.gradle.kts` restricts where
 dependencies may resolve from, and JitPack is admitted for one module only; do not widen that.
@@ -95,8 +102,9 @@ Conventional Commits are not required. What is required is that the message says
 not just what; the diff already says what. A good message names the thing that was wrong,
 the evidence, and what would have caught it.
 
-Pull requests run `.github/workflows/ci.yml`, and all of it must be green. Fork pull requests
-run the same job: it uses no secrets.
+Pull requests run `.github/workflows/ci.yml`, the secret scan in
+`.github/workflows/gitleaks.yml` and CodeQL, and all of it must be green. A fork's pull request
+runs the same CI job: it uses no secrets.
 
 ## Comments
 
@@ -112,3 +120,8 @@ device and Android version, and what you expected. Do not paste anything from a 
 numbers, message content) into a public issue.
 
 For anything security-relevant, do not open an issue. See [SECURITY.md](SECURITY.md).
+
+## Licence of contributions
+
+By contributing you agree that your contribution is licensed under the Apache License 2.0, as
+section 5 of [the licence](LICENSE) provides. There is no CLA and no sign-off requirement.

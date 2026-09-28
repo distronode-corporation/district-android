@@ -33,6 +33,7 @@ paths = [
   '''(^|/)app/src/test/kotlin/com/distronode/districtai/ui/settings/workspace/PersonaPreviewViewModelTest\.kt$''',
   '''(^|/)core/core-data/src/test/kotlin/com/distronode/districtai/core/data/PersonaOptionsRepositoryTest\.kt$''',
   '''(^|/)core/core-media/src/test/kotlin/com/distronode/districtai/core/media/CallEngineModelsTest\.kt$''',
+  '''(^|/)core/core-media/src/test/kotlin/com/distronode/districtai/core/media/LiveKitCallEngineTest\.kt$''',
 ]
 regexTarget = "secret"
 regexes = [

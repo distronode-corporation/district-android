@@ -18,10 +18,11 @@ android {
     }
 
     // ── Release signing (upload key) ─────────────────────────────────────────
-    // Credentials come from the environment of whoever builds the release. Releases
-    // are built and signed on a maintainer's machine, never in CI, so no workflow in
-    // this repository holds them. Nothing key-shaped is ever committed: the
-    // repository's .gitignore excludes *.p12, *.jks, *.keystore and *.pepk.
+    // Credentials come from the environment of whoever builds the release. For
+    // Distronode's releases that is .github/workflows/release.yml, which borrows them
+    // from Google Secret Manager for one run (scripts/release-build.sh); nothing holds
+    // them between runs. Nothing key-shaped is ever committed: the repository's
+    // .gitignore excludes *.p12, *.jks, *.keystore and *.pepk.
     //
     // Under Play App Signing, Google holds the real app signing key and this is only
     // the UPLOAD key, recoverable through Play support if it is ever lost.

@@ -96,11 +96,30 @@ snapshot came from and how to refresh it, or how to test against a live iOS chec
 
 ## Releases
 
-Releases are built and signed on a maintainer's machine, never in CI, and uploaded to the
-Google Play Console by hand. The first release, 1.0, is
-[published on Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai).
-No workflow in this repository holds a signing key, a store credential or a crash reporting
-token.
+Releases are built, signed and uploaded to Google Play by
+[`.github/workflows/release.yml`](.github/workflows/release.yml), from a `v*` tag (tags are
+protected: they cannot be moved or deleted) or, for a test build, from a dispatch on `main`.
+Every build goes to the internal testing track. Submission for store review is a separate
+step that runs only with the maintainers' explicit approval, either in the same run or later
+through [`.github/workflows/submit.yml`](.github/workflows/submit.yml); it releases the
+already uploaded build to production with the version's `CHANGELOG.md` section as its release
+notes.
+
+No signing key or store credential is stored in this repository or in GitHub. The jobs run in
+a `release` environment that only `main` and `v*` tags can use, and borrow the upload key, the
+Google Play publishing credential and the Sentry upload token from Distronode's Google Cloud
+for the length of one run, through workload identity federation pinned to this repository,
+that environment and those refs. On a tag the workflow refuses to build unless the tag equals
+`versionName` and names a commit on `main`, and it checks the release notes before building.
+
+Versions up to and including 1.0, the current store release
+([on Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai)),
+were built and signed on a maintainer's machine before this workflow existed.
+
+The scripts the workflows run are in `scripts/` (`release-version.sh`, `release-build.sh`,
+`release-notes.sh`, `play-publish.sh`, `gsm-secret.sh`), and `scripts/release-scripts.test.sh`
+tests them in CI against a stub of the Google APIs. To build a release yourself, for example
+for a fork signed with your own key:
 
 - **versionCode** is `BUILD_NUMBER_OFFSET` (default 4101) plus `git rev-list --count HEAD`, so
   build releases from a full clone, not a shallow one. `app/build.gradle.kts` explains why the
@@ -121,6 +140,8 @@ token.
   | `districtSentryProject` | `DISTRICT_SENTRY_PROJECT` | The project slug the mapping is uploaded to. |
   | (none) | `SENTRY_AUTH_TOKEN` | The upload token. Without it the mapping is packaged but not uploaded. |
 
+  `release.yml` supplies all five for Distronode's own releases.
+
   A property wins over its environment variable. A build with no DSN says so in one line
   ("Sentry disabled: ...") when Gradle configures the project. A run that reuses the
   configuration cache skips configuration and so does not repeat the line; build a release with
@@ -135,8 +156,8 @@ and without it release stack traces cannot be read.
 
 ## What is in this repository
 
-There are no release credentials here: no signing key, store credential or crash reporting
-token. Some values look like credentials and are not. They are listed so nobody has to guess:
+There are no release credentials here, and none in GitHub: no signing key, store credential or
+crash reporting token (the release workflow borrows them per run; see Releases). Some values look like credentials and are not. They are listed so nobody has to guess:
 
 - **Firebase client configuration** in `app/src/main/kotlin/.../push/DistrictFirebase.kt`:
   the project id, sender id, the two Android app ids and the Android API key. This is the

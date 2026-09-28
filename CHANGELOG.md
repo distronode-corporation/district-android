@@ -10,6 +10,14 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ### Changed
 
+- Releases are built, signed and uploaded to Google Play by `.github/workflows/release.yml`,
+  from a protected `v*` tag or, for a test build, a dispatch on `main`. No signing key or store
+  credential is stored in the repository or in GitHub: the `release` environment borrows them
+  from Distronode's Google Cloud for one run, through workload identity pinned to this
+  repository, that environment and those refs. Submission for store review runs only with the
+  maintainers' explicit approval. Versions up to and including 1.0 were built on a
+  maintainer's machine before this workflow existed.
+
 - Coverage is measured by JaCoCo over the debug variant and gated at 99% line and 98% branch.
 - The source now lives in its own repository, with CI on GitHub Actions.
 - A build carries a Sentry DSN only when it is given one (`-PdistrictSentryDsn` or

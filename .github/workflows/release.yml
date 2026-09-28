@@ -1,0 +1,217 @@
+name: Release
+
+# Builds, signs and uploads a release to Google Play, and submits it for review only with the
+# maintainers' explicit approval.
+#
+#   push of a v* tag                          build, sign, upload to the internal track
+#   dispatch on main, approval empty          the same, from main: a test build (internal only)
+#   dispatch on a v* tag with the approval    the same, then submit it for review (job `submit`)
+#
+# A build left waiting is submitted later with submit.yml, which runs the same submission script.
+#
+# ⛔ NO SIGNING KEY OR STORE CREDENTIAL LIVES IN THIS REPOSITORY OR IN GITHUB. Every job that needs
+# one runs in the `release` environment (deployment policy: main and v* tags only) and borrows it
+# from Distronode's Google Cloud through workload identity federation. The provider admits only
+# this repository, that environment and those refs, and the service account it maps to can read
+# exactly the secrets scripts/release-build.sh names and mint a token for the Play publishing
+# account. Nothing is stored; the tokens expire within the hour.
+#
+# ⛔ `fetch-depth: 0` IS LOAD-BEARING. versionCode is 4101 plus the commit count, and a shallow
+# clone answers its depth instead (a one-commit checkout gives 4102, a number Play already holds).
+# scripts/release-version.sh refuses a shallow clone rather than trusting this line.
+#
+# No pull_request trigger of any kind: nothing here may run on code that is not on main or a tag.
+# Inputs reach shell only through `env:`, never interpolated into a script.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      approval:
+        description: "Maintainers' approval to submit for review. Leave empty to upload to the internal track only."
+        type: string
+        required: false
+        default: ""
+
+permissions: {}
+
+# One release run per ref at a time, and a run is never cancelled part way: a cancelled upload
+# can leave a versionCode consumed with nothing on a track.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  WORKLOAD_IDENTITY_PROVIDER: projects/409911651910/locations/global/workloadIdentityPools/github-pool/providers/github-actions
+  RELEASE_SERVICE_ACCOUNT: gh-android-release@distronode.iam.gserviceaccount.com
+
+jobs:
+  build:
+    name: Build, sign and upload (internal track)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # workload identity federation to Google Cloud
+    outputs:
+      version_code: ${{ steps.version.outputs.version_code }}
+      version_name: ${{ steps.version.outputs.version_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # main, or a v* tag that equals versionName and names a commit on main. The environment's
+      # policy already refuses any other ref; this makes the refusal say why.
+      - name: Version and ref checks
+        id: version
+        env:
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          case "$REF" in
+            refs/heads/main)
+              scripts/release-version.sh >> "$GITHUB_OUTPUT"
+              ;;
+            refs/tags/v*)
+              scripts/release-version.sh --tag "$REF_NAME" >> "$GITHUB_OUTPUT"
+              # The release notes are submitted later; a missing or oversized CHANGELOG section
+              # fails here, before an hour of building, instead of at submission.
+              scripts/release-notes.sh "${REF_NAME#v}" > /dev/null
+              ;;
+            *)
+              echo "::error::Releases are built from main or a v* tag, not $REF."
+              exit 1
+              ;;
+          esac
+          cat "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Wrapper validation only. No Gradle cache in a release build: a cache written by another
+      # workflow run is input this build would trust without having made it.
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-disabled: true
+
+      - name: Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+          test -d "$ANDROID_HOME/platforms/android-37.0"
+          test -d "$ANDROID_HOME/build-tools/37.0.0"
+
+      # An access token only: no credentials file in the workspace and nothing exported to the
+      # environment, so the token reaches only the steps that name it.
+      - id: gcp
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.RELEASE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: Signed release bundle
+        env:
+          GCP_TOKEN: ${{ steps.gcp.outputs.access_token }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+          # Where the Sentry plugin uploads the R8 mapping (see app/build.gradle.kts).
+          DISTRICT_SENTRY_URL: https://de.sentry.io
+          DISTRICT_SENTRY_ORG: distronode-corporation-eu
+          DISTRICT_SENTRY_PROJECT: district-android
+        run: scripts/release-build.sh
+
+      # A second, fresh token: the build can take most of the first one's hour.
+      - id: gcp_play
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.RELEASE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: Upload to Google Play (internal track)
+        env:
+          GCP_TOKEN: ${{ steps.gcp_play.outputs.access_token }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+        run: |
+          scripts/play-publish.sh upload \
+            app/build/outputs/bundle/release/app-release.aab \
+            app/build/outputs/mapping/release/mapping.txt \
+            "$VERSION_CODE" "$VERSION_NAME"
+
+      - name: Summary
+        env:
+          APPROVAL: ${{ inputs.approval }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+        run: |
+          {
+            echo "### District AI $VERSION_NAME, versionCode $VERSION_CODE"
+            echo
+            echo "Signed and uploaded to the Google Play internal track."
+            echo
+            if [ "$APPROVAL" = "approved for release" ] && [ "${REF#refs/tags/v}" != "$REF" ]; then
+              echo "Approved: the \`submit\` job sends it for review."
+            elif [ "${REF#refs/tags/v}" != "$REF" ]; then
+              echo "Waiting for approval. Nothing was submitted for review; submit it with \`submit.yml\` (tag \`$REF_NAME\`)."
+            else
+              echo "A build of \`main\`: internal track only. Only a \`v*\` tag is ever submitted for review."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  submit:
+    name: Submit for review (production)
+    needs: build
+    # Only a tag, and only with the approval given when the run was started. A tag push has no
+    # inputs, so it always stops at the internal track.
+    if: ${{ inputs.approval == 'approved for release' && startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # workload identity federation to Google Cloud
+    # Shared with submit.yml, so the two can never submit the same tag at once.
+    concurrency:
+      group: play-submit-${{ github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Release notes
+        env:
+          VERSION_NAME: ${{ needs.build.outputs.version_name }}
+        # To a file first, then shown: a pipe into tee would hide a failure, because a step without
+        # `shell:` runs bash without pipefail.
+        run: |
+          scripts/release-notes.sh "$VERSION_NAME" > "$RUNNER_TEMP/release-notes.txt"
+          cat "$RUNNER_TEMP/release-notes.txt"
+
+      - id: gcp
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.RELEASE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: Submit to production
+        env:
+          GCP_TOKEN: ${{ steps.gcp.outputs.access_token }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          VERSION_NAME: ${{ needs.build.outputs.version_name }}
+        run: scripts/play-publish.sh submit "$VERSION_CODE" "$VERSION_NAME" "$RUNNER_TEMP/release-notes.txt"

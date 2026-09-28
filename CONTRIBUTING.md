@@ -21,9 +21,11 @@ core/core-media/         LiveKit behind the CallEngine interface.
 build-logic/             Convention plugins (district.android.*).
 contracts/               Server-generated API fixtures. Never edited by hand.
 parity/                  Snapshot of the iOS client's endpoint list.
-scripts/                 verify-release-minification.sh (CI), smoke-emulator.sh (the local
-                         Maestro lane), and maintainer scripts that need the (private)
-                         server running locally.
+scripts/                 verify-release-minification.sh (CI), the release scripts that
+                         release.yml and submit.yml run (tested by
+                         release-scripts.test.sh), smoke-emulator.sh (the local Maestro
+                         lane), and maintainer scripts that need the (private) server
+                         running locally.
 ```
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the longer version.
@@ -55,6 +57,7 @@ This is exactly what CI's one job runs:
 # then: at least one test result must exist (CI sums every module's result XMLs)
 ./gradlew :koverLogUnit :koverVerifyUnit
 scripts/verify-release-minification.sh
+scripts/release-scripts.test.sh      # the release scripts, against a stub of the Google APIs
 ```
 
 A few things these gates are strict about, so they do not surprise you in review:
@@ -105,6 +108,17 @@ the evidence, and what would have caught it.
 Pull requests run `.github/workflows/ci.yml`, the secret scan in
 `.github/workflows/gitleaks.yml` and CodeQL, and all of it must be green. A fork's pull request
 runs the same CI job: it uses no secrets.
+
+## Releases
+
+Maintainers release by pushing a `v*` tag that equals `versionName`, on a commit on `main`,
+with a `CHANGELOG.md` section for that version (Google Play takes at most 500 characters of
+release notes, and the workflow refuses a longer section rather than cut it).
+`.github/workflows/release.yml` builds, signs and uploads it to the internal testing track;
+submission for store review runs only with the maintainers' explicit approval. No signing key
+or store credential is stored in this repository or in GitHub: the `release` environment
+borrows them from Distronode's Google Cloud for one run at a time. A fork's pull request never
+runs either release workflow. See the README's Releases section for the details.
 
 ## Comments
 

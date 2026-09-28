@@ -18,7 +18,8 @@ local.properties
 # needed; ignoring it stops a downloaded copy from being committed by accident.
 google-services.json
 
-# Signing material. Release builds are signed on a maintainer's machine, from outside the tree.
+# Signing material. Never in the tree: release.yml writes the upload keystore to the runner's
+# temporary directory for one build and deletes it.
 *.jks
 *.keystore
 *.p12

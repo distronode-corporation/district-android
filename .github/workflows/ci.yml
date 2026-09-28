@@ -2,9 +2,10 @@ name: CI
 
 # One Linux job, because that is the whole of what this repository's CI is for: prove that a
 # commit builds, lints, passes its unit tests, holds its coverage floors and survives R8. It
-# builds nothing that ships. Release builds are made and signed on a maintainer's machine, so no
-# workflow here holds a signing key, a store credential or a Sentry token, and none references a
-# secret at all. That is also what lets a pull request from a fork run the same job unchanged.
+# builds nothing that ships: releases are release.yml's job, in the `release` environment, which
+# a pull request can never reach. This workflow holds no signing key, store credential or Sentry
+# token and references no secret at all, which is what lets a pull request from a fork run the
+# same job unchanged.
 #
 # No emulator job: the Maestro smoke flow in .maestro/ needs a device and a demo account, and it
 # is run by hand.
@@ -40,6 +41,11 @@ jobs:
           # Nothing after checkout talks to GitHub, so the token is not left in .git/config for
           # every later step (and every Gradle plugin) to read.
           persist-credentials: false
+
+      # The release scripts, against a stub of the Google APIs: seconds, and no network. First,
+      # so a broken release script fails before the Gradle build spends its time.
+      - name: Release script tests
+        run: scripts/release-scripts.test.sh
 
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.

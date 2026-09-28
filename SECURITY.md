@@ -65,10 +65,26 @@ can read it. The app spends one authenticated request to turn an id into what it
 
 ### Crash reporting is opt-in per build and strips personal data
 
-A build made from this repository reports no crashes: Sentry is enabled only when the build is
-given a DSN. When it is, `sendDefaultPii` is off and tracing and profiling are disabled
+A build made from a plain checkout of this repository reports no crashes: Sentry is enabled
+only when the build is given a DSN, which the release workflow does for Distronode's own
+releases. When it is, `sendDefaultPii` is off and tracing and profiling are disabled
 (`DistrictSentry.kt`, both pinned by `DistrictSentryTest`), and neither the session-replay nor
 the NDK module is a dependency.
+
+### Releases are built in CI with borrowed credentials
+
+Releases are built, signed and uploaded to Google Play by `.github/workflows/release.yml`, from
+a protected `v*` tag or a dispatch on `main`. No signing key or store credential is stored in
+this repository or in GitHub: the jobs run in a `release` environment that only `main` and `v*`
+tags can use, and borrow the upload key, the Play publishing credential and the Sentry upload
+token from Distronode's Google Cloud for the length of one run, through workload identity
+federation pinned to this repository, that environment and those refs. The workflows have no
+`pull_request` trigger, so no pull request, from a fork or otherwise, can reach them.
+Submission for store review runs only with the maintainers' explicit approval. Google Play App
+Signing holds the app signing key; the key borrowed here is the upload key.
+
+Versions up to and including 1.0 were built and signed on a maintainer's machine before this
+workflow existed.
 
 ## Scope
 

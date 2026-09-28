@@ -53,6 +53,19 @@ if [ -z "$APK" ]; then
 fi
 printf '  artifact: %s (%s)\n' "$APK" "$(du -h "$APK" | cut -f1)"
 
+# ── The Geist licence text ships beside the fonts ────────────────────────────
+#
+# ⛔ The OFL requires its text to accompany every copy of the font files, and the APK carries them.
+# Nothing reads res/raw/license_geist.txt, so without its tools:keep (res/raw/keep_geist_license.xml
+# in core-designsystem) the resource shrinker empties it and the build stays green. Searched by
+# content across every res/ entry rather than by path, because resource shrinking may rename paths.
+GEIST_OFL=$(unzip -p "$APK" 'res/*' 2>/dev/null | grep -a -c 'SIL OPEN FONT LICENSE Version 1.1')
+if [ "${GEIST_OFL:-0}" -gt 0 ]; then
+  pass "the Geist licence text is in the release APK"
+else
+  fail "the Geist licence text is NOT in the release APK (was res/raw/license_geist.txt shrunk away?)"
+fi
+
 # ── Collect the classes R8 RETAINED, from the mapping file ───────────────────
 #
 # ⛔ READ THE MAPPING, NOT THE DEX. R8 RENAMES everything, so the original fully-qualified names are

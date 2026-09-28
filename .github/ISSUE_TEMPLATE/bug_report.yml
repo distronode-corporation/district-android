@@ -17,9 +17,9 @@ body:
       options:
         - label: I've searched existing issues and this isn't a duplicate.
           required: true
-        - label: This is a reproducible bug in the app, not an account question or a feature request.
+        - label: I'm on the latest release (1.0 on Google Play) or a build of `main`.
           required: true
-        - label: I've removed any personal data, token or other secret from everything I'm pasting.
+        - label: This is not a security issue, and I've removed any personal data, token or other secret from everything I'm pasting.
           required: true
   - type: textarea
     id: what-happened
@@ -40,6 +40,7 @@ body:
     attributes:
       label: App version
       description: "Android Settings > Apps > District AI shows the version. For a build from source, the commit you built."
+      placeholder: "1.0"
     validations:
       required: true
   - type: dropdown
@@ -47,9 +48,9 @@ body:
     attributes:
       label: How did you install it?
       options:
+        - Google Play
         - Built from source (debug)
         - Built from source (release)
-        - Internal test build from a maintainer
     validations:
       required: true
   - type: input

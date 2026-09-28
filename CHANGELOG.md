@@ -37,11 +37,13 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - Workflow run history that arrives after a reload is dropped instead of being shown on the next
   expand, which after a session change could have been another account's history.
 
-## [1.0]
+## [1.0] - 2026-09-26
 
-The first release, submitted to Google Play and in Google's review. The store listing is not
-public yet; it goes live when the review completes, and this entry gets its date then.
+The first release on Google Play.
 
 It covers sign-in through the service's own login page (PKCE), calls and transcripts, the
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
+
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v1.0...HEAD
+[1.0]: https://github.com/distronode-corporation/district-android/releases/tag/v1.0

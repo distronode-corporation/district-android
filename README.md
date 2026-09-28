@@ -1,15 +1,22 @@
 # District AI for Android
 
-The native Android client for [District AI](https://www.distronode.com), by Distronode. It is
-the app submitted to Google Play as `com.distronode.districtai`: calls and transcripts, the
-shared inbox, contacts and their intelligence dossiers, multi-party rooms, a self-managed
-softphone that places and answers calls through Android's Telecom framework, push
-notifications, and workspace settings.
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/distronode-corporation/district-android/badge)](https://scorecard.dev/viewer/?uri=github.com/distronode-corporation/district-android)
+
+The native Android client for [District AI](https://www.distronode.com/district-ai), by
+Distronode. It is the app published on
+[Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai) as
+`com.distronode.districtai`: calls and transcripts, the shared inbox, contacts and their
+intelligence dossiers, multi-party rooms, a self-managed softphone that places and answers
+calls through Android's Telecom framework, push notifications, and workspace settings.
 
 Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache-2.0.
 
 The app is a client of the District AI API. Everything it shows comes from that service, and
 signing in needs a District AI account. There is no offline mode and no local server.
+
+**Links:** [project page](https://www.distronode.com/open-source/district-android) ·
+[GitLab mirror](https://gitlab.com/distronode-corporation/district-android) (read-only mirror;
+issues and pull requests live on GitHub) · [CHANGELOG](CHANGELOG.md)
 
 ## Requirements
 
@@ -90,9 +97,10 @@ snapshot came from and how to refresh it, or how to test against a live iOS chec
 ## Releases
 
 Releases are built and signed on a maintainer's machine, never in CI, and uploaded to the
-Google Play Console by hand. The first release is submitted and in Google's review, so there
-is no public store listing yet. No workflow in this repository holds a signing key, a store
-credential or a crash reporting token.
+Google Play Console by hand. The first release, 1.0, is
+[published on Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai).
+No workflow in this repository holds a signing key, a store credential or a crash reporting
+token.
 
 - **versionCode** is `BUILD_NUMBER_OFFSET` (default 4101) plus `git rev-list --count HEAD`, so
   build releases from a full clone, not a shallow one. `app/build.gradle.kts` explains why the
@@ -127,7 +135,8 @@ and without it release stack traces cannot be read.
 
 ## What is in this repository
 
-Some values here look like credentials and are not. They are listed so nobody has to guess:
+There are no release credentials here: no signing key, store credential or crash reporting
+token. Some values look like credentials and are not. They are listed so nobody has to guess:
 
 - **Firebase client configuration** in `app/src/main/kotlin/.../push/DistrictFirebase.kt`:
   the project id, sender id, the two Android app ids and the Android API key. This is the
@@ -143,14 +152,22 @@ Some values here look like credentials and are not. They are listed so nobody ha
 Nothing here is a secret. If you find something that is, report it as described in
 [SECURITY.md](SECURITY.md) rather than in an issue.
 
-## Contributing
+## Contributing, security and conduct
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports go through [SECURITY.md](SECURITY.md),
-not the issue tracker.
+- [CONTRIBUTING.md](CONTRIBUTING.md): the local gate, the rules CI enforces, and how pull
+  requests are reviewed.
+- [SECURITY.md](SECURITY.md): report vulnerabilities privately, not in an issue.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- [SUPPORT](.github/SUPPORT.md): where questions, bugs and account help go.
 
-## License
+Questions about a District AI account, number or bill go to
+[District AI support](https://www.distronode.com/support).
+
+## License and trademarks
 
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
-The District AI and Distronode names, logos and app icon are trademarks and are not licensed
-under Apache-2.0; a distributed build must use its own name, icon and applicationId.
+District AI, Distronode and the District AI and Distronode logos and app icons are trademarks
+of Distronode Corporation. They are not licensed under the Apache License 2.0: a build you
+distribute must use its own name, icon and applicationId. [NOTICE](NOTICE) has the details and
+the third-party notices.

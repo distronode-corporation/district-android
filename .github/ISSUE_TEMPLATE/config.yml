@@ -1,10 +1,14 @@
 # No blank issues: everything goes through the structured bug report form or the links
-# below, which keeps the tracker to real, reproducible bugs.
+# below, which keeps the tracker to real, reproducible bugs. Account and service help is in
+# .github/SUPPORT.md, which GitHub links from the new-issue page.
 blank_issues_enabled: false
 contact_links:
-  - name: 🔒 Security vulnerability
+  - name: 📖 README
+    url: https://github.com/distronode-corporation/district-android#readme
+    about: Building, testing and the repository layout. Most build questions are answered here.
+  - name: 💬 Questions and ideas
+    url: https://github.com/distronode-corporation/district-android/discussions
+    about: Questions, ideas and "how do I…" go to Discussions, not Issues.
+  - name: 🔒 Security report
     url: https://github.com/distronode-corporation/district-android/security/advisories/new
-    about: Do not open a public issue. Report it privately here (see SECURITY.md).
-  - name: 💬 Account, billing and service support
-    url: https://www.distronode.com/support
-    about: Questions about your District AI account, workspace or the service itself. The issue tracker is for bugs in this app's code only.
+    about: Please do not open a public issue for a vulnerability. Report it privately here (see SECURITY.md).

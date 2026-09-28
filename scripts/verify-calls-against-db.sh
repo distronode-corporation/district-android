@@ -8,12 +8,14 @@
 # If it does not reproduce, the deduplication is unnecessary complexity and should be reconsidered.
 set -u
 
-BASE="http://127.0.0.1:3100"
+# The local server and a psql command for its database. Both can be overridden; the defaults
+# are the maintainers' own setup, described in scripts/README.md.
+BASE="${DISTRICT_BASE_URL:-http://127.0.0.1:3100}"
 REDIRECT="districtai://auth"
 DEVICE_ID="t9-validate-$(date +%s)"
 CONTRACTS="$(cd "$(dirname "$0")/.." && pwd)/contracts"
-WS="${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local dev_hub}"
-PG="docker exec -i distronode-test-pg psql -U postgres -d dev_hub -qtAX"
+WS="${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local server database}"
+PG="${DISTRICT_PSQL:-docker exec -i distronode-test-pg psql -U postgres -d dev_hub -qtAX}"
 
 pass() { printf '  \033[32mPASS\033[0m %s\n' "$1"; }
 fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILURES=$((FAILURES + 1)); }

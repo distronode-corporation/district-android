@@ -1,0 +1,52 @@
+name: Secret scan
+
+# gitleaks over the whole git history, with .gitleaks.toml: the default rules plus allowlists for
+# the values that look like secrets and are not (SECURITY.md lists them). Every allowlist there is
+# scoped to one rule, named files and the exact values, so a real key added beside one of them is
+# still reported, and this job is what reports it.
+#
+# ⚠️ The CLI, not gitleaks/gitleaks-action: the action needs a paid GITLEAKS_LICENSE for an
+# organisation's repositories. The CLI is MIT-licensed; it is installed with `go install` at a
+# pinned version, the same way distronode-corporation/district-scheduler runs it, and a local run
+# is the same command (`gitleaks git --config .gitleaks.toml .`).
+#
+# Action pins follow ci.yml: allowlisted, full commit SHA, `# vX.Y.Z` naming that SHA's version.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only: the job checks out and scans.
+permissions:
+  contents: read
+
+# Same rule as ci.yml: a superseded pull request run is cancelled, a run on main finishes.
+concurrency:
+  group: gitleaks-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The whole history, not the tip: a key committed and then deleted is still published.
+          fetch-depth: 0
+
+      # Nothing here is Go; the toolchain exists only to build gitleaks. No go.sum, so no cache.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Install gitleaks
+        run: go install github.com/zricethezav/gitleaks/v8@v8.30.1
+
+      # `--redact` keeps a finding's value out of the public job log; the file, line and commit
+      # are enough to find it.
+      - name: gitleaks (whole history)
+        run: gitleaks git --config .gitleaks.toml --redact --no-banner --verbose .

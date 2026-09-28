@@ -11,7 +11,7 @@ compiles it; only its `case` lines are read.
 | --- | --- |
 | Upstream | the District iOS client, [`distronode-corporation/district-ios`](https://github.com/distronode-corporation/district-ios) |
 | Path upstream | `Packages/DistrictCore/Sources/DistrictNetwork/EndpointID.swift` |
-| Upstream version | the initial public release of district-ios |
+| Upstream commit | [`4be221e`](https://github.com/distronode-corporation/district-ios/commit/4be221e676b84e6c29723c9aad43fca9d23bba74) ("Initial public release", 2026-09-21) |
 | SHA-256 of this copy | `4cafe01bfca482388649c8a339d57fc77b8fe2afd2f43a2bdb54081dcd3fd7a6` |
 
 The file is copied byte for byte. Do not edit it here: a local edit makes the parity test

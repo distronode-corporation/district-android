@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Keeps the Geist licence text in a release build. No code reads license_geist.txt, so the
+    resource shrinker (isShrinkResources, on for release) would otherwise empty it, and the OFL
+    requires the licence text to accompany every copy of the font files the APK carries.
+    scripts/verify-release-minification.sh checks the text is in the release APK.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/license_geist" />

@@ -22,9 +22,13 @@ report through the same channels, even though the server code is not in this rep
 
 ## Supported versions
 
-Only the latest release is supported: today that is the latest release built from `main`,
-and once the Google Play listing is live (the app is submitted and in review), the latest
-release on Google Play. Fixes ship in a new release rather than being backported.
+Only the current Google Play release is supported. Fixes ship in a new release rather than
+being backported.
+
+| Version | Supported |
+| --- | --- |
+| 1.0 (current Google Play release) | Yes |
+| Anything older | No |
 
 ## Security model
 
@@ -98,10 +102,13 @@ Secret scanners flag these. Each is deliberate:
   account that only the server holds.
 - **LiveKit end-to-end-encryption keys** in three contract fixtures
   (`contracts/district-room-token.json`, `district-room-token-viewer.json`,
-  `district-persona-preview-token.json`) and in four unit tests that decode them
+  `district-persona-preview-token.json`) and in the unit tests that use them
   (`ActiveRoomViewModelTest`, `PersonaPreviewViewModelTest`, `PersonaOptionsRepositoryTest`,
-  `CallEngineModelsTest`). They are produced by the server's test suite from fixed test inputs,
-  are reproducible from those inputs, and protect no room.
+  `PersonaOptionsContractFixtureTest`, `CallEngineModelsTest`, `LiveKitCallEngineTest`). They
+  are produced by the server's test suite from fixed test inputs, are reproducible from those
+  inputs, and protect no room.
 
 `.gitleaks.toml` allowlists exactly these values, by file and by value, so a real key added
-next to them is still reported.
+next to them is still reported. The Secret scan workflow (`.github/workflows/gitleaks.yml`)
+runs gitleaks with that configuration over the whole history on every push to `main` and every
+pull request.

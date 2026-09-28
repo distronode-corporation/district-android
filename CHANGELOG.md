@@ -8,42 +8,16 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
-### Changed
-
-- Releases are built, signed and uploaded to Google Play by `.github/workflows/release.yml`,
-  from a protected `v*` tag or, for a test build, a dispatch on `main`. No signing key or store
-  credential is stored in the repository or in GitHub: the `release` environment borrows them
-  from Distronode's Google Cloud for one run, through workload identity pinned to this
-  repository, that environment and those refs. Submission for store review runs only with the
-  maintainers' explicit approval. Versions up to and including 1.0 were built on a
-  maintainer's machine before this workflow existed.
-
-- Coverage is measured by JaCoCo over the debug variant and gated at 99% line and 98% branch.
-- The source now lives in its own repository, with CI on GitHub Actions.
-- A build carries a Sentry DSN only when it is given one (`-PdistrictSentryDsn` or
-  `DISTRICT_SENTRY_DSN`); a build from a plain checkout has crash reporting off.
-- `versionCode` adds `BUILD_NUMBER_OFFSET` (default 4101) to the commit count, so builds from
-  this repository's history number above every build already uploaded to the Google Play
-  Console: those from the earlier source tree, and 4101, which an earlier single-commit tree
-  already used.
-- The iOS endpoint list used by the endpoint parity test is a vendored snapshot under
-  `parity/`, overridable with `DISTRICT_IOS_ENDPOINT_IDS`.
+## [1.1] - 2026-09-28
 
 ### Fixed
 
-- Closing a support request now shows a disabled "Closing…" button while the close is in flight,
-  instead of saying the request cannot be closed from here.
-- A request made while a token refresh was finishing, or right after one was rate-limited or could
-  not be sent, no longer wipes the session and signs the user out.
-- Hanging up while an answered call is still joining now stays hung up: the call no longer comes
-  back as live, the call's foreground service is not started, and the microphone is never turned
-  on for a call that has ended.
-- An answered call no longer leaves its engine watchers running for the life of the process.
-- A call placed while the call-back list loads, a marketplace tab or filter chosen while the owned
-  numbers load, and a device revoke started while the device list loads are no longer undone when
-  that list arrives (the last one allowed a second revoke).
-- Workflow run history that arrives after a reload is dropped instead of being shown on the next
-  expand, which after a session change could have been another account's history.
+- You are no longer signed out when a request arrives while your sign-in is being refreshed.
+- Hanging up while a call is still connecting now ends it for good, with the microphone off.
+- Closing a support request shows "Closing…" while it closes, instead of an error.
+- A call, filter or device removal started while a list loads is no longer undone when the
+  list arrives.
+- Workflow run history from before a reload is no longer shown.
 
 ## [1.0] - 2026-09-26
 
@@ -53,5 +27,6 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v1.0...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v1.1...HEAD
+[1.1]: https://github.com/distronode-corporation/district-android/compare/v1.0...v1.1
 [1.0]: https://github.com/distronode-corporation/district-android/releases/tag/v1.0

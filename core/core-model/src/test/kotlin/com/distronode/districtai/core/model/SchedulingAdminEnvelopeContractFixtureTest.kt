@@ -124,7 +124,7 @@ class SchedulingAdminEnvelopeContractFixtureTest {
         // ⛔ EXACTLY ONE OF THE THREE ARRIVES, decided by the `target` the upload sent. A required
         // field on this type would refuse two of the three uploads.
         assertEquals(
-            "https://distronode-qa-test-did-book.distronode.com/media/branding/logo.png",
+            "https://book.example.com/media/branding/logo.png",
             upload.logoUrl,
         )
         assertNull("a logo upload names no banner", upload.bannerUrl)

@@ -19,7 +19,9 @@ body:
           required: true
         - label: I'm on the latest release (1.0 on Google Play) or a build of `main`.
           required: true
-        - label: This is not a security issue, and I've removed any personal data, token or other secret from everything I'm pasting.
+        - label: This is not a security issue (those go to [Report a vulnerability](https://github.com/distronode-corporation/district-android/security/advisories/new)).
+          required: true
+        - label: I've removed every token and every piece of customer or caller data from what I'm pasting.
           required: true
   - type: textarea
     id: what-happened

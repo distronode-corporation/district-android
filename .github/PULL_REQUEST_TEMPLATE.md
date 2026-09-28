@@ -15,7 +15,7 @@
      The first four are exactly what CI runs, in the order it runs them. -->
 
 - [ ] `./gradlew detekt lintDebug testDebugUnitTest assembleDebug`
-- [ ] `./gradlew :koverLog :koverVerify` (the coverage floors only go up)
+- [ ] `./gradlew :koverLogUnit :koverVerifyUnit` (the coverage floors only go up)
 - [ ] `scripts/verify-release-minification.sh`, if it touches models, serialization or
       `app/proguard-rules.pro`
 - [ ] Changes a version in `gradle/libs.versions.toml`, and so the lockfiles were regenerated

@@ -14,6 +14,12 @@ Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache
 The app is a client of the District AI API. Everything it shows comes from that service, and
 signing in needs a District AI account. There is no offline mode and no local server.
 
+**Without an account with us.** Today this app needs a District AI account to sign in. We
+want the District AI apps to work without an account with us too. We have not worked out
+what that looks like or whether it can work, and the answer depends on what people would
+use them with, so we are asking before we build anything:
+[tell us what you would connect them to](https://github.com/distronode-corporation/.github/discussions/1).
+
 **Links:** [project page](https://www.distronode.com/open-source/district-android) ·
 [GitLab mirror](https://gitlab.com/distronode-corporation/district-android) (read-only mirror;
 issues and pull requests live on GitHub) · [CHANGELOG](CHANGELOG.md)

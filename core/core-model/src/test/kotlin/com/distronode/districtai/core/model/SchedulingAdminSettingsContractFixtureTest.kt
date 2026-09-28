@@ -45,7 +45,7 @@ class SchedulingAdminSettingsContractFixtureTest {
 
         // ⚠️ THE ONE OPTIONAL FIELD, present here.
         assertEquals(
-            "https://distronode-qa-test-did-book.distronode.com/media/avatars/contract.png",
+            "https://book.example.com/media/avatars/contract.png",
             me.avatarUrl,
         )
     }

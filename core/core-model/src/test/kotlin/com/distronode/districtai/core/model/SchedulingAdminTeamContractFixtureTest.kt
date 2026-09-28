@@ -134,7 +134,7 @@ class SchedulingAdminTeamContractFixtureTest {
         assertEquals(2, teams[0].memberCount)
         assertEquals(2, teams[0].members?.size)
         assertEquals(
-            "https://distronode-qa-test-did-book.distronode.com/media/avatars/contract.png",
+            "https://book.example.com/media/avatars/contract.png",
             teams[0].members?.get(0)?.avatarUrl,
         )
         assertNull(teams[0].members?.get(1)?.avatarUrl)

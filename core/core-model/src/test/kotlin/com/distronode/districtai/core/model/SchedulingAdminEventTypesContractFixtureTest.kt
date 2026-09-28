@@ -126,7 +126,7 @@ class SchedulingAdminEventTypesContractFixtureTest {
 
         // ⛔ THE PRESENT-AND-ABSENT PAIR ON ONE COLLECTION.
         assertEquals(
-            "https://distronode-qa-test-did-book.distronode.com/media/avatars/contract.png",
+            "https://book.example.com/media/avatars/contract.png",
             hosts[0].avatarUrl,
         )
         assertNull("the rotation host has no picture", hosts[1].avatarUrl)

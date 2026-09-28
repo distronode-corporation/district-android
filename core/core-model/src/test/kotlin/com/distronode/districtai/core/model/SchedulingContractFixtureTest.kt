@@ -47,7 +47,7 @@ class SchedulingContractFixtureTest {
         val tenant = requireNotNull(response.tenant) { "a ready fixture must carry a tenancy row" }
 
         assertEquals(SchedulingTenantStatus.READY, tenant.tenantStatus)
-        assertEquals("distronode-qa-test-did-book.distronode.com", tenant.publicHost)
+        assertEquals("book.example.com", tenant.publicHost)
         assertEquals("us", tenant.region)
 
         // ⛔ THE KEY THIS CLIENT MUST NEVER REBUILD. The route derives it server-side and sends it
@@ -55,7 +55,7 @@ class SchedulingContractFixtureTest {
         // would publish a booking link for a page that is not serving yet. Pinned by VALUE, not by
         // non-nullness, because a rebuilt one would also be non-null.
         assertEquals(
-            "https://distronode-qa-test-did-book.distronode.com/book/phone-consultation",
+            "https://book.example.com/book/phone-consultation",
             tenant.bookingUrl,
         )
 
@@ -105,7 +105,7 @@ class SchedulingContractFixtureTest {
         // and survives a failure; the link is derived only for `ready`. A client that treated a
         // known host as a working page would advertise a booking URL that 404s.
         assertNull(tenant.bookingUrl)
-        assertEquals("distronode-qa-test-did-book.distronode.com", tenant.publicHost)
+        assertEquals("book.example.com", tenant.publicHost)
 
         // ⛔ AND IT IS ALSO THE ONLY FIXTURE WHERE `canManage` IS FALSE, which is what stops the
         // Enable button being pinned to a constant by a fixture set generated as an owner. This is
@@ -145,7 +145,7 @@ class SchedulingContractFixtureTest {
         assertEquals(true, response.ok)
         assertEquals("ready", response.status)
         assertEquals(SchedulingTenantStatus.READY, response.tenantStatus)
-        assertEquals("distronode-qa-test-did-book.distronode.com", response.publicHost)
+        assertEquals("book.example.com", response.publicHost)
         assertNull("a successful provision records no error", response.error)
 
         // ⛔ THE FLAG IS SPELLED `ok`, NOT `success`, AND NOTHING MAY RUN THIS THROUGH THE SHARED

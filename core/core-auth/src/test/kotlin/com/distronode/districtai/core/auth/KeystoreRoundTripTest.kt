@@ -224,6 +224,25 @@ class KeystoreRoundTripTest {
     }
 
     @Test
+    fun `KNOWN BUG a present but unusable key is never replaced, so no later login can be stored`() {
+        // ⛔ THIS PINS CURRENT BEHAVIOUR THAT IS WRONG, so the day it is fixed this test fails and
+        // must be turned round. A key invalidated by a device-security change stays under its alias:
+        // every encrypt fails, write() wipes, and KeystoreCipher only generates a key when the alias
+        // is EMPTY, so it never replaces this one. Every sign-in after that stores nothing, and the
+        // next launch finds no session: a login loop with no way out short of clearing app data.
+        // Tracked in https://github.com/distronode-corporation/district-android/issues/20
+        keystore.plantUnusableKey(KEY_ALIAS)
+        val unusable = keystore.keyUnder(KEY_ALIAS)
+
+        repeat(2) { attempt ->
+            store().write(session)
+            assertNull("login attempt ${attempt + 1} stored no session", store().read())
+        }
+        assertEquals("the unusable key is still the only key", setOf(KEY_ALIAS), keystore.aliases())
+        assertTrue("and it was never replaced", unusable === keystore.keyUnder(KEY_ALIAS))
+    }
+
+    @Test
     fun `clearing the refresh marker leaves the session in place`() {
         val subject = store()
         subject.write(session)

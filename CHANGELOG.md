@@ -8,6 +8,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Fixed
+
+- After a change to the device's security settings, signing in keeps you signed in again,
+  instead of returning you to the sign-in screen at every launch.
+
 ## [1.1] - 2026-09-28
 
 ### Fixed

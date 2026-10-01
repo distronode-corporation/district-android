@@ -32,11 +32,13 @@ import org.robolectric.annotation.Config
  *     never as a crash and never as a half-decoded credential;
  *   - the key is asked for with the spec the design depends on (AES-256, GCM, no padding,
  *     randomized encryption, no user authentication), because the double does not enforce it;
- *   - `clear()` carries the revoke outbox across VERBATIM, so it still decrypts afterwards.
+ *   - `clear()` carries the revoke outbox across VERBATIM, so it still decrypts afterwards;
+ *   - a key that is present but refused is replaced once per write, so a sign-in can be stored
+ *     again, and a failure that is not the key's leaves the key alone.
  *
  * What the software provider cannot stand in for (hardware backing, extraction resistance,
- * authorisation enforcement, non-extractable key objects, and a key that is present but
- * invalidated) is listed on [SoftwareAndroidKeyStore] and is still verified on a device.
+ * authorisation enforcement, non-extractable key objects, and the platform's own cause of a key
+ * being invalidated) is listed on [SoftwareAndroidKeyStore] and is still verified on a device.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
@@ -121,7 +123,7 @@ class KeystoreRoundTripTest {
     fun `an absent key makes the stored session unreadable, and the next login stores a new one`() {
         // A backup restored onto a new device: the ciphertext came across and the key did not, so
         // nothing can open it. The answer is a clean re-login. This is an ABSENT key only; a key
-        // that is present but invalidated is not modelled by the double (see its class comment).
+        // that is present but refused is the replacement tests below.
         store().write(session)
         keystore.forgetAllKeys()
 
@@ -205,6 +207,7 @@ class KeystoreRoundTripTest {
             assertEquals("refresh-to-revoke", subject.pendingRevokeToken())
             subject.clearRevokePending()
         }
+        assertEquals("a keystore that will not answer is not a reason to delete the key", 0, keystore.deletions())
     }
 
     @Test
@@ -221,25 +224,65 @@ class KeystoreRoundTripTest {
 
         assertNull(store().read())
         assertTrue("nothing reaches disk", prefs().all.isEmpty())
+        assertEquals("a wrong IV is the provider's fault, not the key's", 0, keystore.deletions())
     }
 
     @Test
-    fun `KNOWN BUG a present but unusable key is never replaced, so no later login can be stored`() {
-        // ⛔ THIS PINS CURRENT BEHAVIOUR THAT IS WRONG, so the day it is fixed this test fails and
-        // must be turned round. A key invalidated by a device-security change stays under its alias:
-        // every encrypt fails, write() wipes, and KeystoreCipher only generates a key when the alias
-        // is EMPTY, so it never replaces this one. Every sign-in after that stores nothing, and the
-        // next launch finds no session: a login loop with no way out short of clearing app data.
-        // Tracked in https://github.com/distronode-corporation/district-android/issues/20
+    fun `a present but unusable key is replaced once, so the next login is stored`() {
+        // A key invalidated by a device-security change stays under its alias and every cipher
+        // refuses it. Before this was fixed the key was never replaced (lookup only generated a key
+        // when the alias was EMPTY), so every write wiped and every later launch found no session:
+        // a login loop with no way out short of clearing app data.
+        // https://github.com/distronode-corporation/district-android/issues/20
         keystore.plantUnusableKey(KEY_ALIAS)
         val unusable = keystore.keyUnder(KEY_ALIAS)
 
-        repeat(2) { attempt ->
-            store().write(session)
-            assertNull("login attempt ${attempt + 1} stored no session", store().read())
+        store().write(session)
+
+        assertEquals("the login is stored", session, store().read())
+        assertEquals("one key under the alias", setOf(KEY_ALIAS), keystore.aliases())
+        assertTrue("and it is not the unusable one", unusable !== keystore.keyUnder(KEY_ALIAS))
+        assertEquals("the unusable key was deleted once", 1, keystore.deletions())
+        assertEquals("and one fresh key generated", 1, keystore.generations())
+
+        // The fresh key works, so the next write uses it and replaces nothing.
+        val rotated = session.copy(refreshToken = "rotated-refresh-token")
+        store().write(rotated)
+        assertEquals(rotated, store().read())
+        assertEquals(1, keystore.deletions())
+        assertEquals(1, keystore.generations())
+    }
+
+    @Test
+    fun `a key whose lookup reports it unrecoverable is replaced the same way`() {
+        keystore.plantUnrecoverableKey(KEY_ALIAS)
+
+        store().write(session)
+
+        assertEquals(session, store().read())
+        assertEquals(1, keystore.deletions())
+        assertEquals(1, keystore.generations())
+    }
+
+    @Test
+    fun `a fresh key that is refused too is not replaced again, and the write fails closed`() {
+        // ⛔ NEVER A LOOP. One delete and one fresh key per write; if that key fails as well the
+        // write wipes exactly as it did before the replacement existed.
+        store().write(session)
+        store().markRevokePending("refresh-to-revoke")
+        keystore.plantUnusableKey(KEY_ALIAS)
+        keystore.makeGeneratedKeysUnusable()
+        val generatedBefore = keystore.generations()
+
+        listOf(1, 2).forEach { attempt ->
+            store().write(session.copy(refreshToken = "rotated-refresh-token"))
+
+            assertNull("attempt $attempt stores no session", store().read())
+            assertEquals("attempt $attempt deleted the key once", attempt, keystore.deletions())
+            assertEquals("and generated one key", generatedBefore + attempt, keystore.generations())
+            // Wiped as before: only the revoke outbox's ciphertext is carried across.
+            assertEquals(setOf(KEY_PENDING_REVOKE), prefs().all.keys)
         }
-        assertEquals("the unusable key is still the only key", setOf(KEY_ALIAS), keystore.aliases())
-        assertTrue("and it was never replaced", unusable === keystore.keyUnder(KEY_ALIAS))
     }
 
     @Test
@@ -262,6 +305,7 @@ private const val PREFS_FILE = "district_native_session"
 private const val KEY_REFRESH_TOKEN = "refresh_token"
 private const val KEY_REFRESH_EXPIRES_AT = "refresh_token_expires_at"
 private const val KEY_DEVICE_ID = "device_id"
+private const val KEY_PENDING_REVOKE = "pending_revoke_token"
 private const val KEY_ALIAS = "district_native_session_key_v1"
 private const val IV_BYTES = 12
 private const val TAG_BYTES = 16

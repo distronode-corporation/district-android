@@ -3,7 +3,9 @@ package com.distronode.districtai.core.auth
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import java.security.InvalidKeyException
 import java.security.KeyStore
+import java.security.UnrecoverableEntryException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -31,23 +33,56 @@ import javax.crypto.spec.GCMParameterSpec
  */
 internal class KeystoreCipher {
 
+    /** Encrypt one value; [encryptAll] holds the rules. */
+    fun encrypt(plaintext: String): String? = encryptAll(plaintext)?.single()
+
     /**
-     * Encrypt to `base64(iv || ciphertext)`.
+     * Encrypt every value under the same key, or return null if any of them cannot be.
+     *
+     * ⛔ A KEY THAT IS PRESENT BUT UNUSABLE IS REPLACED, ONCE. A device-security change (a new
+     * lock screen, removed biometrics) can leave the key under [KEY_ALIAS] in place while the
+     * Keystore refuses it: `Cipher.init` throws `KeyPermanentlyInvalidatedException` or another
+     * [InvalidKeyException], or the lookup itself throws `UnrecoverableKeyException` (an
+     * [UnrecoverableEntryException]). Lookup only generates a key when the alias is EMPTY, so
+     * without this every later write would fail and no sign-in could be stored again. On either
+     * of those, the alias is deleted and every value is encrypted again, which generates a fresh
+     * key. Nothing readable is lost: whatever the old key protected cannot be decrypted anyway,
+     * and that includes a revoke outbox entry [KeystoreTokenStore] keeps across a wipe.
+     *
+     * ⛔ NEVER A SECOND TIME. If the fresh key fails as well, this returns null and the caller
+     * fails closed exactly as before. Any other failure (a Keystore that will not load or answer,
+     * an IV of the wrong length) is not the key's fault, so it fails closed without touching
+     * the key.
+     *
+     * ⚠️ ALL VALUES ARE RE-ENCRYPTED AFTER A REPLACEMENT, not only the one that failed: a value
+     * already encrypted under the deleted key would never decrypt again.
+     */
+    fun encryptAll(vararg plaintexts: String): List<String>? =
+        runCatching { plaintexts.map(::encryptOne) }
+            .recoverCatching { failure ->
+                if (failure !is InvalidKeyException && failure !is UnrecoverableEntryException) throw failure
+                loadKeyStore().deleteEntry(KEY_ALIAS)
+                plaintexts.map(::encryptOne)
+            }
+            .getOrNull()
+
+    /**
+     * Encrypt to `base64(iv || ciphertext)`, throwing on any failure.
      *
      * ⛔ THE IV IS THE PROVIDER'S, NOT OURS. `Cipher.init` in ENCRYPT_MODE against an
      * AndroidKeyStore key generates a fresh random IV, which is then read back off the cipher.
-     * Supplying our own would invite the one catastrophic GCM mistake — reusing an IV under the
+     * Supplying our own would invite the one catastrophic GCM mistake: reusing an IV under the
      * same key destroys both confidentiality and authenticity. The Keystore additionally refuses
      * a caller-supplied IV for this reason (setRandomizedEncryptionRequired defaults to true).
      */
-    fun encrypt(plaintext: String): String? = runCatching {
+    private fun encryptOne(plaintext: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, secretKey())
         val iv = cipher.iv
         require(iv.size == IV_LENGTH) { "unexpected GCM IV length ${iv.size}" }
         val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
-        Base64.encodeToString(iv + ciphertext, Base64.NO_WRAP)
-    }.getOrNull()
+        return Base64.encodeToString(iv + ciphertext, Base64.NO_WRAP)
+    }
 
     /**
      * ⚠️ TAKES A NULLABLE STORED VALUE so callers do not each need an absence check. An absent
@@ -78,8 +113,7 @@ internal class KeystoreCipher {
      * EncryptedSharedPreferences gave.
      */
     private fun secretKey(): SecretKey {
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        (keyStore.getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
+        (loadKeyStore().getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
 
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
         generator.init(
@@ -95,6 +129,8 @@ internal class KeystoreCipher {
         )
         return generator.generateKey()
     }
+
+    private fun loadKeyStore(): KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
 
     private companion object {
         /**

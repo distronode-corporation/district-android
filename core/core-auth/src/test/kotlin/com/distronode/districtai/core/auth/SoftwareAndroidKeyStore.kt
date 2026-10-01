@@ -11,12 +11,14 @@ import java.security.KeyStoreSpi
 import java.security.Provider
 import java.security.SecureRandom
 import java.security.Security
+import java.security.UnrecoverableKeyException
 import java.security.cert.Certificate
 import java.security.spec.AlgorithmParameterSpec
 import java.util.Collections
 import java.util.Date
 import java.util.Enumeration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import javax.crypto.KeyGeneratorSpi
@@ -46,7 +48,9 @@ import javax.crypto.spec.SecretKeySpec
  *     or another `InvalidKeyException`). [forgetAllKeys] models an ABSENT key, which is a backup
  *     restored onto a new device. [plantUnusableKey] models the present-but-unusable case by the
  *     same symptom (a lookup that succeeds and an init that throws `InvalidKeyException`), not by
- *     the platform's cause.
+ *     the platform's cause, and [plantUnrecoverableKey] the other symptom a device can show (a
+ *     lookup that throws `UnrecoverableKeyException`). [makeGeneratedKeysUnusable] makes every
+ *     key generated afterwards unusable too, for a keystore where replacing the key does not help.
  *
  * INSTALLED AND REMOVED AROUND EACH TEST. It is registered under the platform's provider name,
  * which is process-wide state, and [KeystoreTokenStoreTest] depends on that name being ABSENT to
@@ -57,16 +61,20 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
     private val storedKeys = ConcurrentHashMap<String, SecretKey>()
     private val lastSpec = AtomicReference<KeyGenParameterSpec?>(null)
     private val lookupsLeft = AtomicInteger(UNLIMITED)
+    private val unrecoverable: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    private val state = SoftKeyStoreState()
 
     init {
         putService(
             object : Service(this, "KeyStore", NAME, SoftKeyStoreSpi::class.java.name, null, null) {
-                override fun newInstance(constructorParameter: Any?): Any = SoftKeyStoreSpi(storedKeys, lookupsLeft)
+                override fun newInstance(constructorParameter: Any?): Any =
+                    SoftKeyStoreSpi(storedKeys, lookupsLeft, unrecoverable, state)
             },
         )
         putService(
             object : Service(this, "KeyGenerator", "AES", SoftAesKeyGeneratorSpi::class.java.name, null, null) {
-                override fun newInstance(constructorParameter: Any?): Any = SoftAesKeyGeneratorSpi(storedKeys, lastSpec)
+                override fun newInstance(constructorParameter: Any?): Any =
+                    SoftAesKeyGeneratorSpi(storedKeys, lastSpec, state)
             },
         )
     }
@@ -102,8 +110,26 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
         storedKeys[alias] = SecretKeySpec(ByteArray(UNUSABLE_KEY_BYTES), "AES")
     }
 
+    /**
+     * Put a key under [alias] whose lookup throws `UnrecoverableKeyException` until the alias is
+     * deleted: the other symptom a key a device can no longer load shows.
+     */
+    fun plantUnrecoverableKey(alias: String) {
+        storedKeys[alias] = SecretKeySpec(ByteArray(USABLE_KEY_BYTES), "AES")
+        unrecoverable += alias
+    }
+
+    /** Make every key generated from now on one that every AES cipher refuses, like [plantUnusableKey]. */
+    fun makeGeneratedKeysUnusable() = state.generateUnusable.set(true)
+
     /** The key object currently held under [alias], or null. */
     fun keyUnder(alias: String): SecretKey? = storedKeys[alias]
+
+    /** How many times an entry has been deleted, whether or not the alias held one. */
+    fun deletions(): Int = state.deletions.get()
+
+    /** How many keys have been generated. */
+    fun generations(): Int = state.generations.get()
 
     fun install() {
         check(Security.getProvider(NAME) == null) { "an $NAME provider is already installed" }
@@ -117,13 +143,25 @@ internal class SoftwareAndroidKeyStore : Provider(NAME, 1.0, "Software AndroidKe
         private const val UNLIMITED = -1
 
         /** Not a legal AES key length, so `Cipher.init` rejects it. */
-        private const val UNUSABLE_KEY_BYTES = 7
+        const val UNUSABLE_KEY_BYTES = 7
+
+        /** A legal AES key length, so only the lookup can make [plantUnrecoverableKey]'s key fail. */
+        private const val USABLE_KEY_BYTES = 32
     }
+}
+
+/** What the keystore and the key generator share beyond the keys: what they counted, and one switch. */
+private class SoftKeyStoreState {
+    val deletions = AtomicInteger(0)
+    val generations = AtomicInteger(0)
+    val generateUnusable = AtomicBoolean(false)
 }
 
 private class SoftKeyStoreSpi(
     private val keys: MutableMap<String, SecretKey>,
     private val lookupsLeft: AtomicInteger,
+    private val unrecoverable: MutableSet<String>,
+    private val state: SoftKeyStoreState,
 ) : KeyStoreSpi() {
 
     override fun engineGetKey(alias: String, password: CharArray?): Key? = keys[alias]
@@ -134,6 +172,7 @@ private class SoftKeyStoreSpi(
         if (lookupsLeft.getAndUpdate { if (it > 0) it - 1 else it } == 0) {
             throw KeyStoreException("the keystore refused the lookup")
         }
+        if (alias in unrecoverable) throw UnrecoverableKeyException("the key under $alias cannot be loaded")
         return keys[alias]?.let { KeyStore.SecretKeyEntry(it) }
     }
 
@@ -154,6 +193,8 @@ private class SoftKeyStoreSpi(
         throw UnsupportedOperationException("not used by KeystoreCipher")
 
     override fun engineDeleteEntry(alias: String) {
+        state.deletions.incrementAndGet()
+        unrecoverable.remove(alias)
         keys.remove(alias)
     }
 
@@ -178,6 +219,7 @@ private class SoftKeyStoreSpi(
 private class SoftAesKeyGeneratorSpi(
     private val keys: MutableMap<String, SecretKey>,
     private val lastSpec: AtomicReference<KeyGenParameterSpec?>,
+    private val state: SoftKeyStoreState,
 ) : KeyGeneratorSpi() {
 
     private var alias: String? = null
@@ -198,7 +240,13 @@ private class SoftAesKeyGeneratorSpi(
     }
 
     override fun engineGenerateKey(): SecretKey {
-        val bytes = ByteArray(keySizeBits / Byte.SIZE_BITS).also { SecureRandom().nextBytes(it) }
+        state.generations.incrementAndGet()
+        val size = if (state.generateUnusable.get()) {
+            SoftwareAndroidKeyStore.UNUSABLE_KEY_BYTES
+        } else {
+            keySizeBits / Byte.SIZE_BITS
+        }
+        val bytes = ByteArray(size).also { SecureRandom().nextBytes(it) }
         val key = SecretKeySpec(bytes, "AES")
         keys[checkNotNull(alias) { "the generator was never initialised" }] = key
         return key

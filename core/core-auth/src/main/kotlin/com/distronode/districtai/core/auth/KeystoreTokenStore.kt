@@ -56,13 +56,19 @@ class KeystoreTokenStore(context: Context) : TokenStore {
     override fun write(session: PersistedSession) {
         // If encryption fails there is nothing safe to store, and silently persisting
         // plaintext would be the worst possible fallback. Clear instead, forcing re-login.
-        val refresh = cipher.encrypt(session.refreshToken)
-        val device = cipher.encrypt(session.deviceId)
-        val expiry = cipher.encrypt(session.refreshTokenExpiresAt.toString())
-        if (refresh == null || device == null || expiry == null) {
+        // ⚠️ ONE encryptAll, NOT THREE encrypt CALLS: a key the Keystore refuses is replaced at
+        // most once per write (see KeystoreCipher.encryptAll), and all three values must end up
+        // under the same key.
+        val encrypted = cipher.encryptAll(
+            session.refreshToken,
+            session.deviceId,
+            session.refreshTokenExpiresAt.toString(),
+        )
+        if (encrypted == null) {
             wipe()
             return
         }
+        val (refresh, device, expiry) = encrypted
         prefs.edit()
             .putString(KEY_REFRESH_TOKEN, refresh)
             .putString(KEY_DEVICE_ID, device)

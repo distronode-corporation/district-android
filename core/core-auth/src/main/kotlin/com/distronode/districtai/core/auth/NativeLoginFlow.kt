@@ -117,8 +117,9 @@ sealed interface LoginOutcome {
     data object Success : LoginOutcome
 
     /**
-     * A callback arrived with no attempt in flight. Benign on its own — a stale deep link from
-     * history — but deliberately distinguished from [StateMismatch], which is not benign.
+     * A callback arrived with no attempt in flight. Benign on its own (a stale deep link from
+     * history, or a process killed while the browser was open, which took the in-memory verifier
+     * with it) but deliberately distinguished from [StateMismatch], which is not benign.
      */
     data object NoAttemptInProgress : LoginOutcome
 

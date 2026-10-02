@@ -158,8 +158,19 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // A cold start FROM the callback (the activity was killed while the browser was open)
-        // still delivers the URI through the launch intent rather than onNewIntent.
+        // ⛔ ONLY A FIRST DELIVERY IS ACTED ON. The consumers' clears (`intent.data = null`,
+        // `removeExtra`) edit this process's copy of the launch intent, and that copy dies with the
+        // process. Rebuilt from saved state, or relaunched from Recents after the user backed out,
+        // the activity is handed the system's record of the ORIGINAL intent, so acting on it again
+        // would re-open a thread or section the user already left, or re-run a spent login
+        // callback into a sign-in error. A rotation is skipped too, which costs nothing: the clears
+        // have already run on the copy it would re-read.
+        if (isRedelivery(savedInstanceState)) return
+        // ⚠️ A CALLBACK INTO A NEW PROCESS CANNOT COMPLETE A LOGIN, whether it lands here or in
+        // onNewIntent. If the process died while the browser was open, the PKCE verifier died with
+        // it (NativeLoginFlow keeps it in memory only, on purpose), so the exchange answers
+        // NoAttemptInProgress and the sign-in screen says the attempt was interrupted. One more
+        // tap on Sign in is the designed recovery; persisting the verifier is not.
         consumeCallback(intent)
         // ⚠️ AND A COLD START FROM A NOTIFICATION IS THE ORDINARY CASE FOR THIS ONE: a push wakes a
         // killed process, the user taps Answer, and the intent arrives on the launch intent rather
@@ -169,6 +180,21 @@ class MainActivity : ComponentActivity() {
         // and the process does not exist yet.
         consumeAppLink(intent)
     }
+
+    /**
+     * Whether this `onCreate` is re-reading an intent that was already acted on.
+     *
+     * ⚠️ TWO SIGNALS, BECAUSE EACH COVERS A CASE THE OTHER MISSES. A restored instance (process
+     * death, or a configuration change) has saved state. A task relaunched from Recents after the
+     * user backed out of it has none, but the system marks the intent with
+     * `FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY`. A genuine first delivery carries neither. ⛔ A NEW
+     * intent for a task whose process died (a notification tapped later) is not swallowed: for a
+     * `singleTask` activity the platform restores the instance and then hands the new intent to
+     * [onNewIntent], which this does not guard. ⚠️ Robolectric-tested for both signals; the Recents
+     * and process-death paths have not been exercised on a device.
+     */
+    private fun isRedelivery(savedInstanceState: Bundle?): Boolean =
+        savedInstanceState != null || intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -202,12 +228,13 @@ class MainActivity : ComponentActivity() {
     /**
      * Hand a login callback to the controller, exactly once.
      *
-     * ⛔ CLEARING `intent.data` IS THE FIX, AND WITHOUT IT A SUCCESSFUL LOGIN REPORTS AS EXPIRED.
-     * Nothing marked a callback consumed, so a recreated activity re-ran the launch intent's URI
-     * through the exchange. The second attempt finds no pending PKCE attempt — the first consumed
-     * it — and returns `NoAttemptInProgress`, which this app words as "That sign-in link has
-     * expired". A login that may have fully succeeded therefore ended on a failure message. Rotating
-     * during the exchange was enough to trigger it.
+     * ⛔ CLEARING `intent.data` MARKS THE CALLBACK CONSUMED, AND WITHOUT THAT A SUCCESSFUL LOGIN
+     * REPORTED AS A FAILURE. Nothing marked a callback consumed, so a recreated activity re-ran the
+     * launch intent's URI through the exchange. The second attempt finds no pending PKCE attempt (the
+     * first consumed it) and returns `NoAttemptInProgress`, which this app reports as an
+     * interrupted sign-in. A login that may have fully succeeded therefore ended on a failure
+     * message. Rotating during the exchange was enough to trigger it. ⚠️ The clear lives in this
+     * process only; `isRedelivery` is what covers a relaunch the system rebuilds from the original.
      *
      * ⚠️ Cleared BEFORE the controller is called, and only after the scheme check, so an unrelated
      * VIEW intent is left untouched.
@@ -217,7 +244,7 @@ class MainActivity : ComponentActivity() {
         // re-delivers to an activity without one, so a null branch here could never run.
         val uri = intent.data ?: return
         // Only our callback scheme; ignore anything else that resolves here.
-        if (uri.scheme != CALLBACK_SCHEME) return
+        if (uri.scheme != ApiEnvironment.PKCE_CALLBACK_SCHEME) return
         intent.data = null
         loginController.onCallback(uri)
     }
@@ -316,9 +343,5 @@ class MainActivity : ComponentActivity() {
                 container.appLinkDeepLinks.offer(destination.section)
             }
         }
-    }
-
-    private companion object {
-        const val CALLBACK_SCHEME = "districtai"
     }
 }

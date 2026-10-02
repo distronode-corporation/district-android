@@ -21,6 +21,17 @@ object ApiEnvironment {
     val baseUrl: String = BuildConfig.API_BASE_URL
 
     /**
+     * The scheme half of [PKCE_REDIRECT_URI], which `MainActivity` checks a callback against.
+     *
+     * ⚠️ ONE SPELLING IN KOTLIN, SO THE CHECK AND THE REDIRECT CANNOT DRIFT APART. The manifest's
+     * `<data android:scheme>` is still a literal (a manifest cannot read a Kotlin constant);
+     * `MainActivitySignInTest` resolves the redirect URI through the package manager so a drift
+     * there fails a test rather than every sign-in. ⚠️ Declared first: a `const` must be
+     * initialised before another one's template can read it.
+     */
+    const val PKCE_CALLBACK_SCHEME: String = "districtai"
+
+    /**
      * PKCE callback the authorize page redirects to.
      *
      * ⛔ MUST MATCH THE SERVER'S `NATIVE_REDIRECT_ALLOWLIST` (its native OAuth
@@ -38,5 +49,5 @@ object ApiEnvironment {
      * first upload). Both forms are already allowlisted server-side, so switching
      * later needs no server change.
      */
-    const val PKCE_REDIRECT_URI: String = "districtai://auth"
+    const val PKCE_REDIRECT_URI: String = "$PKCE_CALLBACK_SCHEME://auth"
 }

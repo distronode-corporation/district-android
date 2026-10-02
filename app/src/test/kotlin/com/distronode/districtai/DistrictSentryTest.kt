@@ -1,6 +1,8 @@
 package com.distronode.districtai
 
+import io.sentry.Sentry
 import io.sentry.SentryOptions
+import io.sentry.protocol.SentryId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -94,6 +96,17 @@ class DistrictSentryTest {
             "SENTRY_DSN must be empty or https://<key>@<host>/<project id>, got '$dsn'",
             dsn.isEmpty() || DSN_SHAPE.matches(dsn),
         )
+    }
+
+    @Test
+    fun `a non-fatal report with the reporter unarmed sends nothing and does not throw`() {
+        // ⚠️ THE STATE EVERY BUILD WITHOUT A DSN RUNS IN, and the one this JVM is in: nothing here
+        // calls `init`. A report must then be a silent no-op, never a crash on the push path.
+        assertFalse(Sentry.isEnabled())
+
+        DistrictSentry.reportNonFatal("a fixed message")
+
+        assertEquals(SentryId.EMPTY_ID, Sentry.getLastEventId())
     }
 
     private companion object {

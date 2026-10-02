@@ -82,6 +82,31 @@ class MainActivityPushIntentTest {
     }
 
     @Test
+    fun `a relaunch after process death does not replay the notification the user already followed`() {
+        // ⛔ THE CLEAR DOES NOT SURVIVE THE PROCESS. `removeExtra` edits this process's copy of the
+        // launch intent; the system rebuilds the activity from its own record of the original, so
+        // without the restore check the user is navigated back to that thread on every return.
+        harness.signedOut()
+        harness.launch(inboxIntent())
+        harness.container.pushDeepLinks.clear()
+
+        harness.relaunchAfterProcessDeath(inboxIntent())
+
+        assertNull(harness.container.pushDeepLinks.pending.value)
+    }
+
+    @Test
+    fun `a launch from Recents does not replay the notification the task was opened by`() {
+        // ⚠️ THE OTHER HALF: the user backed out, so nothing was saved, and Recents relaunches the
+        // task with its original intent plus FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY.
+        harness.signedOut()
+
+        harness.launch(inboxIntent().addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY))
+
+        assertNull(harness.container.pushDeepLinks.pending.value)
+    }
+
+    @Test
     fun `a message notification tapped while the app runs is recorded too`() {
         harness.signedOut()
         harness.launch()

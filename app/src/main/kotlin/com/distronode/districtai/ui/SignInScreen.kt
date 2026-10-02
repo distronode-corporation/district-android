@@ -144,7 +144,7 @@ private fun LoginStatus.text(): String = when (this) {
     LoginStatus.DidNotComplete -> stringResource(R.string.login_status_did_not_complete)
     LoginStatus.Completing -> stringResource(R.string.login_status_completing)
     LoginStatus.Refused -> stringResource(R.string.login_status_refused)
-    LoginStatus.LinkExpired -> stringResource(R.string.login_status_link_expired)
+    LoginStatus.Interrupted -> stringResource(R.string.login_status_interrupted)
     LoginStatus.Expired -> stringResource(R.string.login_status_expired)
     LoginStatus.RateLimited -> stringResource(R.string.login_status_rate_limited)
     LoginStatus.Unreachable -> stringResource(R.string.login_status_unreachable)

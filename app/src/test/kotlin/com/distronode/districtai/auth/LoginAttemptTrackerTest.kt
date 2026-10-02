@@ -21,7 +21,8 @@ class LoginAttemptTrackerTest {
         tracker.onPaused()
 
         assertTrue(tracker.onResumed())
-        assertFalse("the attempt must be abandoned once reported", tracker.isAwaitingCallback)
+        tracker.onPaused()
+        assertFalse("the attempt must be abandoned once reported", tracker.onResumed())
     }
 
     @Test
@@ -33,7 +34,8 @@ class LoginAttemptTrackerTest {
         tracker.onLoginStarted()
 
         assertFalse(tracker.onResumed())
-        assertTrue("the attempt is still live", tracker.isAwaitingCallback)
+        tracker.onPaused()
+        assertTrue("the attempt is still live", tracker.onResumed())
     }
 
     @Test
@@ -82,7 +84,8 @@ class LoginAttemptTrackerTest {
         tracker.onLoginStarted()
 
         assertFalse("the new attempt has not been backgrounded yet", tracker.onResumed())
-        assertTrue(tracker.isAwaitingCallback)
+        tracker.onPaused()
+        assertTrue("the new attempt is live", tracker.onResumed())
     }
 
     @Test
@@ -106,6 +109,8 @@ class LoginAttemptTrackerTest {
         tracker.reset()
 
         assertFalse(tracker.onResumed())
-        assertFalse(tracker.isAwaitingCallback)
+        // ⚠️ And a later browser-shaped pause does not revive it.
+        tracker.onPaused()
+        assertFalse(tracker.onResumed())
     }
 }

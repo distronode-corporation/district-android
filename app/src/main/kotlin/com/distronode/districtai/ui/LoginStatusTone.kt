@@ -32,7 +32,7 @@ fun toneForLoginStatus(status: LoginStatus): Tone = when (status) {
 
     // Recoverable by trying again — worth flagging, not worth alarming.
     LoginStatus.DidNotComplete,
-    LoginStatus.LinkExpired,
+    LoginStatus.Interrupted,
     LoginStatus.Expired,
     LoginStatus.RateLimited,
     LoginStatus.Unreachable,

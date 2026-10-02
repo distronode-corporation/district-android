@@ -30,7 +30,9 @@ import com.distronode.districtai.call.IncomingCallActionReceiver
  * ⛔ AND EVERY REQUEST CODE IS DISTINCT. `PendingIntent` equality ignores extras, so two intents to
  * the same component with the same action and the same flags are THE SAME pending intent — the
  * second `getActivity` call returns the first one's payload. Tapping the body of an incoming-call
- * notification would then answer it. The codes below are what keeps them apart.
+ * notification would then answer it. The codes below are what keeps them apart. ⚠️ A message tap
+ * has no fixed code here: the same rule applies ACROSS messages, so each one uses its own
+ * notification id (see `AndroidPushNotifier.showMessage`), which sits above all of these.
  */
 internal object PushIntents {
 
@@ -105,7 +107,6 @@ internal object PushIntents {
             .putExtra(EXTRA_CALL_ID, callId)
 
     /** ⚠️ See the ⛔ on the object: distinct codes are what stop two actions collapsing into one. */
-    const val REQUEST_INBOX: Int = 1
     const val REQUEST_SHOW_CALL: Int = 2
     const val REQUEST_ANSWER_CALL: Int = 3
     const val REQUEST_DECLINE_CALL: Int = 4

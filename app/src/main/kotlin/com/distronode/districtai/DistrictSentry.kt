@@ -1,6 +1,8 @@
 package com.distronode.districtai
 
 import android.content.Context
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
 
@@ -11,7 +13,9 @@ import io.sentry.android.core.SentryAndroid
  * screenshots, no view hierarchy. Sentry bills by ingested volume, and an observability budget
  * that runs out mid-month fails quietly: the cap is usually the first anyone hears of it. A
  * crash reporter that only reports crashes is a fixed, tiny, predictable spend; every one of
- * those features is per-event volume for signal this app has not asked for.
+ * those features is per-event volume for signal this app has not asked for. ⚠️ The one exception
+ * is [reportNonFatal], for a failure that is otherwise invisible (see its doc); it is bounded per
+ * process start and per sign-in, not per screen or per request.
  *
  * ⛔ AND `sendDefaultPii` IS OFF, WHICH IS NOT THE SDK DEFAULT BEHAVIOUR TO ASSUME EITHER WAY.
  * With it on, Sentry attaches the request's IP address and the device user, and on Android it
@@ -102,5 +106,19 @@ object DistrictSentry {
         // and `DistrictSentryTest` asserts it.
         options.tracesSampleRate = null
         options.profilesSampleRate = null
+    }
+
+    /**
+     * Report a non-fatal condition nothing else would ever surface, as a warning-level message.
+     *
+     * ⛔ [message] MUST BE A FIXED STRING. Nothing a caller passes may carry a push token, an
+     * account, a workspace or any other identifier: this is the one path in the app that sends
+     * text of its own choosing to a vendor, and the class header's PII position applies to it in
+     * full. Today's only caller is `PushRegistrar`, whose messages are compile-time constants.
+     *
+     * ⚠️ A NO-OP WHEN [initialize] DID NOT ARM THE SDK (a build with no DSN), exactly as a crash is.
+     */
+    fun reportNonFatal(message: String) {
+        Sentry.captureMessage(message, SentryLevel.WARNING)
     }
 }

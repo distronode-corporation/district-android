@@ -54,16 +54,6 @@
 # grant the first assertion fails on a healthy app.
 appId: com.distronode.districtai.debug
 name: District AI smoke
-env:
-  DISTRICT_SMOKE_EMAIL: ""
-  DISTRICT_SMOKE_PASSWORD: ""
-  # The contact opened on the dossier leg, BY NAME. A list row renders its display name
-  # as visible text, so a seeded name is a stable identity; the alternative is "the
-  # first row", which is an index by another spelling.
-  DISTRICT_SMOKE_CONTACT: ""
-  # Asserted on the billing card. Parameterised rather than hardcoded so a demo account
-  # moved to another tier fails with a diff instead of being quietly wrong.
-  DISTRICT_SMOKE_PLAN: "Studio"
 ---
 # ⛔ `clearState` MAKES THE RUN DETERMINISTIC, AND WITHOUT IT THE FLOW IS A COIN TOSS.
 # A leftover session from an earlier run lands on the console instead of the sign-in

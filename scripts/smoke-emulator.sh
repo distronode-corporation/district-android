@@ -124,6 +124,8 @@ trap cleanup EXIT
 # the then-unbounded wait-for-device below hung until something outside killed it.
 # `mkdir -p "$OUT"` used to run AFTER the launch.
 mkdir -p "$OUT"
+# Last run's screenshots would otherwise mix with this run's and pass for its evidence.
+rm -f "$OUT"/*.png "$OUT"/report.xml
 
 if "$ADB" devices | grep -q "^${SERIAL}[[:space:]]*device$"; then
   echo "== reusing the already-running $SERIAL =="

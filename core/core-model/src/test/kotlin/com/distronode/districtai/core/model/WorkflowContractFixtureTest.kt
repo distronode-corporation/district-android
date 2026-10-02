@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -241,35 +240,12 @@ class WorkflowContractFixtureTest {
         // writes as ABSENT, the same shape the server produces. A default that swallowed any of
         // them (an empty string for the reason, say) would decode and re-encode to something
         // different, which is what this catches and what no decode assertion above can.
-        val verbose = Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-
-        fun <T> roundTrip(serializer: KSerializer<T>, fixtureName: String) {
-            val decoded = json.decodeFromString(serializer, fixture(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a round trip through an explicit-nulls encoding",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(WorkflowListResponse.serializer(), "district-workflows.json")
-        roundTrip(WorkflowRunsResponse.serializer(), "district-workflow-runs.json")
-        roundTrip(WorkflowToggleResponse.serializer(), "district-workflow-toggle.json")
-        roundTrip(CampaignStatusResponse.serializer(), "district-campaign-status.json")
-        roundTrip(CampaignStatusResponse.serializer(), "district-campaign-status-empty.json")
-        roundTrip(CampaignStatusResponse.serializer(), "district-campaign-pause.json")
+        WireMirror.assertFixtureRoundTrips(WorkflowListResponse.serializer(), "district-workflows.json")
+        WireMirror.assertFixtureRoundTrips(WorkflowRunsResponse.serializer(), "district-workflow-runs.json")
+        WireMirror.assertFixtureRoundTrips(WorkflowToggleResponse.serializer(), "district-workflow-toggle.json")
+        WireMirror.assertFixtureRoundTrips(CampaignStatusResponse.serializer(), "district-campaign-status.json")
+        WireMirror.assertFixtureRoundTrips(CampaignStatusResponse.serializer(), "district-campaign-status-empty.json")
+        WireMirror.assertFixtureRoundTrips(CampaignStatusResponse.serializer(), "district-campaign-pause.json")
     }
 
     @Test

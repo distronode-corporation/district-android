@@ -167,6 +167,7 @@ echo "== $SERIAL booted (API $("$ADB" -s "$SERIAL" shell getprop ro.build.versio
 # be safe on the slowest runner is wasted on every fast one, and a sleep tuned to a fast
 # one is a flake. Focus landing on the launcher means SystemUI is actually serving.
 echo "== waiting for the device to settle =="
+SETTLED=0
 for _ in $(seq 1 60); do
   ANIM="$("$ADB" -s "$SERIAL" shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r')"
   FOCUS="$("$ADB" -s "$SERIAL" shell dumpsys window 2>/dev/null | grep -m1 'mCurrentFocus' || true)"
@@ -179,10 +180,18 @@ for _ in $(seq 1 60); do
   esac
   if [ "$ANIM" = "stopped" ] && printf '%s' "$FOCUS" | grep -q 'launcher'; then
     echo "== launcher has focus; device is serving =="
+    SETTLED=1
     break
   fi
   sleep 5
 done
+# ⛔ FAIL HERE, NOT IN MAESTRO. Falling through on an unsettled device runs the flows against
+# a dialog or a blank screen, and they fail as missing elements: a red run that blames the app
+# for the emulator's state, which is the exact misreading the wait above exists to prevent.
+[ "$SETTLED" -eq 1 ] || {
+  echo "FATAL: the launcher never took focus within 300s (last focus: ${FOCUS:-none}, bootanim: ${ANIM:-unknown})" >&2
+  exit 1
+}
 
 # A short final settle. The launcher having focus means SystemUI recovered; it does not
 # mean the package manager has finished the work a cold boot queues behind it.

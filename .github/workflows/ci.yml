@@ -83,30 +83,44 @@ jobs:
       - name: detekt, lint, unit tests, debug APK
         run: ./gradlew detekt lintDebug testDebugUnitTest assembleDebug --no-daemon
 
-      # ⛔ PROVE THE TESTS RAN. A Gradle test task that discovers nothing reports success, so a
-      # green step above is not evidence that anything was tested. Every module's results are
-      # summed, not just app/'s: most of the tests live in the core modules, and an app-only count
-      # would still pass if every one of those stopped running.
+      # ⛔ PROVE THE TESTS RAN, IN EVERY MODULE. A Gradle test task that discovers nothing reports
+      # success, so a green step above is not evidence that anything was tested. The count is per
+      # module, not a sum: most of the tests live in the core modules, and a summed total stays
+      # above zero on app/'s tests alone while every core module silently runs none.
+      #
+      # ⚠️ THE MODULE LIST IS DERIVED, NOT TYPED: every tracked `<module>/src/test/` directory. A
+      # new module with tests is guarded the day it lands, and a module whose test task stops
+      # writing results at all reads as 0 here rather than being skipped.
       #
       # ⚠️ Deliberately BEFORE the coverage step. With zero tests the coverage floors fail too,
       # but as a coverage regression; running this first makes that case fail with its real name.
       - name: Zero-tests guard
         run: |
-          total=0
-          files=0
-          while IFS= read -r f; do
-            # sed stops itself at the first <testsuite> line (`q`), rather than piping into
-            # `head -1`: a pipe that closes early SIGPIPEs its writer, which fails the whole
-            # step the day this runs under `shell: bash` (-o pipefail).
-            n=$(sed -n '/<testsuite[^>]*tests="/{s/.*<testsuite[^>]*tests="\([0-9][0-9]*\)".*/\1/p;q;}' "$f")
-            files=$((files + 1))
-            if [ -n "$n" ]; then total=$((total + n)); fi
-          done < <(find . -path '*/build/test-results/*' -name '*.xml')
-          echo "unit tests executed: $total, across $files result files"
-          if [ "$total" -eq 0 ]; then
-            echo "::error::Zero unit tests executed. A test task that discovers nothing reports success, so this is a silent loss of coverage, not a pass."
+          modules=0
+          empty=0
+          while IFS= read -r module; do
+            total=0
+            files=0
+            while IFS= read -r f; do
+              # sed stops itself at the first <testsuite> line (`q`), rather than piping into
+              # `head -1`: a pipe that closes early SIGPIPEs its writer, which fails the whole
+              # step the day this runs under `shell: bash` (-o pipefail).
+              n=$(sed -n '/<testsuite[^>]*tests="/{s/.*<testsuite[^>]*tests="\([0-9][0-9]*\)".*/\1/p;q;}' "$f")
+              files=$((files + 1))
+              if [ -n "$n" ]; then total=$((total + n)); fi
+            done < <(find "$module/build/test-results" -name '*.xml' 2>/dev/null)
+            modules=$((modules + 1))
+            echo "$module: $total unit tests executed, across $files result files"
+            if [ "$total" -eq 0 ]; then
+              echo "::error::$module has a test source set but executed zero unit tests. A test task that discovers nothing reports success, so this is a silent loss of coverage, not a pass."
+              empty=$((empty + 1))
+            fi
+          done < <(git ls-files -- '*src/test/*' | sed 's#/src/test/.*##' | sort -u)
+          if [ "$modules" -eq 0 ]; then
+            echo "::error::No tracked <module>/src/test/ directory was found, so no module was checked."
             exit 1
           fi
+          if [ "$empty" -ne 0 ]; then exit 1; fi
 
       # The aggregate line and branch floors in build.gradle.kts. Root-qualified: each module also
       # owns a rule-less koverVerifyUnit that passes trivially, so the unqualified name would run those

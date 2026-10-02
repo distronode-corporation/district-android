@@ -82,7 +82,6 @@
     <string name="overview_signed_out_routine">Your session ended. Signing in again will restore it.</string>
     <string name="overview_signed_out_body">Your session is no longer valid. Please sign in again.</string>
     <string name="overview_sign_in_again">Sign in</string>
-    <string name="overview_loading">Loading your workspace</string>
 
     <!-- Call log -->
     <string name="call_log_title">Call log</string>
@@ -91,7 +90,6 @@
 
     <!-- Call detail -->
     <string name="call_detail_title">Call</string>
-    <string name="call_detail_back">Back</string>
     <string name="call_detail_summary">AI summary</string>
     <string name="call_detail_sentiment">Sentiment</string>
     <string name="call_detail_disposition">Outcome</string>
@@ -110,27 +108,22 @@
     <!-- Anything OTHER than "no player installed" — a SecurityException from a restrictive player,
          a background-activity-start refusal. Silently discarding these made the tap do nothing. -->
     <string name="call_detail_recording_launch_failed">Could not open the recording.</string>
-    <string name="call_detail_loading">Loading call</string>
 
     <!-- Contacts -->
     <string name="contacts_title">Contacts</string>
     <string name="contacts_open">Contacts</string>
     <string name="contacts_empty">Callers are added automatically as they come in.</string>
-    <string name="contacts_loading">Loading contacts</string>
     <string name="contacts_unnamed">Unnamed contact</string>
     <string name="contacts_no_contact_details">No phone or email</string>
-    <string name="contacts_total">%1$d contacts</string>
     <string name="contacts_failed">Could not load contacts.</string>
     <string name="contacts_read_only">Read-only access — editing is disabled.</string>
 
     <!-- Contact detail -->
-    <string name="contact_detail_loading">Loading contact</string>
     <string name="contact_detail_company">Company</string>
     <string name="contact_detail_context">Latest context</string>
     <string name="contact_detail_budget">Budget</string>
     <string name="contact_detail_timeline">Timeline</string>
     <string name="contact_detail_website">Website</string>
-    <string name="contact_detail_added">Added</string>
     <string name="contact_detail_dossier">Intelligence dossier</string>
     <!-- dgiStatus null means no dossier AND none queued: clear-intel resets it to NULL so nothing
          re-crawls. It must not read as a job in progress. -->
@@ -162,7 +155,6 @@
          reviewers probe for sign-out alongside it. -->
     <string name="settings_title">Account</string>
     <string name="settings_open">Account</string>
-    <string name="settings_back">Back</string>
     <string name="settings_sign_out">Sign out</string>
     <string name="settings_sign_out_caption">Sign out of District AI on this device.</string>
     <string name="settings_delete_account">Delete account</string>
@@ -289,7 +281,6 @@
          server's own refusals stay literal because only it knows them — see UiText. -->
     <string name="thread_attach">Attach image</string>
     <string name="thread_attaching">Attaching…</string>
-    <string name="thread_attachment_remove">Remove attachment</string>
     <string name="thread_attach_too_many">You can attach up to 5 images to one message.</string>
     <string name="thread_attach_unsupported">Only JPEG, PNG, GIF or WebP images can be attached.</string>
     <string name="thread_attach_too_large">Attachments must be between 1 byte and 5MB.</string>
@@ -346,7 +337,6 @@
     <string name="analytics_range_7d">7 days</string>
     <string name="analytics_range_30d">30 days</string>
     <string name="analytics_range_90d">90 days</string>
-    <string name="analytics_loading">Loading analytics</string>
 
     <!-- KPI tiles. Labels and captions match the web console word for word so an operator
          moving between the two reads the same thing. -->
@@ -906,8 +896,6 @@
     <string name="messaging_creator_cell_save">Save number</string>
 
     <string name="messaging_channel_title">Send %1$s from</string>
-    <string name="messaging_channel_add">Set a sender for a channel</string>
-    <string name="messaging_channel_none">No override</string>
 
     <string name="messaging_delete_confirm_title">Remove this carrier account?</string>
     <!-- ⛔ NAMES THE CONSEQUENCE. A generic "are you sure" hides that the numbers become claimable
@@ -1079,7 +1067,6 @@
     <string name="dialer_callbacks_empty">Numbers from incoming calls appear here so you can call
         someone back with one tap.</string>
     <string name="dialer_callbacks_failed">Could not load recent callers</string>
-    <string name="dialer_callback_action">Call back %1$s</string>
     <string name="dialer_viewer_notice">You are in this workspace as a viewer, so you cannot place
         calls.</string>
 
@@ -1223,13 +1210,6 @@
     <string name="incoming_call_media_failed">The call could not be connected.</string>
     <string name="incoming_call_notice">Answering puts your microphone on this call.</string>
 
-    <!--
-      ⚠️ ASKED AT THE FIRST POST-SIGN-IN LANDING, not at launch: a permission dialog with no visible
-         reason is the one users deny permanently, and the reason here is the app they have just
-         signed in to.
-    -->
-    <string name="notifications_permission_reason">Turn on notifications to be told about new messages and transferred calls.</string>
-
     <!-- ── Scheduling ─────────────────────────────────────────────────────────
          The workspace's booking page: one card, four tenancy states plus the two
          "there is no row" ones.
@@ -1333,14 +1313,11 @@
     <string name="desk_empty">The desk is on. Tickets your customers raise, and any the receptionist
         takes during a call, appear here.</string>
     <string name="desk_filter_empty">No tickets in this state.</string>
-    <string name="desk_filter_all">All</string>
     <string name="desk_status_open">Open</string>
     <string name="desk_status_waiting">Waiting</string>
     <string name="desk_status_resolved">Resolved</string>
     <string name="desk_from_call">From a call</string>
     <string name="desk_no_requester">No contact details</string>
-    <!-- ⚠️ A COUNT OF MESSAGES, not of unread ones. Nothing on this surface tracks read state. -->
-    <string name="desk_message_count">%1$d messages</string>
     <string name="desk_capped">Showing the 100 most recently updated tickets. Older ones are on the
         web dashboard.</string>
     <string name="desk_viewer_title">Not available on a viewer seat</string>
@@ -1382,7 +1359,6 @@
     <string name="desk_author_customer">Customer</string>
     <string name="desk_author_team">Your team</string>
     <string name="desk_author_assistant">Receptionist</string>
-    <string name="desk_set_status">Move this ticket</string>
     <string name="desk_compose_title">Raise a ticket</string>
     <!-- ⛔ SAYS WHOSE WORDS THE MESSAGE BECOMES. The server records the CUSTOMER as the author even
          when an operator types it, because it is their problem. -->

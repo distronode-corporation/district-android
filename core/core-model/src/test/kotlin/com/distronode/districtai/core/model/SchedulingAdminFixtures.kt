@@ -35,32 +35,11 @@ internal object SchedulingAdminFixtures {
      * null where the server sent one explicitly, and the verbose one writes a null where the
      * server omitted the key; a field whose default swallowed the difference (an empty string for
      * a reason, say) decodes and re-encodes to something else, and only the round trip sees it.
+     *
+     * ⚠️ The encodings are [WireMirror]'s pair, the one copy every contract class uses; only the
+     * envelope unwrap is specific to this surface.
      */
     fun <T> roundTrips(name: String, serializer: KSerializer<T>) {
-        val decoded = data(name, serializer)
-        val verbose = kotlinx.serialization.json.Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = kotlinx.serialization.json.Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-        assertEquals(
-            "$name must survive a round trip through an explicit-nulls encoding",
-            decoded,
-            ContractFixtures.json.decodeFromString(
-                serializer,
-                verbose.encodeToString(serializer, decoded),
-            ),
-        )
-        assertEquals(
-            "$name must survive a round trip in the server's own omit-defaults shape",
-            decoded,
-            ContractFixtures.json.decodeFromString(
-                serializer,
-                terse.encodeToString(serializer, decoded),
-            ),
-        )
+        WireMirror.assertRoundTrips(serializer, data(name, serializer), name)
     }
 }

@@ -216,8 +216,7 @@ fun outcomeTone(outcome: String): Tone = when (outcome) {
  * assertion on a rendered timestamp passes on the machine that wrote it and fails on a runner in
  * another timezone — the same trap `BillingFormat.formatUnixSeconds` documents.
  *
- * ⚠️ `java.time` on minSdk 26 rides core-library desugaring, already enabled by the base
- * convention plugin.
+ * ⚠️ `java.time` is native from API 26, which is minSdk, so this needs no desugaring.
  */
 fun formatRunTimestamp(
     iso: String,

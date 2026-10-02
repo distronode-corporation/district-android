@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -112,32 +111,9 @@ class DeviceContractFixtureTest {
         // a device that has never refreshed. A default that swallowed either (an empty string for
         // the name, say) would decode and re-encode to something different, which is what this
         // catches and what no decode assertion above can.
-        val verbose = Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-
-        fun <T> roundTrip(serializer: KSerializer<T>, fixtureName: String) {
-            val decoded = json.decodeFromString(serializer, fixture(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a round trip through an explicit-nulls encoding",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(DeviceListResponse.serializer(), "district-devices.json")
-        roundTrip(DeviceRevokeResponse.serializer(), "district-device-revoke.json")
-        roundTrip(DeviceRevokeResponse.serializer(), "district-revoke-all.json")
+        WireMirror.assertFixtureRoundTrips(DeviceListResponse.serializer(), "district-devices.json")
+        WireMirror.assertFixtureRoundTrips(DeviceRevokeResponse.serializer(), "district-device-revoke.json")
+        WireMirror.assertFixtureRoundTrips(DeviceRevokeResponse.serializer(), "district-revoke-all.json")
     }
 
     @Test

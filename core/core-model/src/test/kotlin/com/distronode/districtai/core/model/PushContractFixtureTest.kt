@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -113,32 +112,9 @@ class PushContractFixtureTest {
 
     @Test
     fun `push fixtures survive a round trip in both encodings`() {
-        val verbose = Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-
-        fun <T> roundTrip(serializer: KSerializer<T>, fixtureName: String) {
-            val decoded = json.decodeFromString(serializer, ContractFixtures.read(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a round trip with every field written",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(PushRegistrationResponse.serializer(), "district-device-register.json")
-        roundTrip(PushRegistrationResponse.serializer(), "district-device-unregister.json")
-        roundTrip(CallAnswerResponse.serializer(), "district-call-answer.json")
+        WireMirror.assertFixtureRoundTrips(PushRegistrationResponse.serializer(), "district-device-register.json")
+        WireMirror.assertFixtureRoundTrips(PushRegistrationResponse.serializer(), "district-device-unregister.json")
+        WireMirror.assertFixtureRoundTrips(CallAnswerResponse.serializer(), "district-call-answer.json")
     }
 
     @Test

@@ -11,16 +11,13 @@ set -u
 # The local server and a psql command for its database. Both can be overridden; the defaults
 # are the maintainers' own setup, described in scripts/README.md.
 BASE="${DISTRICT_BASE_URL:-http://127.0.0.1:3100}"
-REDIRECT="districtai://auth"
 DEVICE_ID="t9-validate-$(date +%s)"
 CONTRACTS="$(cd "$(dirname "$0")/.." && pwd)/contracts"
 WS="${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local server database}"
 PG="${DISTRICT_PSQL:-docker exec -i distronode-test-pg psql -U postgres -d dev_hub -qtAX}"
 
-pass() { printf '  \033[32mPASS\033[0m %s\n' "$1"; }
-fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILURES=$((FAILURES + 1)); }
-note() { printf '  \033[33mNOTE\033[0m %s\n' "$1"; }
-FAILURES=0
+# shellcheck source=lib/district-auth.sh
+. "$(dirname "$0")/lib/district-auth.sh"
 
 cleanup() {
   $PG -c "DELETE FROM \"Call\" WHERE id LIKE 't9seed-%';" >/dev/null 2>&1
@@ -57,29 +54,11 @@ SEEDED=$($PG -c "SELECT count(*) FROM \"Call\" WHERE id LIKE 't9seed-%';")
 # ── Warm and authenticate ────────────────────────────────────────────────────
 echo
 echo "== warming routes =="
-for p in "/auth/native?code_challenge=x&state=y&redirect_uri=z" \
-         "/api/district/calls?workspaceId=$WS&limit=1" \
-         "/api/district/calls/t9seed-001?workspaceId=$WS" \
-         "/api/district/calls/t9seed-001/transcript?workspaceId=$WS" \
-         "/api/district/calls/t9seed-001/recording?workspaceId=$WS"; do
-  curl -sS -o /dev/null --max-time 120 -H 'Cookie: distronode_session=local-dev-mock' "$BASE$p" 2>/dev/null
-done
-curl -sS -o /dev/null --max-time 120 -X POST "$BASE/api/auth/native/token" \
-  -H 'Content-Type: application/json' -d '{}' 2>/dev/null
-echo "  done"
-
-VERIFIER=$(head -c 32 /dev/urandom | basenc --base64url | tr -d '=')
-CHALLENGE=$(printf '%s' "$VERIFIER" | openssl dgst -sha256 -binary | basenc --base64url | tr -d '=')
-STATE=$(head -c 16 /dev/urandom | basenc --base64url | tr -d '=')
-AUTH_HTML=$(curl -sS --max-time 30 -H 'Cookie: distronode_session=local-dev-mock' \
-  "$BASE/auth/native?code_challenge=$CHALLENGE&state=$STATE&redirect_uri=$(printf '%s' "$REDIRECT" | sed 's|:|%3A|g; s|/|%2F|g')")
-CODE=$(printf '%s' "$AUTH_HTML" | grep -oE 'districtai://auth\?code=[A-Za-z0-9_-]+' | head -1 | sed 's/.*code=//')
-[ -n "$CODE" ] || { fail "no authorization code"; exit 1; }
-ACCESS=$(curl -sS --max-time 30 -X POST "$BASE/api/auth/native/token" -H 'Content-Type: application/json' \
-  -d "{\"code\":\"$CODE\",\"codeVerifier\":\"$VERIFIER\",\"redirectUri\":\"$REDIRECT\",\"deviceId\":\"$DEVICE_ID\",\"deviceName\":\"T9\",\"platform\":\"android\"}" \
-  | python3 -c 'import sys,json;print(json.load(sys.stdin).get("accessToken",""))' 2>/dev/null)
-[ -n "$ACCESS" ] || { fail "no access token"; exit 1; }
-pass "minted a bearer token"
+warm_routes "/api/district/calls?workspaceId=$WS&limit=1" \
+            "/api/district/calls/t9seed-001?workspaceId=$WS" \
+            "/api/district/calls/t9seed-001/transcript?workspaceId=$WS" \
+            "/api/district/calls/t9seed-001/recording?workspaceId=$WS"
+mint_access_token "$DEVICE_ID" "T9"
 
 AUTH=(-H "Authorization: Bearer $ACCESS")
 feed() { curl -sS --max-time 30 "${AUTH[@]}" "$BASE/api/district/calls?workspaceId=$WS&limit=$1&offset=$2"; }

@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -260,33 +259,10 @@ class MeetingContractFixtureTest {
         // the server really produces; a default that swallowed either (an empty string for the
         // path, say) would decode and re-encode to something different, which is what this catches
         // and what no decode assertion above can.
-        val verbose = Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-
-        fun <T> roundTrip(serializer: KSerializer<T>, fixtureName: String) {
-            val decoded = json.decodeFromString(serializer, fixture(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a round trip through an explicit-nulls encoding",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(RoomTokenResponse.serializer(), "district-room-token.json")
-        roundTrip(RoomTokenResponse.serializer(), "district-room-token-viewer.json")
-        roundTrip(ListSerializer(MeetingSummary.serializer()), "district-meetings.json")
-        roundTrip(MeetingDetail.serializer(), "district-meeting-detail.json")
+        WireMirror.assertFixtureRoundTrips(RoomTokenResponse.serializer(), "district-room-token.json")
+        WireMirror.assertFixtureRoundTrips(RoomTokenResponse.serializer(), "district-room-token-viewer.json")
+        WireMirror.assertFixtureRoundTrips(ListSerializer(MeetingSummary.serializer()), "district-meetings.json")
+        WireMirror.assertFixtureRoundTrips(MeetingDetail.serializer(), "district-meeting-detail.json")
     }
 
     @Test

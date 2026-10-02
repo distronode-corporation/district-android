@@ -15,49 +15,18 @@ set -u
 # The local server and a psql command for its database. Both can be overridden; the defaults
 # are the maintainers' own setup, described in scripts/README.md.
 BASE="${DISTRICT_BASE_URL:-http://127.0.0.1:3100}"
-REDIRECT="districtai://auth"
 DEVICE_ID="t8-validate-$(date +%s)"
 CONTRACTS="$(cd "$(dirname "$0")/.." && pwd)/contracts"
 
-pass() { printf '  \033[32mPASS\033[0m %s\n' "$1"; }
-fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILURES=$((FAILURES + 1)); }
-note() { printf '  \033[33mNOTE\033[0m %s\n' "$1"; }
-FAILURES=0
+# shellcheck source=lib/district-auth.sh
+. "$(dirname "$0")/lib/district-auth.sh"
 
-# ⚠️ Next dev compiles a route on FIRST hit (measured: 6.4s for /auth/native). The PKCE code has
-# a 120s TTL, so an unwarmed run can spend the budget on compilation and fail with an opaque
-# "refused (unknown)" that looks like a PKCE bug. Warm everything first.
 echo "== warming routes (next dev compiles on first hit) =="
-for path in \
-  "/auth/native?code_challenge=x&state=y&redirect_uri=z" \
-  "/api/district/workspace/list" \
-  "/api/district/overview?workspaceId=${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local server database}"; do
-  curl -sS -o /dev/null --max-time 90 -H 'Cookie: distronode_session=local-dev-mock' "$BASE$path" 2>/dev/null
-done
-curl -sS -o /dev/null --max-time 90 -X POST "$BASE/api/auth/native/token" \
-  -H 'Content-Type: application/json' -d '{}' 2>/dev/null
-echo "  done"
+warm_routes "/api/district/workspace/list" \
+            "/api/district/overview?workspaceId=${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local server database}"
 
 # ── Mint a real token ────────────────────────────────────────────────────────
-VERIFIER=$(head -c 32 /dev/urandom | basenc --base64url | tr -d '=')
-CHALLENGE=$(printf '%s' "$VERIFIER" | openssl dgst -sha256 -binary | basenc --base64url | tr -d '=')
-STATE=$(head -c 16 /dev/urandom | basenc --base64url | tr -d '=')
-
-AUTH_HTML=$(curl -sS --max-time 30 -H 'Cookie: distronode_session=local-dev-mock' \
-  "$BASE/auth/native?code_challenge=$CHALLENGE&state=$STATE&redirect_uri=$(printf '%s' "$REDIRECT" | sed 's|:|%3A|g; s|/|%2F|g')")
-CODE=$(printf '%s' "$AUTH_HTML" | grep -oE 'districtai://auth\?code=[A-Za-z0-9_-]+' | head -1 | sed 's/.*code=//')
-[ -n "$CODE" ] || { fail "no authorization code issued"; exit 1; }
-
-EXCHANGE=$(curl -sS --max-time 30 -X POST "$BASE/api/auth/native/token" \
-  -H 'Content-Type: application/json' \
-  -d "{\"code\":\"$CODE\",\"codeVerifier\":\"$VERIFIER\",\"redirectUri\":\"$REDIRECT\",\"deviceId\":\"$DEVICE_ID\",\"deviceName\":\"T8 Validate\",\"platform\":\"android\"}")
-ACCESS=$(printf '%s' "$EXCHANGE" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("accessToken",""))' 2>/dev/null)
-if [ -z "$ACCESS" ]; then
-  fail "token exchange produced no access token"
-  echo "       server said: $EXCHANGE"
-  exit 1
-fi
-pass "minted a real bearer token"
+mint_access_token "$DEVICE_ID" "T8 Validate"
 
 # ── Fetch both routes for real ───────────────────────────────────────────────
 echo

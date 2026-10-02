@@ -73,11 +73,13 @@ fun ApiResult.Failure.toFailureText(): FailureText = when (this) {
 
     is ApiResult.NetworkFailure -> FailureText(message = UiText.Resource(R.string.failure_offline))
 
+    // ⚠️ Retryable: a 5xx shows a generic server-error string, a 4xx shows the server's own
+    // sentence (see httpFailureText).
+    is ApiResult.HttpFailure -> httpFailureText()
+
     // ⛔ CONTRACT DRIFT, NOT CONNECTIVITY. "Check your connection" would be both wrong and
     // unactionable — retrying can never fix a response shape this build cannot parse — so the
     // message points at updating the app and no retry is offered.
-    is ApiResult.HttpFailure -> httpFailureText()
-
     is ApiResult.DecodeFailure -> FailureText(
         message = UiText.Resource(R.string.failure_unexpected_response),
         retryable = false,

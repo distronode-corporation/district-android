@@ -70,6 +70,9 @@ Run one after regenerating any fixture, and write a new one for each new screen.
 local copy of the District AI server with a test database, and the server is not public, so these
 three are maintainer tools; CI runs only `verify-release-minification.sh`.
 
+The warm-up, the PKCE sign-in and the PASS/FAIL/NOTE helpers live once, in `lib/district-auth.sh`,
+which all three source. A change to the native sign-in flow is one edit there.
+
 ### What they need
 
 - **A local copy of the District AI server** from its (private) repository, run in development mode

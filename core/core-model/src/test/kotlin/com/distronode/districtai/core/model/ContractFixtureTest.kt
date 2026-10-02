@@ -1,7 +1,6 @@
 package com.distronode.districtai.core.model
 
 import java.io.File
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -951,10 +950,11 @@ class ContractFixtureTest {
      * result to the first decode is what catches a field that was silently absorbed — the value
      * survives the first parse into a default and cannot be told apart from a real one.
      *
-     * ⚠️ ENCODED BOTH WAYS ON PURPOSE. `encodeDefaults = true` writes every field, `false` writes
-     * only the ones that differ from their declared default — which is exactly the shape the
-     * SERVER sends (it omits keys rather than sending nulls). A DTO that survives one and not the
-     * other has a default that disagrees with the wire, and the honest test is the pair.
+     * ⚠️ ENCODED BOTH WAYS ON PURPOSE, through [WireMirror]'s pair. The verbose encoding writes every
+     * field and every null; the terse one writes only what differs from its declared default and
+     * omits nulls, which is exactly the shape the SERVER sends (it omits keys rather than sending
+     * nulls). A DTO that survives one and not the other has a default that disagrees with the wire,
+     * and the honest test is the pair.
      *
      * ⚠️ NOTHING IN THE APP ENCODES THESE TYPES IN PRODUCTION — they are read-only responses. That
      * is what makes this a contract check rather than a behaviour one, and it is why it lives here
@@ -962,45 +962,25 @@ class ContractFixtureTest {
      */
     @Test
     fun `the analytics and usage DTOs re-encode without losing anything`() {
-        val verbose = Json { encodeDefaults = true }
-        val terse = Json { encodeDefaults = false }
-
-        fun <T> roundTrip(
-            serializer: kotlinx.serialization.KSerializer<T>,
-            fixtureName: String,
-        ) {
-            val decoded = json.decodeFromString(serializer, fixture(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a full round trip with every field written",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(AnalyticsResponse.serializer(), "district-analytics.json")
+        WireMirror.assertFixtureRoundTrips(AnalyticsResponse.serializer(), "district-analytics.json")
         // ⛔ The all-zero, null-pct workspace specifically: nearly every field of it EQUALS its
         // declared default, so this is the one case where the terse encoding writes almost nothing
         // and a wrong default would go completely unnoticed.
-        roundTrip(AnalyticsResponse.serializer(), "district-analytics-new-workspace.json")
-        roundTrip(UsageResponse.serializer(), "district-usage.json")
-        roundTrip(UsageResponse.serializer(), "district-usage-empty.json")
-        roundTrip(UsageHistoryResponse.serializer(), "district-usage-history.json")
+        WireMirror.assertFixtureRoundTrips(AnalyticsResponse.serializer(), "district-analytics-new-workspace.json")
+        WireMirror.assertFixtureRoundTrips(UsageResponse.serializer(), "district-usage.json")
+        WireMirror.assertFixtureRoundTrips(UsageResponse.serializer(), "district-usage-empty.json")
+        WireMirror.assertFixtureRoundTrips(UsageHistoryResponse.serializer(), "district-usage-history.json")
 
         // ⛔ THE MARKETPLACE DTOs SPECIFICALLY, BECAUSE THEIR OPTIONAL FIELDS ARE ABSENT RATHER
         // THAN NULL ON THE WIRE. The terse encoding writes only what differs from a declared
         // default, which is exactly the server's own shape — so a field whose default silently
         // swallowed a real value (a `monthlyPrice = 0.0` default, say, absorbing a genuine zero)
         // would fail here and pass every decode assertion above.
-        roundTrip(NumberSearchResponse.serializer(), "district-numbers-search.json")
-        roundTrip(OwnedNumbersResponse.serializer(), "district-provider-numbers.json")
-        roundTrip(OwnedNumbersResponse.serializer(), "district-provider-numbers-partial.json")
-        roundTrip(EnrichResponse.serializer(), "district-enrich.json")
-        roundTrip(ClearIntelResponse.serializer(), "district-clear-intel.json")
+        WireMirror.assertFixtureRoundTrips(NumberSearchResponse.serializer(), "district-numbers-search.json")
+        WireMirror.assertFixtureRoundTrips(OwnedNumbersResponse.serializer(), "district-provider-numbers.json")
+        WireMirror.assertFixtureRoundTrips(OwnedNumbersResponse.serializer(), "district-provider-numbers-partial.json")
+        WireMirror.assertFixtureRoundTrips(EnrichResponse.serializer(), "district-enrich.json")
+        WireMirror.assertFixtureRoundTrips(ClearIntelResponse.serializer(), "district-clear-intel.json")
 
         // ⛔ BOTH TIMELINE FIXTURES, AND THE PAIR IS THE POINT. `pageInfo` is a nested object with a
         // whole-object default, so the terse encoding writes the KEY ONLY when the value differs
@@ -1008,8 +988,8 @@ class ContractFixtureTest {
         // declared `""`, say) would round-trip cleanly on the no-cursor case and lose the cursor on
         // this one. The short thread has `hasMore = false`, the full window has `true`, so the two
         // sit on opposite sides of that default.
-        roundTrip(TimelineResponse.serializer(), "district-timeline.json")
-        roundTrip(TimelineResponse.serializer(), "district-timeline-page.json")
+        WireMirror.assertFixtureRoundTrips(TimelineResponse.serializer(), "district-timeline.json")
+        WireMirror.assertFixtureRoundTrips(TimelineResponse.serializer(), "district-timeline-page.json")
     }
 
     /**

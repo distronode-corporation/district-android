@@ -94,6 +94,20 @@ internal object WireMirror {
         return decoded
     }
 
+    /**
+     * Decode fixture [name] strictly, then [assertRoundTrips] the result.
+     *
+     * ⛔ THE ONE COPY OF THE FIXTURE ROUND TRIP. The contract test classes each used to declare
+     * their own verbose/terse pair, and one copy had drifted to `encodeDefaults` alone, with no
+     * `explicitNulls = false`: its "terse" encoding still wrote every null, so it could not see a
+     * default that disagrees with an ABSENT key, which is the bug the pair exists to catch.
+     */
+    fun <T> assertFixtureRoundTrips(serializer: KSerializer<T>, name: String): T {
+        val decoded = ContractFixtures.json.decodeFromString(serializer, ContractFixtures.read(name))
+        assertRoundTrips(serializer, decoded, name)
+        return decoded
+    }
+
     /** [value] must decode back to itself, strictly, from both of its encodings. */
     fun <T> assertRoundTrips(serializer: KSerializer<T>, value: T, label: String) {
         assertEquals(

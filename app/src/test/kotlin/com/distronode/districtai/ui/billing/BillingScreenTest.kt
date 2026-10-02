@@ -1,9 +1,6 @@
 package com.distronode.districtai.ui.billing
 
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -556,32 +553,6 @@ class BillingScreenTest {
         )
         composeRule.onNodeWithText("Unexpected response").assertIsDisplayed()
         composeRule.onAllNodesWithText("Try again").assertCountEquals(0)
-    }
-
-    @Test
-    fun `a card failure follows a new failure, and moves its handle when handed a new one`() {
-        var failure by mutableStateOf(FailureText(message = UiText.Literal("Nope")))
-        var description by mutableStateOf("first-handle")
-        composeRule.setContent {
-            DistrictTheme {
-                BillingCardFailure(
-                    title = "Title",
-                    failure = failure,
-                    description = description,
-                    onRetry = {},
-                )
-            }
-        }
-        failure = FailureText(message = UiText.Literal("Still nope"))
-        composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
-        composeRule.onNodeWithText("Still nope").assertIsDisplayed()
-
-        description = "second-handle"
-        composeRule.waitForIdle()
-
-        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
-        composeRule.onAllNodesWithContentDescription("first-handle").assertCountEquals(0)
     }
 
     @Test

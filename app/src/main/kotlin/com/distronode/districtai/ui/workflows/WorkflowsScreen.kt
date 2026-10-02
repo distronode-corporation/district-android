@@ -29,7 +29,7 @@ import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
-import com.distronode.districtai.ui.FailureText
+import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -195,11 +195,12 @@ private fun LazyListScope.workflowSection(
 
         is WorkflowListState.Failed -> item {
             ContentContainer {
-                WorkflowFailure(
+                InlineFailure(
                     title = stringResource(R.string.workflows_list_failed),
                     failure = list.failure,
-                    description = WORKFLOWS_LIST_FAILURE_DESCRIPTION,
                     onRetry = onRetry,
+                    description = WORKFLOWS_LIST_FAILURE_DESCRIPTION,
+                    modifier = Modifier.padding(vertical = DistrictTheme.spacing.tight),
                 )
             }
         }
@@ -288,11 +289,12 @@ private fun CampaignSection(
         is CampaignState.Failed -> Column(
             modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
         ) {
-            WorkflowFailure(
+            InlineFailure(
                 title = stringResource(R.string.workflows_campaign_failed),
                 failure = card.failure,
-                description = WORKFLOWS_CAMPAIGN_FAILURE_DESCRIPTION,
                 onRetry = onRetry,
+                description = WORKFLOWS_CAMPAIGN_FAILURE_DESCRIPTION,
+                modifier = Modifier.padding(vertical = DistrictTheme.spacing.tight),
             )
         }
     }
@@ -390,46 +392,6 @@ data class CampaignCallbacks(
     val onDismissConfirm: () -> Unit,
     val onConfirm: () -> Unit,
 )
-
-/**
- * One failure, with a retry only when retrying could help.
- *
- * ⚠️ `retryable` IS THE SERVER'S SHAPE OF FAILURE, NOT A PREFERENCE. A role refusal and a contract
- * mismatch both produce the identical failure on a second attempt, so a button there is a control
- * that cannot work — worse than its absence.
- */
-@Composable
-internal fun WorkflowFailure(
-    title: String,
-    failure: FailureText,
-    description: String,
-    onRetry: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .padding(vertical = DistrictTheme.spacing.tight)
-            .semantics { contentDescription = description },
-        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = DistrictTheme.colors.foreground,
-        )
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.mutedForeground,
-        )
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.workflows_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Secondary,
-            )
-        }
-    }
-}
 
 private const val SKELETON_ROWS = 3
 

@@ -1100,7 +1100,6 @@
     <string name="workflows_open">Workflows</string>
     <string name="workflows_title">Workflows</string>
     <string name="workflows_section">Workflows</string>
-    <string name="workflows_retry">Try again</string>
     <string name="workflows_dismiss">Dismiss</string>
     <string name="workflows_list_failed">Could not load workflows</string>
     <!-- ⚠️ "None yet", never "none" — an empty list here is a workspace that has not built any

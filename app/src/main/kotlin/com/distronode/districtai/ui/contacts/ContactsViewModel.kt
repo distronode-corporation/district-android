@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.contacts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.distronode.districtai.core.data.ContactsRepository
@@ -96,10 +98,8 @@ class ContactsViewModel(
             repository: ContactsRepository,
             workspaceId: String,
             role: WorkspaceRole?,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                ContactsViewModel(repository, workspaceId, role) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { ContactsViewModel(repository, workspaceId, role) }
         }
     }
 }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +21,7 @@ import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -148,26 +148,6 @@ fun CreateContactDialog(
         },
     )
 }
-
-/**
- * Token colours for a Material text field.
- *
- * ⚠️ EXTRACTED BECAUSE THREE FIELDS SHARE IT AND A FOURTH WOULD FORGET. Material's default
- * `OutlinedTextField` draws its own primary-tinted focus border and label, which under this theme
- * would be right by accident (primary IS the accent) but its container and placeholder greys would
- * not be — they come from the Material baseline, not from `--muted`/`--muted-foreground`.
- */
-@Composable
-private fun districtFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = DistrictTheme.colors.muted,
-    unfocusedContainerColor = DistrictTheme.colors.muted,
-    disabledContainerColor = DistrictTheme.colors.muted,
-    focusedBorderColor = DistrictTheme.colors.district,
-    unfocusedBorderColor = DistrictTheme.colors.border,
-    focusedTextColor = DistrictTheme.colors.foreground,
-    unfocusedTextColor = DistrictTheme.colors.foreground,
-    cursorColor = DistrictTheme.colors.district,
-)
 
 /** Stable handles for tests. */
 const val CONTACT_CREATE_DESCRIPTION: String = "district-contact-create"

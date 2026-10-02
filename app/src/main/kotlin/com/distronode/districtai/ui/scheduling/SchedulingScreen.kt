@@ -23,11 +23,11 @@ import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
-import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.ui.FailureText
+import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -85,7 +85,13 @@ fun SchedulingScreen(
                     SchedulingScreenState.Loading -> LoadingCard()
                     // ⛔ A FAILURE, NEVER AN EMPTY CARD. `tenant == null` is a legitimate answer on
                     // this surface, so the two would otherwise look identical.
-                    is SchedulingScreenState.Failed -> SchedulingFailure(screen.failure, onRetry)
+                    is SchedulingScreenState.Failed -> InlineFailure(
+                        title = stringResource(R.string.scheduling_failed),
+                        failure = screen.failure,
+                        onRetry = onRetry,
+                        description = SCHEDULING_FAILURE_DESCRIPTION,
+                        retryDescription = SCHEDULING_RETRY_DESCRIPTION,
+                    )
                     is SchedulingScreenState.Ready -> SchedulingCard(
                         status = screen.status,
                         busy = state.busy,
@@ -133,34 +139,6 @@ private fun SchedulingNotice(message: String, onDismiss: () -> Unit) {
                 .padding(top = DistrictTheme.spacing.tight)
                 .semantics { contentDescription = SCHEDULING_DISMISS_DESCRIPTION },
         )
-    }
-}
-
-@Composable
-private fun SchedulingFailure(failure: FailureText, onRetry: () -> Unit) {
-    DistrictCard(
-        modifier = Modifier.semantics { contentDescription = SCHEDULING_FAILURE_DESCRIPTION },
-    ) {
-        Eyebrow(stringResource(R.string.scheduling_failed))
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-        )
-        // ⚠️ Only when retrying could work. A signed-out failure repeats identically, and a button
-        // that cannot help is worse than none.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier
-                    .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = SCHEDULING_RETRY_DESCRIPTION },
-            )
-        }
     }
 }
 

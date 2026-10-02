@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.settings.workspace
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.SaveOutcome
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
@@ -171,25 +173,19 @@ class PersonaFormViewModel(
      * client cannot vouch for what is stored — and clearing the drafts would claim it can.
      */
     private fun applyOutcome(outcome: SaveOutcome) {
-        _state.value = when (outcome) {
-            is SaveOutcome.Saved -> _state.value.copy(
-                load = ConfigState.Ready(outcome.config),
-                edits = emptyMap(),
-                save = SaveState.Saved,
-                options = _state.value.draft?.let {
-                    PersonaOptionsState.Ready(
-                        PersonaEngineDraft.hydrate(outcome.config.aiPersona, it.options),
-                    )
-                } ?: _state.value.options,
-            )
-            is SaveOutcome.SavedButStale -> _state.value.copy(
-                edits = emptyMap(),
-                save = SaveState.SavedButStale(outcome.failure.toFailureText()),
-            )
-            is SaveOutcome.NotSaved -> _state.value.copy(
-                save = SaveState.Failed(outcome.failure.toFailureText()),
-            )
-        }
+        val current = _state.value
+        val saved = outcome.savedConfig
+        val draft = current.draft
+        _state.value = current.copy(
+            load = saved?.let(ConfigState::Ready) ?: current.load,
+            edits = if (outcome is SaveOutcome.NotSaved) current.edits else emptyMap(),
+            save = outcome.saveState,
+            options = if (saved != null && draft != null) {
+                PersonaOptionsState.Ready(PersonaEngineDraft.hydrate(saved.aiPersona, draft.options))
+            } else {
+                current.options
+            },
+        )
     }
 
     companion object {
@@ -197,10 +193,8 @@ class PersonaFormViewModel(
             repository: WorkspaceConfigRepository,
             personaOptions: PersonaOptionsRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                PersonaFormViewModel(repository, personaOptions, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { PersonaFormViewModel(repository, personaOptions, workspaceId) }
         }
     }
 }

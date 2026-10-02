@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.overview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.OverviewRepository
 import com.distronode.districtai.core.data.SetupRepository
 import com.distronode.districtai.core.data.WorkspaceRepository
@@ -177,10 +179,8 @@ class OverviewViewModel(
             overviewRepository: OverviewRepository,
             // ⚠️ No default: the activity, the one caller, always hands its container's repository.
             setupRepository: SetupRepository?,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                OverviewViewModel(workspaceRepository, overviewRepository, setupRepository) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { OverviewViewModel(workspaceRepository, overviewRepository, setupRepository) }
         }
     }
 }

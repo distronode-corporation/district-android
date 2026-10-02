@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.settings.workspace
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,20 +69,8 @@ fun RoutingRulesScreen(
     onRetry: () -> Unit,
     onBack: () -> Unit,
 ) {
-    var confirmingExit by remember { mutableStateOf(false) }
+    val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
     var confirmingSave by remember { mutableStateOf(false) }
-
-    BackHandler(enabled = state.hasUnsavedChanges) { confirmingExit = true }
-
-    if (confirmingExit) {
-        UnsavedChangesDialog(
-            onDiscard = {
-                confirmingExit = false
-                onBack()
-            },
-            onDismiss = { confirmingExit = false },
-        )
-    }
 
     if (confirmingSave) {
         ReplaceRulesDialog(
@@ -102,7 +89,7 @@ fun RoutingRulesScreen(
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.routing_title),
-                onBack = { if (state.hasUnsavedChanges) confirmingExit = true else onBack() },
+                onBack = guardedBack,
             )
         },
     ) { inset ->

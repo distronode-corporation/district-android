@@ -24,10 +24,9 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.AvailableNumber
 import com.distronode.districtai.core.model.ListedNumber
-import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.resolve
 
 /**
  * The marketplace's cards.
@@ -60,6 +59,7 @@ internal fun SearchFormCard(
                 label = { Text(stringResource(R.string.marketplace_area_code)) },
                 singleLine = true,
                 enabled = !searching,
+                colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = MARKETPLACE_AREA_CODE_DESCRIPTION },
@@ -70,6 +70,7 @@ internal fun SearchFormCard(
                 label = { Text(stringResource(R.string.marketplace_country)) },
                 singleLine = true,
                 enabled = !searching,
+                colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = DistrictTheme.spacing.tight)
@@ -258,40 +259,6 @@ internal fun NotConfiguredState(message: String) {
             title = stringResource(R.string.marketplace_not_configured_title),
             body = message,
         )
-    }
-}
-
-/** ⚠️ A card, not a whole-screen state: the other tab may be perfectly loaded. */
-@Composable
-internal fun MarketplaceFailure(
-    title: String,
-    failure: FailureText,
-    description: String,
-    onRetry: () -> Unit,
-) {
-    DistrictCard(
-        modifier = Modifier
-            .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = description },
-    ) {
-        Eyebrow(title)
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-        )
-        // ⚠️ Offered only when retrying could work; a role refusal or contract drift produces the
-        // same failure every time.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-            )
-        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,21 +8,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
-import com.distronode.districtai.core.designsystem.ButtonSize
-import com.distronode.districtai.core.designsystem.ButtonVariant
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
+import com.distronode.districtai.core.designsystem.districtFieldColors
+import com.distronode.districtai.ui.FailureText
+import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -38,35 +43,17 @@ import com.distronode.districtai.ui.resolve
  */
 @Composable
 internal fun ConfigLoadFailure(
-    failure: com.distronode.districtai.ui.FailureText,
+    failure: FailureText,
     onRetry: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .padding(DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION },
-        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-    ) {
-        Eyebrow(stringResource(R.string.workspace_settings_load_failed))
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-        )
-        // ⚠️ Only when retrying could work. A signed-out or role-refused failure repeats
-        // identically, and a button that cannot help is worse than none.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKSPACE_SETTINGS_RETRY_DESCRIPTION
-                },
-            )
-        }
-    }
+    InlineFailure(
+        title = stringResource(R.string.workspace_settings_load_failed),
+        failure = failure,
+        onRetry = onRetry,
+        description = WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION,
+        modifier = Modifier.padding(DistrictTheme.spacing.gutter),
+        retryDescription = WORKSPACE_SETTINGS_RETRY_DESCRIPTION,
+    )
 }
 
 /**
@@ -102,6 +89,42 @@ internal fun SaveNotice(state: SaveState, description: String) {
         color = tone,
         modifier = Modifier.semantics { contentDescription = description },
     )
+}
+
+/**
+ * The unsaved-changes back guard: intercepts back while [hasUnsavedChanges], asks first, and
+ * returns the guarded back for the top bar's arrow.
+ *
+ * ⛔ INTERCEPTS THE SYSTEM BACK GESTURE, NOT JUST THE TOP-BAR ARROW. On Android the gesture is how
+ * people actually leave a screen, so a guard wired only to the arrow guards nothing. Both paths go
+ * through this one function so a change to back behaviour (predictive back, say) is made once.
+ *
+ * ⚠️ `remember`, not `rememberSaveable`: the dialog is a transient response to a back press and
+ * nothing typed lives in it. The DRAFT lives in the ViewModel, which survives rotation.
+ *
+ * ⚠️ THE RETURNED LAMBDA IS REMEMBERED ONCE AND READS THE LATEST VALUES through
+ * `rememberUpdatedState`, so the top bar gets one stable callback rather than a new one on every
+ * keystroke that flips [hasUnsavedChanges].
+ */
+@Composable
+internal fun rememberUnsavedChangesGuard(hasUnsavedChanges: Boolean, onBack: () -> Unit): () -> Unit {
+    var confirmingExit by remember { mutableStateOf(false) }
+    val unsaved by rememberUpdatedState(hasUnsavedChanges)
+    val leave by rememberUpdatedState(onBack)
+
+    BackHandler(enabled = hasUnsavedChanges) { confirmingExit = true }
+
+    if (confirmingExit) {
+        UnsavedChangesDialog(
+            onDiscard = {
+                confirmingExit = false
+                leave()
+            },
+            onDismiss = { confirmingExit = false },
+        )
+    }
+
+    return remember { { if (unsaved) confirmingExit = true else leave() } }
 }
 
 /**
@@ -184,28 +207,6 @@ internal fun ConfigSkeleton() {
         repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
     }
 }
-
-/**
- * Token colours for a Material text field.
- *
- * ⚠️ THE SAME REASON `CreateContactDialog` HAS ITS OWN COPY: Material's default
- * `OutlinedTextField` draws its container and placeholder greys from the Material baseline rather
- * than from `--muted`/`--muted-foreground`, so a field left on the defaults is subtly the wrong
- * panel on a correctly-themed screen. Not hoisted into core-designsystem in this package because
- * that is a shared-component decision with three existing call sites to migrate.
- */
-@Composable
-internal fun districtFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = DistrictTheme.colors.muted,
-    unfocusedContainerColor = DistrictTheme.colors.muted,
-    disabledContainerColor = DistrictTheme.colors.muted,
-    focusedBorderColor = DistrictTheme.colors.district,
-    unfocusedBorderColor = DistrictTheme.colors.border,
-    focusedTextColor = DistrictTheme.colors.foreground,
-    unfocusedTextColor = DistrictTheme.colors.foreground,
-    disabledTextColor = DistrictTheme.colors.mutedForeground,
-    cursorColor = DistrictTheme.colors.district,
-)
 
 /**
  * One labelled box, on the tokens rather than on Material's baseline.

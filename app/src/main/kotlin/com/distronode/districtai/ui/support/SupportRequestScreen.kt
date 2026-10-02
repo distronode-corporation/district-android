@@ -12,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -31,8 +30,11 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.SupportMessage
 import com.distronode.districtai.core.model.SupportMessageRole
+import com.distronode.districtai.ui.CenteredState
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
 
@@ -78,7 +80,14 @@ fun SupportRequestScreen(
             } else {
                 when (state) {
                     SupportRequestUiState.Loading -> RequestLoading()
-                    is SupportRequestUiState.Failed -> RequestFailure(state.failure, onRetry)
+                    // ⛔ SHOWN AS THE SERVER SENT IT. A 404 here is deliberately indistinguishable from
+                    // "not yours" and "erased", so this client must not narrate a reason it does not have.
+                    is SupportRequestUiState.Failed -> FailureState(
+                        failure = state.failure,
+                        onRetry = onRetry,
+                        onSignIn = null,
+                        description = SUPPORT_REQUEST_FAILURE_DESCRIPTION,
+                    )
                     is SupportRequestUiState.Content ->
                         RequestLoaded(state, draft, onDraftChange, onSend, onClose)
                 }
@@ -223,6 +232,7 @@ private fun ReplyBox(
                 onValueChange = onDraftChange,
                 label = { Text(stringResource(R.string.support_reply_label)) },
                 enabled = !state.sending,
+                colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = SUPPORT_REQUEST_REPLY_DESCRIPTION },
@@ -274,50 +284,13 @@ private fun RequestLoading() {
 
 @Composable
 private fun RequestRefused() {
-    Centered(SUPPORT_REQUEST_REFUSED_DESCRIPTION) {
+    CenteredState(SUPPORT_REQUEST_REFUSED_DESCRIPTION) {
         Text(
             text = stringResource(R.string.support_viewer_body),
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun RequestFailure(failure: FailureText, onRetry: () -> Unit) {
-    Centered(SUPPORT_REQUEST_FAILURE_DESCRIPTION) {
-        // ⛔ SHOWN AS THE SERVER SENT IT. A 404 here is deliberately indistinguishable from "not
-        // yours" and "erased", so this client must not narrate a reason it does not have.
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = DistrictTheme.colors.foreground,
-            textAlign = TextAlign.Center,
-        )
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-            )
-        }
-    }
-}
-
-@Composable
-private fun Centered(description: String, content: @Composable () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = description },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            content()
-        }
     }
 }
 

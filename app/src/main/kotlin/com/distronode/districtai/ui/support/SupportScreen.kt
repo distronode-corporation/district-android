@@ -34,8 +34,8 @@ import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.SupportRequestSummary
-import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.resolve
+import com.distronode.districtai.ui.CenteredState
+import com.distronode.districtai.ui.FailureState
 
 /**
  * This workspace's requests with Distronode.
@@ -72,7 +72,12 @@ fun SupportScreen(
             } else {
                 when (state) {
                     SupportUiState.Loading -> SupportLoading()
-                    is SupportUiState.Failed -> SupportFailure(state.failure, onRetry)
+                    is SupportUiState.Failed -> FailureState(
+                        failure = state.failure,
+                        onRetry = onRetry,
+                        onSignIn = null,
+                        description = SUPPORT_FAILURE_DESCRIPTION,
+                    )
                     is SupportUiState.Content -> SupportLoaded(state, onOpenRequest, onCompose)
                 }
             }
@@ -208,7 +213,7 @@ private fun SupportEmpty() {
 
 @Composable
 private fun SupportRefused() {
-    Centered(SUPPORT_REFUSED_DESCRIPTION) {
+    CenteredState(SUPPORT_REFUSED_DESCRIPTION) {
         EmptyState(
             title = stringResource(R.string.support_viewer_title),
             body = stringResource(R.string.support_viewer_body),
@@ -226,41 +231,6 @@ private fun SupportLoading() {
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_HEIGHT) }
-        }
-    }
-}
-
-@Composable
-private fun SupportFailure(failure: FailureText, onRetry: () -> Unit) {
-    Centered(SUPPORT_FAILURE_DESCRIPTION) {
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = DistrictTheme.colors.foreground,
-            textAlign = TextAlign.Center,
-        )
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-            )
-        }
-    }
-}
-
-@Composable
-private fun Centered(description: String, content: @Composable () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = description },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            content()
         }
     }
 }

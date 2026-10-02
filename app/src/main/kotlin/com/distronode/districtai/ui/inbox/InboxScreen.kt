@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,13 +20,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
@@ -37,8 +34,10 @@ import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.MessageSearchHit
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -81,7 +80,13 @@ fun InboxScreen(
                 } else {
                     when (state) {
                         InboxUiState.Loading -> InboxLoading()
-                        is InboxUiState.Failed -> InboxFailure(state, onRetry)
+                        is InboxUiState.Failed -> FailureState(
+                            failure = state.failure,
+                            onRetry = onRetry,
+                            onSignIn = null,
+                            description = INBOX_FAILURE_DESCRIPTION,
+                            title = stringResource(R.string.inbox_title),
+                        )
                         is InboxUiState.Content ->
                             if (state.conversations.isEmpty()) {
                                 InboxEmpty()
@@ -105,16 +110,7 @@ private fun SearchField(state: InboxSearchState, onQueryChanged: (String) -> Uni
         onValueChange = onQueryChanged,
         label = { Eyebrow(stringResource(R.string.inbox_search_label)) },
         singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = DistrictTheme.colors.muted,
-            unfocusedContainerColor = DistrictTheme.colors.muted,
-            disabledContainerColor = DistrictTheme.colors.muted,
-            focusedBorderColor = DistrictTheme.colors.district,
-            unfocusedBorderColor = DistrictTheme.colors.border,
-            focusedTextColor = DistrictTheme.colors.foreground,
-            unfocusedTextColor = DistrictTheme.colors.foreground,
-            cursorColor = DistrictTheme.colors.district,
-        ),
+        colors = districtFieldColors(),
         modifier = Modifier
             .fillMaxWidth()
             .padding(DistrictTheme.spacing.gutter)
@@ -332,39 +328,6 @@ private fun InboxEmpty() {
                 title = stringResource(R.string.inbox_empty_title),
                 body = stringResource(R.string.inbox_empty),
             )
-        }
-    }
-}
-
-@Composable
-private fun InboxFailure(state: InboxUiState.Failed, onRetry: () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = INBOX_FAILURE_DESCRIPTION },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Eyebrow(text = stringResource(R.string.inbox_title))
-            Text(
-                text = state.failure.message.resolve(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.foreground,
-                textAlign = TextAlign.Center,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-            )
-            // ⚠️ Only when retrying could work. A role refusal answers identically every time, and a
-            // button that cannot succeed is worse than no button.
-            if (state.failure.retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-                )
-            }
         }
     }
 }

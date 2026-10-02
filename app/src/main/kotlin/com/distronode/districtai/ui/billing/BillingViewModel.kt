@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.billing
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.BillingRepository
 import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.WorkspaceBilling
@@ -118,10 +120,8 @@ class BillingViewModel(
         fun factory(
             repository: BillingRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                BillingViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { BillingViewModel(repository, workspaceId) }
         }
     }
 }

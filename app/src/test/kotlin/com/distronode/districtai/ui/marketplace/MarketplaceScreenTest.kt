@@ -488,27 +488,6 @@ class MarketplaceScreenTest {
     }
 
     @Test
-    fun `a failure card follows a new failure and a new handle`() {
-        var failure by mutableStateOf(FailureText(message = UiText.Literal("First")))
-        var description by mutableStateOf("first-handle")
-        composeRule.setContent {
-            DistrictTheme {
-                MarketplaceFailure(title = "Title", failure = failure, description = description, onRetry = {})
-            }
-        }
-
-        failure = FailureText(message = UiText.Literal("Second"))
-        composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
-        composeRule.onNodeWithText("Second").assertIsDisplayed()
-
-        description = "second-handle"
-        composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("first-handle").assertDoesNotExist()
-    }
-
-    @Test
     fun `a theme change redraws the search form with its chips and tabs still reporting`() {
         val forms = mutableListOf<NumberSearchForm>()
         val tabs = mutableListOf<MarketplaceTab>()

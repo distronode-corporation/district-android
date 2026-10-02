@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.desk
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.DeskRepository
 import com.distronode.districtai.core.model.DeskBounds
 import com.distronode.districtai.core.model.DeskSettings
@@ -512,7 +513,7 @@ class DeskViewModelTest {
     fun `the factory builds a model for the workspace it was given`() = runTest {
         val api = api()
         val model = DeskViewModel.factory(DeskRepository(api) { "key" }, "ws-1", WorkspaceRole.CLIENT)
-            .create(DeskViewModel::class.java)
+            .create(DeskViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertTrue(model.canUse)

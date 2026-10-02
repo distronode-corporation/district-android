@@ -1,9 +1,6 @@
 package com.distronode.districtai.ui.workflows
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -713,26 +710,5 @@ class WorkflowsScreenTest {
         composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_MORE_DESCRIPTION).assertIsNotEnabled()
         composeRule.onNodeWithContentDescription(runCardDescription("run-1")).assertIsDisplayed()
         assertEquals(0, loadedMore)
-    }
-
-    @Test
-    fun `a failure block follows a new failure and a new handle`() {
-        var failure by mutableStateOf(FailureText(UiText.Literal("First")))
-        var description by mutableStateOf("first-handle")
-        composeRule.setContent {
-            DistrictTheme {
-                WorkflowFailure(title = "Title", failure = failure, description = description, onRetry = {})
-            }
-        }
-
-        failure = FailureText(UiText.Literal("Second"))
-        composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
-        composeRule.onNodeWithText("Second").assertIsDisplayed()
-
-        description = "second-handle"
-        composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("first-handle").assertDoesNotExist()
     }
 }

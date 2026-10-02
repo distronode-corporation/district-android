@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.scheduling
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.ApiEnvironment
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SchedulingRepository
@@ -716,7 +717,7 @@ class SchedulingViewModelTest {
 
         val viewModel = SchedulingViewModel
             .factory(repository(api), "ws-2")
-            .create(SchedulingViewModel::class.java)
+            .create(SchedulingViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals(listOf("ws-2"), api.schedulingApi.schedulingStatusRequests)

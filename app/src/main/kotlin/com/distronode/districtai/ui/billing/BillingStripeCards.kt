@@ -26,9 +26,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.BillingInvoice
 import com.distronode.districtai.core.model.BillingSubscription
 import com.distronode.districtai.core.model.StripeBilling
-import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.analytics.formatUsageAmount
-import com.distronode.districtai.ui.resolve
 
 /**
  * The cards built from STRIPE's answer, plus the two states that answer stands in for.
@@ -288,48 +286,5 @@ internal fun StripeUnavailableCard() {
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
         )
-    }
-}
-
-/**
- * The Stripe section's own transport failure.
- *
- * ⚠️ A CARD, NOT A WHOLE-SCREEN STATE. The plan card above it came from a different server and is
- * still correct — replacing everything with one message would discard the half that survived.
- *
- * ⚠️ AND THIS IS **NOT** HOW A STRIPE OUTAGE ARRIVES. That is a 200 carrying `billingUnavailable`
- * and renders as [StripeUnavailableCard]. This one means the request itself failed: an unreachable
- * origin, a dead session, or a shape this build cannot parse.
- */
-@Composable
-internal fun BillingCardFailure(
-    title: String,
-    failure: FailureText,
-    description: String,
-    onRetry: () -> Unit,
-) {
-    DistrictCard(
-        modifier = Modifier
-            .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = description },
-    ) {
-        Eyebrow(title)
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-        )
-        // ⚠️ Offered only when retrying could work. Contract drift and a role refusal produce the
-        // identical failure every time.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-            )
-        }
     }
 }

@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.rooms
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.MeetingsRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.CallEngine
@@ -290,15 +292,16 @@ class ActiveRoomViewModel(
             roomName: String,
             role: WorkspaceRole?,
             webOrigin: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = ActiveRoomViewModel(
-                engineFactory = engineFactory,
-                repository = repository,
-                roomName = roomName,
-                role = role,
-                webOrigin = webOrigin,
-            ) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                ActiveRoomViewModel(
+                    engineFactory = engineFactory,
+                    repository = repository,
+                    roomName = roomName,
+                    role = role,
+                    webOrigin = webOrigin,
+                )
+            }
         }
     }
 }

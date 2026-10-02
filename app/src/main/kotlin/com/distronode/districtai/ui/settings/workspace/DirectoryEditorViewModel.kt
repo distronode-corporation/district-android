@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.settings.workspace
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.SaveOutcome
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.DirectoryEntry
@@ -156,30 +158,19 @@ class DirectoryEditorViewModel(
     private fun applyOutcome(
         current: DirectoryEditorUiState,
         outcome: SaveOutcome,
-    ): DirectoryEditorUiState = when (outcome) {
-        is SaveOutcome.Saved -> current.copy(
-            load = ConfigState.Ready(outcome.config),
-            draft = null,
-            save = SaveState.Saved,
-        )
-        is SaveOutcome.SavedButStale -> current.copy(
-            draft = null,
-            save = SaveState.SavedButStale(outcome.failure.toFailureText()),
-        )
-        // ⛔ THE DRAFT SURVIVES. Nothing was written and the operator's list is still theirs.
-        is SaveOutcome.NotSaved -> current.copy(
-            save = SaveState.Failed(outcome.failure.toFailureText()),
-        )
-    }
+    ): DirectoryEditorUiState = current.copy(
+        load = outcome.savedConfig?.let(ConfigState::Ready) ?: current.load,
+        // ⛔ THE DRAFT SURVIVES NotSaved. Nothing was written and the operator's list is still theirs.
+        draft = if (outcome is SaveOutcome.NotSaved) current.draft else null,
+        save = outcome.saveState,
+    )
 
     companion object {
         fun factory(
             repository: WorkspaceConfigRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                DirectoryEditorViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { DirectoryEditorViewModel(repository, workspaceId) }
         }
     }
 }

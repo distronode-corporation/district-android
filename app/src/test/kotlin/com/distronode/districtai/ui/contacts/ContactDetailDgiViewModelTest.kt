@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.contacts
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.ContactsRepository
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactDetailResponse
@@ -582,7 +583,7 @@ class ContactDetailDgiViewModelTest {
     fun `the factory builds a model for the contact it was given`() = runTest {
         val api = api()
         val vm = ContactDetailViewModel.factory(ContactsRepository(api), "ws-1", "c1", WorkspaceRole.CLIENT)
-            .create(ContactDetailViewModel::class.java)
+            .create(ContactDetailViewModel::class.java, CreationExtras.Empty)
         runCurrent()
 
         assertTrue(vm.canMutate)

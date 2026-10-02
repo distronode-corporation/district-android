@@ -14,19 +14,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.ui.CenteredState
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -62,32 +61,16 @@ fun CallDetailScreen(
         // around the `when` makes it structural instead.
         Box(modifier = inset.fillMaxSize()) {
             when (state) {
-                CallDetailUiState.Loading -> Centered {
-                    CircularProgressIndicator(
-                        modifier = Modifier.semantics {
-                            contentDescription = CALL_DETAIL_LOADING_DESCRIPTION
-                        },
-                    )
+                CallDetailUiState.Loading -> CenteredState(CALL_DETAIL_LOADING_DESCRIPTION) {
+                    CircularProgressIndicator()
                 }
 
-                is CallDetailUiState.Failed -> Centered(
-                    modifier = Modifier.semantics {
-                        contentDescription = CALL_DETAIL_FAILURE_DESCRIPTION
-                    },
-                ) {
-                    Text(
-                        text = state.failure.message.resolve(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                    )
-                    if (state.failure.retryable) {
-                        DistrictButton(
-                            text = stringResource(R.string.overview_retry),
-                            onClick = onRetry,
-                            modifier = Modifier.padding(top = DistrictTheme.spacing.gutter),
-                        )
-                    }
-                }
+                is CallDetailUiState.Failed -> FailureState(
+                    failure = state.failure,
+                    onRetry = onRetry,
+                    onSignIn = null,
+                    description = CALL_DETAIL_FAILURE_DESCRIPTION,
+                )
 
                 is CallDetailUiState.Content ->
                     Content(state, onShowTranscript, onPlayRecording)
@@ -287,19 +270,6 @@ private fun LabelledCard(label: String, value: String, description: String? = nu
 private fun ListCard(label: String, values: List<String>) {
     if (values.isEmpty()) return
     LabelledCard(label, values.joinToString("\n") { "• $it" })
-}
-
-@Composable
-private fun Centered(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(DistrictTheme.spacing.section),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        content()
-    }
 }
 
 /** Stable handles for tests. */

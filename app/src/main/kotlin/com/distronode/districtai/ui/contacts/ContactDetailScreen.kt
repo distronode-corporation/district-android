@@ -21,20 +21,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.Contact
+import com.distronode.districtai.ui.CenteredState
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
 
@@ -79,30 +79,16 @@ fun ContactDetailScreen(
         // UNDERNEATH the 56dp app bar.
         Box(modifier = inset.fillMaxSize()) {
             when (state) {
-                ContactDetailUiState.Loading -> Centered {
-                    CircularProgressIndicator(
-                        modifier = Modifier.semantics {
-                            contentDescription = CONTACT_DETAIL_LOADING_DESCRIPTION
-                        },
-                    )
+                ContactDetailUiState.Loading -> CenteredState(CONTACT_DETAIL_LOADING_DESCRIPTION) {
+                    CircularProgressIndicator()
                 }
 
-                is ContactDetailUiState.Failed -> Centered(
-                    Modifier.semantics { contentDescription = CONTACT_DETAIL_FAILURE_DESCRIPTION },
-                ) {
-                    Text(
-                        text = state.failure.message.resolve(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                    )
-                    if (state.failure.retryable) {
-                        DistrictButton(
-                            text = stringResource(R.string.overview_retry),
-                            onClick = onRetry,
-                            modifier = Modifier.padding(top = DistrictTheme.spacing.gutter),
-                        )
-                    }
-                }
+                is ContactDetailUiState.Failed -> FailureState(
+                    failure = state.failure,
+                    onRetry = onRetry,
+                    onSignIn = null,
+                    description = CONTACT_DETAIL_FAILURE_DESCRIPTION,
+                )
 
                 is ContactDetailUiState.Content -> Content(
                     state = state,
@@ -354,6 +340,7 @@ private fun RenameField(
             label = { Text(stringResource(R.string.contact_detail_rename_label)) },
             singleLine = true,
             enabled = !saving,
+            colors = districtFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentDescription = CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION },
@@ -374,19 +361,6 @@ private fun RenameField(
                 Text(stringResource(R.string.contact_detail_cancel))
             }
         }
-    }
-}
-
-@Composable
-private fun Centered(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(DistrictTheme.spacing.section),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        content()
     }
 }
 

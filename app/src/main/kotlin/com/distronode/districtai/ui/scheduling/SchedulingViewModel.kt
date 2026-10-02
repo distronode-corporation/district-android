@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.scheduling
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.core.model.SchedulingEnableResponse
@@ -281,10 +283,8 @@ class SchedulingViewModel(
         fun factory(
             repository: SchedulingRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                SchedulingViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { SchedulingViewModel(repository, workspaceId) }
         }
     }
 }

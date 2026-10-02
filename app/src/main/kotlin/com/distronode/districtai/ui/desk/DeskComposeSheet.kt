@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -164,6 +165,7 @@ private fun Field(
         onValueChange = onChange,
         label = { Text(stringResource(labelId)) },
         enabled = enabled,
+        colors = districtFieldColors(),
         modifier = modifier.fillMaxWidth(),
     )
 }

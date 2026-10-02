@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.MembersRepository
 import com.distronode.districtai.core.model.MemberListResponse
@@ -471,7 +472,7 @@ class MembersViewModelTest {
         val api = api()
         val vm = MembersViewModel
             .factory(MembersRepository(api), "ws-1", WorkspaceRole.CLIENT)
-            .create(MembersViewModel::class.java)
+            .create(MembersViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals(listOf("ws-1"), api.memberListRequests)

@@ -1,8 +1,10 @@
 package com.distronode.districtai.ui.settings.workspace
 
 import com.distronode.districtai.R
+import com.distronode.districtai.core.data.SaveOutcome
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.ui.FailureText
+import com.distronode.districtai.ui.toFailureText
 
 /**
  * Whether a workspace-settings screen has the configuration it needs in order to be allowed to
@@ -65,6 +67,29 @@ sealed interface SaveState {
 
 /** ⚠️ True only while a write is genuinely in flight — what disables every input on the screen. */
 val SaveState.busy: Boolean get() = this == SaveState.Saving
+
+/**
+ * The banner a finished save is drawn as.
+ *
+ * ⛔ ONE MAPPING FOR EVERY SECTION'S SAVE, BECAUSE THE RULES ON [SaveState] ARE EASY TO RE-DERIVE
+ * WRONGLY. Five ViewModels used to hand-copy it, and a copy that drew [SaveOutcome.SavedButStale] as
+ * [SaveState.Failed] would invite the operator to re-save a wholesale-replace array from a stale
+ * baseline.
+ */
+val SaveOutcome.saveState: SaveState
+    get() = when (this) {
+        is SaveOutcome.Saved -> SaveState.Saved
+        is SaveOutcome.SavedButStale -> SaveState.SavedButStale(failure.toFailureText())
+        is SaveOutcome.NotSaved -> SaveState.Failed(failure.toFailureText())
+    }
+
+/**
+ * The fresh configuration to adopt as the new baseline, or null when there is none.
+ *
+ * ⚠️ NULL FOR [SaveOutcome.SavedButStale] AS WELL AS FOR [SaveOutcome.NotSaved]. The stale case
+ * wrote, but the re-read failed, so the only config in hand is the pre-save one already on screen.
+ */
+val SaveOutcome.savedConfig: WorkspaceConfig? get() = (this as? SaveOutcome.Saved)?.config
 
 /**
  * The thirteen capabilities this client knows how to name, in the order the web console lists them.

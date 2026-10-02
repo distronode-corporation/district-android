@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.RoutingRuleField
 import com.distronode.districtai.core.model.WorkspaceConfig
@@ -301,7 +302,7 @@ class RoutingRulesViewModelTest {
         val api = api()
         val vm = RoutingRulesViewModel
             .factory(WorkspaceConfigRepository(api), "ws-1")
-            .create(RoutingRulesViewModel::class.java)
+            .create(RoutingRulesViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         vm.addRule()

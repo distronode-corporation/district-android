@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
 # Tests for the release scripts (release-version.sh, release-notes.sh, gsm-secret.sh,
-# play-publish.sh), run by CI on every pull request. No network: curl is replaced by a stub that
-# answers from fixtures and records every call, so the tests can assert what was sent, in what
-# order, and what was NOT sent (no commit after a failure, no second submission, no token in argv).
+# play-publish.sh, github-release.sh), run by CI on every pull request. No network: curl and gh
+# are replaced by stubs that answer from fixtures and record every call, so the tests can assert
+# what was sent, in what order, and what was NOT sent (no commit after a failure, no second
+# submission, no token in argv, no second release).
 #
 #   scripts/release-scripts.test.sh
 set -euo pipefail
@@ -156,6 +157,7 @@ reset_stub() {
     echo '{"track":"production","releases":[{"versionCodes":["4102"],"status":"completed"}]}' > "$STUB_DIR/production"
     : > "$STUB_DIR/calls"
     : > "$STUB_DIR/argv"
+    : > "$STUB_DIR/gh-calls"
 }
 called() { grep -qxF "$1" "$STUB_DIR/calls"; }
 not_called() { ! grep -qF "$1" "$STUB_DIR/calls"; }
@@ -234,6 +236,139 @@ check "a draft on production is completed and submitted" called "POST $P/edits/E
 reset_stub
 refuses "a versionCode Play does not hold" play submit 4185 1.0 "$work/notes.txt"
 check "and nothing is committed" not_called ":commit"
+
+# ── github-release.sh ─────────────────────────────────────────────────────────
+# The gh CLI is replaced by a stub too. It appends its argv to $STUB_DIR/gh-calls, keeps the notes
+# file it was given, and answers from these switches in $STUB_DIR: `exists` (the release exists),
+# `read-error` (reading it fails with a 500), `create-fails` (the create fails) and `create-lands`
+# (the create fails but the release was made anyway).
+cat > "$stubbin/gh" << 'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "$STUB_DIR/gh-calls"
+case "$1 $2" in
+    "api repos/"*"/releases/tags/"*)
+        if [ -e "$STUB_DIR/read-error" ]; then echo "gh: Server Error (HTTP 500)" >&2; exit 1; fi
+        if [ -e "$STUB_DIR/exists" ]; then echo '{"tag_name":"x"}'; exit 0; fi
+        echo "gh: Not Found (HTTP 404)" >&2
+        exit 1
+        ;;
+    "api repos/"*"/commits/"*) echo '{"sha":"1a4711f30370d3b607f4dbfe538f5822f159d4a1"}' ;;
+    "api repos/"*"/actions/workflows/release.yml/runs"*) cat "$STUB_DIR/runs" ;;
+    "release create")
+        while [ $# -gt 0 ]; do
+            if [ "$1" = --notes-file ]; then cp "$2" "$STUB_DIR/created-notes"; fi
+            shift
+        done
+        if [ -e "$STUB_DIR/create-lands" ]; then touch "$STUB_DIR/exists"; exit 1; fi
+        if [ -e "$STUB_DIR/create-fails" ]; then exit 1; fi
+        touch "$STUB_DIR/exists"
+        ;;
+    *) echo "gh stub: unexpected call: $*" >&2; exit 1 ;;
+esac
+EOF
+chmod +x "$stubbin/gh"
+ghrel() {
+    PATH="$stubbin:$PATH" GITHUB_REPOSITORY=distronode-corporation/district-android \
+        GITHUB_SERVER_URL=https://github.com SUBMITTED_ON=2026-10-02 "$root/scripts/github-release.sh" "$@"
+}
+gh_called() { grep -qF -- "$1" "$STUB_DIR/gh-calls"; }
+gh_not_called() { ! grep -qF -- "$1" "$STUB_DIR/gh-calls"; }
+
+echo "github-release.sh print"
+# v1.2's release exactly as it was published (by hand, the template for every release since),
+# from the real CHANGELOG.md, byte for byte.
+cat > "$work/v1.2-body.md" << 'EOF'
+District AI for Android 1.2, the source of the Google Play release submitted for review on 2026-10-02 (versionCode 4201).
+
+On Google Play: https://play.google.com/store/apps/details?id=com.distronode.districtai
+
+Built, signed and uploaded by this repository's GitHub Actions workflow ([run 36968058179](https://github.com/distronode-corporation/district-android/actions/runs/36968058179)), and sent to Google Play review by [run 36978578982](https://github.com/distronode-corporation/district-android/actions/runs/36978578982).
+
+### Fixed
+
+- After you miss or decline a call, the next calls still ring. Before, they could stop arriving
+  until you opened the app.
+- If you hang up just after answering, the call no longer connects anyway.
+- Tapping a message notification opens that message, not the newest one.
+- A draft's pictures are kept when you reopen the conversation.
+- A credit under $1 shows its minus sign.
+- After a change to the device's security settings, signing in keeps you signed in again.
+
+The versionCode is 4101 plus the commit count, so this tag is the only public commit that builds 4201. Changes merged after it are under [Unreleased] in CHANGELOG.md.
+EOF
+reset_stub
+ghrel print v1.2 4201 36978578982 36968058179 > "$work/out-body.md"
+check "v1.2's published body, byte for byte" cmp -s "$work/out-body.md" "$work/v1.2-body.md"
+check "print calls nothing" test ! -s "$STUB_DIR/gh-calls"
+out=$(ghrel print v1.2 4201 36978578982 | sed -n 5p)
+check "no build run: the submit run alone, no guess at the build" \
+    test "$out" = "Sent to Google Play review by this repository's GitHub Actions workflow ([run 36978578982](https://github.com/distronode-corporation/district-android/actions/runs/36978578982))."
+out=$(ghrel print v1.2 4201 36978578982 36978578982 | sed -n 5p)
+check "one run that built and submitted is named once" \
+    test "$out" = "Built, signed, uploaded and sent to Google Play review by this repository's GitHub Actions workflow ([run 36978578982](https://github.com/distronode-corporation/district-android/actions/runs/36978578982))."
+out=$(CHANGELOG="$work/CHANGELOG.md" ghrel print v1.0 4102 2 1 | sed -n '7,$p')
+check "the last section stops before link definitions" \
+    test "$out" = "$(printf 'The first release.\n\nThe versionCode is 4101 plus the commit count, so this tag is the only public commit that builds 4102. Changes merged after it are under [Unreleased] in CHANGELOG.md.')"
+out=$(CHANGELOG="$work/CHANGELOG.md" ghrel print v1.1 4188 2 1 | sed -n '7,11p')
+check "a section is copied as written, Markdown and wrapping kept" \
+    test "$out" = "$(sed -n '9,13p' "$work/CHANGELOG.md")"
+refuses "a version with no section" env CHANGELOG="$work/CHANGELOG.md" PATH="$stubbin:$PATH" \
+    "$root/scripts/github-release.sh" print v2.0 4300 2 1
+refuses "a tag that is not a release tag" ghrel print 1.2 4201 2 1
+refuses "a run id that is not a number" ghrel print v1.2 4201 2 'x;y'
+refuses "a versionCode that is not a number" ghrel print v1.2 42a 2 1
+
+echo "github-release.sh publish"
+reset_stub
+ghrel publish v1.2 4201 36978578982 36968058179 > "$work/out"
+check "publishes the tag's release, Latest, under the release title" \
+    gh_called "release create v1.2 --repo distronode-corporation/district-android --verify-tag --latest --title District AI for Android 1.2 --notes-file"
+check "with exactly the printed body" cmp -s "$STUB_DIR/created-notes" "$work/v1.2-body.md"
+check "never as a draft, and never edited" bash -c "! grep -qE -- '--draft|release edit|release upload' '$STUB_DIR/gh-calls'"
+
+reset_stub
+touch "$STUB_DIR/exists"
+ghrel publish v1.2 4201 36978578982 36968058179 > "$work/out"
+check "a release that already exists is left as it is" gh_not_called "release create"
+check "  (and the run says so)" grep -q "already exists" "$work/out"
+
+reset_stub
+touch "$STUB_DIR/read-error"
+refuses "a failed read is not taken as 'no release'" ghrel publish v1.2 4201 36978578982 36968058179
+check "  (so nothing is created)" gh_not_called "release create"
+
+reset_stub
+touch "$STUB_DIR/create-lands"
+ghrel publish v1.2 4201 36978578982 36968058179 > "$work/out"
+check "a failed create whose release exists after all succeeds" grep -q "now exists" "$work/out"
+
+reset_stub
+touch "$STUB_DIR/create-fails"
+refuses "a failed create with no release fails" ghrel publish v1.2 4201 36978578982 36968058179
+
+reset_stub
+refuses "a missing section fails before anything is sent" env CHANGELOG="$work/CHANGELOG.md" \
+    PATH="$stubbin:$PATH" "$root/scripts/github-release.sh" publish v2.0 4300 2 1
+check "  (nothing was called)" test ! -s "$STUB_DIR/gh-calls"
+
+echo "github-release.sh build-run"
+reset_stub
+sha=1a4711f30370d3b607f4dbfe538f5822f159d4a1
+jq -n --arg sha "$sha" '{workflow_runs: [
+    {id: 5, event: "push", head_branch: "v1.2", head_sha: $sha, conclusion: "success", created_at: "2026-10-02T09:00:00Z"},
+    {id: 3, event: "push", head_branch: "v1.2", head_sha: $sha, conclusion: "success", created_at: "2026-10-02T05:14:36Z"},
+    {id: 2, event: "workflow_dispatch", head_branch: "v1.2", head_sha: $sha, conclusion: "success", created_at: "2026-10-01T00:00:00Z"},
+    {id: 1, event: "push", head_branch: "v1.2", head_sha: "0000000000000000000000000000000000000000", conclusion: "success", created_at: "2026-09-30T00:00:00Z"},
+    {id: 4, event: "push", head_branch: "v1.1", head_sha: $sha, conclusion: "success", created_at: "2026-09-29T00:00:00Z"}]}' \
+    > "$STUB_DIR/runs"
+out=$(ghrel build-run v1.2)
+check "the earliest successful push run of the tag's own commit" test "$out" = 3
+check "asks for successful push runs of release.yml on the tag" \
+    gh_called "api repos/distronode-corporation/district-android/actions/workflows/release.yml/runs?event=push&branch=v1.2&status=success"
+echo '{"workflow_runs":[]}' > "$STUB_DIR/runs"
+out=$(ghrel build-run v1.2)
+check "no such run: prints nothing" test -z "$out"
 
 echo
 echo "$passed passed, $failed failed"

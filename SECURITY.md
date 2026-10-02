@@ -81,7 +81,9 @@ token from Distronode's Google Cloud for the length of one run, through workload
 federation pinned to this repository, that environment and those refs. The workflows have no
 `pull_request` trigger, so no pull request, from a fork or otherwise, can reach them.
 Submission for store review runs only with the maintainers' explicit approval. Google Play App
-Signing holds the app signing key; the key borrowed here is the upload key.
+Signing holds the app signing key; the key borrowed here is the upload key. The GitHub Release
+that follows a submission is published by a job of its own, the only release job whose token
+can write to this repository, and it holds no Google Cloud credential.
 
 Versions up to and including 1.0 were built and signed on a maintainer's machine before this
 workflow existed.

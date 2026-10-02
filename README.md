@@ -109,7 +109,10 @@ Every build goes to the internal testing track. Submission for store review is a
 step that runs only with the maintainers' explicit approval, either in the same run or later
 through [`.github/workflows/submit.yml`](.github/workflows/submit.yml); it releases the
 already uploaded build to production with the version's `CHANGELOG.md` section as its release
-notes.
+notes. Once that submission has succeeded, the same workflow publishes the tag's
+[GitHub Release](https://github.com/distronode-corporation/district-android/releases), marked
+Latest, with that section and links to the runs that built and submitted it. Releases here are
+immutable, so it is published once, complete, and a re-run leaves an existing release alone.
 
 No signing key or store credential is stored in this repository or in GitHub. The jobs run in
 a `release` environment that only `main` and `v*` tags can use, and borrow the upload key, the
@@ -123,8 +126,9 @@ Versions up to and including 1.0, the current store release
 were built and signed on a maintainer's machine before this workflow existed.
 
 The scripts the workflows run are in `scripts/` (`release-version.sh`, `release-build.sh`,
-`release-notes.sh`, `play-publish.sh`, `gsm-secret.sh`), and `scripts/release-scripts.test.sh`
-tests them in CI against a stub of the Google APIs. To build a release yourself, for example
+`release-notes.sh`, `play-publish.sh`, `gsm-secret.sh`, `github-release.sh`), and
+`scripts/release-scripts.test.sh` tests them in CI against stubs of the Google APIs and the
+`gh` CLI. To build a release yourself, for example
 for a fork signed with your own key:
 
 - **versionCode** is `BUILD_NUMBER_OFFSET` (default 4101) plus `git rev-list --count HEAD`, so

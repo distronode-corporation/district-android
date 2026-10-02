@@ -9,7 +9,9 @@ import com.distronode.districtai.core.model.UsageData
 import com.distronode.districtai.core.model.UsageHistoryResponse
 import com.distronode.districtai.core.model.UsageResponse
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.ui.TestDistrictApi
+import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -455,5 +457,49 @@ class AnalyticsViewModelTest {
         assertEquals("ws-other", api.analyticsRequests.single().first)
         assertEquals(listOf("ws-other"), api.usageRequests)
         assertTrue(vm.state.value is AnalyticsUiState.Content)
+    }
+
+    @Test
+    fun `a slower read for an earlier window is never published under a later chip`() = runTest(dispatcher) {
+        // ⛔ 30d THEN 7d, AND THE 30d AGGREGATE IS THE SLOWER ONE. Before the fix the 30-day
+        // figures landed last and were labelled with whatever chip was selected at that moment.
+        val api = healthyApi()
+        val gates = mapOf(
+            AnalyticsRange.THIRTY_DAYS to CompletableDeferred<Unit>(),
+            AnalyticsRange.SEVEN_DAYS to CompletableDeferred<Unit>(),
+        )
+        var released = false
+        val gated = object : DistrictApi by api {
+            override suspend fun analytics(
+                workspaceId: String,
+                range: AnalyticsRange,
+            ): ApiResult<AnalyticsResponse> {
+                // The initial 7d read on entry runs ungated; only the two switches are parked.
+                if (released) gates.getValue(range).await()
+                return ApiResult.Success(
+                    AnalyticsResponse(
+                        success = true,
+                        metrics = AnalyticsMetrics(totalCalls = range.wire.removeSuffix("d").toInt()),
+                    ),
+                )
+            }
+        }
+        val vm = AnalyticsViewModel(AnalyticsRepository(gated), workspaceId = "ws-1")
+        advanceUntilIdle()
+        released = true
+
+        vm.selectRange(AnalyticsRange.THIRTY_DAYS)
+        advanceUntilIdle()
+        vm.selectRange(AnalyticsRange.SEVEN_DAYS)
+        advanceUntilIdle()
+        gates.getValue(AnalyticsRange.SEVEN_DAYS).complete(Unit)
+        advanceUntilIdle()
+        gates.getValue(AnalyticsRange.THIRTY_DAYS).complete(Unit)
+        advanceUntilIdle()
+
+        val state = content(vm)
+        assertEquals(AnalyticsRange.SEVEN_DAYS, state.range)
+        assertEquals(7, (state.analytics as AnalyticsCardState.Ready).report.metrics.totalCalls)
+        assertFalse(state.refreshing)
     }
 }

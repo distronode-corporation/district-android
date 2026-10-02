@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.settings.workspace
 
-import com.distronode.districtai.core.model.ASSIGNABLE_MEMBER_ROLES
 import com.distronode.districtai.core.model.DEFAULT_MEMBER_ROLE
 import com.distronode.districtai.core.model.MAX_WORKSPACE_NAME_LENGTH
 import com.distronode.districtai.core.model.WorkspaceMember
@@ -69,9 +68,6 @@ data class MembersUiState(
 
     /** ⚠️ True once the roster has been read, whatever it contained. Gates the rename control. */
     val loaded: Boolean get() = list is MembersListState.Ready
-
-    /** The roles the picker offers, in the server's own order. */
-    val roleOptions: List<WorkspaceRole> get() = ASSIGNABLE_MEMBER_ROLES
 
     /**
      * ⛔ THE ROUTE'S OWN EMAIL RULE, MIRRORED SO THE BUTTON IS HONEST. It is deliberately loose —

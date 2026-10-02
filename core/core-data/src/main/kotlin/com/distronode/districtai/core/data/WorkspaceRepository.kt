@@ -32,8 +32,8 @@ class WorkspaceRepository(
         // ⛔ THE ENVELOPE IS CHECKED BEFORE THE LIST IS TRUSTED, AND THIS IS THE MOST
         // CONSEQUENTIAL USE OF THAT CHECK IN THE APP. Every field of WorkspaceListResponse has a
         // default, so a 200 carrying `{}` used to decode into an empty list with no degraded
-        // regions and no inactive count — which [WorkspaceState.hasNoWorkspaces] then reports as
-        // "this account genuinely has nothing". That is the same conflation that sent a
+        // regions and no inactive count, which the overview then reports as "this account
+        // genuinely has nothing". That is the same conflation that sent a
         // subscribed customer to a checkout page on the web. See [rejectedEnvelope].
         is ApiResult.Success -> rejectedEnvelope(ENVELOPE_NAME, result.value.success)
             ?: ApiResult.Success(toState(result.value))
@@ -100,7 +100,7 @@ class WorkspaceRepository(
  * The resolved workspace picture.
  *
  * ⚠️ [active] being null does NOT by itself mean "this account has nothing". Check
- * [inactiveCount] and [degradedRegions] before saying so — see [hasNoWorkspaces].
+ * [isBillingBlocked] and [isPartial] before saying so, in that order; the overview does.
  */
 data class WorkspaceState(
     val workspaces: List<WorkspaceEntry>,
@@ -120,10 +120,6 @@ data class WorkspaceState(
      */
     val inactiveCount: Int = 0,
 ) {
-    /** True only when the account genuinely has nothing — not when the answer was incomplete. */
-    val hasNoWorkspaces: Boolean
-        get() = workspaces.isEmpty() && inactiveCount == 0 && degradedRegions.isEmpty()
-
     /** True when everything the account has is unpaid. */
     val isBillingBlocked: Boolean
         get() = workspaces.isEmpty() && inactiveCount > 0

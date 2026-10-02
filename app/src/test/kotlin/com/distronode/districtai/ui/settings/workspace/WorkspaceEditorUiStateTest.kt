@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.settings.workspace
 
-import com.distronode.districtai.core.model.DirectoryField
 import com.distronode.districtai.core.model.RoutingRule
 import com.distronode.districtai.core.model.RoutingRuleField
 import com.distronode.districtai.core.model.WorkspaceConfig
@@ -66,16 +65,6 @@ class WorkspaceEditorUiStateTest {
         assertTrue(state.canAdd)
 
         assertFalse(state.copy(save = SaveState.Saving).canAdd)
-    }
-
-    @Test
-    fun `a text box reads its row's field, and an index past the list reads empty`() {
-        val state = DirectoryEditorUiState(load = directory)
-
-        assertEquals("Ops desk", state.fieldValue(0, DirectoryField.NAME))
-        assertEquals("+14165550177", state.fieldValue(0, DirectoryField.PHONE_NUMBER))
-        assertEquals("", state.fieldValue(1, DirectoryField.NAME))
-        assertEquals("", state.fieldValue(-1, DirectoryField.NAME))
     }
 
     // ── The routing rules ────────────────────────────────────────────────────

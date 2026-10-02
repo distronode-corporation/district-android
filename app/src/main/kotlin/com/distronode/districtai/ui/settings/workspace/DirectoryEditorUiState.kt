@@ -1,7 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
 import com.distronode.districtai.core.model.DirectoryEntry
-import com.distronode.districtai.core.model.DirectoryField
 import com.distronode.districtai.core.model.directoryEntries
 
 /**
@@ -84,7 +83,3 @@ data class DirectoryEditorUiState(
 
     val hasUnsavedChanges: Boolean get() = dirty
 }
-
-/** The value of one field of one entry, for a text box. */
-internal fun DirectoryEditorUiState.fieldValue(index: Int, field: DirectoryField): String =
-    entries.getOrNull(index)?.value(field).orEmpty()

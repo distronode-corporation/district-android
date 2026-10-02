@@ -87,11 +87,23 @@ class ContactDetailViewModel(
         _state.value = content.copy(saving = true, mutationFailure = null)
         viewModelScope.launch {
             when (val result = repository.enrich(workspaceId, contactId)) {
-                // ⚠️ Re-read rather than optimistically stamping "pending" locally. The server
-                // has already written the status, and inventing it here would show a queued job
-                // even in the cases where the write did not land.
-                is ApiResult.Success -> refresh()
-                is ApiResult.Failure -> reportMutationFailure(result)
+                // ⚠️ RE-READ FIRST, because the server stamps the row before answering and the
+                // read is the truth (and may already say "crawling").
+                is ApiResult.Success -> when (val read = repository.detail(workspaceId, contactId)) {
+                    is ApiResult.Success -> publish(read.value)
+                    // ⛔ BUT A FAILED RE-READ IS NOT AN ENRICH FAILURE, AND MUST NOT RE-ARM THE
+                    // BUTTON. The write is confirmed here, so stamping "pending" is not a guess.
+                    // Reporting it as a failure kept the pre-enrich contact, whose null status
+                    // makes [Contact.dgiOfferable] true: one more tap on a flaky connection bought
+                    // a second crawl and a second LLM run. The stamp shows the badge and starts the
+                    // poll, which re-reads on its own; a failed poll then says so (see
+                    // [syncPolling]). Dropped if a reload has already put the screen back to
+                    // Loading: that read answers.
+                    is ApiResult.Failure -> (_state.value as? ContactDetailUiState.Content)?.let {
+                        publish(it.contact.copy(dgiStatus = DGI_PENDING))
+                    }
+                }
+                is ApiResult.Failure -> _state.reportMutationFailure(result)
             }
         }
     }
@@ -115,7 +127,7 @@ class ContactDetailViewModel(
         viewModelScope.launch {
             when (val result = repository.clearIntel(workspaceId, contactId)) {
                 is ApiResult.Success -> refresh()
-                is ApiResult.Failure -> reportMutationFailure(result)
+                is ApiResult.Failure -> _state.reportMutationFailure(result)
             }
         }
     }
@@ -131,7 +143,7 @@ class ContactDetailViewModel(
     private suspend fun refresh() {
         when (val result = repository.detail(workspaceId, contactId)) {
             is ApiResult.Success -> publish(result.value)
-            is ApiResult.Failure -> reportMutationFailure(result)
+            is ApiResult.Failure -> _state.reportMutationFailure(result)
         }
     }
 
@@ -170,12 +182,16 @@ class ContactDetailViewModel(
 
         pollJob = viewModelScope.launch {
             repository.dossierUpdates(workspaceId, contactId).collect { result ->
-                // ⚠️ ONLY THE CONTACT IS REPLACED. A poll landing while a rename is in flight
-                // must not clear `saving` or a pending failure message — it is a background
-                // read, not the outcome of anything the operator did.
+                // ⚠️ ONLY THE CONTACT (OR THE POLL'S OWN FAILURE) IS REPLACED. A poll landing while
+                // a rename is in flight must not clear `saving` or a pending failure message: it
+                // is a background read, not the outcome of anything the operator did.
                 val current = _state.value as? ContactDetailUiState.Content ?: return@collect
-                if (result is ApiResult.Success) {
-                    _state.value = current.copy(contact = result.value)
+                _state.value = when (result) {
+                    is ApiResult.Success -> current.copy(contact = result.value)
+                    // ⛔ THE FLOW ENDS ON A FAILURE, SO THIS IS THE LAST THING THE POLL SAYS. Dropping
+                    // it froze the badge on "building" for good, with nothing to tap; it is
+                    // surfaced with a retry instead. See [checkDossierAgain].
+                    is ApiResult.Failure -> current.copy(pollFailure = result.toFailureText())
                 }
             }
             // The flow completed, so the enrichment settled (or the read failed). Either way
@@ -184,9 +200,31 @@ class ContactDetailViewModel(
         }
     }
 
-    private fun reportMutationFailure(failure: ApiResult.Failure) {
-        (_state.value as? ContactDetailUiState.Content)?.let {
-            _state.value = it.copy(saving = false, mutationFailure = failure.toFailureText())
+    /**
+     * Retry after the dossier poll stopped on a failed read.
+     *
+     * ⚠️ A READ, NEVER THE ENRICH. It re-reads the contact and, if the crawl is still running,
+     * restarts the poll; nothing billable is re-sent.
+     *
+     * ⚠️ ONLY WHILE A POLL FAILURE IS SHOWING, which also makes a double tap dispatched before the
+     * card recomposes away one read rather than two.
+     */
+    fun checkDossierAgain() {
+        val content = _state.value as? ContactDetailUiState.Content ?: return
+        if (content.pollFailure == null) return
+
+        _state.value = content.copy(pollFailure = null)
+        viewModelScope.launch {
+            val result = repository.detail(workspaceId, contactId)
+            val current = _state.value as? ContactDetailUiState.Content ?: return@launch
+            when (result) {
+                // Like a poll tick, only the contact changes: a mutation may be in flight.
+                is ApiResult.Success -> {
+                    _state.value = current.copy(contact = result.value)
+                    syncPolling(result.value)
+                }
+                is ApiResult.Failure -> _state.value = current.copy(pollFailure = result.toFailureText())
+            }
         }
     }
 
@@ -214,7 +252,9 @@ class ContactDetailViewModel(
                 is ApiResult.Success ->
                     // Re-read rather than patching the local copy: the server may normalise the value,
                     // and a stale local edit that disagrees with the list is worse than a round trip.
-                    load()
+                    // ⚠️ [refresh], not [load]: the rename landed, so a failed re-read belongs beside
+                    // the contact rather than replacing it with a full-screen failure.
+                    refresh()
                 is ApiResult.Failure -> (_state.value as? ContactDetailUiState.Content)?.let {
                     _state.value = it.copy(saving = false, mutationFailure = result.toFailureText())
                 }
@@ -251,6 +291,12 @@ class ContactDetailViewModel(
     }
 
     companion object {
+        /**
+         * ⚠️ The status the server stamps on the row BEFORE `contacts/enrich` answers (see
+         * `EnrichResponse.status`), and one of [Contact.dgiInProgress]'s three.
+         */
+        private const val DGI_PENDING = "pending"
+
         fun factory(
             repository: ContactsRepository,
             workspaceId: String,
@@ -261,6 +307,20 @@ class ContactDetailViewModel(
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
                 ContactDetailViewModel(repository, workspaceId, contactId, role) as T
         }
+    }
+}
+
+/**
+ * Put a failed write beside the contact, ending its `saving`; dropped unless the contact is showing.
+ *
+ * ⚠️ A TOP-LEVEL EXTENSION rather than a private method, for the reason ThreadViewModel's
+ * `withContent` is one: it reads nothing of [ContactDetailViewModel] beyond the flow it is called
+ * on, and that class sits on detekt's function ceiling, which [ContactDetailViewModel.checkDossierAgain]
+ * reached. Moving a pure helper out is the honest answer; raising the threshold would be the other.
+ */
+private fun MutableStateFlow<ContactDetailUiState>.reportMutationFailure(failure: ApiResult.Failure) {
+    (value as? ContactDetailUiState.Content)?.let {
+        value = it.copy(saving = false, mutationFailure = failure.toFailureText())
     }
 }
 
@@ -278,6 +338,14 @@ sealed interface ContactDetailUiState {
          * contact is still perfectly good; only the edit failed.
          */
         val mutationFailure: FailureText? = null,
+        /**
+         * The dossier poll stopped on a failed read.
+         *
+         * ⚠️ SEPARATE FROM [mutationFailure] because it is not the outcome of anything the operator
+         * did, and because it has a retry ([ContactDetailViewModel.checkDossierAgain]) where a failed
+         * write deliberately has none.
+         */
+        val pollFailure: FailureText? = null,
     ) : ContactDetailUiState
 
     data class Failed(val failure: FailureText) : ContactDetailUiState

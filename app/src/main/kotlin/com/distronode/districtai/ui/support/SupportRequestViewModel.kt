@@ -9,6 +9,7 @@ import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.toFailureText
+import com.distronode.districtai.ui.updateLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,10 @@ import kotlinx.coroutines.launch
  *   finds a transition leaves a second "Closed at the requester's request by …" in that thread.
  * [retryOrNoop] therefore replays only the READ, and a failed write is left for the operator to
  * decide about.
+ *
+ * ⛔ EACH COMPLETION LANDS ON THE LATEST STATE, NOT THE ONE CAPTURED AT THE TAP. Close stays
+ * tappable while a reply is sending, so the two writes overlap; restoring a tap-time snapshot would
+ * leave a spinner running forever or drop a reply that was posted. See [updateLatest].
  *
  * ⛔ NO POLLING. The detail read refreshes from Atlassian rather than serving the local mirror, so
  * it is slower than the list and a vendor outage degrades to the mirror instead of failing. A
@@ -95,16 +100,17 @@ class SupportRequestViewModel(
             when (val result = repository.reply(workspaceId, key, body)) {
                 is ApiResult.Success -> {
                     _draft.value = ""
-                    _state.value = current.copy(
-                        request = current.request.copy(
-                            messages = current.request.messages + result.value,
-                        ),
-                        sending = false,
-                    )
+                    updateContent { latest ->
+                        latest.copy(
+                            request = latest.request.copy(
+                                messages = latest.request.messages + result.value,
+                            ),
+                            sending = false,
+                        )
+                    }
                 }
                 is ApiResult.Failure ->
-                    _state.value =
-                        current.copy(sending = false, sendFailure = result.toFailureText())
+                    updateContent { it.copy(sending = false, sendFailure = result.toFailureText()) }
             }
         }
     }
@@ -132,20 +138,21 @@ class SupportRequestViewModel(
             when (val result = repository.close(workspaceId, key)) {
                 is ApiResult.Success -> {
                     _closedAs.value = result.value
-                    _state.value = current.copy(
-                        request = current.request.copy(
-                            statusName = result.value,
-                            // ⚠️ The category is what `isResolved` reads, and the close route does
-                            // not echo it — so it is set here rather than inferred from the name,
-                            // which is localised and cannot be compared.
-                            statusCategory = SupportStatusCategory.RESOLVED,
-                        ),
-                        closing = false,
-                    )
+                    updateContent { latest ->
+                        latest.copy(
+                            request = latest.request.copy(
+                                statusName = result.value,
+                                // ⚠️ The category is what `isResolved` reads, and the close route
+                                // does not echo it, so it is set here rather than inferred from the
+                                // name, which is localised and cannot be compared.
+                                statusCategory = SupportStatusCategory.RESOLVED,
+                            ),
+                            closing = false,
+                        )
+                    }
                 }
                 is ApiResult.Failure ->
-                    _state.value =
-                        current.copy(closing = false, closeFailure = result.toFailureText())
+                    updateContent { it.copy(closing = false, closeFailure = result.toFailureText()) }
             }
         }
     }
@@ -158,6 +165,9 @@ class SupportRequestViewModel(
     fun retryOrNoop() {
         if (_state.value is SupportRequestUiState.Failed) load()
     }
+
+    private fun updateContent(block: (SupportRequestUiState.Content) -> SupportRequestUiState) =
+        _state.updateLatest(SupportRequestUiState.Content::class.java, block)
 
     companion object {
         fun factory(

@@ -243,13 +243,17 @@ const val TRIGGER_SMS_RECEIVED: String = "sms_received"
 const val TRIGGER_CONTACT_CREATED: String = "contact_created"
 const val TRIGGER_DNC_REGISTERED: String = "dnc_registered"
 
-/** The four run statuses the engine writes today. ⚠️ Free text on the wire; see [runTone]. */
+/**
+ * The run statuses [runTone] distinguishes. ⚠️ Free text on the wire; the engine's fourth,
+ * `skipped`, is toned neutral along with anything unknown.
+ */
 const val RUN_STATUS_SUCCESS: String = "success"
 const val RUN_STATUS_PARTIAL: String = "partial"
 const val RUN_STATUS_FAILED: String = "failed"
-const val RUN_STATUS_SKIPPED: String = "skipped"
 
-/** The three per-action outcomes. ⚠️ Free text on the wire; see [outcomeTone]. */
+/**
+ * The per-action outcomes [outcomeTone] distinguishes. ⚠️ Free text on the wire; the third,
+ * `skipped`, is toned neutral along with anything unknown.
+ */
 const val OUTCOME_OK: String = "ok"
-const val OUTCOME_SKIPPED: String = "skipped"
 const val OUTCOME_FAILED: String = "failed"

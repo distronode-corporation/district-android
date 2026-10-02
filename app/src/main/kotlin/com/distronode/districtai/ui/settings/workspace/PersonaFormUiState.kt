@@ -56,8 +56,10 @@ data class PersonaFormUiState(
 
     val hasUnsavedChanges: Boolean get() = dirtyFields.isNotEmpty() || !engineChanges.isEmpty
 
+    /** ⚠️ A null draft (no catalogue) has no engine edits to refuse. See [PersonaEngineDraft.engineSelectable]. */
     val canSave: Boolean
-        get() = load is ConfigState.Ready && save != SaveState.Saving && hasUnsavedChanges
+        get() = load is ConfigState.Ready && save != SaveState.Saving && hasUnsavedChanges &&
+            draft?.engineSelectable != false
 
     /**
      * ⛔ THE PREVIEW NEEDS THE CATALOGUE, NOT JUST A LOADED CONFIG. A `modelId` the registry does

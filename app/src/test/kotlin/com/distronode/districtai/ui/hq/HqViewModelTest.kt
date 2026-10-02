@@ -8,6 +8,7 @@ import com.distronode.districtai.core.model.HqPromptResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestDistrictApi
+import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -378,6 +379,35 @@ class HqViewModelTest {
         assertEquals("the write must not be repeated", 1, api.hqConfirms.size)
         assertTrue("and the card stays", vm.state.value is HqUiState.ConfirmFailed)
     }
+
+    @Test
+    fun `tapping Confirm again after a failed confirm is the operator's retry, and stays single-flight`() =
+        runTest(dispatcher) {
+            // ⛔ THE CARD KEEPS AN ENABLED CONFIRM BUTTON AFTER A FAILURE. Before the fix the tap was
+            // refused because the state was ConfirmFailed rather than Confirming: no request, no
+            // feedback. A double tap on the retry must still send exactly one write.
+            val api = apiProposing().apply {
+                hqConfirmResult = ApiResult.NetworkFailure(java.io.IOException("dropped"))
+            }
+            val vm = viewModel(api)
+
+            vm.ask("Change the greeting")
+            advanceUntilIdle()
+            vm.confirmPending()
+            advanceUntilIdle()
+            assertTrue(vm.state.value is HqUiState.ConfirmFailed)
+
+            api.hqConfirmResult = ApiResult.Success(
+                HqConfirmResponse(success = true, executed = true, tool = "update_persona"),
+            )
+            vm.confirmPending()
+            vm.confirmPending()
+            advanceUntilIdle()
+
+            assertEquals("one write per deliberate tap", 2, api.hqConfirms.size)
+            assertEquals("update_persona", api.hqConfirms.last().confirm.tool)
+            assertEquals(HqUiState.Idle, vm.state.value)
+        }
 
     @Test
     fun `a session change replays a failed PROMPT`() = runTest(dispatcher) {

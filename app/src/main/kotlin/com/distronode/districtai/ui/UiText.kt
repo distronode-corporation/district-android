@@ -65,16 +65,6 @@ sealed interface UiText {
      * [Resource] is never silently dropped.
      */
     val literalOrNull: String? get() = (this as? Literal)?.value
-
-    /**
-     * The resource id, or null for literal text.
-     *
-     * ⚠️ Also assertions and diagnostics only, and symmetric with [literalOrNull] on purpose. It
-     * lets a ViewModel test assert WHICH message was chosen without needing a `Context` to render
-     * it — the wording itself is asserted once, where the mapping lives.
-     */
-    @get:StringRes
-    val resourceIdOrNull: Int? get() = (this as? Resource)?.id
 }
 
 /** Resolve to displayable text. The only place a [UiText] should become a `String`. */

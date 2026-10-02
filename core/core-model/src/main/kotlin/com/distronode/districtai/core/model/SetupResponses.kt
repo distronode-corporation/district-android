@@ -64,7 +64,8 @@ data class SetupProgress(
 )
 
 /**
- * The six wizard steps, each [SETUP_STEP_TODO], [SETUP_STEP_DONE] or [SETUP_STEP_SKIPPED].
+ * The six wizard steps, each [SETUP_STEP_TODO], [SETUP_STEP_DONE] or `skipped` (which nothing here
+ * branches on).
  *
  * ⚠️ STRINGS, NOT AN ENUM. A seventh state added server-side must not make the whole response
  * undecodable, which an enum would.
@@ -81,4 +82,3 @@ data class SetupSteps(
 
 const val SETUP_STEP_TODO: String = "todo"
 const val SETUP_STEP_DONE: String = "done"
-const val SETUP_STEP_SKIPPED: String = "skipped"

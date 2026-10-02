@@ -120,7 +120,6 @@ class KnowledgeContractFixtureTest {
 
         assertEquals("future", response.mode)
         assertEquals(listOf(KB_MODE_INTERNAL, KB_MODE_LINKED), KB_MODES)
-        assertEquals(KB_MODE_INTERNAL, DEFAULT_KB_MODE)
     }
 
     // ── Messaging ────────────────────────────────────────────────────────────

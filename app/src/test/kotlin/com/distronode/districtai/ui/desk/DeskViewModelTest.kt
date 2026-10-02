@@ -402,6 +402,36 @@ class DeskViewModelTest {
     }
 
     @Test
+    fun `a requester box over the route's maximum is not submittable, and nothing is sent`() = runTest {
+        // ⚠️ THE ROUTE BOUNDS ALL THREE AND OVER-LENGTH IS A 400. Before the fix only the subject
+        // and message were checked, so these went out and were refused.
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+        model.editSubject("Leaking tap")
+        model.editMessage("It drips.")
+
+        model.editRequesterName("a".repeat(DeskBounds.REQUESTER_NAME_MAX + 1))
+        assertFalse(model.compose.value.submittable)
+        model.submit()
+        advanceUntilIdle()
+        model.editRequesterName("  " + "a".repeat(DeskBounds.REQUESTER_NAME_MAX) + "  ")
+        assertTrue("measured trimmed, as sent", model.compose.value.submittable)
+
+        model.editRequesterEmail("a".repeat(DeskBounds.REQUESTER_EMAIL_MAX + 1))
+        assertFalse(model.compose.value.submittable)
+        model.editRequesterEmail("a".repeat(DeskBounds.REQUESTER_EMAIL_MAX))
+        assertTrue(model.compose.value.submittable)
+
+        model.editRequesterPhone("1".repeat(DeskBounds.REQUESTER_PHONE_MAX + 1))
+        assertFalse(model.compose.value.submittable)
+        model.editRequesterPhone("1".repeat(DeskBounds.REQUESTER_PHONE_MAX))
+        assertTrue(model.compose.value.submittable)
+
+        assertTrue("the refused submit sent nothing", api.createDrafts.isEmpty())
+    }
+
+    @Test
     fun `discarding the draft empties every box, and acknowledging clears the confirmation`() = runTest {
         val api = api().apply {
             createResult = ApiResult.Success(DeskTicketCreateResponse(success = true, ticket = ticket))

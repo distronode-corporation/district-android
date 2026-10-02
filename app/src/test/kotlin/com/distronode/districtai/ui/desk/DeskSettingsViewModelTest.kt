@@ -4,11 +4,14 @@ import com.distronode.districtai.core.data.DeskRepository
 import com.distronode.districtai.core.model.DeskBrandName
 import com.distronode.districtai.core.model.DeskLogoRemovalResponse
 import com.distronode.districtai.core.model.DeskSettings
+import com.distronode.districtai.core.model.DeskSettingsPatch
 import com.distronode.districtai.core.model.DeskSettingsResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.DeskApi
 import com.distronode.districtai.ui.inbox.AttachmentReader
 import com.distronode.districtai.ui.inbox.PickedAttachment
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -491,5 +494,125 @@ class DeskSettingsViewModelTest {
 
         assertTrue(model.canUse)
         assertEquals(1, api.settingsReads)
+    }
+
+    @Test
+    fun `a brand name over the route's maximum cannot be saved, and nothing is sent`() = runTest {
+        // ⚠️ OVER-LENGTH IS A 400 RATHER THAN A TRUNCATION. Before the fix Save stayed enabled and
+        // the request was spent to be refused.
+        val api = api()
+        val model = viewModel(api)
+        advanceUntilIdle()
+
+        model.editBrandName("a".repeat(DeskSettings.BRAND_NAME_MAX_LENGTH + 1))
+        assertTrue(content(model).dirty)
+        assertFalse(content(model).canSave)
+        model.save()
+        advanceUntilIdle()
+        assertTrue(api.patches.isEmpty())
+
+        model.editBrandName(" " + "a".repeat(DeskSettings.BRAND_NAME_MAX_LENGTH) + " ")
+        assertTrue("measured trimmed, as the route does", content(model).canSave)
+        model.save()
+        advanceUntilIdle()
+        assertEquals(1, api.patches.size)
+    }
+
+    /** Holds the save and the logo writes open separately, so their completion order is chosen. */
+    private class GatedDeskApi(private val api: FakeDeskApiForUi) : DeskApi by api {
+        val saveGate = CompletableDeferred<Unit>()
+        val logoGate = CompletableDeferred<Unit>()
+        var saveResult: ApiResult<DeskSettingsResponse>? = null
+        var uploadResult: ApiResult<DeskSettingsResponse>? = null
+
+        override suspend fun saveDeskSettings(
+            workspaceId: String,
+            patch: DeskSettingsPatch,
+        ): ApiResult<DeskSettingsResponse> {
+            saveGate.await()
+            return saveResult ?: api.saveDeskSettings(workspaceId, patch)
+        }
+
+        override suspend fun uploadDeskLogo(
+            workspaceId: String,
+            fileName: String,
+            mimeType: String,
+            bytes: ByteArray,
+        ): ApiResult<DeskSettingsResponse> {
+            logoGate.await()
+            return uploadResult ?: api.uploadDeskLogo(workspaceId, fileName, mimeType, bytes)
+        }
+
+        override suspend fun deleteDeskLogo(workspaceId: String): ApiResult<DeskLogoRemovalResponse> {
+            logoGate.await()
+            return api.deleteDeskLogo(workspaceId)
+        }
+    }
+
+    private fun gatedModel(gated: GatedDeskApi) = DeskSettingsViewModel(
+        DeskRepository(gated) { "key" },
+        attachments = FakeReader(PickedAttachment("logo.png", "image/png", byteArrayOf(1, 2, 3))),
+        workspaceId = "ws-1",
+        role = WorkspaceRole.CLIENT,
+    )
+
+    @Test
+    fun `a logo delete that fails after a save landed does not leave Save spinning`() = runTest {
+        // ⛔ THE LOGO CONTROLS STAY USABLE DURING A SAVE. Before the fix the delete's failure
+        // landed on its tap-time snapshot, taken with saving = true, after the save had already
+        // finished: Save stuck on "Saving" until the screen was left.
+        val api = api().apply { logoRemovalResult = ApiResult.HttpFailure(502, "Storage is down.") }
+        val gated = GatedDeskApi(api)
+        val model = gatedModel(gated)
+        advanceUntilIdle()
+
+        model.setNotify(false)
+        model.save()
+        model.deleteLogo()
+        advanceUntilIdle()
+        gated.saveGate.complete(Unit)
+        advanceUntilIdle()
+        assertTrue("the delete is still in flight", content(model).logoBusy)
+        gated.logoGate.complete(Unit)
+        advanceUntilIdle()
+
+        val state = content(model)
+        assertFalse(state.saving)
+        assertFalse(state.logoBusy)
+        assertTrue(state.logoFailure != null)
+    }
+
+    @Test
+    fun `a logo upload that lands during a save keeps Save busy and survives the save's failure`() = runTest {
+        // ⚠️ THE UPLOAD'S ECHO MUST NOT RE-ARM SAVE MID-REQUEST, and the save's later failure must
+        // not put back the logo the upload just replaced (its snapshot predates the upload).
+        val api = api()
+        val gated = GatedDeskApi(api).apply {
+            uploadResult = ApiResult.Success(
+                DeskSettingsResponse(
+                    success = true,
+                    settings = stored.copy(publicLogoUrl = "https://cdn.example/new.png"),
+                ),
+            )
+            saveResult = ApiResult.HttpFailure(502, "Try again.")
+        }
+        val model = gatedModel(gated)
+        advanceUntilIdle()
+
+        model.setNotify(false)
+        model.save()
+        model.uploadLogo("content://logo")
+        advanceUntilIdle()
+        gated.logoGate.complete(Unit)
+        advanceUntilIdle()
+        assertTrue("the save is still in flight", content(model).saving)
+        assertFalse(content(model).logoBusy)
+        gated.saveGate.complete(Unit)
+        advanceUntilIdle()
+
+        val state = content(model)
+        assertFalse(state.saving)
+        assertTrue(state.saveFailure != null)
+        assertEquals("https://cdn.example/new.png", state.stored.publicLogoUrl)
     }
 }

@@ -11,6 +11,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +41,17 @@ class OverviewViewModel(
     private val _state = MutableStateFlow<OverviewUiState>(OverviewUiState.Loading)
     val state: StateFlow<OverviewUiState> = _state.asStateFlow()
 
+    /**
+     * The read in flight, if any.
+     *
+     * ⛔ CANCELLED BY EVERY NEW [load], because the last response to ARRIVE is not the last one
+     * ASKED FOR. A cold-start load for workspace A that is still waiting on its overview when the
+     * user switches to B would otherwise land after B's and paint A's figures while the stored
+     * selection says B, so the switch looks ignored. Cancelling also covers a refresh racing a
+     * switch: only the newest question is ever answered on screen.
+     */
+    private var loadJob: Job? = null
+
     init {
         load()
     }
@@ -49,6 +61,7 @@ class OverviewViewModel(
      *   not flash the screen back to a spinner.
      */
     fun load(refreshing: Boolean = false) {
+        loadJob?.cancel()
         val existing = _state.value
         _state.value = if (refreshing && existing is OverviewUiState.Content) {
             existing.copy(refreshing = true)
@@ -56,7 +69,7 @@ class OverviewViewModel(
             OverviewUiState.Loading
         }
 
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             when (val workspaces = workspaceRepository.load()) {
                 is ApiResult.Success -> loadOverview(workspaces.value)
                 is ApiResult.Failure -> _state.value = workspaces.toUiState()

@@ -1220,6 +1220,7 @@ fun DistrictNavHost(
                         onEnrich = viewModel::enrich,
                         // ⚠️ The confirm dialog lives in the screen; this is what it calls.
                         onClearIntel = viewModel::clearIntel,
+                        onCheckDossierAgain = viewModel::checkDossierAgain,
                     )
                 }
 

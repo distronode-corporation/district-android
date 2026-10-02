@@ -50,7 +50,7 @@ class WorkflowVocabularyTest {
         assertEquals(Tone.Warning, runTone(RUN_STATUS_PARTIAL))
         assertEquals(Tone.Danger, runTone(RUN_STATUS_FAILED))
         // A skipped run is the workflow working: its conditions were not met.
-        assertEquals(Tone.Neutral, runTone(RUN_STATUS_SKIPPED))
+        assertEquals(Tone.Neutral, runTone("skipped"))
         assertEquals(Tone.Neutral, runTone("queued"))
     }
 
@@ -58,7 +58,7 @@ class WorkflowVocabularyTest {
     fun `an action outcome is toned the same way one level down`() {
         assertEquals(Tone.Success, outcomeTone(OUTCOME_OK))
         assertEquals(Tone.Danger, outcomeTone(OUTCOME_FAILED))
-        assertEquals(Tone.Neutral, outcomeTone(OUTCOME_SKIPPED))
+        assertEquals(Tone.Neutral, outcomeTone("skipped"))
         assertEquals(Tone.Neutral, outcomeTone("retrying"))
     }
 }

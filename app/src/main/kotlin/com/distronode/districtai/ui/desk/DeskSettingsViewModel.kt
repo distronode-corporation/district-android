@@ -15,6 +15,7 @@ import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.inbox.AttachmentReader
 import com.distronode.districtai.ui.toFailureText
+import com.distronode.districtai.ui.updateLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +34,12 @@ import kotlinx.coroutines.launch
  * SCREEN. An empty box is "absent" if the operator never touched it and an explicit `null` if they
  * emptied it, and only [DeskSettingsUiState.Content.brandNameEdited] can tell the two apart. That is
  * the entire reason the flag exists.
+ *
+ * ⛔ EACH COMPLETION LANDS ON THE LATEST STATE, NOT THE ONE CAPTURED AT THE TAP. The logo controls
+ * stay usable during a save, so a save and a logo write overlap; restoring a tap-time snapshot
+ * would leave Save stuck on "Saving" or put back a logo that was just replaced. A success still
+ * adopts the echoed row whole, but keeps the OTHER write's in-flight flag so its control is not
+ * re-armed mid-request. See [updateLatest].
  *
  * ⛔ `publicLogoUrl` IS NEVER IN A PATCH. The settings route does not accept it, by design: the
  * value must be a URL this platform produced, and a caller-supplied one would let a member point
@@ -76,21 +83,24 @@ class DeskSettingsViewModel(
 
     /**
      * ⚠️ DECLINES A CLEAN FORM RATHER THAN SENDING AN EMPTY PATCH. The route answers 400 for a body
-     * with no fields, deliberately, so a save with nothing to say must not be made at all.
+     * with no fields, deliberately, so a save with nothing to say must not be made at all. An
+     * over-long brand name is declined for the same reason; see [DeskSettingsUiState.Content.canSave].
      */
     fun save() {
         if (!canUse) return
         val current = _state.value as? DeskSettingsUiState.Content ?: return
-        if (!current.dirty || current.saving) return
+        if (!current.canSave) return
 
         _state.value = current.copy(saving = true, saveFailure = null)
         viewModelScope.launch {
             when (val result = repository.saveSettings(workspaceId, patchFrom(current))) {
                 // ⚠️ THE ECHO IS ADOPTED WHOLE, never the values that were sent. The write returns
                 // the stored row, so this screen needs no re-read and must not trust its own form.
-                is ApiResult.Success -> _state.value = contentFor(result.value)
+                is ApiResult.Success -> updateContent { latest ->
+                    contentFor(result.value).copy(logoBusy = latest.logoBusy)
+                }
                 is ApiResult.Failure ->
-                    _state.value = current.copy(saving = false, saveFailure = result.toFailureText())
+                    updateContent { it.copy(saving = false, saveFailure = result.toFailureText()) }
             }
         }
     }
@@ -118,13 +128,15 @@ class DeskSettingsViewModel(
                 // ⚠️ "There was nothing to read" is not a rejected type or size — a revoked grant, a
                 // file the provider deleted between the pick and the read, or a cloud item that
                 // failed to download. It needs different words and no request is spent.
-                _state.value = current.copy(
-                    logoBusy = false,
-                    logoFailure = FailureText(
-                        message = UiText.Resource(R.string.desk_logo_unreadable),
-                        retryable = false,
-                    ),
-                )
+                updateContent {
+                    it.copy(
+                        logoBusy = false,
+                        logoFailure = FailureText(
+                            message = UiText.Resource(R.string.desk_logo_unreadable),
+                            retryable = false,
+                        ),
+                    )
+                }
                 return@launch
             }
             when (
@@ -135,10 +147,11 @@ class DeskSettingsViewModel(
                     bytes = picked.bytes,
                 )
             ) {
-                is ApiResult.Success -> _state.value = contentFor(result.value)
+                is ApiResult.Success -> updateContent { latest ->
+                    contentFor(result.value).copy(saving = latest.saving)
+                }
                 is ApiResult.Failure ->
-                    _state.value =
-                        current.copy(logoBusy = false, logoFailure = result.toFailureText())
+                    updateContent { it.copy(logoBusy = false, logoFailure = result.toFailureText()) }
             }
         }
     }
@@ -163,12 +176,14 @@ class DeskSettingsViewModel(
         _state.value = current.copy(logoBusy = true, logoFailure = null, logoObjectRetained = false)
         viewModelScope.launch {
             when (val result = repository.deleteLogo(workspaceId)) {
-                is ApiResult.Success ->
-                    _state.value = contentFor(result.value.settings)
-                        .copy(logoObjectRetained = !result.value.objectRemoved)
+                is ApiResult.Success -> updateContent { latest ->
+                    contentFor(result.value.settings).copy(
+                        saving = latest.saving,
+                        logoObjectRetained = !result.value.objectRemoved,
+                    )
+                }
                 is ApiResult.Failure ->
-                    _state.value =
-                        current.copy(logoBusy = false, logoFailure = result.toFailureText())
+                    updateContent { it.copy(logoBusy = false, logoFailure = result.toFailureText()) }
             }
         }
     }
@@ -176,6 +191,9 @@ class DeskSettingsViewModel(
     fun retryOrNoop() {
         if (_state.value is DeskSettingsUiState.Failed) load()
     }
+
+    private fun updateContent(block: (DeskSettingsUiState.Content) -> DeskSettingsUiState) =
+        _state.updateLatest(DeskSettingsUiState.Content::class.java, block)
 
     private fun edit(block: (DeskSettingsUiState.Content) -> DeskSettingsUiState.Content) {
         val current = _state.value as? DeskSettingsUiState.Content ?: return

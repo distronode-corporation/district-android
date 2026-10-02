@@ -10,6 +10,8 @@ import com.distronode.districtai.core.model.DeskTicketStatusResponse
 import com.distronode.districtai.core.model.DeskTicketSummary
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.DeskApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -388,5 +390,73 @@ class DeskTicketViewModelTest {
 
         assertEquals("tkt_1", model.ticketId)
         assertEquals(1, api.ticketDetailReads)
+    }
+
+    @Test
+    fun `a status change during a send keeps the delivered reply and stops both spinners`() = runTest {
+        // ⛔ THE CHIPS STAY TAPPABLE WHILE A REPLY SENDS. Before the fix the reply landed on its
+        // tap-time snapshot and the status change then landed on ITS snapshot (taken with
+        // sending = true), so Send spun forever and the delivered reply vanished from the thread.
+        val api = api().apply {
+            replyResult = ApiResult.Success(
+                DeskReplyResponse(
+                    success = true,
+                    ticket = DeskTicketSummary(id = "tkt_1", status = "waiting"),
+                    message = DeskMessage(id = "m2", authorType = "team", body = "On our way."),
+                    notified = true,
+                ),
+            )
+            statusResult = ApiResult.Success(
+                DeskTicketStatusResponse(
+                    success = true,
+                    ticket = DeskTicketSummary(id = "tkt_1", status = "resolved"),
+                ),
+            )
+        }
+        val replyGate = CompletableDeferred<Unit>()
+        val statusGate = CompletableDeferred<Unit>()
+        val gated = object : DeskApi by api {
+            override suspend fun replyToDeskTicket(
+                workspaceId: String,
+                ticketId: String,
+                message: String,
+                idempotencyKey: String?,
+            ): ApiResult<DeskReplyResponse> {
+                replyGate.await()
+                return api.replyToDeskTicket(workspaceId, ticketId, message, idempotencyKey)
+            }
+
+            override suspend fun setDeskTicketStatus(
+                workspaceId: String,
+                ticketId: String,
+                status: DeskTicketStatus,
+            ): ApiResult<DeskTicketStatusResponse> {
+                statusGate.await()
+                return api.setDeskTicketStatus(workspaceId, ticketId, status)
+            }
+        }
+        val model = DeskTicketViewModel(
+            DeskRepository(gated) { "key" },
+            workspaceId = "ws-1",
+            ticketId = "tkt_1",
+            role = WorkspaceRole.CLIENT,
+        )
+        advanceUntilIdle()
+
+        model.editDraft("On our way.")
+        model.send()
+        model.setStatus(DeskTicketStatus.RESOLVED)
+        advanceUntilIdle()
+        replyGate.complete(Unit)
+        advanceUntilIdle()
+        statusGate.complete(Unit)
+        advanceUntilIdle()
+
+        val state = model.state.value as DeskTicketUiState.Content
+        assertFalse(state.sending)
+        assertFalse(state.statusChanging)
+        assertEquals(listOf("m1", "m2"), state.messages.map { it.id })
+        assertEquals("resolved", state.ticket.status)
+        assertEquals(true, state.lastNotified)
     }
 }

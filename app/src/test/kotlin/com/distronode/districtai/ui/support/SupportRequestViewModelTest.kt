@@ -8,6 +8,8 @@ import com.distronode.districtai.core.model.SupportRequestDetail
 import com.distronode.districtai.core.model.SupportRequestDetailResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.SupportApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -374,5 +376,60 @@ class SupportRequestViewModelTest {
         advanceUntilIdle()
 
         assertEquals(reads, api.detailReads)
+    }
+
+    @Test
+    fun `a close during a send keeps the posted reply and stops both spinners`() = runTest {
+        // ⛔ CLOSE STAYS TAPPABLE WHILE A REPLY SENDS. Before the fix the close landed on its
+        // tap-time snapshot (taken with sending = true and without the reply), so the posted reply
+        // vanished and Send spun forever.
+        val api = api().apply {
+            replyResult = ApiResult.Success(
+                SupportReplyResponse(success = true, message = SupportMessage(id = "c2", body = "Thanks")),
+            )
+            closeResult = ApiResult.Success(SupportCloseResponse(success = true, statusName = "Done"))
+        }
+        val replyGate = CompletableDeferred<Unit>()
+        val closeGate = CompletableDeferred<Unit>()
+        val gated = object : SupportApi by api {
+            override suspend fun replyToSupportRequest(
+                workspaceId: String,
+                key: String,
+                body: String,
+            ): ApiResult<SupportReplyResponse> {
+                replyGate.await()
+                return api.replyToSupportRequest(workspaceId, key, body)
+            }
+
+            override suspend fun closeSupportRequest(
+                workspaceId: String,
+                key: String,
+            ): ApiResult<SupportCloseResponse> {
+                closeGate.await()
+                return api.closeSupportRequest(workspaceId, key)
+            }
+        }
+        val model = SupportRequestViewModel(
+            SupportRepository(gated),
+            workspaceId = "ws-1",
+            key = "DA-42",
+            role = WorkspaceRole.CLIENT,
+        )
+        advanceUntilIdle()
+
+        model.editDraft("Thanks")
+        model.send()
+        model.close()
+        advanceUntilIdle()
+        replyGate.complete(Unit)
+        advanceUntilIdle()
+        closeGate.complete(Unit)
+        advanceUntilIdle()
+
+        val state = content(model)
+        assertFalse(state.sending)
+        assertFalse(state.closing)
+        assertEquals(listOf("c1", "c2"), state.request.messages.map { it.id })
+        assertEquals("Done", state.request.statusName)
     }
 }

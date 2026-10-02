@@ -27,9 +27,19 @@ internal const val ROBOLECTRIC_SDK = 35
  * asserts they agree for every shape a [UiText] can take.
  *
  * ⚠️ Only for assertions about what the user reads. A test that just needs to know WHICH message
- * was chosen should use [UiText.resourceIdOrNull] / [UiText.literalOrNull] instead and stay off
+ * was chosen should use [resourceIdOrNull] / [UiText.literalOrNull] instead and stay off
  * Robolectric entirely.
  */
+/**
+ * The resource id, or null for literal text.
+ *
+ * ⚠️ TEST SOURCE ONLY. It lets a ViewModel test assert WHICH message was chosen without a
+ * `Context` to render it; the wording itself is asserted once, where the mapping lives. Production
+ * code never needed it (rendering goes through [resolve]), so it does not live on [UiText].
+ */
+internal val UiText.resourceIdOrNull: Int?
+    get() = (this as? UiText.Resource)?.id
+
 internal fun UiText.resolveInTest(
     context: Context = ApplicationProvider.getApplicationContext(),
 ): String = when (this) {

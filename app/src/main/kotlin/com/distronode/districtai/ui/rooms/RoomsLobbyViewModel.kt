@@ -7,6 +7,7 @@ import com.distronode.districtai.core.data.MeetingsRepository
 import com.distronode.districtai.core.model.MeetRoomName
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +31,15 @@ class RoomsLobbyViewModel(
 
     private val _state = MutableStateFlow(RoomsLobbyUiState())
     val state: StateFlow<RoomsLobbyUiState> = _state.asStateFlow()
+
+    /**
+     * The meeting-detail read in flight, if any.
+     *
+     * ⛔ CANCELLED BY [openMeeting] AND [closeMeeting]. Open A, close it, open B: if A's read is
+     * the slower one it would otherwise land in B's overlay, and the user would read one
+     * meeting's transcript and minutes under another meeting's row.
+     */
+    private var detailJob: Job? = null
 
     init {
         load()
@@ -90,21 +100,25 @@ class RoomsLobbyViewModel(
      * tap would issue a second read.
      */
     fun openMeeting(meetingId: String) {
+        detailJob?.cancel()
         _state.value = _state.value.copy(openMeeting = MeetingDetailState.Loading)
-        viewModelScope.launch {
+        detailJob = viewModelScope.launch {
             val next = when (val result = repository.meetingDetail(workspaceId, meetingId)) {
                 is ApiResult.Success -> MeetingDetailState.Ready(result.value)
                 is ApiResult.Failure -> MeetingDetailState.Failed(result.toFailureText())
             }
-            // ⚠️ DROPPED IF THE OVERLAY WAS CLOSED WHILE THE READ WAS IN FLIGHT. Writing it anyway
-            // would reopen a transcript the user had just dismissed.
-            if (_state.value.openMeeting != null) {
-                _state.value = _state.value.copy(openMeeting = next)
-            }
+            // No "is the overlay still open" check: closing cancels this read, so reaching here
+            // means the overlay is open and showing this meeting.
+            _state.value = _state.value.copy(openMeeting = next)
         }
     }
 
+    /**
+     * ⚠️ CANCELS THE READ as well as hiding the overlay. A detail landing after a close would
+     * otherwise reopen a transcript the user had just dismissed.
+     */
     fun closeMeeting() {
+        detailJob?.cancel()
         _state.value = _state.value.copy(openMeeting = null)
     }
 

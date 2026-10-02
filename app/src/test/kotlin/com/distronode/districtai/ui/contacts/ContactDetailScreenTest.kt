@@ -86,6 +86,7 @@ class ContactDetailScreenTest {
                     onDismissMutationFailure = {},
                     onEnrich = {},
                     onClearIntel = {},
+                    onCheckDossierAgain = {},
                 )
             }
         }
@@ -208,6 +209,7 @@ class ContactDetailScreenTest {
                     onDismissMutationFailure = {},
                     onEnrich = {},
                     onClearIntel = {},
+                    onCheckDossierAgain = {},
                 )
             }
         }
@@ -239,6 +241,7 @@ class ContactDetailScreenTest {
                     onDismissMutationFailure = {},
                     onEnrich = {},
                     onClearIntel = {},
+                    onCheckDossierAgain = {},
                 )
             }
         }

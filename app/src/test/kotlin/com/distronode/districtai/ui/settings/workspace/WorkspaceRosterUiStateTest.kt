@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.settings.workspace
 
-import com.distronode.districtai.core.model.ASSIGNABLE_MEMBER_ROLES
 import com.distronode.districtai.core.model.AiPersona
 import com.distronode.districtai.core.model.KB_MODE_INTERNAL
 import com.distronode.districtai.core.model.KB_MODE_LINKED
@@ -117,11 +116,6 @@ class WorkspaceRosterUiStateTest {
             assertFalse(busy.canAdd)
             assertFalse(busy.canRenameNow)
         }
-    }
-
-    @Test
-    fun `the role picker offers the server's roles in the server's order`() {
-        assertEquals(ASSIGNABLE_MEMBER_ROLES, MembersUiState().roleOptions)
     }
 
     // ── Capabilities: the enrichment switch ──────────────────────────────────

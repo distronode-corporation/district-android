@@ -157,8 +157,9 @@ private fun SettingsForm(
                         },
                     ),
                     onClick = onSave,
-                    // ⛔ A clean form cannot be saved: an empty patch is a 400.
-                    enabled = state.dirty && !state.saving,
+                    // ⛔ A clean form cannot be saved: an empty patch is a 400 (and so is an
+                    // over-long brand name). See DeskSettingsUiState.Content.canSave.
+                    enabled = state.canSave,
                     modifier = Modifier
                         .padding(top = DistrictTheme.spacing.tight)
                         .semantics { contentDescription = DESK_SETTINGS_SAVE_DESCRIPTION },

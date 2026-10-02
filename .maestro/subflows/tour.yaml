@@ -26,6 +26,14 @@ appId: com.distronode.districtai.debug
 - takeScreenshot: 04-console-home
 
 # ── Contacts ────────────────────────────────────────────────────────────────────
+# ⚠️ THE OVERVIEW'S BUTTONS ARE BELOW THE FOLD IN A LazyColumn, which composes nothing
+# off screen, so a bare `tapOn` finds no element. Scroll to each one first (this also
+# waits out the loading skeleton). Same for billing below.
+- scrollUntilVisible:
+    element:
+      text: "district-overview-open-contacts"
+    direction: DOWN
+    timeout: 30000
 - tapOn:
     text: "district-overview-open-contacts"
 - extendedWaitUntil:
@@ -58,6 +66,11 @@ appId: com.distronode.districtai.debug
     text: "district-overview-root"
 
 # ── Billing ─────────────────────────────────────────────────────────────────────
+- scrollUntilVisible:
+    element:
+      text: "district-overview-open-billing"
+    direction: DOWN
+    timeout: 30000
 - tapOn:
     text: "district-overview-open-billing"
 - extendedWaitUntil:

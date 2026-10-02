@@ -12,9 +12,10 @@
 #   --avd NAME   boot this AVD instead of $SMOKE_AVD / canary-pixel8
 #
 # Credentials come from the environment and are never written to disk:
-#   DISTRICT_SMOKE_EMAIL / DISTRICT_SMOKE_PASSWORD   the app-store demo account
-#   DISTRICT_SMOKE_CONTACT                           a seeded contact's display name
-#   DISTRICT_SMOKE_PLAN                              expected tier, default Studio
+#   DISTRICT_SMOKE_EMAIL / DISTRICT_SMOKE_PASSWORD   the seeded UI-test account
+#       (appreview@, workspace "District Review"), NOT the store review demo account
+#   DISTRICT_SMOKE_CONTACT   a seeded contact's display name, default Amara Osei
+#   DISTRICT_SMOKE_PLAN      the raw tier the billing card prints, default VoicePro
 # With the first two unset the flow runs its launch leg only and still produces a
 # screenshot; that is a deliberate mode, not a degraded one.
 #
@@ -252,8 +253,8 @@ set +e
   --flatten-debug-output \
   -e DISTRICT_SMOKE_EMAIL="${DISTRICT_SMOKE_EMAIL:-}" \
   -e DISTRICT_SMOKE_PASSWORD="${DISTRICT_SMOKE_PASSWORD:-}" \
-  -e DISTRICT_SMOKE_CONTACT="${DISTRICT_SMOKE_CONTACT:-}" \
-  -e DISTRICT_SMOKE_PLAN="${DISTRICT_SMOKE_PLAN:-Studio}" \
+  -e DISTRICT_SMOKE_CONTACT="${DISTRICT_SMOKE_CONTACT:-Amara Osei}" \
+  -e DISTRICT_SMOKE_PLAN="${DISTRICT_SMOKE_PLAN:-VoicePro}" \
   "$FLOW"
 STATUS=$?
 set -e

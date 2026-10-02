@@ -28,7 +28,7 @@ import org.robolectric.annotation.Config
  * rather than a `String` — the whole point of Fix 8, since a mapper has no `Context` and was
  * therefore holding untranslatable English — so proving "this message tells the user their account
  * has not changed" means resolving a resource, which needs one. Tests that only care WHICH message
- * was chosen assert on [UiText.resourceIdOrNull] and stay off Robolectric.
+ * was chosen assert on [resourceIdOrNull] and stay off Robolectric.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])

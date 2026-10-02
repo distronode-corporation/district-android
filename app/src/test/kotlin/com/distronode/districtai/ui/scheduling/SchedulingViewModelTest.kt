@@ -8,6 +8,7 @@ import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestDistrictApi
+import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

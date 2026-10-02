@@ -4,7 +4,6 @@ import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -198,29 +197,6 @@ class SchedulingPresentationTest {
         assertTrue(
             SchedulingPresentation.Provisioning(tenant("provisioning"))
                 .offersAnyAction(eligible = true, canManage = false),
-        )
-    }
-
-    @Test
-    fun `the tenancy row is recoverable from every presentation that has one`() {
-        assertNull(SchedulingPresentation.NotEligible.tenantOrNull)
-        assertNull(SchedulingPresentation.Legacy.tenantOrNull)
-        assertEquals(
-            tenant("provisioning"),
-            SchedulingPresentation.Provisioning(tenant("provisioning")).tenantOrNull,
-        )
-        assertEquals(tenant("ready"), SchedulingPresentation.Live(tenant("ready")).tenantOrNull)
-        assertEquals(
-            tenant("error"),
-            SchedulingPresentation.FailedProvision(tenant("error")).tenantOrNull,
-        )
-        assertEquals(
-            tenant("disabled"),
-            SchedulingPresentation.SwitchedOff(tenant("disabled")).tenantOrNull,
-        )
-        assertEquals(
-            tenant("retiring"),
-            SchedulingPresentation.Unrecognised(tenant("retiring")).tenantOrNull,
         )
     }
 }

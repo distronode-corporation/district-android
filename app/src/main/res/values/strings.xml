@@ -431,6 +431,8 @@
         dossier? The contact, its phone number, email and timeline are kept. Getting the dossier
         back means running enrichment again.</string>
     <string name="contact_detail_clear_intel_confirmed">Clear dossier</string>
+    <!-- The dossier poll stopped on a failed read; %1$s is the failure sentence. -->
+    <string name="contact_detail_dossier_poll_failed">Could not check on the dossier. %1$s</string>
 
     <!-- ══ Phone-number marketplace (read-only) ════════════════════════════ -->
     <string name="marketplace_title">Phone numbers</string>

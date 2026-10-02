@@ -83,7 +83,6 @@ data class WorkspaceBilling(
 const val SUBSCRIPTION_STATUS_ACTIVE: String = "active"
 const val SUBSCRIPTION_STATUS_PAST_DUE: String = "past_due"
 const val SUBSCRIPTION_STATUS_CANCELED: String = "canceled"
-const val SUBSCRIPTION_STATUS_NONE: String = "none"
 
 /** ⛔ See [WorkspaceBilling]: with an exceeded cap, this one BLOCKS CALLS and the other bills. */
 const val OVERAGE_POLICY_HARD_CAP: String = "hard_cap"

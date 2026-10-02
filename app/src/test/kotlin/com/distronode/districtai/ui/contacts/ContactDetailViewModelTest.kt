@@ -7,6 +7,7 @@ import com.distronode.districtai.core.model.ContactDetailResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestDistrictApi
+import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -164,6 +165,24 @@ class ContactDetailViewModelTest {
 
         assertEquals(listOf("update:c1"), api.mutations)
         assertEquals("two reads: the initial load and the re-read", 2, api.contactRequestCount)
+    }
+
+    @Test
+    fun `a rename whose re-read fails keeps the contact on screen and says so`() = runTest(dispatcher) {
+        // ⚠️ THE RENAME LANDED. Before the fix the re-read went through load(), so a transient read
+        // failure replaced the contact with the full-screen failure state.
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        vm.rename("Ada Lovelace")
+        advanceUntilIdle()
+
+        val state = vm.state.value as ContactDetailUiState.Content
+        assertEquals(listOf("update:c1"), api.mutations)
+        assertTrue(state.mutationFailure != null)
+        assertFalse(state.saving)
     }
 
     @Test

@@ -10,9 +10,12 @@ import com.distronode.districtai.core.model.OverviewResponse
 import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceListResponse
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.ui.SignedOutCause
 import com.distronode.districtai.ui.TestDistrictApi
+import com.distronode.districtai.ui.resourceIdOrNull
 import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -458,5 +461,46 @@ class OverviewViewModelTest {
 
         assertEquals(OverviewUiState.Loading, vm.state.value)
         advanceUntilIdle()
+    }
+
+    @Test
+    fun `a slower load for the previous workspace cannot overwrite the one switched to`() = runTest(dispatcher) {
+        // ⛔ LAST TO ARRIVE IS NOT LAST ASKED. The cold-start read for A is parked on its overview
+        // while the user switches to B; B answers first, then A lands. Before the fix A's figures
+        // were painted over B's while the stored selection said B.
+        val api = TestDistrictApi().apply {
+            workspaceListResult = ApiResult.Success(
+                WorkspaceListResponse(
+                    success = true,
+                    workspaces = listOf(entry("ws-a", "Alpha"), entry("ws-b", "Bravo")),
+                ),
+            )
+        }
+        val gates = mapOf(
+            "ws-a" to CompletableDeferred<Unit>(),
+            "ws-b" to CompletableDeferred<Unit>(),
+        )
+        val gated = object : DistrictApi by api {
+            override suspend fun overview(workspaceId: String?): ApiResult<OverviewResponse> {
+                gates.getValue(workspaceId!!).await()
+                return ApiResult.Success(
+                    OverviewResponse(success = true, workspaceId = workspaceId, role = "client"),
+                )
+            }
+        }
+        val store = FakeStore()
+        val vm = OverviewViewModel(WorkspaceRepository(gated, store), OverviewRepository(gated))
+        advanceUntilIdle()
+
+        vm.selectWorkspace("ws-b")
+        advanceUntilIdle()
+        gates.getValue("ws-b").complete(Unit)
+        advanceUntilIdle()
+        gates.getValue("ws-a").complete(Unit)
+        advanceUntilIdle()
+
+        val state = vm.state.value as OverviewUiState.Content
+        assertEquals("ws-b", state.active.id)
+        assertEquals("ws-b", state.overview.workspaceId)
     }
 }

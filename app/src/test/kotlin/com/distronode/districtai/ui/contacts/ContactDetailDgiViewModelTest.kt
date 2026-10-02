@@ -353,7 +353,10 @@ class ContactDetailDgiViewModelTest {
     }
 
     @Test
-    fun `an enrich that landed but whose re-read failed keeps the contact and says so`() = runTest {
+    fun `an enrich that landed but whose re-read failed shows it queued and cannot be bought twice`() = runTest {
+        // ⛔ THE WRITE IS CONFIRMED, SO "PENDING" IS NOT A GUESS. Before the fix a failed re-read
+        // was reported as an enrich failure on the pre-enrich contact, whose null status re-armed
+        // the button: one more tap was a second paid crawl and LLM run.
         val api = api()
         val vm = viewModel(api)
         runCurrent()
@@ -364,8 +367,35 @@ class ContactDetailDgiViewModelTest {
 
         assertEquals(1, api.enrichRequests.size)
         assertEquals("Ada", content(vm).contact.name)
-        assertTrue(content(vm).mutationFailure != null)
+        assertTrue(content(vm).contact.dgiInProgress)
+        assertTrue(!content(vm).contact.dgiOfferable)
+        assertNull(content(vm).mutationFailure)
         assertTrue(!content(vm).saving)
+
+        vm.enrich()
+        runCurrent()
+        assertEquals("a queued crawl cannot be bought again", 1, api.enrichRequests.size)
+
+        // The stamp started the poll, which is what reads the real status from here on.
+        settle(api)
+        assertEquals("complete", content(vm).contact.dgiStatus)
+    }
+
+    @Test
+    fun `an enrich whose re-read fails after a reload began leaves the reload's answer alone`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+        runCurrent()
+
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        vm.enrich()
+        vm.load()
+        runCurrent()
+
+        assertTrue(vm.state.value is ContactDetailUiState.Failed)
+        val reads = api.contactRequestCount
+        tick()
+        assertEquals("no poll was started for a screen that is not showing", reads, api.contactRequestCount)
     }
 
     @Test
@@ -434,7 +464,9 @@ class ContactDetailDgiViewModelTest {
     }
 
     @Test
-    fun `a poll read that fails leaves the contact as it was and stops watching`() = runTest {
+    fun `a poll read that fails leaves the contact as it was, stops watching, and says so`() = runTest {
+        // ⛔ BEFORE THE FIX THE FAILURE WAS DROPPED: the badge said "building" for good and nothing
+        // on screen could restart the watch.
         val api = api(dgiStatus = "pending")
         val vm = viewModel(api)
         runCurrent()
@@ -445,8 +477,88 @@ class ContactDetailDgiViewModelTest {
 
         assertEquals("pending", content(vm).contact.dgiStatus)
         assertNull(content(vm).mutationFailure)
+        assertTrue(content(vm).pollFailure?.retryable == true)
         tick()
         assertEquals(afterFailure, api.contactRequestCount)
+    }
+
+    @Test
+    fun `checking again after a failed poll re-reads once and resumes watching`() = runTest {
+        val api = api(dgiStatus = "pending")
+        val vm = viewModel(api)
+        runCurrent()
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        tick()
+        val afterFailure = api.contactRequestCount
+
+        api.answerWith("crawling")
+        vm.checkDossierAgain()
+        vm.checkDossierAgain()
+        runCurrent()
+
+        assertEquals("one read for a double tap", afterFailure + 1, api.contactRequestCount)
+        assertNull(content(vm).pollFailure)
+        assertEquals("crawling", content(vm).contact.dgiStatus)
+        assertEquals("a read, never the billable write", 0, api.enrichRequests.size)
+
+        settle(api)
+        assertEquals("the poll is watching again", afterFailure + 2, api.contactRequestCount)
+        assertEquals("complete", content(vm).contact.dgiStatus)
+    }
+
+    @Test
+    fun `checking again leaves a mutation failure alone and reports a second poll failure`() = runTest {
+        val api = api(dgiStatus = "pending").apply {
+            mutationResult = ApiResult.RateLimited("Slow down.")
+        }
+        val vm = viewModel(api)
+        runCurrent()
+        vm.rename("Grace")
+        runCurrent()
+        val renameFailure = content(vm).mutationFailure
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        tick()
+
+        vm.checkDossierAgain()
+        runCurrent()
+
+        assertTrue(content(vm).pollFailure != null)
+        assertEquals(renameFailure, content(vm).mutationFailure)
+    }
+
+    @Test
+    fun `checking again does nothing without a poll failure, or before the contact has loaded`() = runTest {
+        val api = api(dgiStatus = "complete")
+        val vm = viewModel(api)
+        runCurrent()
+        val reads = api.contactRequestCount
+
+        vm.checkDossierAgain()
+        runCurrent()
+        assertEquals(reads, api.contactRequestCount)
+
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        vm.load()
+        runCurrent()
+        vm.checkDossierAgain()
+        runCurrent()
+        assertEquals(reads + 1, api.contactRequestCount)
+        assertTrue(vm.state.value is ContactDetailUiState.Failed)
+    }
+
+    @Test
+    fun `a re-check that lands after a reload began is dropped`() = runTest {
+        val api = api(dgiStatus = "pending")
+        val vm = viewModel(api)
+        runCurrent()
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        tick()
+
+        vm.checkDossierAgain()
+        vm.load()
+        runCurrent()
+
+        assertTrue(vm.state.value is ContactDetailUiState.Failed)
     }
 
     @Test

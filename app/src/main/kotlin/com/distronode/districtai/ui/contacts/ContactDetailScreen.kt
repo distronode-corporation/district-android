@@ -62,6 +62,8 @@ fun ContactDetailScreen(
     onEnrich: () -> Unit,
     /** ⛔ Destroys the dossier (not the contact) and is not recoverable. Confirmed in-screen. */
     onClearIntel: () -> Unit,
+    /** A READ: re-check a dossier whose poll stopped on a failure. Never re-sends the enrich. */
+    onCheckDossierAgain: () -> Unit,
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
@@ -110,6 +112,7 @@ fun ContactDetailScreen(
                     onDismissMutationFailure = onDismissMutationFailure,
                     onEnrich = onEnrich,
                     onClearIntel = onClearIntel,
+                    onCheckDossierAgain = onCheckDossierAgain,
                 )
             }
         }
@@ -125,6 +128,7 @@ private fun Content(
     onDismissMutationFailure: () -> Unit,
     onEnrich: () -> Unit,
     onClearIntel: () -> Unit,
+    onCheckDossierAgain: () -> Unit,
 ) {
     val contact = state.contact
     var renaming by remember(contact.id) { mutableStateOf(false) }
@@ -148,6 +152,8 @@ private fun Content(
             onEnrich = onEnrich,
             onClearIntel = { confirmingClear = true },
         )
+
+        state.pollFailure?.let { PollFailure(it, onCheckDossierAgain) }
 
         state.mutationFailure?.let { MutationFailure(it, onDismissMutationFailure) }
 
@@ -268,6 +274,32 @@ private fun MutationFailure(failure: FailureText, onDismiss: () -> Unit) {
     }
 }
 
+/**
+ * ⚠️ THE DOSSIER POLL STOPPED ON A FAILED READ. Without this the badge would say "building" for
+ * good, because the poll does not restart on its own (a dead session must not be hammered). The
+ * retry is offered only when retrying could work, the same rule as the full-screen failure.
+ */
+@Composable
+private fun PollFailure(failure: FailureText, onCheckAgain: () -> Unit) {
+    DistrictCard {
+        Column(modifier = Modifier.padding(DistrictTheme.spacing.gutter)) {
+            Text(
+                text = stringResource(R.string.contact_detail_dossier_poll_failed, failure.message.resolve()),
+                style = MaterialTheme.typography.bodySmall,
+                color = DistrictTheme.colors.destructive,
+                modifier = Modifier.semantics {
+                    contentDescription = CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION
+                },
+            )
+            if (failure.retryable) {
+                TextButton(onClick = onCheckAgain) {
+                    Text(stringResource(R.string.overview_retry))
+                }
+            }
+        }
+    }
+}
+
 /** Only ever composed for a role the server would admit — see the note on [ContactDetailScreen]. */
 @Composable
 private fun MutationControls(
@@ -370,3 +402,4 @@ const val CONTACT_DETAIL_DELETE_DESCRIPTION: String = "district-contact-detail-d
 const val CONTACT_DETAIL_DELETE_CONFIRM_DESCRIPTION: String = "district-contact-detail-delete-confirm"
 const val CONTACT_DETAIL_READ_ONLY_DESCRIPTION: String = "district-contact-detail-read-only"
 const val CONTACT_DETAIL_MUTATION_FAILURE_DESCRIPTION: String = "district-contact-detail-mutation-failure"
+const val CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION: String = "district-contact-detail-poll-failure"

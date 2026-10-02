@@ -10,6 +10,7 @@ import com.distronode.districtai.core.model.PersonaVoiceGroup
 import com.distronode.districtai.core.model.defaultVoice
 import com.distronode.districtai.core.model.languagesForEngine
 import com.distronode.districtai.core.model.responseLengthsForEngine
+import com.distronode.districtai.core.model.selectableEngines
 import com.distronode.districtai.core.model.voiceExists
 import com.distronode.districtai.core.model.voiceGroups
 
@@ -121,6 +122,20 @@ data class PersonaEngineDraft(
         val voice = options.defaultVoice(values.modelId.wire(), language.wire()) ?: values.voice
         return next.copy(values = next.values.copy(voice = voice))
     }
+
+    /**
+     * Whether the engine on the form may be saved.
+     *
+     * ⛔ A CHANGED ENGINE MUST BE ONE OF [selectableEngines]: in region, and in the catalogue. The
+     * picker already disables the rest, so this is the belt behind those braces; the route itself
+     * would coerce an unknown id to `deepgram-pipeline` and store an out-of-region one, both with a
+     * 200, which is a residency decision nobody made.
+     *
+     * ⚠️ AN UNCHANGED ENGINE IS NEVER REFUSED. A stored engine that has since left the region is
+     * still what the workspace runs on today, and refusing it would block saving a greeting.
+     */
+    val engineSelectable: Boolean
+        get() = !changes.modelId || options.selectableEngines.any { it.id == values.modelId }
 
     /** Which of the seven differ from the baseline. */
     val changes: PersonaEngineChanges

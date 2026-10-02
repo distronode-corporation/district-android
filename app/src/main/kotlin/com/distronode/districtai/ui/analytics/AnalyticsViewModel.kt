@@ -9,6 +9,7 @@ import com.distronode.districtai.core.model.AnalyticsResponse
 import com.distronode.districtai.core.model.UsageData
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,32 +53,44 @@ class AnalyticsViewModel(
      */
     private var range: AnalyticsRange = AnalyticsRange.SEVEN_DAYS
 
+    /**
+     * The read in flight, if any.
+     *
+     * ⛔ CANCELLED BY EVERY NEW [load]. A range switch while the previous window's aggregate is
+     * still running would otherwise let that slower read land LAST, and it would be published
+     * under the chip the operator has since selected: thirty days of call counts labelled 7d,
+     * with nothing on screen to say so.
+     */
+    private var loadJob: Job? = null
+
     init {
         load()
     }
 
     /**
-     * Read both halves.
+     * Read all three.
      *
-     * ⚠️ NOT GUARDED AGAINST A CONCURRENT CALL, unlike the HQ console's prompt turn. Both requests
-     * are idempotent GETs that spend nothing, and the guard there exists because a second prompt
-     * is a second billable model run against customer data. The realistic double-trigger here is a
-     * session change landing on top of a manual retry, and the cost of that is one wasted read
-     * against one duplicated state write of the same value.
+     * ⚠️ A NEW CALL SUPERSEDES THE ONE IN FLIGHT rather than being refused, unlike the HQ
+     * console's prompt turn. All three requests are idempotent GETs that spend nothing, and the
+     * guard there exists because a second prompt is a second billable model run against customer
+     * data. What a concurrent call must NOT do is let the older answer win; see [loadJob].
      */
     fun load() {
         beginLoad()
-        viewModelScope.launch {
+        loadJob?.cancel()
+        // The window this read asks for, so the published chip is the one the figures came from.
+        val asked = range
+        loadJob = viewModelScope.launch {
             // ⛔ `async` BEFORE ANY `await`. Awaiting the first Deferred before creating the second
             // is the shape that looks parallel and is not — it is the single most common way this
             // gets written back into a sequence.
-            val analyticsRead = async { repository.analytics(workspaceId, range) }
+            val analyticsRead = async { repository.analytics(workspaceId, asked) }
             val usageRead = async { repository.usage(workspaceId) }
             // ⚠️ NO EXPLICIT `months`. The repository's default is the span the web console asks
             // for, and naming a number here would be a second copy of that decision — the kind
             // that drifts and makes the two surfaces show different spans under one heading.
             val historyRead = async { repository.usageHistory(workspaceId) }
-            publish(analyticsRead.await(), usageRead.await(), historyRead.await())
+            publish(asked, analyticsRead.await(), usageRead.await(), historyRead.await())
         }
     }
 
@@ -120,6 +133,7 @@ class AnalyticsViewModel(
      * subject of the screen.
      */
     private fun publish(
+        asked: AnalyticsRange,
         analytics: ApiResult<AnalyticsResponse>,
         usage: ApiResult<UsageData?>,
         history: ApiResult<List<UsageData>>,
@@ -145,7 +159,7 @@ class AnalyticsViewModel(
             AnalyticsUiState.Failed(analyticsCard.failure)
         } else {
             AnalyticsUiState.Content(
-                range = range,
+                range = asked,
                 analytics = analyticsCard,
                 usage = usageCard,
                 history = historyCard,

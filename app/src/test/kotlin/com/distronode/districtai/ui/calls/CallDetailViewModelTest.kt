@@ -7,6 +7,7 @@ import com.distronode.districtai.core.model.CallTranscriptResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.testCall
+import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

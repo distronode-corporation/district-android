@@ -152,15 +152,25 @@ class HqViewModel(
      *
      * ⛔ AND IS GUARDED AGAINST A SECOND TAP. This is the tap that spends money, deletes a contact
      * or replaces the routing rules; the server offers no idempotency key, so this guard is the only
-     * thing standing between a double tap and a repeated write.
+     * thing standing between a double tap and a repeated write. [HqUiState.Applying] is refused, so
+     * the guard holds for a retry as well.
+     *
+     * ⚠️ ACCEPTED FROM [HqUiState.ConfirmFailed] TOO: THAT IS THE OPERATOR'S MANUAL RETRY. The card
+     * keeps an enabled Confirm button after a failure, and the decision to try again is theirs
+     * (see the failure arm below); refusing here made that button a silent no-op. Only an event the
+     * operator did not connect to the write (a session change) is barred from replaying it.
      */
     fun confirmPending() {
-        val current = _state.value as? HqUiState.Confirming ?: return
+        val pending = when (val current = _state.value) {
+            is HqUiState.Confirming -> current.pending
+            is HqUiState.ConfirmFailed -> current.pending
+            else -> return
+        }
         if (!canConfirm) return
 
-        _state.value = HqUiState.Applying(current.pending)
+        _state.value = HqUiState.Applying(pending)
         viewModelScope.launch {
-            when (val result = repository.confirm(workspaceId, current.pending)) {
+            when (val result = repository.confirm(workspaceId, pending)) {
                 is ApiResult.Success -> {
                     // ⚠️ `executed` decides the wording, not `success`. A handled request that
                     // declined the write must not read as applied.
@@ -176,7 +186,7 @@ class HqViewModel(
                 // what was attempted; and because a failed confirm may have executed, the decision
                 // to try again is theirs. Nothing here retries it.
                 is ApiResult.Failure -> {
-                    _state.value = HqUiState.ConfirmFailed(current.pending, result.toFailureText())
+                    _state.value = HqUiState.ConfirmFailed(pending, result.toFailureText())
                 }
             }
         }

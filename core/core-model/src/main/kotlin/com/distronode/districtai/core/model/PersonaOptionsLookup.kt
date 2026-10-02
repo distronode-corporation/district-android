@@ -28,7 +28,8 @@ const val PERSONA_GEMINI_LIVE_ENGINE: String = "gemini-live-2.5-flash-native-aud
  * The engines an operator may actually choose.
  *
  * ⚠️ NOT WHAT THE PICKER SHOWS. The picker shows every engine and DISABLES the rest, so the label
- * can say why; this is what a selection is validated against.
+ * can say why; this is what a changed engine is validated against before a save (the persona
+ * draft's `engineSelectable`).
  */
 val PersonaOptionsResponse.selectableEngines: List<PersonaEngineOption>
     get() = engines.filter { it.inRegion }

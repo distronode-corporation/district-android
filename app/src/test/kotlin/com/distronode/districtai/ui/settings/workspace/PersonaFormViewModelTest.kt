@@ -3,6 +3,7 @@ package com.distronode.districtai.ui.settings.workspace
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.AiPersona
+import com.distronode.districtai.core.model.PersonaEngineOption
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
@@ -351,6 +352,58 @@ class PersonaFormViewModelTest {
         assertTrue(vm.state.value.options is PersonaOptionsState.LoadFailed)
         assertNull(vm.state.value.draft)
         assertFalse(vm.state.value.canPreview)
+    }
+
+    @Test
+    fun `a changed engine that is not selectable cannot be saved`() = runTest {
+        // ⛔ THE PICKER DISABLES AN OUT-OF-REGION ROW, AND THE SAVE NOW AGREES. Before the fix a
+        // programmatic selection of one went out with a 200 and was stored, which is a residency
+        // decision nobody made on a settings screen.
+        val api = api()
+        val personaApi = TestPersonaApi().apply {
+            optionsResult = ApiResult.Success(
+                TEST_PERSONA_OPTIONS.copy(
+                    engines = TEST_PERSONA_OPTIONS.engines +
+                        PersonaEngineOption(id = "eu-only-engine", label = "EU only", inRegion = false),
+                ),
+            )
+        }
+        val vm = viewModel(api, personaApi)
+        advanceUntilIdle()
+
+        vm.selectEngine("eu-only-engine")
+        assertTrue(vm.state.value.hasUnsavedChanges)
+        assertFalse(vm.state.value.canSave)
+        vm.save()
+        advanceUntilIdle()
+        assertTrue(api.personaPatches.isEmpty())
+
+        vm.selectEngine("gemini-live-2.5-flash-native-audio")
+        assertTrue(vm.state.value.canSave)
+    }
+
+    @Test
+    fun `a stored engine that has left the region does not block saving anything else`() = runTest {
+        // ⚠️ ONLY A CHANGED ENGINE IS VALIDATED. The stored one is what the workspace runs on today.
+        val api = api()
+        val personaApi = TestPersonaApi().apply {
+            optionsResult = ApiResult.Success(
+                TEST_PERSONA_OPTIONS.copy(
+                    engines = TEST_PERSONA_OPTIONS.engines.map {
+                        if (it.id == "deepgram-pipeline") it.copy(inRegion = false) else it
+                    },
+                ),
+            )
+        }
+        val vm = viewModel(api, personaApi)
+        advanceUntilIdle()
+
+        vm.edit(PersonaField.GREETING, "Hello there.")
+        assertTrue(vm.state.value.canSave)
+        vm.save()
+        advanceUntilIdle()
+
+        assertEquals("Hello there.", api.personaPatches.single().greeting)
     }
 
     @Test

@@ -14,7 +14,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactCompany
+import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.UiText
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -71,11 +73,13 @@ class ContactDossierScreenTest {
         canMutate: Boolean = true,
         onEnrich: () -> Unit = {},
         onClearIntel: () -> Unit = {},
+        pollFailure: FailureText? = null,
+        onCheckDossierAgain: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
                 ContactDetailScreen(
-                    state = ContactDetailUiState.Content(contact),
+                    state = ContactDetailUiState.Content(contact, pollFailure = pollFailure),
                     canMutate = canMutate,
                     onBack = {},
                     onRetry = {},
@@ -84,6 +88,7 @@ class ContactDossierScreenTest {
                     onDismissMutationFailure = {},
                     onEnrich = onEnrich,
                     onClearIntel = onClearIntel,
+                    onCheckDossierAgain = onCheckDossierAgain,
                 )
             }
         }
@@ -355,6 +360,7 @@ class ContactDossierScreenTest {
                     onDismissMutationFailure = {},
                     onEnrich = {},
                     onClearIntel = {},
+                    onCheckDossierAgain = {},
                 )
             }
         }
@@ -383,6 +389,7 @@ class ContactDossierScreenTest {
                     onDismissMutationFailure = {},
                     onEnrich = {},
                     onClearIntel = { clears += 1 },
+                    onCheckDossierAgain = {},
                 )
             }
         }
@@ -408,5 +415,36 @@ class ContactDossierScreenTest {
         scrollTo(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Analytical Engines").assertIsDisplayed()
         composeRule.onNodeWithText("Domain").assertDoesNotExist()
+    }
+
+    // ── A poll that stopped on a failure ─────────────────────────────────────
+
+    @Test
+    fun `a failed poll says so beside the badge and offers a re-check`() {
+        // ⛔ BEFORE THIS CARD, A FAILED POLL WAS SILENT: the badge said "building" for good and
+        // nothing on screen could restart the watch.
+        var checks = 0
+        render(
+            contact(dgiStatus = "pending"),
+            pollFailure = FailureText(message = UiText.Literal("You are offline."), retryable = true),
+            onCheckDossierAgain = { checks += 1 },
+        )
+
+        scrollTo(CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("Could not check on the dossier. You are offline.").assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").performScrollTo().performClick()
+
+        assertEquals(1, checks)
+    }
+
+    @Test
+    fun `a failed poll that retrying cannot fix offers no re-check`() {
+        render(
+            contact(dgiStatus = "pending"),
+            pollFailure = FailureText(message = UiText.Literal("Signed out."), retryable = false),
+        )
+
+        scrollTo(CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("Try again").assertDoesNotExist()
     }
 }

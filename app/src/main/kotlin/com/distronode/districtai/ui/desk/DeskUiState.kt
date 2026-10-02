@@ -127,6 +127,17 @@ sealed interface DeskSettingsUiState {
             get() = brandNameEdited && brandName.trim() != stored.publicBrandName.orEmpty()
 
         val dirty: Boolean get() = enabledChanged || notifyChanged || brandNameChanged
+
+        /**
+         * Whether Save may be offered.
+         *
+         * ⚠️ THE BRAND NAME BOUND IS THE ROUTE'S OWN ([DeskSettings.BRAND_NAME_MAX_LENGTH], measured
+         * after the same trim), and over-length is a 400 rather than a truncation. Checked here only
+         * so the button is disabled instead of spending a request to be refused; the server
+         * re-checks.
+         */
+        val canSave: Boolean
+            get() = dirty && !saving && brandName.trim().length <= DeskSettings.BRAND_NAME_MAX_LENGTH
     }
 
     data class Failed(val failure: FailureText) : DeskSettingsUiState
@@ -151,12 +162,16 @@ data class DeskComposeState(
     /**
      * ⚠️ THE SAME BOUNDS THE ROUTE ENFORCES, checked here only so the button can be disabled rather
      * than spending a request to be refused. The server re-checks; this is a shortcut, never the
-     * boundary.
+     * boundary. The requester boxes are measured trimmed because that is what `DeskRepository`
+     * sends; a blank one is absent on the wire and always within bounds.
      */
     val submittable: Boolean
         get() = !submitting &&
             subject.trim().length >= DeskBounds.SUBJECT_MIN &&
             subject.trim().length <= DeskBounds.SUBJECT_MAX &&
             message.trim().isNotEmpty() &&
-            message.trim().length <= DeskBounds.MESSAGE_MAX
+            message.trim().length <= DeskBounds.MESSAGE_MAX &&
+            requesterName.trim().length <= DeskBounds.REQUESTER_NAME_MAX &&
+            requesterEmail.trim().length <= DeskBounds.REQUESTER_EMAIL_MAX &&
+            requesterPhone.trim().length <= DeskBounds.REQUESTER_PHONE_MAX
 }

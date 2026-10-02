@@ -4,7 +4,9 @@ import com.distronode.districtai.core.data.MeetingsRepository
 import com.distronode.districtai.core.model.MeetingDetail
 import com.distronode.districtai.core.model.MeetingSummary
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.MeetingsApi
 import com.distronode.districtai.ui.TestDistrictApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -228,6 +230,20 @@ class RoomsLobbyViewModelTest {
     }
 
     @Test
+    fun `closing when no meeting was ever opened changes nothing and reads nothing`() = runTest {
+        val api = api()
+        val vm = viewModel(api)
+        advanceUntilIdle()
+        val before = vm.state.value
+
+        vm.closeMeeting()
+        advanceUntilIdle()
+
+        assertEquals(before, vm.state.value)
+        assertTrue(api.meetingDetailRequests.isEmpty())
+    }
+
+    @Test
     fun `a failed detail read is reported inside the overlay, not as a list failure`() = runTest {
         // ⚠️ The list they can see is a correct answer already in hand; replacing it with an error
         // would lose the rows they were about to act on.
@@ -240,5 +256,62 @@ class RoomsLobbyViewModelTest {
 
         assertTrue(vm.state.value.openMeeting is MeetingDetailState.Failed)
         assertTrue("the list must be untouched", vm.state.value.meetings is MeetingsListState.Ready)
+    }
+
+    @Test
+    fun `a slower read for a closed meeting cannot fill the next meeting's overlay`() = runTest {
+        // ⛔ OPEN A, CLOSE, OPEN B, AND A'S READ IS THE SLOWER ONE. Before the fix the overlay was
+        // non-null when A landed, so A's transcript and minutes replaced B's under B's row.
+        val api = api()
+        val gates = mapOf(
+            "m-a" to CompletableDeferred<Unit>(),
+            "m-b" to CompletableDeferred<Unit>(),
+        )
+        val gated = object : MeetingsApi by api {
+            override suspend fun meetingDetail(workspaceId: String, meetingId: String): ApiResult<MeetingDetail> {
+                gates.getValue(meetingId).await()
+                return ApiResult.Success(MeetingDetail(id = meetingId, summary = "minutes of $meetingId"))
+            }
+        }
+        val vm = RoomsLobbyViewModel(MeetingsRepository(gated), workspaceId = "ws-abc")
+        advanceUntilIdle()
+
+        vm.openMeeting("m-a")
+        advanceUntilIdle()
+        vm.closeMeeting()
+        vm.openMeeting("m-b")
+        advanceUntilIdle()
+        gates.getValue("m-b").complete(Unit)
+        advanceUntilIdle()
+        gates.getValue("m-a").complete(Unit)
+        advanceUntilIdle()
+
+        val open = vm.state.value.openMeeting as MeetingDetailState.Ready
+        assertEquals("m-b", open.meeting.id)
+        assertEquals("minutes of m-b", open.meeting.summary)
+    }
+
+    @Test
+    fun `opening a second meeting over a pending first one shows only the second`() = runTest {
+        // The same race without a close in between: a re-tap on another row while A is loading.
+        val api = api()
+        val gateA = CompletableDeferred<Unit>()
+        val gated = object : MeetingsApi by api {
+            override suspend fun meetingDetail(workspaceId: String, meetingId: String): ApiResult<MeetingDetail> {
+                if (meetingId == "m-a") gateA.await()
+                return ApiResult.Success(MeetingDetail(id = meetingId))
+            }
+        }
+        val vm = RoomsLobbyViewModel(MeetingsRepository(gated), workspaceId = "ws-abc")
+        advanceUntilIdle()
+
+        vm.openMeeting("m-a")
+        advanceUntilIdle()
+        vm.openMeeting("m-b")
+        advanceUntilIdle()
+        gateA.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals("m-b", (vm.state.value.openMeeting as MeetingDetailState.Ready).meeting.id)
     }
 }

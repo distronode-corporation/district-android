@@ -9,6 +9,7 @@ import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.toFailureText
+import com.distronode.districtai.ui.updateLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,11 @@ import kotlinx.coroutines.launch
  * - Resolving stamps `resolvedAt` and any other status CLEARS it. A screen holding its own copy
  *   would show a resolution time for a ticket that has since been reopened, and every figure
  *   computed from it is wrong in a way that looks plausible.
+ *
+ * ⛔ EACH COMPLETION LANDS ON THE LATEST STATE, NOT THE ONE CAPTURED AT THE TAP. A status chip
+ * stays tappable while a reply is sending, so the two writes overlap; restoring a tap-time snapshot
+ * would leave the reply's spinner running forever and drop a reply that was delivered. See
+ * [updateLatest].
  *
  * ⛔ A FAILED WRITE NEVER DESTROYS THE THREAD. Both failures land in a field on `Content` rather
  * than replacing the state, because the correspondence already on screen is still true and is the
@@ -92,15 +98,17 @@ class DeskTicketViewModel(
                         // to avoid.
                         load()
                     } else {
-                        _state.value = current.copy(
-                            ticket = current.ticket.adopting(echoed, appending = reply.message),
-                            sending = false,
-                            lastNotified = reply.notified,
-                        )
+                        updateContent { latest ->
+                            latest.copy(
+                                ticket = latest.ticket.adopting(echoed, appending = reply.message),
+                                sending = false,
+                                lastNotified = reply.notified,
+                            )
+                        }
                     }
                 }
                 is ApiResult.Failure ->
-                    _state.value = current.copy(sending = false, sendFailure = result.toFailureText())
+                    updateContent { it.copy(sending = false, sendFailure = result.toFailureText()) }
             }
         }
     }
@@ -119,17 +127,16 @@ class DeskTicketViewModel(
         _state.value = current.copy(statusChanging = true, statusFailure = null)
         viewModelScope.launch {
             when (val result = repository.setStatus(workspaceId, ticketId, status)) {
-                is ApiResult.Success ->
-                    _state.value = current.copy(
+                is ApiResult.Success -> updateContent { latest ->
+                    latest.copy(
                         // ⛔ The echo, never `status`. See the ⛔ on this class.
-                        ticket = current.ticket.adopting(result.value),
+                        ticket = latest.ticket.adopting(result.value),
                         statusChanging = false,
                     )
-                is ApiResult.Failure ->
-                    _state.value = current.copy(
-                        statusChanging = false,
-                        statusFailure = result.toFailureText(),
-                    )
+                }
+                is ApiResult.Failure -> updateContent {
+                    it.copy(statusChanging = false, statusFailure = result.toFailureText())
+                }
             }
         }
     }
@@ -141,6 +148,9 @@ class DeskTicketViewModel(
     fun retryOrNoop() {
         if (_state.value is DeskTicketUiState.Failed) load()
     }
+
+    private fun updateContent(block: (DeskTicketUiState.Content) -> DeskTicketUiState) =
+        _state.updateLatest(DeskTicketUiState.Content::class.java, block)
 
     companion object {
         fun factory(

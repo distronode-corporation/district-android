@@ -149,17 +149,6 @@ sealed interface SchedulingPresentation {
     }
 }
 
-/** The tenancy row behind this presentation, or null for the two that have none. */
-val SchedulingPresentation.tenantOrNull: SchedulingTenant?
-    get() = when (this) {
-        SchedulingPresentation.NotEligible, SchedulingPresentation.Legacy -> null
-        is SchedulingPresentation.Provisioning -> tenant
-        is SchedulingPresentation.Live -> tenant
-        is SchedulingPresentation.FailedProvision -> tenant
-        is SchedulingPresentation.SwitchedOff -> tenant
-        is SchedulingPresentation.Unrecognised -> tenant
-    }
-
 /**
  * Whether to draw the Enable button.
  *

@@ -152,7 +152,10 @@ class WorkspaceRepositoryTest {
     fun `an empty account is reported as having no workspaces`() = runTest {
         val result = state(WorkspaceListResponse(success = true))
 
-        assertTrue(result.hasNoWorkspaces)
+        // Nothing listed, nothing unpaid, nothing unanswered: the shape the overview reports as
+        // "no workspaces" once neither check below claims it.
+        assertNull(result.active)
+        assertTrue(result.workspaces.isEmpty())
         assertFalse(result.isBillingBlocked)
         assertFalse(result.isPartial)
     }
@@ -164,7 +167,6 @@ class WorkspaceRepositoryTest {
         // tells them apart, because the server withholds unpaid workspaces to match the web.
         val result = state(WorkspaceListResponse(success = true, inactiveCount = 2))
 
-        assertFalse(result.hasNoWorkspaces)
         assertTrue(result.isBillingBlocked)
     }
 
@@ -179,7 +181,6 @@ class WorkspaceRepositoryTest {
         )
 
         assertTrue(result.isPartial)
-        assertFalse(result.hasNoWorkspaces)
         assertEquals(listOf("ca", "apac"), result.degradedRegions)
     }
 
@@ -189,7 +190,6 @@ class WorkspaceRepositoryTest {
         // would be the checkout-page mistake, so the state must say it could not see everything.
         val result = state(WorkspaceListResponse(success = true, degradedRegions = listOf("eu")))
 
-        assertFalse(result.hasNoWorkspaces)
         assertFalse(result.isBillingBlocked)
         assertTrue(result.isPartial)
     }
@@ -198,7 +198,7 @@ class WorkspaceRepositoryTest {
     fun `an account with workspaces and some unpaid ones is neither empty nor blocked`() = runTest {
         val result = state(WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a")), inactiveCount = 1))
 
-        assertFalse(result.hasNoWorkspaces)
+        assertEquals("ws-a", result.active?.id)
         assertFalse(result.isBillingBlocked)
     }
 

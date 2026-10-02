@@ -143,6 +143,3 @@ const val KB_MODE_LINKED: String = "linked"
  * both means two sources that drift and then contradict each other in front of a customer.
  */
 val KB_MODES: List<String> = listOf(KB_MODE_INTERNAL, KB_MODE_LINKED)
-
-/** ⚠️ `internal` — a workspace that never opens this setting must not have its questions leave. */
-const val DEFAULT_KB_MODE: String = KB_MODE_INTERNAL

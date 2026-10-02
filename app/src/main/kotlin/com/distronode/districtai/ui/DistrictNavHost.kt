@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
@@ -47,6 +48,7 @@ import com.distronode.districtai.ui.dialer.DialerViewModel
 import com.distronode.districtai.ui.calls.CallDetailViewModel
 import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
+import com.distronode.districtai.ui.calls.RecordingLaunch
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
 import com.distronode.districtai.ui.contacts.ContactDetailViewModel
 import com.distronode.districtai.ui.contacts.ContactsScreen
@@ -1206,6 +1208,15 @@ fun DistrictNavHost(
 
                     OnSessionChanged(sessionEpoch, viewModel::load)
 
+                    // ⛔ THE DOSSIER POLL FOLLOWS THIS ENTRY'S LIFECYCLE, NOT THE ACTIVITY'S. Inside a
+                    // destination the lifecycle owner is the back stack entry, which stops both when
+                    // the app goes to the background and when another destination is pushed on top;
+                    // either way nobody can see the contact, so nothing re-reads it.
+                    LifecycleStartEffect(viewModel) {
+                        viewModel.onScreenStarted(true)
+                        onStopOrDispose { viewModel.onScreenStarted(false) }
+                    }
+
                     ContactDetailScreen(
                         state = state,
                         canMutate = viewModel.canMutate,
@@ -1241,8 +1252,6 @@ fun DistrictNavHost(
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
-                    val noPlayer = stringResource(R.string.call_detail_recording_no_player)
-                    val launchFailed = stringResource(R.string.call_detail_recording_launch_failed)
 
                     OnSessionChanged(sessionEpoch, viewModel::load)
 
@@ -1253,17 +1262,12 @@ fun DistrictNavHost(
                         onSignIn = onSignIn,
                         onShowTranscript = viewModel::loadTranscript,
                         onPlayRecording = {
-                            viewModel.resolveRecording { url ->
-                                // ⚠️ HANDED OFF, NOT PLAYED IN-APP. The URL is a short-lived presigned link
-                                // resolved moments ago, so it goes straight to whatever app can play it and
-                                // is never stored.
-                                playRecording(
-                                    context = context,
-                                    url = url,
-                                    onNoPlayer = { onShowMessage(noPlayer) },
-                                    onOtherFailure = { onShowMessage(launchFailed) },
-                                )
-                            }
+                            // ⚠️ HANDED OFF, NOT PLAYED IN-APP. The URL is a short-lived presigned link
+                            // resolved moments ago, so it goes straight to whatever app can play it and
+                            // is never stored. ⛔ `context` is the APPLICATION context and the outcome
+                            // goes back into the ViewModel's state, never to `onShowMessage`: the
+                            // resolve can outlive this Activity (see resolveRecording).
+                            viewModel.resolveRecording { url -> playRecording(context, url) }
                         },
                     )
                 }
@@ -1982,14 +1986,9 @@ private fun shareInvite(context: Context, link: String) {
  * `ActivityNotFoundException` would drop the rest of `runCatching`'s result on the floor, so a
  * SecurityException from a restrictive player, or a background-activity-start refusal, would make
  * the button do literally nothing: no message, no log, no way for the user to tell a broken
- * recording from a broken app. Both branches say something.
+ * recording from a broken app. Both failures are answered, and the call detail says each.
  */
-private fun playRecording(
-    context: Context,
-    url: String,
-    onNoPlayer: () -> Unit,
-    onOtherFailure: () -> Unit,
-) {
+private fun playRecording(context: Context, url: String): RecordingLaunch {
     val launch = runCatching {
         context.startActivity(
             // ⚠️ NEW_TASK is required: `context` is the application context deliberately (see the
@@ -1999,10 +1998,10 @@ private fun playRecording(
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }
-    when (launch.exceptionOrNull()) {
-        null -> Unit
-        is ActivityNotFoundException -> onNoPlayer()
-        else -> onOtherFailure()
+    return when (launch.exceptionOrNull()) {
+        null -> RecordingLaunch.STARTED
+        is ActivityNotFoundException -> RecordingLaunch.NO_PLAYER
+        else -> RecordingLaunch.REFUSED
     }
 }
 

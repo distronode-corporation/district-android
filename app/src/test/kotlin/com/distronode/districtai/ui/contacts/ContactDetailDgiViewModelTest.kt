@@ -569,6 +569,77 @@ class ContactDetailDgiViewModelTest {
         assertTrue(vm.state.value is ContactDetailUiState.Failed)
     }
 
+    // ── The poll follows the screen ──────────────────────────────────────────
+
+    @Test
+    fun `a stopped screen is not polled, and a started one is polled again`() = runTest {
+        // ⛔ THE LOOP USED TO OUTLIVE THE SCREEN'S VISIBILITY: backgrounded, or covered by another
+        // destination, the contact was still re-read every interval until the crawl settled.
+        val api = api(dgiStatus = "crawling")
+        val vm = viewModel(api)
+        runCurrent()
+
+        vm.onScreenStarted(false)
+        val stopped = api.contactRequestCount
+        tick()
+        tick()
+        assertEquals("no read while stopped", stopped, api.contactRequestCount)
+
+        vm.onScreenStarted(true)
+        tick()
+        assertEquals("one read per interval once started again", stopped + 1, api.contactRequestCount)
+        // ⚠️ And still at most one poll: a second start adds no second collector.
+        vm.onScreenStarted(true)
+        tick()
+        assertEquals(stopped + 2, api.contactRequestCount)
+
+        settle(api)
+    }
+
+    @Test
+    fun `a load that lands while stopped waits for the start before polling`() = runTest {
+        // ⚠️ A RELOAD OR A SESSION CHANGE CAN LAND ON A STOPPED SCREEN, and its publish is one of
+        // the places a poll starts. Started while Loading, there is no contact yet: the load's own
+        // publish picks the poll up.
+        val api = api(dgiStatus = "crawling")
+        val vm = viewModel(api)
+        vm.onScreenStarted(false)
+        runCurrent()
+        val loaded = api.contactRequestCount
+        tick()
+        assertEquals("the load's publish did not start a poll on a stopped screen", loaded, api.contactRequestCount)
+
+        vm.load()
+        vm.onScreenStarted(true)
+        runCurrent()
+        val reloaded = api.contactRequestCount
+        tick()
+        assertEquals("the reload's publish started it on a started screen", reloaded + 1, api.contactRequestCount)
+
+        settle(api)
+    }
+
+    @Test
+    fun `returning to a poll that failed leaves it behind its retry`() = runTest {
+        // ⚠️ The failure card has its own retry; restarting the poll under it on return would watch
+        // again while the screen still said the watch had failed.
+        val api = api(dgiStatus = "pending")
+        val vm = viewModel(api)
+        runCurrent()
+        api.contactResult = ApiResult.NetworkFailure(java.io.IOException())
+        tick()
+        val afterFailure = api.contactRequestCount
+
+        vm.onScreenStarted(false)
+        vm.onScreenStarted(true)
+        api.answerWith("crawling")
+        tick()
+        tick()
+
+        assertEquals(afterFailure, api.contactRequestCount)
+        assertTrue(content(vm).pollFailure != null)
+    }
+
     @Test
     fun `the factory builds a model for the contact it was given`() = runTest {
         val api = api()

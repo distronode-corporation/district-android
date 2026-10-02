@@ -12,7 +12,9 @@ import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +32,12 @@ import kotlinx.coroutines.launch
  * ANY TEARDOWN CODE. The loop runs in `viewModelScope`, so leaving the destination cancels it.
  * The alternative — a poll owned by the repository or by a process-scoped holder — would keep
  * re-reading a contact nobody is looking at, on a route that fans out to a regional database.
+ *
+ * ⛔ AND IT PAUSES WHILE THE SCREEN IS STOPPED, which the scope alone does not give. A pop destroys
+ * the entry, but the app going to the background or another destination being pushed on top only
+ * STOPS it, and the loop went on reading every 2.5 seconds for a screen nobody could see. The
+ * destination reports its own start and stop through [onScreenStarted] (a `LifecycleStartEffect`
+ * in `DistrictNavHost`), so no lifecycle type reaches this class; see [DossierPoll].
  */
 class ContactDetailViewModel(
     private val repository: ContactsRepository,
@@ -44,12 +52,11 @@ class ContactDetailViewModel(
     private val _state = MutableStateFlow<ContactDetailUiState>(ContactDetailUiState.Loading)
     val state: StateFlow<ContactDetailUiState> = _state.asStateFlow()
 
-    /**
-     * ⚠️ AT MOST ONE, EVER. Two concurrent polls would double the read rate on a route that fans
-     * out to a regional database, for no extra information — both would be asking the same
-     * question about the same row.
-     */
-    private var pollJob: Job? = null
+    private val poll = DossierPoll(
+        scope = viewModelScope,
+        updates = { repository.dossierUpdates(workspaceId, contactId) },
+        onResult = { result -> _state.applyPollResult(result) },
+    )
 
     init {
         load()
@@ -99,7 +106,7 @@ class ContactDetailViewModel(
                     // makes [Contact.dgiOfferable] true: one more tap on a flaky connection bought
                     // a second crawl and a second LLM run. The stamp shows the badge and starts the
                     // poll, which re-reads on its own; a failed poll then says so (see
-                    // [syncPolling]). Dropped if a reload has already put the screen back to
+                    // [applyPollResult]). Dropped if a reload has already put the screen back to
                     // Loading: that read answers.
                     is ApiResult.Failure -> (_state.value as? ContactDetailUiState.Content)?.let {
                         publish(it.contact.copy(dgiStatus = DGI_PENDING))
@@ -158,48 +165,21 @@ class ContactDetailViewModel(
      */
     private fun publish(contact: Contact) {
         _state.value = ContactDetailUiState.Content(contact)
-        syncPolling(contact)
+        poll.sync(contact)
     }
 
     /**
-     * ⛔ THE TERMINAL CHECK IS [Contact.dgiInProgress], WHICH COVERS ALL THREE IN-FLIGHT
-     * STATUSES. The pipeline advances pending -> crawling -> synthesizing, so a poll that stopped
-     * on anything-but-"pending" would quit the moment the crawler started and leave the screen
-     * showing a stale dossier for a job still running.
+     * The screen was started (true) or stopped (false): resume or pause the dossier poll.
      *
-     * ⚠️ AND NULL IS NOT IN FLIGHT. After `clear-intel` the status is null with nothing queued;
-     * treating that as pending would poll forever against a job that does not exist.
+     * ⚠️ RESUMED ONLY WHERE IT WOULD HAVE BEEN RUNNING. A contact still loading is picked up by its
+     * own load, which syncs the poll when it lands; and a poll that stopped on a failure stays
+     * stopped behind its retry ([checkDossierAgain]), so returning to the screen does not quietly
+     * restart it under a card that says it failed.
      */
-    private fun syncPolling(contact: Contact) {
-        if (!contact.dgiInProgress) {
-            pollJob?.cancel()
-            pollJob = null
-            return
-        }
-        // Already watching this contact — a second collector would double the read rate and
-        // learn nothing the first one does not. ⚠️ Non-null means RUNNING: both ways a poll ends
-        // (the flow completing, or the cancel above) clear the field, so there is no finished job
-        // left in it to ask about.
-        if (pollJob != null) return
-
-        pollJob = viewModelScope.launch {
-            repository.dossierUpdates(workspaceId, contactId).collect { result ->
-                // ⚠️ ONLY THE CONTACT (OR THE POLL'S OWN FAILURE) IS REPLACED. A poll landing while
-                // a rename is in flight must not clear `saving` or a pending failure message: it
-                // is a background read, not the outcome of anything the operator did.
-                val current = _state.value as? ContactDetailUiState.Content ?: return@collect
-                _state.value = when (result) {
-                    is ApiResult.Success -> current.copy(contact = result.value)
-                    // ⛔ THE FLOW ENDS ON A FAILURE, SO THIS IS THE LAST THING THE POLL SAYS. Dropping
-                    // it froze the badge on "building" for good, with nothing to tap; it is
-                    // surfaced with a retry instead. See [checkDossierAgain].
-                    is ApiResult.Failure -> current.copy(pollFailure = result.toFailureText())
-                }
-            }
-            // The flow completed, so the enrichment settled (or the read failed). Either way
-            // nothing is watching any more.
-            pollJob = null
-        }
+    fun onScreenStarted(started: Boolean) {
+        if (!started) return poll.pause()
+        val content = _state.value as? ContactDetailUiState.Content
+        poll.resume(content?.takeIf { it.pollFailure == null }?.contact)
     }
 
     /**
@@ -223,7 +203,7 @@ class ContactDetailViewModel(
                 // Like a poll tick, only the contact changes: a mutation may be in flight.
                 is ApiResult.Success -> {
                     _state.value = current.copy(contact = result.value)
-                    syncPolling(result.value)
+                    poll.sync(result.value)
                 }
                 is ApiResult.Failure -> _state.value = current.copy(pollFailure = result.toFailureText())
             }
@@ -321,6 +301,94 @@ class ContactDetailViewModel(
 private fun MutableStateFlow<ContactDetailUiState>.reportMutationFailure(failure: ApiResult.Failure) {
     (value as? ContactDetailUiState.Content)?.let {
         value = it.copy(saving = false, mutationFailure = failure.toFailureText())
+    }
+}
+
+/**
+ * Apply one dossier poll read to the contact on screen.
+ *
+ * ⚠️ ONLY THE CONTACT (OR THE POLL'S OWN FAILURE) IS REPLACED. A poll landing while a rename is in
+ * flight must not clear `saving` or a pending failure message: it is a background read, not the
+ * outcome of anything the operator did. Dropped unless the contact is showing. A top-level
+ * extension for the reason [reportMutationFailure] is one.
+ */
+private fun MutableStateFlow<ContactDetailUiState>.applyPollResult(result: ApiResult<Contact>) {
+    val current = value as? ContactDetailUiState.Content ?: return
+    value = when (result) {
+        is ApiResult.Success -> current.copy(contact = result.value)
+        // ⛔ THE FLOW ENDS ON A FAILURE, SO THIS IS THE LAST THING THE POLL SAYS. Dropping it froze
+        // the badge on "building" for good, with nothing to tap; it is surfaced with a retry
+        // instead. See [ContactDetailViewModel.checkDossierAgain].
+        is ApiResult.Failure -> current.copy(pollFailure = result.toFailureText())
+    }
+}
+
+/**
+ * The dossier poll's lifetime: at most one collector, and only while the screen is started.
+ *
+ * ⚠️ ITS OWN CLASS because [ContactDetailViewModel] sits on detekt's function ceiling, and the
+ * job, the started flag and the rules joining them belong together anyway: every start, stop,
+ * pause and resume goes through here, so "at most one" is checked in one place.
+ */
+private class DossierPoll(
+    private val scope: CoroutineScope,
+    private val updates: () -> Flow<ApiResult<Contact>>,
+    private val onResult: (ApiResult<Contact>) -> Unit,
+) {
+    /**
+     * ⚠️ AT MOST ONE, EVER. Two concurrent polls would double the read rate on a route that fans
+     * out to a regional database, for no extra information: both would be asking the same
+     * question about the same row. ⚠️ Non-null means RUNNING: every way a poll ends (the flow
+     * completing, or [stop]) clears the field, so there is no finished job left in it to ask about.
+     */
+    private var job: Job? = null
+
+    /**
+     * ⚠️ TRUE UNTIL THE SCREEN SAYS OTHERWISE. The ViewModel is built during the destination's
+     * first composition, which happens on a started screen, and its first load can land before the
+     * start effect has run; starting false would hold that first poll back for no reason.
+     */
+    private var started = true
+
+    /**
+     * Start or stop the poll to match [contact].
+     *
+     * ⛔ THE TERMINAL CHECK IS [Contact.dgiInProgress], WHICH COVERS ALL THREE IN-FLIGHT
+     * STATUSES. The pipeline advances pending -> crawling -> synthesizing, so a poll that stopped
+     * on anything-but-"pending" would quit the moment the crawler started and leave the screen
+     * showing a stale dossier for a job still running.
+     *
+     * ⚠️ AND NULL IS NOT IN FLIGHT. After `clear-intel` the status is null with nothing queued;
+     * treating that as pending would poll forever against a job that does not exist.
+     */
+    fun sync(contact: Contact) {
+        if (!contact.dgiInProgress || !started) return stop()
+        // Already watching this contact: a second collector would double the read rate and learn
+        // nothing the first one does not.
+        if (job != null) return
+        job = scope.launch {
+            updates().collect(onResult)
+            // The flow completed, so the enrichment settled (or the read failed). Either way
+            // nothing is watching any more.
+            job = null
+        }
+    }
+
+    /** The screen stopped: no read until it starts again. */
+    fun pause() {
+        started = false
+        stop()
+    }
+
+    /** The screen started: watch [contact] again if it is still in flight, or nothing if null. */
+    fun resume(contact: Contact?) {
+        started = true
+        contact?.let(::sync)
+    }
+
+    private fun stop() {
+        job?.cancel()
+        job = null
     }
 }
 

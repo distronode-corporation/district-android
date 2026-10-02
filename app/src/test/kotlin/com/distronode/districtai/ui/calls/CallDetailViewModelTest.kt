@@ -189,7 +189,10 @@ class CallDetailViewModelTest {
         advanceUntilIdle()
 
         var handed: String? = null
-        vm.resolveRecording { handed = it }
+        vm.resolveRecording {
+            handed = it
+            RecordingLaunch.STARTED
+        }
         advanceUntilIdle()
 
         assertEquals("https://recordings.test/x.mp3", handed)
@@ -206,7 +209,10 @@ class CallDetailViewModelTest {
         advanceUntilIdle()
 
         var handed: String? = null
-        vm.resolveRecording { handed = it }
+        vm.resolveRecording {
+            handed = it
+            RecordingLaunch.STARTED
+        }
         advanceUntilIdle()
 
         assertEquals(null, handed)
@@ -219,12 +225,42 @@ class CallDetailViewModelTest {
         val vm = viewModel(api)
         advanceUntilIdle()
 
-        vm.resolveRecording { }
+        vm.resolveRecording { RecordingLaunch.STARTED }
         advanceUntilIdle()
 
         val state = vm.state.value as CallDetailUiState.Content
         assertEquals("c1", state.call.id)
         assertTrue(state.recording is RecordingState.Failed)
+    }
+
+    @Test
+    fun `a URL no app can play is said in the state, and play can be pressed again`() = runTest(dispatcher) {
+        // ⛔ IN THE STATE, NOT THROUGH THE CALLBACK. The callback outlives the Activity that pressed
+        // Play, so a message it showed went to a destroyed Activity after a rotation and was lost.
+        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.resolveRecording { RecordingLaunch.NO_PLAYER }
+        advanceUntilIdle()
+        assertEquals(RecordingState.NoPlayer, (vm.state.value as CallDetailUiState.Content).recording)
+
+        // A player was installed: the next press resolves a fresh URL and plays.
+        vm.resolveRecording { RecordingLaunch.STARTED }
+        advanceUntilIdle()
+        assertEquals(2, api.recordingRequests.size)
+        assertEquals(RecordingState.Idle, (vm.state.value as CallDetailUiState.Content).recording)
+    }
+
+    @Test
+    fun `a refused hand-off is said in the state too`() = runTest(dispatcher) {
+        val vm = viewModel(apiWithCall(recordingUrl = "https://legacy.test/a.mp3"))
+        advanceUntilIdle()
+
+        vm.resolveRecording { RecordingLaunch.REFUSED }
+        advanceUntilIdle()
+
+        assertEquals(RecordingState.LaunchFailed, (vm.state.value as CallDetailUiState.Content).recording)
     }
 
     @Test
@@ -259,7 +295,10 @@ class CallDetailViewModelTest {
         var handed: String? = null
 
         vm.loadTranscript()
-        vm.resolveRecording { handed = it }
+        vm.resolveRecording {
+            handed = it
+            RecordingLaunch.STARTED
+        }
         advanceUntilIdle()
 
         assertTrue(api.transcriptRequests.isEmpty())
@@ -275,8 +314,14 @@ class CallDetailViewModelTest {
         advanceUntilIdle()
         val handed = mutableListOf<String>()
 
-        vm.resolveRecording { handed += it }
-        vm.resolveRecording { handed += it }
+        vm.resolveRecording {
+            handed += it
+            RecordingLaunch.STARTED
+        }
+        vm.resolveRecording {
+            handed += it
+            RecordingLaunch.STARTED
+        }
         advanceUntilIdle()
 
         assertEquals(1, api.recordingRequests.size)
@@ -307,7 +352,10 @@ class CallDetailViewModelTest {
             advanceUntilIdle()
             var handed: String? = null
 
-            vm.resolveRecording { handed = it }
+            vm.resolveRecording {
+                handed = it
+                RecordingLaunch.STARTED
+            }
             vm.load()
             advanceUntilIdle()
 

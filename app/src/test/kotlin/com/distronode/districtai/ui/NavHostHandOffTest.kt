@@ -197,7 +197,10 @@ class NavHostHandOffTest {
 
         harness.tap(CALL_DETAIL_PLAY_DESCRIPTION)
 
-        assertEquals(listOf(string(R.string.call_detail_recording_no_player)), harness.messages)
+        // ⛔ ON THE SCREEN, NOT THE HOST'S SNACKBAR: the resolve can outlive the Activity that pressed
+        // Play, so the outcome lives in the call detail's state (MainActivityRecordingHandOffTest).
+        harness.awaitText(string(R.string.call_detail_recording_no_player))
+        assertTrue(harness.messages.isEmpty())
     }
 
     @Test
@@ -207,7 +210,8 @@ class NavHostHandOffTest {
 
         harness.tap(CALL_DETAIL_PLAY_DESCRIPTION)
 
-        assertEquals(listOf(string(R.string.call_detail_recording_launch_failed)), harness.messages)
+        harness.awaitText(string(R.string.call_detail_recording_launch_failed))
+        assertTrue(harness.messages.isEmpty())
     }
 
     private fun string(id: Int): String =

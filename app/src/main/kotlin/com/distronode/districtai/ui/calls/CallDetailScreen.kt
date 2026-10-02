@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.calls
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -176,16 +177,7 @@ private fun RecordingSection(state: CallDetailUiState.Content, onPlayRecording: 
             // ⚠️ Offered based on the row's recordingUrl, which is a hint rather than the whole
             // truth: an archived copy lives under a key this shape does not expose, so the server
             // can still produce a URL when this is absent. Offering is the friendlier mistake.
-            if (state.mayHaveRecording) {
-                Button(
-                    onClick = onPlayRecording,
-                    modifier = Modifier.semantics {
-                        contentDescription = CALL_DETAIL_PLAY_DESCRIPTION
-                    },
-                ) {
-                    Text(stringResource(R.string.call_detail_recording_play))
-                }
-            }
+            if (state.mayHaveRecording) PlayButton(onPlayRecording)
 
         RecordingState.Resolving -> CircularProgressIndicator(color = DistrictTheme.colors.district)
 
@@ -203,7 +195,32 @@ private fun RecordingSection(state: CallDetailUiState.Content, onPlayRecording: 
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.destructive,
         )
+
+        // ⚠️ A RESOLVED URL NO APP TOOK. Said here, in state that survives a rotation, rather than
+        // in the Activity's snackbar; see CallDetailViewModel.resolveRecording. Play stays offered.
+        RecordingState.NoPlayer -> NotPlayed(R.string.call_detail_recording_no_player, onPlayRecording)
+        RecordingState.LaunchFailed -> NotPlayed(R.string.call_detail_recording_launch_failed, onPlayRecording)
     }
+}
+
+@Composable
+private fun PlayButton(onPlayRecording: () -> Unit) {
+    Button(
+        onClick = onPlayRecording,
+        modifier = Modifier.semantics { contentDescription = CALL_DETAIL_PLAY_DESCRIPTION },
+    ) {
+        Text(stringResource(R.string.call_detail_recording_play))
+    }
+}
+
+@Composable
+private fun NotPlayed(@StringRes message: Int, onPlayRecording: () -> Unit) {
+    Text(
+        text = stringResource(message),
+        style = MaterialTheme.typography.bodySmall,
+        color = DistrictTheme.colors.destructive,
+    )
+    PlayButton(onPlayRecording)
 }
 
 @Composable

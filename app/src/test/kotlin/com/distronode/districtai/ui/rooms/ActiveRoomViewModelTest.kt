@@ -618,6 +618,47 @@ class ActiveRoomViewModelTest {
         assertFalse(factory.engine.calls.any { it.startsWith("connect:") })
     }
 
+    /** An engine factory whose `connect` is held open until [gate] completes: a join in flight. */
+    private fun gatedEngine(gate: CompletableDeferred<Unit>, engine: FakeCallEngine) = CallEngineFactory {
+        object : CallEngine by engine {
+            override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+                gate.await()
+                engine.connect(url, token, e2eeKeyBase64)
+            }
+        }
+    }
+
+    @Test
+    fun `leaving while the join is in flight never turns the microphone on, and disconnects after it`() = runTest {
+        // ⛔ THE RACE THE CALL SESSIONS ALREADY CLOSED. `leave` launches its disconnect while
+        // `connect` is still inside the engine, and nothing orders the two inside the SDK. A connect
+        // that resolved AFTER that disconnect went on to publish the microphone, in a room the user
+        // had already left, with no screen left to show it.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val vm = ActiveRoomViewModel(
+            engineFactory = gatedEngine(gate, engine),
+            repository = MeetingsRepository(api()),
+            roomName = roomName,
+            role = WorkspaceRole.AGENCY,
+            webOrigin = "https://www.distronode.test",
+            engineScope = engineScope,
+        )
+        vm.onPermissionsResult(microphoneGranted = true, cameraGranted = true)
+        runCurrent()
+
+        var left = 0
+        vm.leave { left++ }
+        runCurrent()
+        assertEquals("leave's own disconnect ran while the connect was still open", listOf("disconnect"), engine.calls)
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse("the microphone is never published after leave", engine.calls.contains("mic:true"))
+        assertEquals(listOf("disconnect", "connect:wss://livekit.test:jwt-abc", "disconnect"), engine.calls)
+        assertEquals("onLeft runs exactly once", 1, left)
+    }
+
     @Test
     fun `a join cancelled by clearing the screen is not reported as a failed one`() = runTest {
         // ⚠️ `runCatching` CAUGHT THE CANCELLATION and wrote `Failed` with a coroutine-internals
@@ -630,14 +671,7 @@ class ActiveRoomViewModelTest {
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T = ActiveRoomViewModel(
-                    engineFactory = CallEngineFactory {
-                        object : CallEngine by engine {
-                            override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
-                                gate.await()
-                                engine.connect(url, token, e2eeKeyBase64)
-                            }
-                        }
-                    },
+                    engineFactory = gatedEngine(gate, engine),
                     repository = MeetingsRepository(api()),
                     roomName = roomName,
                     role = WorkspaceRole.AGENCY,
@@ -655,7 +689,9 @@ class ActiveRoomViewModelTest {
         runCurrent()
 
         assertFalse(vm.state.value.connection is CallConnectionState.Failed)
-        assertEquals(listOf("disconnect"), engine.calls)
+        // ⚠️ TWO DISCONNECTS: the cancelled join owes its own, after the connect resolved, because
+        // the SDK may have half-joined when it was cancelled; then the release's.
+        assertEquals(listOf("disconnect", "disconnect"), engine.calls)
     }
 
     @Test

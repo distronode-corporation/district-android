@@ -73,7 +73,7 @@ class CallDetailViewModel(
     }
 
     /**
-     * Resolve a playable URL and hand it to [onResolved].
+     * Resolve a playable URL and hand it to [launch].
      *
      * ⛔ RESOLVED AT THE MOMENT OF PLAYBACK, NEVER CACHED. The server redirects to a short-lived
      * presigned object URL; a stored one expires and then fails inside whatever player received it,
@@ -82,13 +82,19 @@ class CallDetailViewModel(
      * ⚠️ [ApiResult.NotFound] here is ordinary — a missed call has no recording — so it is reported
      * as "no recording" rather than as an error.
      *
-     * @param onResolved ⛔ MUST NOT CAPTURE AN ACTIVITY `Context`. This callback is held across the
+     * ⛔ A LAUNCH THAT FAILED IS REPORTED IN [state], NOT BY THE CALLBACK. The callback used to show
+     * "no player" through the Activity's snackbar, launched on the pressing Activity's
+     * `lifecycleScope`: rotated mid-resolve, the answer reached a destroyed Activity, its cancelled
+     * scope dropped the message, and Play did nothing at all. The outcome now lands in
+     * [RecordingState], which whichever Activity exists renders. Same shape as the scheduling
+     * hand-off's `SchedulingUiState.notice`.
+     *
+     * @param launch hands the URL to a player and answers how that went. ⛔ MUST NOT CAPTURE AN
+     *   ACTIVITY, or anything holding one (a snackbar, a `lifecycleScope`): it is held across the
      *   suspending request while this ViewModel is scoped to the nav entry, which outlives a
-     *   configuration change — so a rotation mid-resolve would invoke it with a DESTROYED Activity
-     *   and `startActivity` would fail. The call site passes the application context; see
-     *   `DistrictNavHost`.
+     *   configuration change. The call site passes the application context; see `DistrictNavHost`.
      */
-    fun resolveRecording(onResolved: (String) -> Unit) {
+    fun resolveRecording(launch: (String) -> RecordingLaunch) {
         val content = _state.value as? CallDetailUiState.Content ?: return
         // ⛔ THE IN-FLIGHT GUARD, WHICH loadTranscript/rename/delete ALL HAD AND THIS DID NOT. This
         // set `Resolving` and then never checked it, so a double tap resolved the recording twice
@@ -100,9 +106,10 @@ class CallDetailViewModel(
 
         viewModelScope.launch {
             val next = when (val result = repository.recordingUrl(workspaceId, callId)) {
-                is ApiResult.Success -> {
-                    onResolved(result.value)
-                    RecordingState.Idle
+                is ApiResult.Success -> when (launch(result.value)) {
+                    RecordingLaunch.STARTED -> RecordingState.Idle
+                    RecordingLaunch.NO_PLAYER -> RecordingState.NoPlayer
+                    RecordingLaunch.REFUSED -> RecordingState.LaunchFailed
                 }
                 is ApiResult.NotFound -> RecordingState.Absent
                 is ApiResult.Failure -> RecordingState.Failed(result.toFailureText())
@@ -162,4 +169,26 @@ sealed interface RecordingState {
     /** No recording for this call. Ordinary for a missed call, not an error. */
     data object Absent : RecordingState
     data class Failed(val failure: FailureText) : RecordingState
+
+    /**
+     * A URL was resolved and nothing on the device can play it.
+     *
+     * ⚠️ PLAY STAYS OFFERED BESIDE THE MESSAGE: installing a player is the fix, and the next press
+     * resolves a fresh URL.
+     */
+    data object NoPlayer : RecordingState
+
+    /** A URL was resolved and the hand-off was refused for another reason. ⚠️ Play stays offered. */
+    data object LaunchFailed : RecordingState
+}
+
+/** How handing a resolved recording URL to a player went. See [CallDetailViewModel.resolveRecording]. */
+enum class RecordingLaunch {
+    STARTED,
+
+    /** No app on the device handles the URL (`ActivityNotFoundException`). */
+    NO_PLAYER,
+
+    /** Anything else the start threw: a restrictive player, a background-start refusal. */
+    REFUSED,
 }

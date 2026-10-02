@@ -6,7 +6,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.CallAnalysis
@@ -268,6 +270,30 @@ class CallDetailScreenTest {
         composeRule.onNodeWithText("That recording has expired.").performScrollTo()
             .assertIsDisplayed()
     }
+
+    @Test
+    fun `a recording no app could play says so and offers play again`() {
+        var plays = 0
+        render(content(recording = RecordingState.NoPlayer), onPlayRecording = { plays++ })
+
+        composeRule.onNodeWithText(string(R.string.call_detail_recording_no_player)).performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).performScrollTo()
+            .performClick()
+        assertEquals(1, plays)
+    }
+
+    @Test
+    fun `a refused hand-off says so and offers play again`() {
+        render(content(recording = RecordingState.LaunchFailed))
+
+        composeRule.onNodeWithText(string(R.string.call_detail_recording_launch_failed)).performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).assertExists()
+    }
+
+    private fun string(id: Int): String =
+        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     @Test
     fun `a resolving recording replaces the button with a spinner`() {

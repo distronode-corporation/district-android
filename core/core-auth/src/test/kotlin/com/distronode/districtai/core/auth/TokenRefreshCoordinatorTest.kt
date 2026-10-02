@@ -1,6 +1,7 @@
 package com.distronode.districtai.core.auth
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -493,6 +494,43 @@ class TokenRefreshCoordinatorTest {
 
         assertEquals("the successor must be persisted", "refresh-r1", store.read()?.refreshToken)
         assertNull("and the marker cleared", store.pendingRefreshToken())
+    }
+
+    // ── Sign-out ─────────────────────────────────────────────────────────────
+
+    /**
+     * ⚠️ BOTH WAYS OUT OF `withContext(io)`, EACH PINNED BY THE DISPATCHER IT IS GIVEN, AND THAT IS
+     * WHAT THESE CASES ARE FOR. `withContext` returns DIRECTLY when the block has already finished
+     * by the time the caller would suspend, and through a resumption otherwise. On the real
+     * Dispatchers.IO (AppContainer's sign-out, the only other caller) which way it went was a race
+     * between threads, so `forget()`'s last line was recorded in some runs and not others and the
+     * coverage count moved on an unchanged tree. A sibling test dispatcher always suspends;
+     * `Unconfined` runs the block inline and never does.
+     */
+    @Test
+    fun `forget drops the cached token and wipes the store, when the hop suspends`() = runTest {
+        forgetsEverything(io = StandardTestDispatcher(testScheduler))
+    }
+
+    @Test
+    fun `forget drops the cached token and wipes the store, when the hop returns at once`() = runTest {
+        forgetsEverything(io = Dispatchers.Unconfined)
+    }
+
+    private suspend fun forgetsEverything(io: CoroutineDispatcher) {
+        val store = FakeTokenStore(session("r0"))
+        val api = CountingRefreshApi(null) { RefreshResult.Rejected }
+        val coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = io)
+        coordinator.adopt(tokens("r1"), deviceId)
+        assertEquals(AccessToken.Available("access-r1"), coordinator.accessToken())
+
+        coordinator.forget()
+
+        assertNull("the store is wiped", store.read())
+        assertEquals("clear", store.operations.last())
+        // The cached access token went with it: the next caller finds no session and sends nothing.
+        assertEquals(AccessToken.ReauthRequired(ReauthReason.NoSession), coordinator.accessToken())
+        assertEquals(0, api.callCount)
     }
 
     // ── The marker is read only under the lock ───────────────────────────────

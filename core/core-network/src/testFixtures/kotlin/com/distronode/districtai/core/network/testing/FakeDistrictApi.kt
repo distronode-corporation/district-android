@@ -258,9 +258,13 @@ open class FakeDistrictApi(
         return transcriptResult
     }
 
+    /** When set, [callRecordingUrl] waits for it: a resolve still in flight across a rotation. */
+    var recordingGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
     override suspend fun callRecordingUrl(workspaceId: String, callId: String): ApiResult<String> {
         recordingRequests += workspaceId to callId
         callReads += workspaceId to callId
+        recordingGate?.await()
         return recordingResult
     }
 

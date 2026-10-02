@@ -17,12 +17,14 @@ import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * One live `meet_` room, for as long as its destination exists.
@@ -187,23 +189,30 @@ class ActiveRoomViewModel(
         // call derives. Forwarding it would join the room and then hear nothing, which reads as a
         // media fault rather than a key fault. A null here joins unencrypted, which is correct for
         // every `call_` room and is the honest answer when the server sent us no usable key.
-        runCatching {
+        val failure = runCatching {
             engine.connect(token.url, token.token, token.e2ee?.key?.takeIf { it.isNotBlank() })
+        }.exceptionOrNull()
+        // ⛔ LEFT WHILE THE JOIN WAS IN FLIGHT: [release] already launched its disconnect, but that
+        // disconnect may have reached the engine BEFORE this connect resolved, and nothing orders
+        // the two inside the SDK. So the room could be left joined, and the code below would then
+        // publish the microphone, after the user had left. The same guard `CallSessionCore.connect`
+        // carries for a hang-up: never the microphone, and a disconnect issued now, after the
+        // connect has resolved, whatever it resolved to (a cancellation included). ⚠️ In THIS
+        // coroutine and `NonCancellable`, not in [engineScope]: [release] cancels that scope once
+        // its own disconnect finishes, and a disconnect launched into a cancelled scope never runs.
+        if (released) withContext(NonCancellable) { engine.disconnect() }
+        // ⛔ CANCELLATION IS NOT A FAILED JOIN, AND IT IS RETHROWN. Caught, it painted `Failed` with
+        // a coroutine-internals message over a teardown and let the cancelled coroutine carry on.
+        if (failure is CancellationException) throw failure
+        if (released) return
+        if (failure != null) {
+            // ⚠️ The engine has already set its own state to Failed and rethrown; this only records
+            // that the throw was seen. Swallowing it here is correct: the connection state IS the
+            // user-facing outcome, and letting it escape would crash the process for a network
+            // condition.
+            _state.value = _state.value.copy(connection = CallConnectionState.Failed(failure.message))
+            return
         }
-            .onFailure { failure ->
-                // ⛔ CANCELLATION IS NOT A FAILED JOIN, AND IT IS RETHROWN. Caught, it painted
-                // `Failed` with a coroutine-internals message over a teardown and let the cancelled
-                // coroutine carry on.
-                if (failure is CancellationException) throw failure
-                // ⚠️ The engine has already set its own state to Failed and rethrown; this only
-                // records that the throw was seen. Swallowing it here is correct: the connection
-                // state IS the user-facing outcome, and letting it escape would crash the process
-                // for a network condition.
-                _state.value = _state.value.copy(
-                    connection = CallConnectionState.Failed(failure.message),
-                )
-                return
-            }
 
         // ⛔ MICROPHONE ON, CAMERA OFF, AND THE ASYMMETRY IS DELIBERATE. Joining muted is a
         // well-known way to have a meeting where nobody realises they are inaudible; joining with

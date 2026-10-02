@@ -140,8 +140,13 @@ android {
             // behind the Cloudflare geo-router, which picks the origin, and the
             // website already fans out across region shards. Adding per-region
             // base URLs here would duplicate edge routing logic in the client and
-            // get it wrong differently. Bearer tokens sidestep the session
-            // cookie's host-only limitation, which is why one host works at all.
+            // get it wrong differently. It would not help either: a workspace's
+            // region is a property of its DATA, not of which origin answers, and
+            // the website already reaches a row wherever it lives. Bearer tokens
+            // sidestep the session cookie's host-only limitation, which is why one
+            // host works at all. ⚠️ THIS FIELD IS THE ONLY COPY of the host
+            // (read by ApiEnvironment.baseUrl); do not restate it as a constant
+            // in another module, where it would go stale with nothing comparing.
             buildConfigField("String", "API_BASE_URL", "\"https://www.distronode.com\"")
 
             // ⚠️ SET ON `all`, so debug builds report too when a DSN is supplied. A crash in a

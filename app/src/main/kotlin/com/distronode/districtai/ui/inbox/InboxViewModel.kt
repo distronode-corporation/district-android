@@ -206,13 +206,6 @@ class InboxViewModel(
         }
     }
 
-    /** ⚠️ Cancels the in-flight request too, so a late answer cannot repopulate a cleared field. */
-    fun clearSearch() {
-        searchJob?.cancel()
-        searchJob = null
-        _searchState.value = InboxSearchState()
-    }
-
     /**
      * The loaded conversation for a thread key, if there is one.
      *

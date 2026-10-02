@@ -159,7 +159,8 @@ class InboxSearchViewModelTest {
     }
 
     @Test
-    fun `clearing the field drops the results and cancels the request in flight`() = runTest {
+    fun `emptying the field drops the results`() = runTest {
+        // ⚠️ The screen clears search by sending "" through the same callback as typing.
         searchApi.searchResult = ApiResult.Success(
             MessageSearchResponse(success = true, results = listOf(hit("m1")), limit = 30),
         )
@@ -168,7 +169,7 @@ class InboxSearchViewModelTest {
         vm.onSearchQueryChanged("refund")
         advanceUntilIdle()
 
-        vm.clearSearch()
+        vm.onSearchQueryChanged("")
         advanceUntilIdle()
 
         assertEquals("", vm.searchState.value.query)

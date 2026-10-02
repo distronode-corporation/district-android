@@ -273,6 +273,13 @@ internal open class TestDistrictApi(
     var timelineCursors: MutableList<Pair<String?, String?>> = mutableListOf()
         private set
 
+    /**
+     * Holds every thread read until completed, so a test can let the draft read finish FIRST.
+     * Against a fake both answer instantly and in launch order, which is the one ordering that hid
+     * a restored draft's attachments being dropped. Left null by default.
+     */
+    var timelineGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
     override suspend fun timeline(
         workspaceId: String,
         contactId: String?,
@@ -281,6 +288,7 @@ internal open class TestDistrictApi(
         beforeId: String?,
     ): ApiResult<TimelineResponse> {
         timelineCursors += before to beforeId
+        timelineGate?.await()
         return timelinePages[before] ?: timelineResult
     }
 

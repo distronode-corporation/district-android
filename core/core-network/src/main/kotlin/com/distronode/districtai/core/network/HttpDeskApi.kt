@@ -11,7 +11,6 @@ import com.distronode.districtai.core.model.DeskTicketResponse
 import com.distronode.districtai.core.model.DeskTicketStatus
 import com.distronode.districtai.core.model.DeskTicketStatusResponse
 import com.distronode.districtai.core.model.DeskTicketsResponse
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -184,24 +183,6 @@ private fun createBody(draft: DeskTicketDraft, idempotencyKey: String?): JsonObj
     )
 
 /**
- * ⛔ `workspaceId` IS A QUERY PARAMETER ON ALL NINE DESK ROUTES, THE MULTIPART UPLOAD INCLUDED.
- * Expressed once so no call site can put it in a body by habit.
- */
-private fun workspaceQuery(workspaceId: String): Map<String, String?> =
-    mapOf("workspaceId" to workspaceId)
-
-/**
- * A JSON object with the null-valued pairs DROPPED.
- *
- * ⛔ THE DROP IS THE POINT AND IT IS NOT THE SAME AS `explicitNulls = false` ON A SERIALIZER,
- * because this one can be BYPASSED at a single call site: a pair whose value is [JsonNull] is
- * KEPT. That is what makes "clear the brand name" expressible while "leave it alone" stays
- * absent, and it is why the desk builds its bodies here rather than through the shared encoder.
- */
-private fun jsonObjectOf(vararg pairs: Pair<String, JsonElement?>): JsonObject =
-    JsonObject(pairs.mapNotNull { (key, value) -> value?.let { key to it } }.toMap())
-
-/**
  * The desk's five paths.
  *
  * ⚠️ ITS OWN OBJECT RATHER THAN ENTRIES ON `DistrictPaths`. That object is `internal` to this
@@ -210,7 +191,7 @@ private fun jsonObjectOf(vararg pairs: Pair<String, JsonElement?>): JsonObject =
  * one class that uses it.
  */
 private object DeskPaths {
-    private val DESK = listOf("api", "district", "desk")
+    private val DESK = ApiRoots.DISTRICT + "desk"
 
     val SETTINGS = DESK + "settings"
     val LOGO = DESK + "logo"

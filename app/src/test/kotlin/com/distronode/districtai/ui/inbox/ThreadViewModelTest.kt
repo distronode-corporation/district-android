@@ -621,4 +621,25 @@ class ThreadViewModelTest {
         assertNull(contentOf(vm).sendFailure)
         assertFalse(contentOf(vm).sending)
     }
+
+    /**
+     * ⚠️ A reload that starts while an older page is in flight wins: the page lands on a Loading
+     * state and is dropped, rather than being merged into a thread that is being replaced.
+     */
+    @Test
+    fun `an older page that lands during a reload is dropped`() = runTest(dispatcher) {
+        val api = TestDistrictApi().apply {
+            timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
+            timelinePages["2026-08-15T09:00:00.000Z"] = page(event("m1", "2026-08-15T07:00:00.000Z"))
+        }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+
+        vm.loadOlder()
+        vm.load()
+        advanceUntilIdle()
+
+        assertEquals(listOf("m5"), contentOf(vm).events.map { it.id })
+        assertFalse(contentOf(vm).loadingOlder)
+    }
 }

@@ -12,4 +12,4 @@ class HttpSetupApi(private val client: DistrictApiClient) : SetupApi {
         )
 }
 
-private val SETUP_PATH = listOf("api", "district", "setup")
+private val SETUP_PATH = ApiRoots.DISTRICT + "setup"

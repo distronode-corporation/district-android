@@ -16,7 +16,7 @@ import com.distronode.districtai.core.network.DistrictApi
  *   1. The risk profiles are different. The Inbox's calls are reads plus one billable send;
  *      these are four per-author writes and one that spends a Vertex generation per invocation.
  *      A boundary here means a screen that only reads the Inbox cannot reach the generator.
- *   2. [InboxRepository] sits at five methods and detekt's ceiling is eleven.
+ *   2. [InboxRepository] sits at four methods and detekt's ceiling is eleven.
  *
  * ⛔ THE TWO DRAFT CONCEPTS SHARE A WORD AND NOTHING ELSE. [loadDraft]/[saveDraft]/[deleteDraft]
  * persist what the operator typed and are cheap and idempotent. [generateDraft] INVENTS text and
@@ -43,10 +43,10 @@ class ComposerRepository(private val api: DistrictApi) {
         bytes: ByteArray,
     ): ApiResult<UploadedMedia> {
         if (mimeType !in ALLOWED_MIME_TYPES) {
-            return ApiResult.HttpFailure(status = HTTP_OK, message = UNSUPPORTED_TYPE_MESSAGE)
+            return ApiResult.HttpFailure(status = REFUSAL_STATUS, message = UNSUPPORTED_TYPE_MESSAGE)
         }
         if (bytes.isEmpty() || bytes.size > MAX_UPLOAD_BYTES) {
-            return ApiResult.HttpFailure(status = HTTP_OK, message = SIZE_MESSAGE)
+            return ApiResult.HttpFailure(status = REFUSAL_STATUS, message = SIZE_MESSAGE)
         }
 
         return when (val result = api.uploadMedia(workspaceId, fileName, mimeType, bytes)) {
@@ -59,10 +59,7 @@ class ComposerRepository(private val api: DistrictApi) {
                 if (result.value.success && media != null) {
                     ApiResult.Success(media)
                 } else {
-                    ApiResult.HttpFailure(
-                        status = HTTP_OK,
-                        message = result.value.error.orEmpty(),
-                    )
+                    refusedEnvelope(result.value.error)
                 }
             }
             is ApiResult.Failure -> result
@@ -162,7 +159,7 @@ class ComposerRepository(private val api: DistrictApi) {
                 if (result.value.success) {
                     ApiResult.Success(result.value.draft)
                 } else {
-                    ApiResult.HttpFailure(status = HTTP_OK, message = result.value.error.orEmpty())
+                    refusedEnvelope(result.value.error)
                 }
             is ApiResult.Failure -> result
         }
@@ -187,7 +184,6 @@ class ComposerRepository(private val api: DistrictApi) {
          */
         const val MAX_ATTACHMENTS: Int = 5
 
-        private const val HTTP_OK = 200
         private const val HTTP_BAD_REQUEST = 400
 
         private const val UNSUPPORTED_TYPE_MESSAGE =

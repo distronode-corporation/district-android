@@ -6,11 +6,13 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -107,6 +109,29 @@ class HandBuiltWireTest {
             BlockedContact(contactId = "c1", name = "Ada"),
             """{"contactId":"c1","name":"Ada"}""",
         )
+    }
+
+    /**
+     * ⚠️ Read back field by field, because no transport decodes these in this client yet and the
+     * round trip above compares whole objects. An unblock is told apart only by a null `blockedAt`.
+     */
+    @Test
+    fun `the block answers decode field by field`() {
+        val unblocked = Json.decodeFromString(
+            ContactBlockResponse.serializer(),
+            """{"success":true,"contactId":"c1","name":"Ada","phoneNumber":"+14165550142","blockedAt":null}""",
+        )
+        assertNull(unblocked.blockedAt)
+
+        val list = Json.decodeFromString(
+            BlockedContactsResponse.serializer(),
+            """{"success":true,"blocked":[{"contactId":"c1","name":"Ada","phoneNumber":"+14165550142",""" +
+                """"blockedAt":"2026-09-20T12:00:00.000Z"}]}""",
+        )
+        val only = list.blocked.single()
+        assertEquals("c1", only.contactId)
+        assertEquals("+14165550142", only.phoneNumber)
+        assertEquals("2026-09-20T12:00:00.000Z", only.blockedAt)
     }
 
     @Test

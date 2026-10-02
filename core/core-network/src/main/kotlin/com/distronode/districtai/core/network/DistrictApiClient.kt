@@ -15,7 +15,6 @@ import kotlinx.serialization.json.JsonElement
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -85,6 +84,13 @@ class DistrictApiClient(
      * `MainThreadSafetyTest`.
      */
     private val io: CoroutineDispatcher = Dispatchers.IO,
+    /**
+     * Told about every 2xx that could not be decoded; see [DecodeFailureReporter].
+     *
+     * ⚠️ Defaulted to [DecodeFailureReporter.NONE] so a test, or any client built without one,
+     * reports nothing. The app injects the Sentry-backed one.
+     */
+    private val decodeFailures: DecodeFailureReporter = DecodeFailureReporter.NONE,
 ) {
 
     /**
@@ -263,7 +269,8 @@ class DistrictApiClient(
             .url(buildUrl(baseUrl, segments, query))
             .post(multipart.build())
 
-        return authorizedCall(builder = builder, client = httpClient) { response ->
+        // ⚠️ A clone with a call timeout scaled to the body; see [forUpload].
+        return authorizedCall(builder = builder, client = httpClient.forUpload(bytes.size.toLong())) { response ->
             if (response.isSuccessful) decodeBody(response, serializer) else null
         }
     }
@@ -398,6 +405,10 @@ class DistrictApiClient(
             //     dispatcher wiring above rather than contract drift. Reporting it as a decode
             //     failure is the wrong MESSAGE but the right SEVERITY — it is visible, it is not
             //     silently swallowed, and it does not take the process with it.
+            //
+            // ⛔ BOTH ARE REPORTED, because the user cannot tell anyone which one it was: the type
+            // and the path only, never [text]. See [ResponseDecodeFailure] for why not the cause.
+            decodeFailures.reportSafely(e, serializer.descriptor.serialName, response.request.url.encodedPath)
             ApiResult.DecodeFailure(e, text.take(BODY_PREVIEW_CHARS))
         }
     }
@@ -531,16 +542,6 @@ class DistrictApiClient(
             // cover those.
             explicitNulls = false
         }
-
-        /**
-         * ⛔ ONE HOST FOR EVERY REGION. Per-region base URLs were considered and rejected:
-         * Cloudflare already routes a request to the right origin, so region-specific hosts
-         * would duplicate that logic in the client and go stale independently. It also would
-         * not help — the workspace's region is a property of its DATA, not of which origin
-         * can serve it, and a bearer token works on any of them where the host-only session
-         * cookie would not.
-         */
-        val PRODUCTION_BASE_URL: HttpUrl = "https://www.distronode.com/".toHttpUrl()
     }
 }
 

@@ -1,7 +1,6 @@
 package com.distronode.districtai
 
 import android.content.Context
-import android.util.Log
 import com.distronode.districtai.applinks.AppLinkDeepLinks
 import com.distronode.districtai.auth.DeviceIdentity
 import com.distronode.districtai.auth.LoginController
@@ -33,8 +32,6 @@ import com.distronode.districtai.core.data.MembersRepository
 import com.distronode.districtai.core.data.MessagingRepository
 import com.distronode.districtai.core.data.NumbersRepository
 import com.distronode.districtai.core.data.OverviewRepository
-import com.distronode.districtai.core.data.SchedulingAdminMediaRepository
-import com.distronode.districtai.core.data.SchedulingAdminRepository
 import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.core.data.SetupRepository
 import com.distronode.districtai.core.data.SupportRepository
@@ -68,11 +65,8 @@ import com.distronode.districtai.core.network.HttpDeskApi
 import com.distronode.districtai.core.network.HttpDistrictApi
 import com.distronode.districtai.core.network.HttpInboxExtrasApi
 import com.distronode.districtai.core.network.HttpPersonaApi
-import com.distronode.districtai.core.network.HttpSchedulingAdminApi
 import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSupportApi
-import com.distronode.districtai.core.network.SchedulingAdminApi
-import com.distronode.districtai.core.network.SchedulingAdminOp
 import com.distronode.districtai.telecom.AndroidTelecomBridge
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.inbox.AttachmentReader
@@ -184,8 +178,6 @@ class AppContainer(
     private val callHandlingApi: CallHandlingApi = seams.callHandlingApi ?: HttpCallHandlingApi(apiClient)
     private val inboxExtrasApi: InboxExtrasApi = seams.inboxExtrasApi ?: HttpInboxExtrasApi(apiClient)
     private val callControlApi = HttpCallControlApi(apiClient)
-    private val schedulingAdminApi: SchedulingAdminApi =
-        seams.schedulingAdminApi ?: HttpSchedulingAdminApi(apiClient)
 
     val workspaceRepository: WorkspaceRepository = WorkspaceRepository(
         api = districtApi,
@@ -454,43 +446,6 @@ class AppContainer(
         // succeeds when it is misconfigured. `ApiEnvironment.baseUrl` is the single source.
         webOrigin = ApiEnvironment.baseUrl,
     )
-
-    /**
-     * The scheduling fork's own admin surface: 75 catalogued ops over one RPC route, plus an image
-     * upload and a recording download that cannot travel through it.
-     *
-     * ⛔ A DIFFERENT SURFACE FROM [schedulingRepository], NOT A BIGGER ONE. That repository answers
-     * "is this workspace's booking page switched on, and take me to it"; this one operates the
-     * scheduler itself — event types, availability, bookings, teams, calendars, recordings,
-     * webhooks and API keys. They share a product and nothing else: the status route admits every
-     * role and reports `canManage`, while these ops carry a per-op role bar the server enforces.
-     *
-     * ⚠️ NO SCREEN CONSUMES THIS YET, AND THAT IS THE HONEST STATE RATHER THAN AN OVERSIGHT. The
-     * transport and the typed wrappers exist; the console that drives them has not
-     * been written. It is constructed here anyway because a repository nothing constructs is a
-     * repository nothing can be wrong about — it compiles, it is covered by its own tests, and the
-     * first screen to want it finds it already wired rather than discovering the graph was never
-     * closed.
-     */
-    val schedulingAdminRepository: SchedulingAdminRepository = SchedulingAdminRepository(
-        api = schedulingAdminApi,
-        // ⛔ A 400 `unknown_op` IS A PROGRAMMER ERROR AND NOTHING A USER CAN ACT ON: it means
-        // SchedulingAdminOp and the server's ADMIN_OPS have diverged, which crosses the wire as a
-        // string and is therefore invisible to the compiler. iOS traps it with `assertionFailure`,
-        // which is a debug-only trap; Kotlin has no free release-mode equivalent and a `check`
-        // here would crash a shipped app over a refusal the repository already reports honestly.
-        // So: loud in debug, silent in release, never fatal.
-        reportUnknownOp = { op -> reportUnknownSchedulingOp(op, BuildConfig.DEBUG) },
-    )
-
-    /**
-     * ⛔ SEPARATE FROM [schedulingAdminRepository] BECAUSE THE ROUTES ARE SEPARATE, not because
-     * these two calls are rare. Neither can travel through the op catalog: an image would need a
-     * base64 inflation on both sides of a hop that already has a 5 MiB ceiling, and a recording is
-     * a **302** to a presigned object the server refuses to proxy.
-     */
-    val schedulingAdminMediaRepository: SchedulingAdminMediaRepository =
-        SchedulingAdminMediaRepository(schedulingAdminApi)
 
     /**
      * What the softphone tells the OS about the call it is on.
@@ -851,21 +806,5 @@ class AppContainer(
         if (revokeApi.revoke(pending) == RevokeResult.Done) {
             withContext(Dispatchers.IO) { tokenStore.clearRevokePending() }
         }
-    }
-}
-
-/**
- * Report a scheduler op the server did not recognise: loud in debug, silent in release.
- *
- * ⚠️ `debug` IS A PARAMETER RATHER THAN A READ OF `BuildConfig.DEBUG` so both halves of the rule can
- * be asserted from one build; the call site passes the build's own flag.
- */
-internal fun reportUnknownSchedulingOp(op: SchedulingAdminOp, debug: Boolean) {
-    if (debug) {
-        Log.e(
-            "SchedulingAdmin",
-            "Server rejected op '${op.wire}' as unknown. SchedulingAdminOp and the " +
-                "server's ADMIN_OPS catalog have diverged.",
-        )
     }
 }

@@ -33,8 +33,7 @@ import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.MeetRoomName
 import com.distronode.districtai.core.model.MeetingSummary
-import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.resolve
+import com.distronode.districtai.ui.InlineFailure
 
 /**
  * The rooms lobby: start a meeting, or read the minutes of one that already happened.
@@ -78,7 +77,12 @@ fun RoomsLobbyScreen(
                 when (val list = state.meetings) {
                     MeetingsListState.Loading -> LoadingRows()
                     is MeetingsListState.Ready -> MeetingList(list.meetings, onRejoin, onOpenMeeting)
-                    is MeetingsListState.Failed -> HistoryFailure(list.failure, onRetry)
+                    is MeetingsListState.Failed -> InlineFailure(
+                        title = stringResource(R.string.rooms_history_failed),
+                        failure = list.failure,
+                        onRetry = onRetry,
+                        description = ROOMS_HISTORY_FAILURE_DESCRIPTION,
+                    )
                 }
             }
         }
@@ -184,32 +188,6 @@ private fun MeetingCard(
                     },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun HistoryFailure(failure: FailureText, onRetry: () -> Unit) {
-    DistrictCard(
-        modifier = Modifier.semantics { contentDescription = ROOMS_HISTORY_FAILURE_DESCRIPTION },
-    ) {
-        Eyebrow(stringResource(R.string.rooms_history_failed))
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-        )
-        // ⚠️ Only when retrying could work — a role refusal or a contract mismatch repeats
-        // identically, and a button that cannot help is worse than none.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-            )
         }
     }
 }

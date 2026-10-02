@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.MessagingRepository
 import com.distronode.districtai.core.model.MESSAGING_PROVIDER_SINCH
 import com.distronode.districtai.core.model.MessagingAccount
@@ -93,7 +94,7 @@ class MessagingViewModelLifecycleTest {
             val api = api()
             val model = MessagingViewModel
                 .factory(MessagingRepository(api), "ws-1", WorkspaceRole.VIEWER)
-                .create(MessagingViewModel::class.java)
+                .create(MessagingViewModel::class.java, CreationExtras.Empty)
             advanceUntilIdle()
 
             assertEquals(listOf("ws-1"), api.messagingApi.messagingRequests)

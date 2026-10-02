@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.desk
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.DeskRepository
 import com.distronode.districtai.core.model.DeskBrandName
 import com.distronode.districtai.core.model.DeskLogoRemovalResponse
@@ -489,7 +490,7 @@ class DeskSettingsViewModelTest {
             FakeReader(null),
             "ws-1",
             WorkspaceRole.CLIENT,
-        ).create(DeskSettingsViewModel::class.java)
+        ).create(DeskSettingsViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertTrue(model.canUse)

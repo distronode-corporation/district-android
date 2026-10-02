@@ -23,6 +23,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
+import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
@@ -31,6 +32,11 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.Contact
+import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.PagedAppendFailure
+import com.distronode.districtai.ui.PagedAppendLoading
+import com.distronode.districtai.ui.PagedListEmpty
+import com.distronode.districtai.ui.PagedListLoading
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toPagedFailure
 
@@ -94,12 +100,13 @@ fun ContactsScreen(
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
             when (val refresh = contacts.loadState.refresh) {
-                is LoadState.Loading -> ContactsLoading()
+                is LoadState.Loading -> PagedListLoading(CONTACTS_LOADING_DESCRIPTION)
 
-                is LoadState.Error -> ContactsFailure(
+                is LoadState.Error -> FailureState(
                     failure = refresh.error.toPagedFailure(FALLBACK_MESSAGE),
                     onRetry = contacts::retry,
                     onSignIn = onSignIn,
+                    description = CONTACTS_FAILURE_DESCRIPTION,
                 )
 
                 is LoadState.NotLoading ->
@@ -171,17 +178,42 @@ private fun Loaded(
 
         // APPEND state only, so a failed extra page never destroys the rows already on screen.
         when (val append = contacts.loadState.append) {
-            is LoadState.Loading -> item { ContactsAppending() }
+            is LoadState.Loading -> item { PagedAppendLoading(CONTACTS_APPENDING_DESCRIPTION) }
             is LoadState.Error -> item {
-                ContactsAppendFailure(
+                PagedAppendFailure(
                     failure = append.error.toPagedFailure(FALLBACK_MESSAGE),
                     onRetry = contacts::retry,
                     onSignIn = onSignIn,
+                    description = CONTACTS_APPEND_FAILURE_DESCRIPTION,
                 )
             }
             is LoadState.NotLoading -> Unit
         }
     }
+}
+
+/**
+ * ⚠️ Reachable only once refresh SUCCEEDED, so it genuinely means "no contacts". The create action
+ * lives INSIDE the empty state rather than only on the floating button, because an empty CRM is
+ * exactly where the first contact gets made and pointing at a control elsewhere is a dead end.
+ */
+@Composable
+private fun ContactsEmpty(canMutate: Boolean, onCreate: () -> Unit) {
+    PagedListEmpty(
+        description = CONTACTS_EMPTY_DESCRIPTION,
+        title = stringResource(R.string.contacts_empty_title),
+        body = stringResource(R.string.contacts_empty),
+        action = if (canMutate) {
+            {
+                DistrictButton(
+                    text = stringResource(R.string.contacts_create_action),
+                    onClick = onCreate,
+                )
+            }
+        } else {
+            null
+        },
+    )
 }
 
 @Composable

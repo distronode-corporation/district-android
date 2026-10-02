@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.AiPersona
 import com.distronode.districtai.core.model.ToolConfig
@@ -403,7 +404,7 @@ class CapabilitiesViewModelTest {
         val api = api()
         val vm = CapabilitiesViewModel
             .factory(WorkspaceConfigRepository(api), "ws-1")
-            .create(CapabilitiesViewModel::class.java)
+            .create(CapabilitiesViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals(listOf("ws-1"), api.configRequests)

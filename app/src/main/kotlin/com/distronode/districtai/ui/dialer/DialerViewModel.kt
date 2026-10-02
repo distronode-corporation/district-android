@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.dialer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.CallControlRepository
 import com.distronode.districtai.core.data.CallsRepository
@@ -360,16 +362,17 @@ class DialerViewModel(
             telecom: TelecomBridge,
             workspaceId: String,
             role: WorkspaceRole?,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = DialerViewModel(
-                dialRepository = dialRepository,
-                callsRepository = callsRepository,
-                callControl = callControl,
-                sessions = SoftphoneSessionFactory(engineFactory, telecom),
-                workspaceId = workspaceId,
-                role = role,
-            ) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                DialerViewModel(
+                    dialRepository = dialRepository,
+                    callsRepository = callsRepository,
+                    callControl = callControl,
+                    sessions = SoftphoneSessionFactory(engineFactory, telecom),
+                    workspaceId = workspaceId,
+                    role = role,
+                )
+            }
         }
     }
 }

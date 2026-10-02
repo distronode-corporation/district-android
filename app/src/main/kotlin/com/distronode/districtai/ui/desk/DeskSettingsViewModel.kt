@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.desk
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.DeskRepository
 import com.distronode.districtai.core.model.DeskBrandName
@@ -206,11 +208,8 @@ class DeskSettingsViewModel(
             attachments: AttachmentReader,
             workspaceId: String,
             role: WorkspaceRole?,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return DeskSettingsViewModel(repository, attachments, workspaceId, role) as T
-            }
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { DeskSettingsViewModel(repository, attachments, workspaceId, role) }
         }
     }
 }

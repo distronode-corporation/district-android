@@ -35,8 +35,7 @@ import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.DeskTicketStatus
 import com.distronode.districtai.core.model.DeskTicketSummary
-import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.resolve
+import com.distronode.districtai.ui.FailureState
 
 /**
  * The customer desk queue.
@@ -93,7 +92,12 @@ fun DeskScreen(
                 when (state) {
                     DeskUiState.Loading -> DeskLoading()
                     is DeskUiState.Disabled -> DeskDisabled(onEnable)
-                    is DeskUiState.Failed -> DeskFailure(state.failure, onRetry)
+                    is DeskUiState.Failed -> FailureState(
+                        failure = state.failure,
+                        onRetry = onRetry,
+                        onSignIn = null,
+                        description = DESK_FAILURE_DESCRIPTION,
+                    )
                     is DeskUiState.Content -> DeskLoaded(state, onOpenTicket, onFilter, onCompose)
                 }
             }
@@ -326,34 +330,6 @@ private fun DeskLoading() {
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_ROW_HEIGHT) }
-        }
-    }
-}
-
-@Composable
-private fun DeskFailure(failure: FailureText, onRetry: () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = DESK_FAILURE_DESCRIPTION },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = failure.message.resolve(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.foreground,
-                textAlign = TextAlign.Center,
-            )
-            if (failure.retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-                )
-            }
         }
     }
 }

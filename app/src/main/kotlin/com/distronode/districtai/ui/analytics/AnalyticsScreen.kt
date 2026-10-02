@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -26,16 +23,14 @@ import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictButton
-import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
-import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.model.AnalyticsRange
 import com.distronode.districtai.core.model.AnalyticsResponse
-import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.resolve
+import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.InlineFailure
 
 /**
  * Telephony analytics, this month's metered usage, and the recent-months trend.
@@ -69,7 +64,15 @@ fun AnalyticsScreen(
     ) { inset ->
         when (state) {
             AnalyticsUiState.Loading -> LoadingState(inset)
-            is AnalyticsUiState.Failed -> TotalFailureState(inset, state.failure, onRetry)
+            // ⛔ Reached only when BOTH reads failed. See [AnalyticsUiState.Failed].
+            is AnalyticsUiState.Failed -> FailureState(
+                failure = state.failure,
+                onRetry = onRetry,
+                onSignIn = null,
+                description = ANALYTICS_FAILED_DESCRIPTION,
+                modifier = inset,
+                retryDescription = ANALYTICS_RETRY_DESCRIPTION,
+            )
             is AnalyticsUiState.Content -> ContentState(state, inset, onSelectRange, onRetry)
         }
     }
@@ -92,36 +95,6 @@ private fun LoadingState(inset: Modifier) {
             SkeletonBlock(modifier = Modifier.fillMaxWidth(SKELETON_CHIPS_FRACTION))
             repeat(SKELETON_TILE_ROWS) { SkeletonBlock(height = SKELETON_TILE_HEIGHT) }
             SkeletonBlock(height = CHART_HEIGHT)
-        }
-    }
-}
-
-/** ⛔ Reached only when BOTH reads failed — see [AnalyticsUiState.Failed]. */
-@Composable
-private fun TotalFailureState(inset: Modifier, failure: FailureText, onRetry: () -> Unit) {
-    ContentContainer(modifier = inset.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = ANALYTICS_FAILED_DESCRIPTION },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = failure.message.resolve(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.mutedForeground,
-            )
-            if (failure.retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    modifier = Modifier
-                        .padding(top = DistrictTheme.spacing.section)
-                        .semantics { contentDescription = ANALYTICS_RETRY_DESCRIPTION },
-                )
-            }
         }
     }
 }
@@ -156,11 +129,12 @@ private fun ContentState(
         when (val analytics = state.analytics) {
             is AnalyticsCardState.Ready -> AnalyticsSections(analytics.report)
             is AnalyticsCardState.Failed -> ContentContainer {
-                CardFailure(
+                InlineFailure(
                     title = stringResource(R.string.analytics_failed),
                     failure = analytics.failure,
-                    modifier = Modifier.semantics { contentDescription = ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION },
                     onRetry = onRetry,
+                    description = ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION,
+                    modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
             }
         }
@@ -168,11 +142,12 @@ private fun ContentState(
         ContentContainer {
             when (val usage = state.usage) {
                 is UsageCardState.Ready -> UsageCard(usage.usage)
-                is UsageCardState.Failed -> CardFailure(
+                is UsageCardState.Failed -> InlineFailure(
                     title = stringResource(R.string.analytics_usage_failed),
                     failure = usage.failure,
-                    modifier = Modifier.semantics { contentDescription = ANALYTICS_USAGE_FAILURE_DESCRIPTION },
                     onRetry = onRetry,
+                    description = ANALYTICS_USAGE_FAILURE_DESCRIPTION,
+                    modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
             }
         }
@@ -183,11 +158,12 @@ private fun ContentState(
         ContentContainer {
             when (val history = state.history) {
                 is UsageHistoryCardState.Ready -> UsageHistoryCard(history.months)
-                is UsageHistoryCardState.Failed -> CardFailure(
+                is UsageHistoryCardState.Failed -> InlineFailure(
                     title = stringResource(R.string.analytics_history_failed),
                     failure = history.failure,
-                    modifier = Modifier.semantics { contentDescription = ANALYTICS_HISTORY_FAILURE_DESCRIPTION },
                     onRetry = onRetry,
+                    description = ANALYTICS_HISTORY_FAILURE_DESCRIPTION,
+                    modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
             }
         }
@@ -250,47 +226,6 @@ private fun AnalyticsSections(report: AnalyticsResponse) {
     ContentContainer { TrendCard(report.engagementTrends) }
     ContentContainer { FunnelCard(report.funnelData) }
     ContentContainer { SentimentCard(report.sentimentDistribution) }
-}
-
-/**
- * One card area's own failure.
- *
- * ⚠️ A CARD, NOT A WHOLE-SCREEN STATE. The other half of this screen may have loaded fine, and
- * replacing everything with one message would discard a correct answer already on screen.
- *
- * ⚠️ Each caller hands in its own test handle as a finished [modifier] rather than as a string: the
- * three handles are compile-time constants, and a string parameter made the handle's lambda
- * re-key on a change that no caller could ever make.
- */
-@Composable
-private fun CardFailure(
-    title: String,
-    failure: FailureText,
-    onRetry: () -> Unit,
-    modifier: Modifier,
-) {
-    DistrictCard(
-        modifier = modifier.padding(horizontal = DistrictTheme.spacing.gutter),
-    ) {
-        Eyebrow(title)
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-        )
-        // ⚠️ Offered only when retrying could work. Contract drift and a role refusal produce the
-        // identical failure every time.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-            )
-        }
-    }
 }
 
 private val SKELETON_TILE_HEIGHT: Dp = 72.dp

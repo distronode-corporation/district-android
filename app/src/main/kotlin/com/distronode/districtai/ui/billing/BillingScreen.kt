@@ -12,7 +12,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
@@ -31,9 +29,9 @@ import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.UsageData
 import com.distronode.districtai.core.model.WorkspaceBilling
 import com.distronode.districtai.core.model.WorkspaceRole
-import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.resolve
 import com.distronode.districtai.core.model.allowsMutation
+import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.InlineFailure
 
 /**
  * Billing: what this workspace is on, what it is using, and what has been invoiced.
@@ -78,7 +76,18 @@ fun BillingScreen(
     ) { inset ->
         when (state) {
             BillingUiState.Loading -> LoadingState(inset)
-            is BillingUiState.Failed -> TotalFailureState(inset, state.failure, onRetry)
+            // ⛔ Reached when the **workspace plan** read failed, not when both halves did. Without a
+            // tier and a status there is no headline for this screen, and the Stripe half cannot be
+            // relied on to report a failure at all: its outage arrives as a 200. See
+            // `BillingViewModel.publish`.
+            is BillingUiState.Failed -> FailureState(
+                failure = state.failure,
+                onRetry = onRetry,
+                onSignIn = null,
+                description = BILLING_FAILED_DESCRIPTION,
+                modifier = inset,
+                retryDescription = BILLING_RETRY_DESCRIPTION,
+            )
             is BillingUiState.Content -> ContentState(state, role, inset, onRetry, onOpenInvoice)
         }
     }
@@ -95,40 +104,6 @@ private fun LoadingState(inset: Modifier) {
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_CARD_ROWS) { SkeletonBlock(height = SKELETON_CARD_HEIGHT) }
-        }
-    }
-}
-
-/**
- * ⛔ Reached when the **workspace plan** read failed, not when both halves did. Without a tier and
- * a status there is no headline for this screen, and the Stripe half cannot be relied on to report
- * a failure at all — its outage arrives as a 200. See `BillingViewModel.publish`.
- */
-@Composable
-private fun TotalFailureState(inset: Modifier, failure: FailureText, onRetry: () -> Unit) {
-    ContentContainer(modifier = inset.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = BILLING_FAILED_DESCRIPTION },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = failure.message.resolve(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.mutedForeground,
-            )
-            if (failure.retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    modifier = Modifier
-                        .padding(top = DistrictTheme.spacing.section)
-                        .semantics { contentDescription = BILLING_RETRY_DESCRIPTION },
-                )
-            }
         }
     }
 }
@@ -175,11 +150,16 @@ private fun ContentState(
                 ContentContainer { InvoicesCard(stripe.detail, onOpenInvoice) }
             }
             is StripeSectionState.Failed -> ContentContainer {
-                BillingCardFailure(
+                // ⚠️ A CARD, NOT A WHOLE-SCREEN STATE: the plan card above came from a different server
+                // and is still correct. And this is NOT how a Stripe outage arrives: that is a 200
+                // carrying `billingUnavailable`, drawn as StripeUnavailableCard. This one means the
+                // request itself failed (an unreachable origin, a dead session, an unparseable shape).
+                InlineFailure(
                     title = stringResource(R.string.billing_stripe_failed),
                     failure = stripe.failure,
-                    description = BILLING_STRIPE_FAILURE_DESCRIPTION,
                     onRetry = onRetry,
+                    description = BILLING_STRIPE_FAILURE_DESCRIPTION,
+                    modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
             }
         }

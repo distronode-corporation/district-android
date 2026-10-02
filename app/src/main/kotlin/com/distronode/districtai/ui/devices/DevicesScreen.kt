@@ -33,7 +33,7 @@ import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.model.NativeDevice
-import com.distronode.districtai.ui.FailureText
+import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -105,7 +105,12 @@ fun DevicesScreen(
                         onRequestRevoke = { confirming = it },
                         onRequestRevokeAll = { confirmingAll = true },
                     )
-                    is DevicesListState.Failed -> DevicesFailure(list.failure, onRetry)
+                    is DevicesListState.Failed -> InlineFailure(
+                        title = stringResource(R.string.devices_failed),
+                        failure = list.failure,
+                        onRetry = onRetry,
+                        description = DEVICES_LIST_FAILURE_DESCRIPTION,
+                    )
                 }
             }
         }
@@ -288,32 +293,6 @@ private fun DeviceNotice(message: String, destructive: Boolean, onDismiss: () ->
             size = ButtonSize.Sm,
             modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
         )
-    }
-}
-
-@Composable
-private fun DevicesFailure(failure: FailureText, onRetry: () -> Unit) {
-    DistrictCard(
-        modifier = Modifier.semantics { contentDescription = DEVICES_LIST_FAILURE_DESCRIPTION },
-    ) {
-        Eyebrow(stringResource(R.string.devices_failed))
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-        )
-        // ⚠️ Only when retrying could work. A signed-out failure repeats identically, and a
-        // button that cannot help is worse than none.
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
-            )
-        }
     }
 }
 

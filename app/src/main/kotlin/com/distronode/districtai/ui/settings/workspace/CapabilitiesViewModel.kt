@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.settings.workspace
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.SaveOutcome
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.PersonaPatchRequest
@@ -143,48 +145,28 @@ class CapabilitiesViewModel(
     private fun applyToolsOutcome(
         current: CapabilitiesUiState,
         outcome: SaveOutcome,
-    ): CapabilitiesUiState = when (outcome) {
-        is SaveOutcome.Saved -> current.copy(
-            load = ConfigState.Ready(outcome.config),
-            toolToggles = emptyMap(),
-            toolsSave = SaveState.Saved,
-        )
-        is SaveOutcome.SavedButStale -> current.copy(
-            toolToggles = emptyMap(),
-            toolsSave = SaveState.SavedButStale(outcome.failure.toFailureText()),
-        )
-        // ⛔ THE TOGGLES SURVIVE. The operator's intent is still on screen and still theirs.
-        is SaveOutcome.NotSaved -> current.copy(
-            toolsSave = SaveState.Failed(outcome.failure.toFailureText()),
-        )
-    }
+    ): CapabilitiesUiState = current.copy(
+        load = outcome.savedConfig?.let(ConfigState::Ready) ?: current.load,
+        // ⛔ THE TOGGLES SURVIVE NotSaved. The operator's intent is still on screen and still theirs.
+        toolToggles = if (outcome is SaveOutcome.NotSaved) current.toolToggles else emptyMap(),
+        toolsSave = outcome.saveState,
+    )
 
     private fun applyEnrichmentOutcome(
         current: CapabilitiesUiState,
         outcome: SaveOutcome,
-    ): CapabilitiesUiState = when (outcome) {
-        is SaveOutcome.Saved -> current.copy(
-            load = ConfigState.Ready(outcome.config),
-            enrichmentDraft = null,
-            enrichmentSave = SaveState.Saved,
-        )
-        is SaveOutcome.SavedButStale -> current.copy(
-            enrichmentDraft = null,
-            enrichmentSave = SaveState.SavedButStale(outcome.failure.toFailureText()),
-        )
-        is SaveOutcome.NotSaved -> current.copy(
-            enrichmentSave = SaveState.Failed(outcome.failure.toFailureText()),
-        )
-    }
+    ): CapabilitiesUiState = current.copy(
+        load = outcome.savedConfig?.let(ConfigState::Ready) ?: current.load,
+        enrichmentDraft = if (outcome is SaveOutcome.NotSaved) current.enrichmentDraft else null,
+        enrichmentSave = outcome.saveState,
+    )
 
     companion object {
         fun factory(
             repository: WorkspaceConfigRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                CapabilitiesViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { CapabilitiesViewModel(repository, workspaceId) }
         }
     }
 }

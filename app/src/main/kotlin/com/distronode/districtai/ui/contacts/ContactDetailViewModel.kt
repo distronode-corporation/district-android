@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.contacts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.ContactsRepository
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.WorkspaceRole
@@ -302,10 +304,8 @@ class ContactDetailViewModel(
             workspaceId: String,
             contactId: String,
             role: WorkspaceRole?,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                ContactDetailViewModel(repository, workspaceId, contactId, role) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { ContactDetailViewModel(repository, workspaceId, contactId, role) }
         }
     }
 }

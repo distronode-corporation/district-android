@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.settings.workspace
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,10 +14,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -55,27 +50,14 @@ fun CallHandlingScreen(
     onRetry: () -> Unit,
     onBack: () -> Unit,
 ) {
-    var confirmingExit by remember { mutableStateOf(false) }
-
-    // ⛔ The system back gesture, not only the top-bar arrow — see PersonaFormScreen.
-    BackHandler(enabled = state.hasUnsavedChanges) { confirmingExit = true }
-
-    if (confirmingExit) {
-        UnsavedChangesDialog(
-            onDiscard = {
-                confirmingExit = false
-                onBack()
-            },
-            onDismiss = { confirmingExit = false },
-        )
-    }
+    val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
 
     DistrictScaffold(
         modifier = Modifier.semantics { contentDescription = CALL_HANDLING_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.call_handling_title),
-                onBack = { if (state.hasUnsavedChanges) confirmingExit = true else onBack() },
+                onBack = guardedBack,
             )
         },
     ) { inset ->

@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,8 +37,10 @@ import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -71,7 +72,12 @@ fun ThreadScreen(
         Box(modifier = inset.fillMaxSize()) {
             when (state) {
                 ThreadUiState.Loading -> ThreadLoading()
-                is ThreadUiState.Failed -> ThreadFailure(state, onRetry)
+                is ThreadUiState.Failed -> FailureState(
+                    failure = state.failure,
+                    onRetry = onRetry,
+                    onSignIn = null,
+                    description = THREAD_FAILURE_DESCRIPTION,
+                )
                 is ThreadUiState.Content ->
                     Loaded(state, canReply, onSend, onDismissSendFailure, onLoadOlder, composer)
             }
@@ -302,16 +308,7 @@ private fun ReplyBox(
                 label = { Eyebrow(stringResource(R.string.thread_reply_label)) },
                 enabled = !state.sending,
                 maxLines = REPLY_MAX_LINES,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = DistrictTheme.colors.muted,
-                    unfocusedContainerColor = DistrictTheme.colors.muted,
-                    disabledContainerColor = DistrictTheme.colors.muted,
-                    focusedBorderColor = DistrictTheme.colors.district,
-                    unfocusedBorderColor = DistrictTheme.colors.border,
-                    focusedTextColor = DistrictTheme.colors.foreground,
-                    unfocusedTextColor = DistrictTheme.colors.foreground,
-                    cursorColor = DistrictTheme.colors.district,
-                ),
+                colors = districtFieldColors(),
                 modifier = Modifier
                     .weight(1f)
                     .semantics { contentDescription = THREAD_REPLY_FIELD_DESCRIPTION },
@@ -530,34 +527,6 @@ private fun ThreadLoading() {
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_BUBBLES) { SkeletonBlock(height = SKELETON_BUBBLE_HEIGHT) }
-        }
-    }
-}
-
-@Composable
-private fun ThreadFailure(state: ThreadUiState.Failed, onRetry: () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = THREAD_FAILURE_DESCRIPTION },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = state.failure.message.resolve(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.foreground,
-                textAlign = TextAlign.Center,
-            )
-            if (state.failure.retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-                )
-            }
         }
     }
 }

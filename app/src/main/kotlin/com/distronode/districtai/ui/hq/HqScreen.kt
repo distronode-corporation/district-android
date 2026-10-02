@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -39,7 +37,9 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.HqPendingWrite
+import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -109,11 +109,15 @@ fun HqScreen(
             }
 
             if (state is HqUiState.Failed) {
-                FailureRow(
-                    message = state.failure.message.resolve(),
-                    retryable = state.failure.retryable,
-                    onRetry = onRetry,
-                )
+                ContentContainer {
+                    InlineFailure(
+                        title = null,
+                        failure = state.failure,
+                        onRetry = onRetry,
+                        description = HQ_FAILURE_DESCRIPTION,
+                        modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
+                    )
+                }
             }
 
             Composer(enabled = state !is HqUiState.Thinking && state !is HqUiState.Applying, onSend = onSend)
@@ -307,38 +311,6 @@ private fun ConfirmCard(
     }
 }
 
-@Composable
-private fun FailureRow(message: String, retryable: Boolean, onRetry: () -> Unit) {
-    ContentContainer {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = HQ_FAILURE_DESCRIPTION },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-        ) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = DistrictTheme.colors.destructive,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.weight(1f),
-            )
-            // ⚠️ Offered only when retrying could work. A contract mismatch or a role refusal
-            // produces the identical failure every time.
-            if (retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    variant = ButtonVariant.Ghost,
-                    size = ButtonSize.Sm,
-                )
-            }
-        }
-    }
-}
-
 /**
  * ⛔ `rememberSaveable`, NOT `remember`. This is user input and the activity is `singleTask` with no
  * `android:configChanges`, so a rotation or a font-size change destroys plain state. A half-typed
@@ -362,16 +334,7 @@ private fun Composer(enabled: Boolean, onSend: (String) -> Unit) {
                 label = { Eyebrow(stringResource(R.string.hq_prompt_label)) },
                 enabled = enabled,
                 maxLines = PROMPT_MAX_LINES,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = DistrictTheme.colors.muted,
-                    unfocusedContainerColor = DistrictTheme.colors.muted,
-                    disabledContainerColor = DistrictTheme.colors.muted,
-                    focusedBorderColor = DistrictTheme.colors.district,
-                    unfocusedBorderColor = DistrictTheme.colors.border,
-                    focusedTextColor = DistrictTheme.colors.foreground,
-                    unfocusedTextColor = DistrictTheme.colors.foreground,
-                    cursorColor = DistrictTheme.colors.district,
-                ),
+                colors = districtFieldColors(),
                 modifier = Modifier
                     .weight(1f)
                     .semantics { contentDescription = HQ_PROMPT_FIELD_DESCRIPTION },

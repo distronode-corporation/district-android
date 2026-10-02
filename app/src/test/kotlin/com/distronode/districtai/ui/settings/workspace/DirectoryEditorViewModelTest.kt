@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.DirectoryField
 import com.distronode.districtai.core.model.WorkspaceConfig
@@ -427,7 +428,7 @@ class DirectoryEditorViewModelTest {
         val api = api()
         val vm = DirectoryEditorViewModel
             .factory(WorkspaceConfigRepository(api), "ws-1")
-            .create(DirectoryEditorViewModel::class.java)
+            .create(DirectoryEditorViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals(listOf("ws-1"), api.configRequests)

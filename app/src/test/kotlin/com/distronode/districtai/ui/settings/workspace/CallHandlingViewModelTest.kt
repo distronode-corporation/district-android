@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.CallHandlingRepository
 import com.distronode.districtai.core.model.AvailabilityReason
 import com.distronode.districtai.core.model.AvailabilityResponse
@@ -316,7 +317,7 @@ class CallHandlingViewModelTest {
         val api = api()
         val vm = CallHandlingViewModel
             .factory(CallHandlingRepository(api), "ws-1", WorkspaceRole.VIEWER)
-            .create(CallHandlingViewModel::class.java)
+            .create(CallHandlingViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertTrue(vm.state.value.load is CallHandlingLoad.Ready)

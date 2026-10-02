@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,6 +15,7 @@ import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtFieldColors
 
 /**
  * The form that starts or joins a room.
@@ -82,23 +82,6 @@ internal fun StartRoomCard(
         )
     }
 }
-
-/**
- * ⚠️ A LOCAL COPY OF THE FIELD COLOURS, matching `CreateContactDialog`'s. `OutlinedTextField` draws
- * its own Material greys for the container and placeholder, which are not this theme's
- * `--muted`/`--muted-foreground`.
- */
-@Composable
-private fun districtFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = DistrictTheme.colors.muted,
-    unfocusedContainerColor = DistrictTheme.colors.muted,
-    disabledContainerColor = DistrictTheme.colors.muted,
-    focusedBorderColor = DistrictTheme.colors.district,
-    unfocusedBorderColor = DistrictTheme.colors.border,
-    focusedTextColor = DistrictTheme.colors.foreground,
-    unfocusedTextColor = DistrictTheme.colors.foreground,
-    cursorColor = DistrictTheme.colors.district,
-)
 
 /** Stable handles for tests; a literal duplicated in a test drifts silently. */
 const val ROOMS_START_DESCRIPTION: String = "district-rooms-start"

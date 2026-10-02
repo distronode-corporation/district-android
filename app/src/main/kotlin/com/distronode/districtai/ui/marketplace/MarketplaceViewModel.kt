@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.marketplace
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.NumbersRepository
 import com.distronode.districtai.core.model.NumberSearchResponse
 import com.distronode.districtai.core.model.OwnedNumbersResponse
@@ -127,10 +129,8 @@ class MarketplaceViewModel(
         fun factory(
             repository: NumbersRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                MarketplaceViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { MarketplaceViewModel(repository, workspaceId) }
         }
     }
 }

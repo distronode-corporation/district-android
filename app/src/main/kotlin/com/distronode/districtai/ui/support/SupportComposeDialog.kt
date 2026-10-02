@@ -20,6 +20,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.SupportRequestKind
 import com.distronode.districtai.ui.resolve
 
@@ -106,6 +107,7 @@ fun SupportComposeDialog(
                     label = { Text(stringResource(R.string.support_compose_subject)) },
                     enabled = !state.submitting,
                     singleLine = true,
+                    colors = districtFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .semantics { contentDescription = SUPPORT_COMPOSE_SUBJECT_DESCRIPTION },
@@ -115,6 +117,7 @@ fun SupportComposeDialog(
                     onValueChange = onMessage,
                     label = { Text(stringResource(R.string.support_compose_message)) },
                     enabled = !state.submitting,
+                    colors = districtFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .semantics { contentDescription = SUPPORT_COMPOSE_MESSAGE_DESCRIPTION },

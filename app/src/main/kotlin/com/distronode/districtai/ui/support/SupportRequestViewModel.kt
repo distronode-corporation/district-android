@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.support
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.SupportRepository
 import com.distronode.districtai.core.model.SupportStatusCategory
 import com.distronode.districtai.core.model.WorkspaceRole
@@ -175,11 +177,8 @@ class SupportRequestViewModel(
             workspaceId: String,
             key: String,
             role: WorkspaceRole?,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return SupportRequestViewModel(repository, workspaceId, key, role) as T
-            }
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { SupportRequestViewModel(repository, workspaceId, key, role) }
         }
     }
 }

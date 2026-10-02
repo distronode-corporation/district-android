@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.KnowledgeRepository
 import com.distronode.districtai.core.model.KB_MODE_INTERNAL
 import com.distronode.districtai.core.model.KB_MODE_LINKED
@@ -393,7 +394,7 @@ class KnowledgeViewModelTest {
             val api = api()
             val vm = KnowledgeViewModel
                 .factory(KnowledgeRepository(api), "ws-1", WorkspaceRole.VIEWER)
-                .create(KnowledgeViewModel::class.java)
+                .create(KnowledgeViewModel::class.java, CreationExtras.Empty)
             advanceUntilIdle()
 
             assertEquals(listOf("ws-1"), api.knowledgeListRequests)

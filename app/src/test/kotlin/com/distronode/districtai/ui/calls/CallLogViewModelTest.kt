@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.calls
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.ui.TestDistrictApi
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +64,7 @@ class CallLogViewModelTest {
     fun `the factory builds a viewmodel bound to the id it was given`() {
         val factory = CallLogViewModel.factory(repository(), workspaceId = "ws-2")
 
-        val created = factory.create(CallLogViewModel::class.java)
+        val created = factory.create(CallLogViewModel::class.java, CreationExtras.Empty)
 
         assertEquals("ws-2", created.workspaceId)
     }
@@ -72,8 +73,8 @@ class CallLogViewModelTest {
     fun `two workspaces get two viewmodels, never one that changes tenant`() {
         val shared = repository()
 
-        val first = CallLogViewModel.factory(shared, "ws-1").create(CallLogViewModel::class.java)
-        val second = CallLogViewModel.factory(shared, "ws-2").create(CallLogViewModel::class.java)
+        val first = CallLogViewModel.factory(shared, "ws-1").create(CallLogViewModel::class.java, CreationExtras.Empty)
+        val second = CallLogViewModel.factory(shared, "ws-2").create(CallLogViewModel::class.java, CreationExtras.Empty)
 
         assertNotSame(first, second)
         assertEquals("ws-1", first.workspaceId)
@@ -83,7 +84,7 @@ class CallLogViewModelTest {
     @Test
     fun `the factory returns something the ViewModelStore will accept`() {
         val created: ViewModel =
-            CallLogViewModel.factory(repository(), "ws-1").create(CallLogViewModel::class.java)
+            CallLogViewModel.factory(repository(), "ws-1").create(CallLogViewModel::class.java, CreationExtras.Empty)
 
         assertTrue(created is CallLogViewModel)
     }

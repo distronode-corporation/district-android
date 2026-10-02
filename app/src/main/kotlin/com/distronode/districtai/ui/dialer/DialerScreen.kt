@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,6 +32,7 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.resolve
 
@@ -255,22 +255,6 @@ private fun CallbackRow(call: CallSummary, handlers: DialerHandlers) {
         },
     )
 }
-
-/**
- * ⚠️ A LOCAL COPY OF THE FIELD COLOURS, matching `StartRoomCard`'s and `CreateContactDialog`'s.
- * `OutlinedTextField` draws its own Material greys, which are not this theme's tokens.
- */
-@Composable
-private fun districtFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = DistrictTheme.colors.muted,
-    unfocusedContainerColor = DistrictTheme.colors.muted,
-    disabledContainerColor = DistrictTheme.colors.muted,
-    focusedBorderColor = DistrictTheme.colors.district,
-    unfocusedBorderColor = DistrictTheme.colors.border,
-    focusedTextColor = DistrictTheme.colors.foreground,
-    unfocusedTextColor = DistrictTheme.colors.foreground,
-    cursorColor = DistrictTheme.colors.district,
-)
 
 /**
  * Every callback the dialler and the in-call screen need.

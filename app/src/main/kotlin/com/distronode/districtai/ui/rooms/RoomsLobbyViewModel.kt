@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.rooms
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.MeetingsRepository
 import com.distronode.districtai.core.model.MeetRoomName
 import com.distronode.districtai.core.network.ApiResult
@@ -137,10 +139,8 @@ class RoomsLobbyViewModel(
         fun factory(
             repository: MeetingsRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                RoomsLobbyViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { RoomsLobbyViewModel(repository, workspaceId) }
         }
     }
 }

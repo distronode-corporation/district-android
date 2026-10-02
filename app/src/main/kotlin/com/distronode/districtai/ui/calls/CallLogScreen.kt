@@ -24,6 +24,11 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.CallSummary
+import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.PagedAppendFailure
+import com.distronode.districtai.ui.PagedAppendLoading
+import com.distronode.districtai.ui.PagedListEmpty
+import com.distronode.districtai.ui.PagedListLoading
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toPagedFailure
 import com.distronode.districtai.ui.toneForCallStatus
@@ -67,15 +72,21 @@ fun CallLogScreen(
             // footer. Conflating them would replace a populated list with a full-screen error
             // because one extra page failed to load.
             when (val refresh = calls.loadState.refresh) {
-                is LoadState.Loading -> FullScreenLoading()
-                is LoadState.Error -> FullScreenFailure(
+                is LoadState.Loading -> PagedListLoading(CALL_LOG_LOADING_DESCRIPTION)
+                is LoadState.Error -> FailureState(
                     failure = refresh.error.toPagedFailure(FALLBACK_MESSAGE),
                     onRetry = calls::retry,
                     onSignIn = onSignIn,
+                    description = CALL_LOG_FAILURE_DESCRIPTION,
                 )
                 is LoadState.NotLoading ->
                     if (calls.itemCount == 0) {
-                        EmptyLog()
+                        // ⚠️ Only reachable once refresh SUCCEEDED, so this means "no calls".
+                        PagedListEmpty(
+                            description = CALL_LOG_EMPTY_DESCRIPTION,
+                            title = stringResource(R.string.overview_recent_empty_title),
+                            body = stringResource(R.string.overview_recent_empty),
+                        )
                     } else {
                         LoadedLog(calls, onOpenCall, onSignIn)
                     }
@@ -107,12 +118,13 @@ private fun LoadedLog(
         // The footer reports only APPEND state, so a failed extra page never destroys the rows
         // already on screen.
         when (val append = calls.loadState.append) {
-            is LoadState.Loading -> item { AppendLoading() }
+            is LoadState.Loading -> item { PagedAppendLoading(CALL_LOG_APPENDING_DESCRIPTION) }
             is LoadState.Error -> item {
-                AppendFailure(
+                PagedAppendFailure(
                     failure = append.error.toPagedFailure(FALLBACK_MESSAGE),
                     onRetry = calls::retry,
                     onSignIn = onSignIn,
+                    description = CALL_LOG_APPEND_FAILURE_DESCRIPTION,
                 )
             }
             is LoadState.NotLoading -> Unit

@@ -31,8 +31,12 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
+import com.distronode.districtai.core.designsystem.districtFieldColors
+import com.distronode.districtai.ui.CenteredState
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
+import com.distronode.districtai.ui.settings.workspace.rememberUnsavedChangesGuard
 
 /**
  * The desk's settings, and the customer-facing logo.
@@ -59,11 +63,18 @@ fun DeskSettingsScreen(
     onRetry: () -> Unit,
     onBack: () -> Unit,
 ) {
+    // ⛔ THE SAME GUARD AS THE WORKSPACE-SETTINGS SCREENS. A dirty brand name or toggle used to be
+    // dropped silently by a back gesture here while every workspace-settings screen asked first.
+    val guardedBack = rememberUnsavedChangesGuard(
+        hasUnsavedChanges = (state as? DeskSettingsUiState.Content)?.dirty == true,
+        onBack = onBack,
+    )
+
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
         modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_ROOT_DESCRIPTION },
         topBar = {
-            DistrictTopBar(title = stringResource(R.string.desk_settings_title), onBack = onBack)
+            DistrictTopBar(title = stringResource(R.string.desk_settings_title), onBack = guardedBack)
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
@@ -74,7 +85,12 @@ fun DeskSettingsScreen(
             } else {
                 when (state) {
                     DeskSettingsUiState.Loading -> SettingsLoading()
-                    is DeskSettingsUiState.Failed -> SettingsFailure(state.failure, onRetry)
+                    is DeskSettingsUiState.Failed -> FailureState(
+                        failure = state.failure,
+                        onRetry = onRetry,
+                        onSignIn = null,
+                        description = DESK_SETTINGS_FAILURE_DESCRIPTION,
+                    )
                     is DeskSettingsUiState.Content -> SettingsForm(
                         state = state,
                         onEnabled = onEnabled,
@@ -130,6 +146,7 @@ private fun SettingsForm(
                     label = { Text(stringResource(R.string.desk_settings_brand_name)) },
                     enabled = !state.saving,
                     singleLine = true,
+                    colors = districtFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = DistrictTheme.spacing.tight)
@@ -304,48 +321,13 @@ private fun SettingsLoading() {
 
 @Composable
 private fun SettingsRefused() {
-    Centered(DESK_SETTINGS_REFUSED_DESCRIPTION) {
+    CenteredState(DESK_SETTINGS_REFUSED_DESCRIPTION) {
         Text(
             text = stringResource(R.string.desk_viewer_body),
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun SettingsFailure(failure: FailureText, onRetry: () -> Unit) {
-    Centered(DESK_SETTINGS_FAILURE_DESCRIPTION) {
-        Text(
-            text = failure.message.resolve(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = DistrictTheme.colors.foreground,
-            textAlign = TextAlign.Center,
-        )
-        if (failure.retryable) {
-            DistrictButton(
-                text = stringResource(R.string.overview_retry),
-                onClick = onRetry,
-                modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-            )
-        }
-    }
-}
-
-@Composable
-private fun Centered(description: String, content: @Composable () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = description },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            content()
-        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.analytics
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.AnalyticsRepository
 import com.distronode.districtai.core.model.AnalyticsMetrics
@@ -451,7 +452,7 @@ class AnalyticsViewModelTest {
         val api = healthyApi()
         val vm = AnalyticsViewModel
             .factory(AnalyticsRepository(api), "ws-other")
-            .create(AnalyticsViewModel::class.java)
+            .create(AnalyticsViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals("ws-other", api.analyticsRequests.single().first)

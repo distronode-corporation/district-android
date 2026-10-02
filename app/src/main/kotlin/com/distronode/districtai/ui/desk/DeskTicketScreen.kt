@@ -32,9 +32,11 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.DeskMessage
 import com.distronode.districtai.core.model.DeskMessageAuthor
 import com.distronode.districtai.core.model.DeskTicketStatus
+import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
 
@@ -76,7 +78,12 @@ fun DeskTicketScreen(
             } else {
                 when (state) {
                     DeskTicketUiState.Loading -> TicketLoading()
-                    is DeskTicketUiState.Failed -> TicketFailure(state.failure, onRetry)
+                    is DeskTicketUiState.Failed -> FailureState(
+                        failure = state.failure,
+                        onRetry = onRetry,
+                        onSignIn = null,
+                        description = DESK_TICKET_FAILURE_DESCRIPTION,
+                    )
                     is DeskTicketUiState.Content ->
                         TicketLoaded(state, draft, onDraftChange, onSend, onSetStatus)
                 }
@@ -236,6 +243,7 @@ private fun ReplyBox(
                 onValueChange = onDraftChange,
                 label = { Text(stringResource(R.string.desk_reply_label)) },
                 enabled = !state.sending,
+                colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = DESK_TICKET_REPLY_DESCRIPTION },
@@ -305,34 +313,6 @@ private fun TicketRefused() {
                 color = DistrictTheme.colors.foreground,
                 textAlign = TextAlign.Center,
             )
-        }
-    }
-}
-
-@Composable
-private fun TicketFailure(failure: FailureText, onRetry: () -> Unit) {
-    ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = DESK_TICKET_FAILURE_DESCRIPTION },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = failure.message.resolve(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = DistrictTheme.colors.foreground,
-                textAlign = TextAlign.Center,
-            )
-            if (failure.retryable) {
-                DistrictButton(
-                    text = stringResource(R.string.overview_retry),
-                    onClick = onRetry,
-                    modifier = Modifier.padding(top = DistrictTheme.spacing.section),
-                )
-            }
         }
     }
 }

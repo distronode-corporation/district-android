@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.settings.workspace
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.AiPersona
@@ -455,7 +456,7 @@ class PersonaFormViewModelTest {
             val api = api()
             val vm = PersonaFormViewModel
                 .factory(WorkspaceConfigRepository(api), PersonaOptionsRepository(catalogueApi()), "ws-1")
-                .create(PersonaFormViewModel::class.java)
+                .create(PersonaFormViewModel::class.java, CreationExtras.Empty)
             advanceUntilIdle()
 
             assertEquals(listOf("ws-1"), api.configRequests)

@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.settings.workspace
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.CallEngine
@@ -298,13 +300,14 @@ class PersonaPreviewViewModel(
             repository: PersonaOptionsRepository,
             workspaceId: String,
             engineFactory: CallEngineFactory,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = PersonaPreviewViewModel(
-                repository = repository,
-                workspaceId = workspaceId,
-                engineFactory = engineFactory,
-            ) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                PersonaPreviewViewModel(
+                    repository = repository,
+                    workspaceId = workspaceId,
+                    engineFactory = engineFactory,
+                )
+            }
         }
     }
 }

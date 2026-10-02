@@ -15,6 +15,8 @@ import com.distronode.districtai.core.model.DeskSettings
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
+import com.distronode.districtai.ui.settings.workspace.WORKSPACE_SETTINGS_DISCARD_DESCRIPTION
+import com.distronode.districtai.ui.settings.workspace.WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -329,6 +331,32 @@ class DeskSettingsScreenTest {
     fun `the app bar back action reports the tap`() {
         val recorder = Recorder()
         render(loaded, recorder = recorder)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+
+        assertEquals(1, recorder.backs)
+    }
+
+    @Test
+    fun `back with an unsaved brand name asks first, and keeping editing stays`() {
+        // ⛔ The same guard as the workspace-settings screens: a dirty draft is not dropped silently.
+        val recorder = Recorder()
+        render(loaded.copy(brandName = "Acme", brandNameEdited = true), recorder = recorder)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).assertDoesNotExist()
+        assertEquals(0, recorder.backs)
+
+        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        assertEquals(1, recorder.backs)
+    }
+
+    @Test
+    fun `back from a failed load leaves at once, because there is no draft to lose`() {
+        val recorder = Recorder()
+        render(DeskSettingsUiState.Failed(FailureText(message = UiText.Literal("Offline"))), recorder = recorder)
 
         composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
 

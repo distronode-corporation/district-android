@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.overview
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.R
 import com.distronode.districtai.core.auth.ReauthReason
 import com.distronode.districtai.core.data.OverviewRepository
@@ -448,7 +449,7 @@ class OverviewViewModelTest {
             workspaceRepository = WorkspaceRepository(api, FakeStore()),
             overviewRepository = OverviewRepository(api),
             setupRepository = null,
-        ).create(OverviewViewModel::class.java)
+        ).create(OverviewViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals("Alpha", (vm.state.value as OverviewUiState.Content).active.name)

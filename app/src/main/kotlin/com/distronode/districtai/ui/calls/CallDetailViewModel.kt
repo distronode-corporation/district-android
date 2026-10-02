@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.calls
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
@@ -116,10 +118,8 @@ class CallDetailViewModel(
             repository: CallsRepository,
             workspaceId: String,
             callId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                CallDetailViewModel(repository, workspaceId, callId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { CallDetailViewModel(repository, workspaceId, callId) }
         }
     }
 }

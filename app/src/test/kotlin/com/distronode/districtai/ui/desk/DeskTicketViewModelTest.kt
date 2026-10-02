@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.desk
 
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.DeskRepository
 import com.distronode.districtai.core.model.DeskMessage
 import com.distronode.districtai.core.model.DeskReplyResponse
@@ -385,7 +386,7 @@ class DeskTicketViewModelTest {
     fun `the factory builds a model for the ticket it was given`() = runTest {
         val api = api()
         val model = DeskTicketViewModel.factory(DeskRepository(api) { "key" }, "ws-1", "tkt_1", WorkspaceRole.CLIENT)
-            .create(DeskTicketViewModel::class.java)
+            .create(DeskTicketViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals("tkt_1", model.ticketId)

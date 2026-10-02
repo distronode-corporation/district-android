@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.analytics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.AnalyticsRepository
 import com.distronode.districtai.core.model.AnalyticsRange
 import com.distronode.districtai.core.model.AnalyticsResponse
@@ -171,10 +173,8 @@ class AnalyticsViewModel(
         fun factory(
             repository: AnalyticsRepository,
             workspaceId: String,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                AnalyticsViewModel(repository, workspaceId) as T
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { AnalyticsViewModel(repository, workspaceId) }
         }
     }
 }

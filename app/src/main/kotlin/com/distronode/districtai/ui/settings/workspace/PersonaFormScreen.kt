@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.settings.workspace
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,10 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -28,6 +23,7 @@ import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.AiPersona
 
 /**
@@ -63,30 +59,14 @@ fun PersonaFormScreen(
     onUpdateEngineValues: (PersonaEngineValues) -> Unit,
     onPreview: () -> Unit,
 ) {
-    // ⚠️ `remember`, not `rememberSaveable`: the dialog is a transient response to a back press
-    // and nothing typed lives in it. The DRAFT lives in the ViewModel, which survives rotation.
-    var confirmingExit by remember { mutableStateOf(false) }
-
-    // ⛔ INTERCEPTS THE SYSTEM BACK GESTURE, NOT JUST THE TOP-BAR ARROW. On Android the gesture is
-    // how people actually leave a screen, so a guard wired only to the arrow guards nothing.
-    BackHandler(enabled = state.hasUnsavedChanges) { confirmingExit = true }
-
-    if (confirmingExit) {
-        UnsavedChangesDialog(
-            onDiscard = {
-                confirmingExit = false
-                onBack()
-            },
-            onDismiss = { confirmingExit = false },
-        )
-    }
+    val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
 
     DistrictScaffold(
         modifier = Modifier.semantics { contentDescription = PERSONA_ROOT_DESCRIPTION },
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.persona_title),
-                onBack = { if (state.hasUnsavedChanges) confirmingExit = true else onBack() },
+                onBack = guardedBack,
             )
         },
     ) { inset ->

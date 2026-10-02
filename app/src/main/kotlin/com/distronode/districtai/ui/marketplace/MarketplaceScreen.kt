@@ -27,6 +27,7 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
+import com.distronode.districtai.ui.InlineFailure
 
 /**
  * The phone-number marketplace: what the workspace has, and what a carrier has for sale.
@@ -148,11 +149,12 @@ private fun OwnedTab(state: OwnedState, onRetry: () -> Unit) {
         }
         is OwnedState.Ready -> OwnedList(state)
         is OwnedState.Failed -> ContentContainer {
-            MarketplaceFailure(
+            InlineFailure(
                 title = stringResource(R.string.marketplace_owned_failed),
                 failure = state.failure,
-                description = MARKETPLACE_OWNED_FAILURE_DESCRIPTION,
                 onRetry = onRetry,
+                description = MARKETPLACE_OWNED_FAILURE_DESCRIPTION,
+                modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
             )
         }
     }
@@ -189,11 +191,12 @@ private fun SearchTab(
         is SearchState.Ready -> SearchResults(search)
         is SearchState.NotConfigured -> ContentContainer { NotConfiguredState(search.message) }
         is SearchState.Failed -> ContentContainer {
-            MarketplaceFailure(
+            InlineFailure(
                 title = stringResource(R.string.marketplace_search_failed),
                 failure = search.failure,
-                description = MARKETPLACE_SEARCH_FAILURE_DESCRIPTION,
                 onRetry = onSearch,
+                description = MARKETPLACE_SEARCH_FAILURE_DESCRIPTION,
+                modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
             )
         }
     }

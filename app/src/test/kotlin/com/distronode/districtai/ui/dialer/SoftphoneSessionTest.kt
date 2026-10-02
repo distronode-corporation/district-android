@@ -7,24 +7,21 @@ import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * One call session on its own, for the two promises the ViewModel's tests cannot reach.
@@ -38,15 +35,8 @@ class SoftphoneSessionTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     @Test
     fun `ending twice disconnects once, and both callers are still told`() = runTest(dispatcher) {

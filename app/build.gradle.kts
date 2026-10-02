@@ -334,6 +334,8 @@ dependencies {
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.compose.ui.test.junit4)
+    // The shared API fakes and MainDispatcherRule; see core-network's `testFixtures` note.
+    testImplementation(testFixtures(projects.core.coreNetwork))
     // ⛔ debugImplementation, NOT testImplementation, and the distinction is the
     // whole bug. `createComposeRule()` launches a stub `androidx.activity.
     // ComponentActivity`, which has to be present in the MERGED MANIFEST of the

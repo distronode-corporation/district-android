@@ -22,6 +22,8 @@ dependencies {
     // directly rather than through a Pager, which needs no Android runtime and no
     // androidx.paging:paging-testing artifact.
     testImplementation(libs.androidx.paging.common)
+    // The shared API fakes (FakeDistrictApi and siblings); see core-network's `testFixtures` note.
+    testImplementation(testFixtures(projects.core.coreNetwork))
 }
 
 // ⚠️ STILL NO ROOM, DELIBERATELY, EVEN NOW THAT PAGING IS HERE. Paging arrived with the calls

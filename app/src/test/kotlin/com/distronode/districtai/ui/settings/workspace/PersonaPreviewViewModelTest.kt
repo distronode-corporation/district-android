@@ -11,23 +11,19 @@ import com.distronode.districtai.core.model.E2eeInfo
 import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.core.model.PersonaPreviewTokenResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestPersonaApi
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -35,6 +31,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakePersonaApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * One persona audition, which is a real billed call to the workspace's own voice agent.
@@ -54,18 +53,19 @@ class PersonaPreviewViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
+
     private lateinit var engineScope: CoroutineScope
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         engineScope = CoroutineScope(dispatcher)
     }
 
     @After
     fun tearDown() {
         engineScope.cancel()
-        Dispatchers.resetMain()
     }
 
     private val credential = PersonaPreviewTokenResponse(
@@ -76,10 +76,10 @@ class PersonaPreviewViewModelTest {
         e2ee = E2eeInfo(key = "YfxKDUkaaGp2WrLLGHCHbe2nn5ArCWBd+x+k7EzDr/8="),
     )
 
-    private fun api() = TestPersonaApi().apply { previewResult = ApiResult.Success(credential) }
+    private fun api() = FakePersonaApi().apply { previewResult = ApiResult.Success(credential) }
 
     private fun viewModel(
-        api: TestPersonaApi,
+        api: FakePersonaApi,
         factory: CallEngineFactory = FakeCallEngineFactory(),
     ) = PersonaPreviewViewModel(
         repository = PersonaOptionsRepository(api),
@@ -165,7 +165,7 @@ class PersonaPreviewViewModelTest {
         // ⛔ THE ROUTE IS NOT IDEMPOTENT AND EACH TOKEN STARTS A BILLED SESSION, so nothing retries.
         // ⚠️ AND THE COMMONEST REFUSAL IS THE 10/MIN CEILING ITSELF: a button that re-armed
         // instantly would invite somebody to spend the rest of the minute's slots finding out.
-        val api = TestPersonaApi().apply {
+        val api = FakePersonaApi().apply {
             previewResult = ApiResult.NetworkFailure(IOException("down"))
         }
         val vm = viewModel(api)
@@ -289,7 +289,7 @@ class PersonaPreviewViewModelTest {
     fun `a repeated permission answer during the cooldown mints nothing`() = runTest {
         // ⚠️ THE FORM IS STILL PENDING AFTER A REFUSAL, so a second answer from the OS prompt would
         // reach the mint if the cooldown did not also gate this entry point.
-        val api = TestPersonaApi().apply {
+        val api = FakePersonaApi().apply {
             previewResult = ApiResult.NetworkFailure(IOException("down"))
         }
         val vm = viewModel(api)

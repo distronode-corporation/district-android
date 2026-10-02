@@ -11,7 +11,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -47,13 +46,7 @@ class SchedulingAdminRequestTest {
         server.close()
     }
 
-    private fun adminApi(): SchedulingAdminApi = HttpSchedulingAdminApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun adminApi(): SchedulingAdminApi = HttpSchedulingAdminApi(testApiClient(server, refreshApi))
 
     private fun recordedBody(): JsonObject =
         Json.parseToJsonElement(server.takeRequest().body?.utf8().orEmpty()) as JsonObject
@@ -305,11 +298,7 @@ class SchedulingAdminRequestTest {
         // ⚠️ THE INJECTION POINT EXISTS SO THIS PAIR CAN BE WRITTEN AT ALL. Production passes
         // nothing; the default is the lenient client decoder.
         val strict = HttpSchedulingAdminApi(
-            DistrictApiClient(
-                baseUrl = server.url("/"),
-                httpClient = OkHttpClient(),
-                tokens = signedInCoordinator(refreshApi),
-            ),
+            testApiClient(server, refreshApi),
             json = Json { ignoreUnknownKeys = false },
         )
         server.enqueue(

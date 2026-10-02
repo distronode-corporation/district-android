@@ -64,6 +64,11 @@ Everything CI runs is a JVM test: plain JUnit for logic, MockWebServer for HTTP 
 Robolectric with the Compose test rule for screens. There are no instrumented tests; the
 Maestro flow in `.maestro/` is the device-level smoke check, run by hand.
 
+Repository tests (core-data) and screen tests (app) share one set of API fakes, `FakeDistrictApi`
+and its siblings, plus `MainDispatcherRule`, published from core-network's `testFixtures` source
+set. Add a recorder there, not a local copy. core-network's own request tests build their client
+with `testApiClient`, which uses the production `DistrictHttp.client()`.
+
 Three gates are worth knowing before changing things:
 
 - **Contract fixtures** (`contracts/`, `ContractManifest`): the server's real responses,

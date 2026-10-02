@@ -70,6 +70,7 @@ class InboxSearchScreenTest {
                     state = conversations,
                     onOpenThread = {},
                     onRetry = {},
+                    onSignIn = {},
                     onBack = {},
                     searchState = searchState,
                     onSearchQueryChanged = {},

@@ -1,4 +1,4 @@
-package com.distronode.districtai.ui.support
+package com.distronode.districtai.core.network.testing
 
 import com.distronode.districtai.core.model.SupportCloseResponse
 import com.distronode.districtai.core.model.SupportMessage
@@ -12,13 +12,13 @@ import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.SupportApi
 
 /**
- * A settable [SupportApi] for the support ViewModels.
+ * A settable [SupportApi] for the support repository and the support ViewModels alike.
  *
  * ⚠️ RECORDS THE IDEMPOTENCY KEYS, which is the one thing this feature's tests must be able to see:
  * a retry has to carry the SAME key (a fresh one puts a second ticket in a human's queue) while the
  * desk's rule is the exact inverse.
  */
-internal class FakeSupportApiForUi : SupportApi {
+class FakeSupportApi : SupportApi {
 
     var listResult: ApiResult<SupportRequestListResponse> =
         ApiResult.Success(SupportRequestListResponse(success = true))
@@ -36,28 +36,47 @@ internal class FakeSupportApiForUi : SupportApi {
     var listReads = 0
     var detailReads = 0
 
+    /** The workspace every call named, in order: a support request belongs to exactly one. */
+    val workspaceIds = mutableListOf<String>()
+
     val createDrafts = mutableListOf<SupportRequestDraft>()
     val createKeys = mutableListOf<String?>()
     val replyBodies = mutableListOf<String>()
     val closedKeys = mutableListOf<String>()
 
-    override suspend fun supportRequests(workspaceId: String) = listResult.also { listReads++ }
+    /** How many closes were attempted; the same count as [closedKeys], read as a number. */
+    val closeCalls: Int get() = closedKeys.size
+
+    override suspend fun supportRequests(workspaceId: String) = listResult.also {
+        listReads++
+        workspaceIds += workspaceId
+    }
 
     override suspend fun createSupportRequest(
         workspaceId: String,
         draft: SupportRequestDraft,
         idempotencyKey: String?,
     ) = createResult.also {
+        workspaceIds += workspaceId
         createDrafts += draft
         createKeys += idempotencyKey
     }
 
     override suspend fun supportRequest(workspaceId: String, key: String) =
-        detailResult.also { detailReads++ }
+        detailResult.also {
+            detailReads++
+            workspaceIds += workspaceId
+        }
 
     override suspend fun replyToSupportRequest(workspaceId: String, key: String, body: String) =
-        replyResult.also { replyBodies += body }
+        replyResult.also {
+            workspaceIds += workspaceId
+            replyBodies += body
+        }
 
     override suspend fun closeSupportRequest(workspaceId: String, key: String) =
-        closeResult.also { closedKeys += key }
+        closeResult.also {
+            workspaceIds += workspaceId
+            closedKeys += key
+        }
 }

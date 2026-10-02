@@ -58,6 +58,7 @@ fun DeskScreen(
     onEnable: () -> Unit,
     onSettings: () -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -95,7 +96,7 @@ fun DeskScreen(
                     is DeskUiState.Failed -> FailureState(
                         failure = state.failure,
                         onRetry = onRetry,
-                        onSignIn = null,
+                        onSignIn = onSignIn,
                         description = DESK_FAILURE_DESCRIPTION,
                     )
                     is DeskUiState.Content -> DeskLoaded(state, onOpenTicket, onFilter, onCompose)

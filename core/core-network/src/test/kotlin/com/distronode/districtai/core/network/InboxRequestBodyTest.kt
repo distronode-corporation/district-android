@@ -7,7 +7,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -51,13 +50,7 @@ class InboxRequestBodyTest {
         server.close()
     }
 
-    private fun api(): InboxApi = HttpInboxApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api(): InboxApi = HttpInboxApi(testApiClient(server, refreshApi))
 
     /** The body of the one request the server received, parsed. */
     private fun recordedBody(): JsonObject {

@@ -10,22 +10,19 @@ import com.distronode.districtai.core.model.KnowledgeListResponse
 import com.distronode.districtai.core.model.KnowledgeModeResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The knowledge screen's state machine.
@@ -40,22 +37,15 @@ class KnowledgeViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val documents = listOf(
         KnowledgeDocument(id = "doc-1", title = "Refund policy", status = "ready", chunkCount = 4),
         KnowledgeDocument(id = "doc-2", title = "Service area", status = "processing"),
     )
 
-    private fun api() = TestDistrictApi().apply {
+    private fun api() = FakeDistrictApi().apply {
         knowledgeListResult = ApiResult.Success(
             KnowledgeListResponse(success = true, documents = documents),
         )
@@ -65,7 +55,7 @@ class KnowledgeViewModelTest {
     }
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = KnowledgeViewModel(KnowledgeRepository(api), "ws-1", role)
 

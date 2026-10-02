@@ -17,7 +17,6 @@ import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.push.RecordingPushNotifier
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ScriptedResultRegistry
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * The plumbing between the process-scoped call controller and the ringing screen.
@@ -54,7 +54,7 @@ class IncomingCallHostTest {
     val composeRule = createComposeRule()
 
     private val scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
-    private val api = TestDistrictApi()
+    private val api = FakeDistrictApi()
     private val telecom = FakeTelecomBridge()
     private val registry = ScriptedResultRegistry()
     private val controller = IncomingCallController(

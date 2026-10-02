@@ -11,21 +11,18 @@ import com.distronode.districtai.core.model.WorkflowRunsResponse
 import com.distronode.districtai.core.model.WorkflowToggleResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The automation monitor's state machine.
@@ -40,15 +37,8 @@ class WorkflowsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val active = WorkflowListItem(
         id = "wf-active",
@@ -75,7 +65,7 @@ class WorkflowsViewModelTest {
         startedAt = "2026-08-18T11:30:00.000Z",
     )
 
-    private fun api() = TestDistrictApi().apply {
+    private fun api() = FakeDistrictApi().apply {
         workflowsResult = ApiResult.Success(
             WorkflowListResponse(success = true, workflows = listOf(active, paused)),
         )
@@ -101,7 +91,7 @@ class WorkflowsViewModelTest {
         )
     }
 
-    private fun viewModel(api: TestDistrictApi, role: WorkspaceRole? = WorkspaceRole.CLIENT) =
+    private fun viewModel(api: FakeDistrictApi, role: WorkspaceRole? = WorkspaceRole.CLIENT) =
         WorkflowsViewModel(WorkflowsRepository(api), workspaceId = "ws-1", role = role)
 
     // ── The two reads on entry ───────────────────────────────────────────────

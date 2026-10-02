@@ -12,7 +12,6 @@ import com.distronode.districtai.AppContainerOwner
 import com.distronode.districtai.core.auth.PersistedSession
 import com.distronode.districtai.core.auth.TokenStore
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * A credential store holding a session, or none: all the push gate reads is whether one exists.
@@ -67,7 +67,7 @@ private class SessionTokenStore(
 internal class PushTestApplication : Application(), AppContainerOwner {
 
     val appJob = SupervisorJob()
-    val api = TestDistrictApi()
+    val api = FakeDistrictApi()
     val telecom = FakeTelecomBridge()
     var signedIn = true
 

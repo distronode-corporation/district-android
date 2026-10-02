@@ -6,27 +6,24 @@ import com.distronode.districtai.core.model.DirectoryField
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The transfer directory editor's state machine.
@@ -41,15 +38,8 @@ class DirectoryEditorViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     /** ⚠️ The SECOND entry carries `extension`, a key neither the schema nor this client names. */
     private val storedDirectory: JsonElement = Json.parseToJsonElement(
@@ -61,7 +51,7 @@ class DirectoryEditorViewModelTest {
         """.trimIndent(),
     )
 
-    private fun api(directory: JsonElement? = storedDirectory) = TestDistrictApi().apply {
+    private fun api(directory: JsonElement? = storedDirectory) = FakeDistrictApi().apply {
         workspaceConfigResult = ApiResult.Success(
             WorkspaceConfigResponse(
                 success = true,
@@ -70,7 +60,7 @@ class DirectoryEditorViewModelTest {
         )
     }
 
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         DirectoryEditorViewModel(WorkspaceConfigRepository(api), "ws-1")
 
     // ── The load gate ────────────────────────────────────────────────────────

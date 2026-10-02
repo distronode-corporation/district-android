@@ -8,23 +8,20 @@ import com.distronode.districtai.core.model.RenameResponse
 import com.distronode.districtai.core.model.WorkspaceMember
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.UiText
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The members screen's state machine.
@@ -45,15 +42,8 @@ class MembersViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val roster = listOf(
         WorkspaceMember("founder@example.com", "agency", "2026-08-15T14:30:00.000Z"),
@@ -61,12 +51,12 @@ class MembersViewModelTest {
         WorkspaceMember("auditor@example.com", "viewer", "2026-08-16T09:15:00.000Z"),
     )
 
-    private fun api() = TestDistrictApi().apply {
+    private fun api() = FakeDistrictApi().apply {
         memberListResult = ApiResult.Success(MemberListResponse(success = true, members = roster))
     }
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.AGENCY,
     ) = MembersViewModel(MembersRepository(api), "ws-1", role)
 
@@ -115,7 +105,7 @@ class MembersViewModelTest {
 
     @Test
     fun `a failed read shows a retryable failure rather than an empty roster`() = runTest {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             memberListResult = ApiResult.NetworkFailure(IOException("offline"))
         }
 

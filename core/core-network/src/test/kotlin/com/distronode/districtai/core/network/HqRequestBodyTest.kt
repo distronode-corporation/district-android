@@ -12,7 +12,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -56,13 +55,7 @@ class HqRequestBodyTest {
         server.close()
     }
 
-    private fun api(): HqApi = HttpHqApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api(): HqApi = HttpHqApi(testApiClient(server, refreshApi))
 
     private fun recordedBody(): JsonObject {
         val recorded = server.takeRequest()

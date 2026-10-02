@@ -470,6 +470,7 @@ fun DistrictNavHost(
                             )
                         },
                         onRetry = { viewModel.load(refreshing = true) },
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                         searchState = searchState,
                         onSearchQueryChanged = viewModel::onSearchQueryChanged,
@@ -577,6 +578,7 @@ fun DistrictNavHost(
                         onBack = { navController.popBackStack() },
                         onSend = viewModel::send,
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onDismissSendFailure = viewModel::dismissSendFailure,
                         onLoadOlder = viewModel::loadOlder,
                         composer = ComposerHandlers(
@@ -688,6 +690,7 @@ fun DistrictNavHost(
                         state = state,
                         onSelectRange = viewModel::selectRange,
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -820,6 +823,7 @@ fun DistrictNavHost(
                         state = state,
                         role = role,
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         // ⚠️ THE SAME LAUNCHER AS SIGN-IN AND ACCOUNT DELETION, deliberately. A
                         // Stripe hosted invoice is an authenticated page: a Custom Tab carries the
                         // user's real browser session, and a WebView could neither do that nor be
@@ -1207,6 +1211,7 @@ fun DistrictNavHost(
                         canMutate = viewModel.canMutate,
                         onBack = { navController.popBackStack() },
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onRename = viewModel::rename,
                         // ⚠️ Pops on success, so a deleted contact cannot be left on screen showing a row that
                         // no longer exists. The list re-reads on return because its Pager is invalidated by the
@@ -1245,6 +1250,7 @@ fun DistrictNavHost(
                         state = state,
                         onBack = { navController.popBackStack() },
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onShowTranscript = viewModel::loadTranscript,
                         onPlayRecording = {
                             viewModel.resolveRecording { url ->
@@ -1314,6 +1320,7 @@ fun DistrictNavHost(
                             navController.navigate(Routes.deskSettings(workspaceId, role))
                         },
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                     )
 
@@ -1364,6 +1371,7 @@ fun DistrictNavHost(
                         onSend = viewModel::send,
                         onSetStatus = viewModel::setStatus,
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -1407,6 +1415,7 @@ fun DistrictNavHost(
                         },
                         onRemoveLogo = viewModel::deleteLogo,
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -1477,6 +1486,7 @@ fun DistrictNavHost(
                         },
                         onCompose = { composing = true },
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                     )
 
@@ -1535,6 +1545,7 @@ fun DistrictNavHost(
                         onSend = viewModel::send,
                         onClose = viewModel::close,
                         onRetry = viewModel::load,
+                        onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
                     )
                 }

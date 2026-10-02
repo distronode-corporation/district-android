@@ -8,23 +8,20 @@ import com.distronode.districtai.core.model.PersonaEngineOption
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import com.distronode.districtai.ui.TestPersonaApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakePersonaApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The persona form's state machine.
@@ -40,15 +37,8 @@ class PersonaFormViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val storedPersona = AiPersona(
         name = "Ada",
@@ -60,7 +50,7 @@ class PersonaFormViewModelTest {
     )
 
     private fun api(config: WorkspaceConfig = WorkspaceConfig(aiPersona = storedPersona)) =
-        TestDistrictApi().apply {
+        FakeDistrictApi().apply {
             workspaceConfigResult =
                 ApiResult.Success(WorkspaceConfigResponse(success = true, config = config))
         }
@@ -71,8 +61,8 @@ class PersonaFormViewModelTest {
      * one of them into the read-only branch and change what they assert.
      */
     private fun viewModel(
-        api: TestDistrictApi,
-        personaApi: TestPersonaApi = TestPersonaApi(),
+        api: FakeDistrictApi,
+        personaApi: FakePersonaApi = FakePersonaApi(),
     ) = PersonaFormViewModel(
         WorkspaceConfigRepository(api),
         PersonaOptionsRepository(personaApi),
@@ -306,7 +296,7 @@ class PersonaFormViewModelTest {
 
     // ── The engine half ──────────────────────────────────────────────────────
 
-    private fun catalogueApi() = TestPersonaApi().apply {
+    private fun catalogueApi() = FakePersonaApi().apply {
         optionsResult = ApiResult.Success(TEST_PERSONA_OPTIONS)
     }
 
@@ -316,7 +306,7 @@ class PersonaFormViewModelTest {
             // ⛔ THE TEXT HALF SURVIVES A FAILED CATALOGUE READ, AND THE ENGINE HALF SENDS NOTHING.
             // Any engine value on the wire here would come from a picker that was never offered.
             val api = api()
-            val personaApi = TestPersonaApi().apply {
+            val personaApi = FakePersonaApi().apply {
                 optionsResult = ApiResult.NetworkFailure(IOException("down"))
             }
             val vm = viewModel(api, personaApi)
@@ -361,7 +351,7 @@ class PersonaFormViewModelTest {
         // programmatic selection of one went out with a 200 and was stored, which is a residency
         // decision nobody made on a settings screen.
         val api = api()
-        val personaApi = TestPersonaApi().apply {
+        val personaApi = FakePersonaApi().apply {
             optionsResult = ApiResult.Success(
                 TEST_PERSONA_OPTIONS.copy(
                     engines = TEST_PERSONA_OPTIONS.engines +
@@ -387,7 +377,7 @@ class PersonaFormViewModelTest {
     fun `a stored engine that has left the region does not block saving anything else`() = runTest {
         // ⚠️ ONLY A CHANGED ENGINE IS VALIDATED. The stored one is what the workspace runs on today.
         val api = api()
-        val personaApi = TestPersonaApi().apply {
+        val personaApi = FakePersonaApi().apply {
             optionsResult = ApiResult.Success(
                 TEST_PERSONA_OPTIONS.copy(
                     engines = TEST_PERSONA_OPTIONS.engines.map {

@@ -76,6 +76,7 @@ class SupportRequestScreenTest {
                     onSend = { sends += 1 },
                     onClose = { closes += 1 },
                     onRetry = { retries += 1 },
+                    onSignIn = {},
                     onBack = { backs += 1 },
                 )
             }
@@ -243,6 +244,7 @@ class SupportRequestScreenTest {
                     onSend = {},
                     onClose = {},
                     onRetry = {},
+                    onSignIn = {},
                     onBack = {},
                 )
             }

@@ -56,6 +56,7 @@ fun SupportScreen(
     onOpenRequest: (SupportRequestSummary) -> Unit,
     onCompose: () -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
@@ -75,7 +76,7 @@ fun SupportScreen(
                     is SupportUiState.Failed -> FailureState(
                         failure = state.failure,
                         onRetry = onRetry,
-                        onSignIn = null,
+                        onSignIn = onSignIn,
                         description = SUPPORT_FAILURE_DESCRIPTION,
                     )
                     is SupportUiState.Content -> SupportLoaded(state, onOpenRequest, onCompose)

@@ -23,7 +23,6 @@ import com.distronode.districtai.core.model.ContactListResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
-import com.distronode.districtai.ui.TestDistrictApi
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -31,6 +30,7 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import com.distronode.districtai.ui.MainLooperDrain
 import org.junit.rules.RuleChain
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * The contact list while it is ALIVE: inputs that change under a list already on screen, a create
@@ -251,7 +251,7 @@ class ContactsScreenUpdatesTest {
 
     @Test
     fun `the model built by its factory lists the repository's first page`() {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             contactsResult = ApiResult.Success(
                 ContactListResponse(
                     success = true,

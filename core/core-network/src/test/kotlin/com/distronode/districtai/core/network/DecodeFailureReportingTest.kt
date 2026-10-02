@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -41,12 +40,7 @@ class DecodeFailureReportingTest {
     }
 
     private fun client(reporter: DecodeFailureReporter = DecodeFailureReporter { reports += it }) =
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(FakeRefreshApi().apply { rotating() }),
-            decodeFailures = reporter,
-        )
+        testApiClient(server, decodeFailures = reporter)
 
     @Test
     fun `a shape mismatch is reported by type and path, never by its body`() = runTest {

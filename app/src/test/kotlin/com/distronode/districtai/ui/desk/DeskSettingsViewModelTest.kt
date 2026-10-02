@@ -13,20 +13,18 @@ import com.distronode.districtai.core.network.DeskApi
 import com.distronode.districtai.ui.inbox.AttachmentReader
 import com.distronode.districtai.ui.inbox.PickedAttachment
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDeskApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The desk settings form.
@@ -45,15 +43,8 @@ class DeskSettingsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val stored = DeskSettings(
         enabled = true,
@@ -62,7 +53,7 @@ class DeskSettingsViewModelTest {
         publicLogoUrl = "https://cdn.example/logo.png",
     )
 
-    private fun api(settings: DeskSettings = stored) = FakeDeskApiForUi().apply {
+    private fun api(settings: DeskSettings = stored) = FakeDeskApi().apply {
         settingsResult = ApiResult.Success(
             DeskSettingsResponse(success = true, settings = settings),
         )
@@ -77,7 +68,7 @@ class DeskSettingsViewModelTest {
     }
 
     private fun viewModel(
-        api: FakeDeskApiForUi,
+        api: FakeDeskApi,
         reader: AttachmentReader = FakeReader(
             PickedAttachment("logo.png", "image/png", byteArrayOf(1, 2, 3)),
         ),
@@ -520,7 +511,7 @@ class DeskSettingsViewModelTest {
     }
 
     /** Holds the save and the logo writes open separately, so their completion order is chosen. */
-    private class GatedDeskApi(private val api: FakeDeskApiForUi) : DeskApi by api {
+    private class GatedDeskApi(private val api: FakeDeskApi) : DeskApi by api {
         val saveGate = CompletableDeferred<Unit>()
         val logoGate = CompletableDeferred<Unit>()
         var saveResult: ApiResult<DeskSettingsResponse>? = null

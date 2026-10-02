@@ -76,6 +76,7 @@ class DeskScreenTest {
                     onEnable = callbacks.onEnable,
                     onSettings = callbacks.onSettings,
                     onRetry = callbacks.onRetry,
+                    onSignIn = {},
                     onBack = onBack,
                 )
             }
@@ -286,6 +287,7 @@ class DeskScreenTest {
                     onEnable = {},
                     onSettings = {},
                     onRetry = {},
+                    onSignIn = {},
                     onBack = {},
                 )
             }

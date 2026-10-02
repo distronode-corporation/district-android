@@ -6,23 +6,20 @@ import com.distronode.districtai.core.model.DeviceRevokeResponse
 import com.distronode.districtai.core.model.NativeDevice
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DeviceRevokeRequest
-import com.distronode.districtai.ui.TestDistrictApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The device list's state machine.
@@ -40,15 +37,8 @@ class DevicesViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val thisDevice = NativeDevice(
         deviceId = THIS_DEVICE_ID,
@@ -66,11 +56,11 @@ class DevicesViewModelTest {
     )
 
     private fun api(devices: List<NativeDevice> = listOf(thisDevice, otherDevice)) =
-        TestDistrictApi().apply {
+        FakeDistrictApi().apply {
             devicesResult = ApiResult.Success(DeviceListResponse(success = true, devices = devices))
         }
 
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         DevicesViewModel(DevicesRepository(api), thisDeviceId = THIS_DEVICE_ID)
 
     // ── The read ─────────────────────────────────────────────────────────────
@@ -392,7 +382,7 @@ class DevicesViewModelTest {
     }
 
     /** Holds the first list read and every write until their gates open, as a slow network would. */
-    private class HeldDevicesApi : TestDistrictApi() {
+    private class HeldDevicesApi : FakeDistrictApi() {
         val listGate = CompletableDeferred<Unit>()
         val writeGate = CompletableDeferred<Unit>()
 

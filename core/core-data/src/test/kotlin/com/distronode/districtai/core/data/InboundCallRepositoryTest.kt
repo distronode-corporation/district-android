@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * Answering a ringing call, and the four ways it does not happen.

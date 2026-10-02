@@ -6,24 +6,21 @@ import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactDetailResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.resourceIdOrNull
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The first mutating surface in the app.
@@ -38,15 +35,8 @@ class ContactDetailViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun contact(name: String = "Ada") = Contact(
         id = "c1",
@@ -56,12 +46,12 @@ class ContactDetailViewModelTest {
         createdAt = "2026-08-15T14:30:00.000Z",
     )
 
-    private fun api(contact: Contact = contact()) = TestDistrictApi().apply {
+    private fun api(contact: Contact = contact()) = FakeDistrictApi().apply {
         contactResult = ApiResult.Success(ContactDetailResponse(success = true, contact = contact))
     }
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = ContactDetailViewModel(
         ContactsRepository(api),
@@ -84,7 +74,7 @@ class ContactDetailViewModelTest {
 
     @Test
     fun `a missing contact is reported without implying the id was wrong`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             contactResult = ApiResult.NotFound("Contact document c1 not found.")
         }
         val vm = viewModel(api)
@@ -99,7 +89,7 @@ class ContactDetailViewModelTest {
     fun `a success carrying no contact is a malformed response, not an empty state`() = runTest(dispatcher) {
         // ⛔ Absence is a 404. A 2xx with no contact is a server bug and must not be dressed as an
         // ordinary empty screen.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             contactResult = ApiResult.Success(ContactDetailResponse(success = true))
         }
         val vm = viewModel(api)

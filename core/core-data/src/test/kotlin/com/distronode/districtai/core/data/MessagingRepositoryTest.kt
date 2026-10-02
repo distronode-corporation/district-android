@@ -20,6 +20,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeMessagingApi
 
 /**
  * The messaging read, the five writes, and the credential probe.

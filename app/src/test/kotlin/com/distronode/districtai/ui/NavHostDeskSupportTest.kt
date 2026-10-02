@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
+import com.distronode.districtai.core.auth.ReauthReason
 import com.distronode.districtai.core.model.DeskSettings
 import com.distronode.districtai.core.model.DeskSettingsResponse
 import com.distronode.districtai.core.model.DeskTicketCreateResponse
@@ -26,6 +27,7 @@ import com.distronode.districtai.ui.desk.DESK_COMPOSE_MESSAGE_DESCRIPTION
 import com.distronode.districtai.ui.desk.DESK_COMPOSE_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.desk.DESK_COMPOSE_SUBJECT_DESCRIPTION
 import com.distronode.districtai.ui.desk.DESK_COMPOSE_SUBMIT_DESCRIPTION
+import com.distronode.districtai.ui.desk.DESK_FAILURE_DESCRIPTION
 import com.distronode.districtai.ui.desk.DESK_LOGO_CHOOSE_DESCRIPTION
 import com.distronode.districtai.ui.desk.DESK_SETTINGS_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.inbox.PickerProvider
@@ -34,6 +36,7 @@ import com.distronode.districtai.ui.support.SUPPORT_COMPOSE_MESSAGE_DESCRIPTION
 import com.distronode.districtai.ui.support.SUPPORT_COMPOSE_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.support.SUPPORT_COMPOSE_SUBJECT_DESCRIPTION
 import com.distronode.districtai.ui.support.SUPPORT_COMPOSE_SUBMIT_DESCRIPTION
+import com.distronode.districtai.ui.support.SUPPORT_FAILURE_DESCRIPTION
 import com.distronode.districtai.ui.support.SUPPORT_NEW_DESCRIPTION
 import com.distronode.districtai.ui.support.SUPPORT_REQUEST_CLOSE_DESCRIPTION
 import org.junit.After
@@ -281,6 +284,32 @@ class NavHostDeskSupportTest {
 
         assertEquals(listOf("DA-42"), harness.support.closedKeys)
         assertEquals(listOf(string(R.string.support_closed, "Done")), harness.messages)
+    }
+
+    // ── A dead session ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * ⛔ THE GRAPH HANDS ITS OWN SIGN-IN TO THESE SCREENS, AND THE HOST IS WHAT SIGNS IN. Every screen
+     * but the call log and contacts once passed null, so a session that died on the desk or on
+     * support showed "signed out" with no button at all: a signed-out failure is not retryable, so
+     * nothing else was offered either. Asserting the host's count, not a screen callback, is what
+     * proves the wiring rather than the composable.
+     */
+    @Test
+    fun `a signed-out desk or support read offers sign-in, and the host is the one that signs in`() {
+        harness.desk.settingsResult = ApiResult.Unauthorized(ReauthReason.RefreshRejected)
+        harness.support.listResult = ApiResult.Unauthorized(ReauthReason.RefreshRejected)
+        harness.render()
+
+        harness.navigate(Routes.desk("ws-1", WorkspaceRole.AGENCY))
+        harness.awaitDescription(DESK_FAILURE_DESCRIPTION)
+        harness.tapText(string(R.string.overview_sign_in_again))
+        assertEquals(1, harness.signIns)
+
+        harness.navigate(Routes.support("ws-1", WorkspaceRole.CLIENT))
+        harness.awaitDescription(SUPPORT_FAILURE_DESCRIPTION)
+        harness.tapText(string(R.string.overview_sign_in_again))
+        assertEquals(2, harness.signIns)
     }
 
     private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextCount(text: String): Int =

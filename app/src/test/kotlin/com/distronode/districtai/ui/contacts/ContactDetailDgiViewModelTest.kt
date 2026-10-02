@@ -6,22 +6,19 @@ import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactDetailResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The dossier half of the contact detail screen: an enrichment that costs money, a clear that
@@ -43,15 +40,8 @@ class ContactDetailDgiViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun contactRow(dgiStatus: String? = null) = Contact(
         id = "c1",
@@ -61,18 +51,18 @@ class ContactDetailDgiViewModelTest {
         createdAt = "2026-08-15T14:30:00.000Z",
     )
 
-    private fun api(dgiStatus: String? = null) = TestDistrictApi().apply {
+    private fun api(dgiStatus: String? = null) = FakeDistrictApi().apply {
         answerWith(dgiStatus)
     }
 
-    private fun TestDistrictApi.answerWith(dgiStatus: String?) {
+    private fun FakeDistrictApi.answerWith(dgiStatus: String?) {
         contactResult = ApiResult.Success(
             ContactDetailResponse(success = true, contact = contactRow(dgiStatus)),
         )
     }
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = ContactDetailViewModel(
         ContactsRepository(api),
@@ -91,7 +81,7 @@ class ContactDetailDgiViewModelTest {
     }
 
     /** End a test with the poll stopped, so no delayed task outlives it. */
-    private fun TestScope.settle(api: TestDistrictApi) {
+    private fun TestScope.settle(api: FakeDistrictApi) {
         api.answerWith("complete")
         tick()
     }
@@ -304,7 +294,7 @@ class ContactDetailDgiViewModelTest {
 
     @Test
     fun `nothing is sent, and nothing changes, before the contact has loaded`() = runTest {
-        val api = TestDistrictApi().apply { contactResult = ApiResult.NetworkFailure(java.io.IOException()) }
+        val api = FakeDistrictApi().apply { contactResult = ApiResult.NetworkFailure(java.io.IOException()) }
         val vm = viewModel(api)
         runCurrent()
         val failed = vm.state.value

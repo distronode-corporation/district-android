@@ -7,21 +7,19 @@ import com.distronode.districtai.core.model.SupportRequestListResponse
 import com.distronode.districtai.core.model.SupportRequestSummary
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeSupportApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The support list and its composer.
@@ -40,15 +38,8 @@ class SupportViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val open = SupportRequestSummary(
         issueKey = "DA-42",
@@ -67,14 +58,14 @@ class SupportViewModelTest {
     )
 
     private fun api(requests: List<SupportRequestSummary> = listOf(open, resolved)) =
-        FakeSupportApiForUi().apply {
+        FakeSupportApi().apply {
             listResult = ApiResult.Success(
                 SupportRequestListResponse(success = true, requests = requests),
             )
         }
 
     private fun viewModel(
-        api: FakeSupportApiForUi,
+        api: FakeSupportApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
         keys: () -> String = { "key-fixed" },
     ) = SupportViewModel(SupportRepository(api), workspaceId = "ws-1", role = role, keys = keys)

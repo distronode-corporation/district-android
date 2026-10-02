@@ -65,6 +65,7 @@ fun BillingScreen(
     state: BillingUiState,
     role: WorkspaceRole?,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onOpenInvoice: (String) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -83,12 +84,12 @@ fun BillingScreen(
             is BillingUiState.Failed -> FailureState(
                 failure = state.failure,
                 onRetry = onRetry,
-                onSignIn = null,
+                onSignIn = onSignIn,
                 description = BILLING_FAILED_DESCRIPTION,
                 modifier = inset,
                 retryDescription = BILLING_RETRY_DESCRIPTION,
             )
-            is BillingUiState.Content -> ContentState(state, role, inset, onRetry, onOpenInvoice)
+            is BillingUiState.Content -> ContentState(state, role, inset, onRetry, onSignIn, onOpenInvoice)
         }
     }
 }
@@ -114,6 +115,7 @@ private fun ContentState(
     role: WorkspaceRole?,
     inset: Modifier,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onOpenInvoice: (String) -> Unit,
 ) {
     // ⚠️ Only [StripeSectionState.Ready] carries a payload. The allowance the usage meter is drawn
@@ -158,6 +160,7 @@ private fun ContentState(
                     title = stringResource(R.string.billing_stripe_failed),
                     failure = stripe.failure,
                     onRetry = onRetry,
+                    onSignIn = onSignIn,
                     description = BILLING_STRIPE_FAILURE_DESCRIPTION,
                     modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
@@ -269,6 +272,7 @@ internal fun BillingScreenPreview() {
             ),
             role = WorkspaceRole.CLIENT,
             onRetry = {},
+            onSignIn = {},
             onOpenInvoice = {},
             onBack = {},
         )

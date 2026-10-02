@@ -6,27 +6,24 @@ import com.distronode.districtai.core.model.RoutingRuleField
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The routing-rules editor's state machine.
@@ -42,15 +39,8 @@ class RoutingRulesViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     /** ⚠️ One foreign-shaped rule and one builder-shaped one, as the real fixture carries. */
     private val storedRules: JsonElement = Json.parseToJsonElement(
@@ -63,13 +53,13 @@ class RoutingRulesViewModelTest {
         """.trimIndent(),
     )
 
-    private fun api(rules: JsonElement? = storedRules) = TestDistrictApi().apply {
+    private fun api(rules: JsonElement? = storedRules) = FakeDistrictApi().apply {
         workspaceConfigResult = ApiResult.Success(
             WorkspaceConfigResponse(success = true, config = WorkspaceConfig(routingRules = rules)),
         )
     }
 
-    private fun viewModel(api: TestDistrictApi, id: String = "rule-new") =
+    private fun viewModel(api: FakeDistrictApi, id: String = "rule-new") =
         RoutingRulesViewModel(WorkspaceConfigRepository(api), "ws-1") { id }
 
     // ── The load gate ────────────────────────────────────────────────────────

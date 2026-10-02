@@ -22,7 +22,6 @@ import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ThemeFlip
-import com.distronode.districtai.ui.testCall
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
@@ -30,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.testCall
 
 /**
  * How the call log renders Paging's load states.

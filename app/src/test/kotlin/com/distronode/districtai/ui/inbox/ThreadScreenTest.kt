@@ -122,6 +122,7 @@ class ThreadScreenTest {
                     onBack = {},
                     onSend = wiring.onSend,
                     onRetry = wiring.onRetry,
+                    onSignIn = {},
                     onDismissSendFailure = wiring.onDismiss,
                     onLoadOlder = wiring.onLoadOlder,
                     composer = ComposerHandlers(
@@ -528,6 +529,7 @@ class ThreadScreenTest {
                     onBack = {},
                     onSend = {},
                     onRetry = {},
+                    onSignIn = {},
                     onDismissSendFailure = {},
                     onLoadOlder = {},
                     composer = ComposerHandlers(
@@ -641,6 +643,7 @@ class ThreadScreenTest {
                     onBack = {},
                     onSend = onSend,
                     onRetry = {},
+                    onSignIn = {},
                     onDismissSendFailure = {},
                     onLoadOlder = {},
                     composer = composer,

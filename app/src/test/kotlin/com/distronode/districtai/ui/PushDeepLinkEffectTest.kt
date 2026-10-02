@@ -24,6 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
 
 /**
  * A tapped message notification, from the pending link to the destination it opens.
@@ -38,7 +39,7 @@ import org.robolectric.annotation.Config
  * `DistrictNavHost`, so navigating to a built route proves the builders and the templates agree.
  * Only the templates are shared: the argument declarations below are a COPY of the host's, so a
  * change to the host's optional arguments is not caught here. The
- * repository is the real one over [TestInboxExtrasApi], which answers without a dispatcher hop,
+ * repository is the real one over [FakeInboxExtrasApi], which answers without a dispatcher hop,
  * so every step completes on the compose clock and nothing waits on wall time.
  */
 @RunWith(AndroidJUnit4::class)
@@ -49,7 +50,7 @@ class PushDeepLinkEffectTest {
     val composeRule = createComposeRule()
 
     private val deepLinks = PushDeepLinks()
-    private val api = TestInboxExtrasApi()
+    private val api = FakeInboxExtrasApi()
     private lateinit var navController: NavHostController
     private var workspaceId by mutableStateOf<String?>("ws-1")
 

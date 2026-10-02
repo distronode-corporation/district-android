@@ -6,21 +6,18 @@ import com.distronode.districtai.core.model.ListedNumber
 import com.distronode.districtai.core.model.NumberSearchResponse
 import com.distronode.districtai.core.model.OwnedNumbersResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The marketplace's state machine.
@@ -36,15 +33,8 @@ class MarketplaceViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val available = AvailableNumber(
         phoneNumber = "+14165550111",
@@ -61,7 +51,7 @@ class MarketplaceViewModelTest {
         provider = "twilio",
     )
 
-    private fun api() = TestDistrictApi().apply {
+    private fun api() = FakeDistrictApi().apply {
         ownedResult = ApiResult.Success(
             OwnedNumbersResponse(success = true, numbers = listOf(owned)),
         )
@@ -70,7 +60,7 @@ class MarketplaceViewModelTest {
         )
     }
 
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         MarketplaceViewModel(NumbersRepository(api), workspaceId = "ws-1")
 
     // ── What loads, and what does not ────────────────────────────────────────
@@ -316,7 +306,7 @@ class MarketplaceViewModelTest {
     }
 
     /** Holds the owned read until [gate] opens, as a slow network would. */
-    private class HeldOwnedApi : TestDistrictApi() {
+    private class HeldOwnedApi : FakeDistrictApi() {
         val gate = CompletableDeferred<Unit>()
 
         override suspend fun ownedNumbers(workspaceId: String): ApiResult<OwnedNumbersResponse> {

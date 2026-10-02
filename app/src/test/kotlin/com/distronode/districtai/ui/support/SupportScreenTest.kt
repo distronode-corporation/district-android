@@ -75,6 +75,7 @@ class SupportScreenTest {
                     onOpenRequest = onOpenRequest,
                     onCompose = onCompose,
                     onRetry = onRetry,
+                    onSignIn = {},
                     onBack = onBack,
                 )
             }
@@ -189,6 +190,7 @@ class SupportScreenTest {
                     onSend = {},
                     onClose = onClose,
                     onRetry = {},
+                    onSignIn = {},
                     onBack = {},
                 )
             }
@@ -336,6 +338,7 @@ class SupportScreenTest {
                 onOpenRequest = { opened += it },
                 onCompose = { composes += 1 },
                 onRetry = {},
+                onSignIn = {},
                 onBack = {},
             )
         }
@@ -364,6 +367,7 @@ class SupportScreenTest {
                     onOpenRequest = onOpen,
                     onCompose = onCompose,
                     onRetry = {},
+                    onSignIn = {},
                     onBack = {},
                 )
             }

@@ -1,4 +1,4 @@
-package com.distronode.districtai.ui.desk
+package com.distronode.districtai.core.network.testing
 
 import com.distronode.districtai.core.model.DeskLogoRemovalResponse
 import com.distronode.districtai.core.model.DeskReplyResponse
@@ -17,17 +17,17 @@ import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DeskApi
 
 /**
- * A settable [DeskApi] for the desk ViewModels.
+ * A settable [DeskApi] for the desk repository and the desk ViewModels alike.
  *
- * ⛔ ITS OWN FAKE RATHER THAN AN ENTRY ON `TestDistrictApi`. [DeskApi] is a separate interface from
- * `DistrictApi` — see the ⛔ on `HttpDeskApi` — so there is nothing to add there, and a per-feature
- * fake is also what keeps three parallel workstreams out of one 800-line file.
+ * ⛔ ITS OWN FAKE RATHER THAN AN ENTRY ON [FakeDistrictApi]. [DeskApi] is a separate interface from
+ * `DistrictApi` (see the ⛔ on `HttpDeskApi`), so there is nothing to add there, and a per-feature
+ * fake is also what keeps parallel workstreams out of one 1,200-line file.
  *
- * ⚠️ COUNTS READS AS WELL AS RECORDING WRITES, because several of the assertions in this package are
+ * ⚠️ COUNTS READS AS WELL AS RECORDING WRITES, because several of the desk tests' assertions are
  * about a request NOT being sent: a viewer must spend none, a disabled desk must not fetch a queue,
  * and a local filter must not re-read.
  */
-internal class FakeDeskApiForUi : DeskApi {
+class FakeDeskApi : DeskApi {
 
     var settingsResult: ApiResult<DeskSettingsResponse> =
         ApiResult.Success(DeskSettingsResponse(success = true, settings = DeskSettings()))
@@ -52,6 +52,12 @@ internal class FakeDeskApiForUi : DeskApi {
 
     val patches = mutableListOf<DeskSettingsPatch>()
     val createDrafts = mutableListOf<DeskTicketDraft>()
+
+    /**
+     * ⚠️ The idempotency key each create carried. The desk's rule is the inverse of support's: a
+     * fresh key per deliberate submit, so a second ticket is a second key.
+     */
+    val createKeys = mutableListOf<String?>()
     val replyBodies = mutableListOf<String>()
     val statuses = mutableListOf<DeskTicketStatus>()
     val uploadedMimeTypes = mutableListOf<String>()
@@ -82,7 +88,10 @@ internal class FakeDeskApiForUi : DeskApi {
         workspaceId: String,
         draft: DeskTicketDraft,
         idempotencyKey: String?,
-    ) = createResult.also { createDrafts += draft }
+    ) = createResult.also {
+        createDrafts += draft
+        createKeys += idempotencyKey
+    }
 
     override suspend fun deskTicket(workspaceId: String, ticketId: String) =
         ticketResult.also { ticketDetailReads++ }

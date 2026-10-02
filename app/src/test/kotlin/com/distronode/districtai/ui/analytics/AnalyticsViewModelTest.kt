@@ -11,23 +11,20 @@ import com.distronode.districtai.core.model.UsageHistoryResponse
 import com.distronode.districtai.core.model.UsageResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DistrictApi
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The analytics screen's state machine, and the two guarantees it exists to keep: the three reads
@@ -38,20 +35,13 @@ class AnalyticsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         AnalyticsViewModel(AnalyticsRepository(api), workspaceId = "ws-1")
 
-    private fun healthyApi() = TestDistrictApi().apply {
+    private fun healthyApi() = FakeDistrictApi().apply {
         analyticsResult = ApiResult.Success(
             AnalyticsResponse(success = true, metrics = AnalyticsMetrics(totalCalls = 48)),
         )
@@ -262,7 +252,7 @@ class AnalyticsViewModelTest {
     fun `only a failure of EVERY read blanks the screen`() = runTest(dispatcher) {
         // ⚠️ The one case where there is nothing left to preserve, so a single retry is the honest
         // control rather than three identical ones on three empty cards.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             analyticsResult = ApiResult.HttpFailure(503, "Service unavailable")
             usageResult = ApiResult.HttpFailure(503, "Service unavailable")
             usageHistoryResult = ApiResult.HttpFailure(503, "Service unavailable")
@@ -279,7 +269,7 @@ class AnalyticsViewModelTest {
         // The obvious way to add a card is to leave the `analytics && usage` condition alone —
         // and then a history card holding real months is blanked by a whole-screen failure while
         // its answer is already in hand.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             analyticsResult = ApiResult.HttpFailure(503, "Service unavailable")
             usageResult = ApiResult.HttpFailure(503, "Service unavailable")
             usageHistoryResult = ApiResult.Success(
@@ -384,7 +374,7 @@ class AnalyticsViewModelTest {
     @Test
     fun `an expired session is reported as signed out rather than as no data`() =
         runTest(dispatcher) {
-            val api = TestDistrictApi().apply {
+            val api = FakeDistrictApi().apply {
                 analyticsResult = ApiResult.Unauthorized(null)
                 usageResult = ApiResult.Unauthorized(null)
                 usageHistoryResult = ApiResult.Unauthorized(null)
@@ -404,7 +394,7 @@ class AnalyticsViewModelTest {
         // successfully would leave the operator looking at "your session has ended" behind a
         // button that has already done its job. Both reads are idempotent GETs, so unlike HQ's
         // confirm there is nothing here that must NOT be replayed.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             analyticsResult = ApiResult.Unauthorized(null)
             usageResult = ApiResult.Unauthorized(null)
             usageHistoryResult = ApiResult.Unauthorized(null)

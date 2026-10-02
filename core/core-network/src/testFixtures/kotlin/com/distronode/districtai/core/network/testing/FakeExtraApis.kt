@@ -1,4 +1,4 @@
-package com.distronode.districtai.ui
+package com.distronode.districtai.core.network.testing
 
 import com.distronode.districtai.core.model.AvailabilityResponse
 import com.distronode.districtai.core.model.CallHangUpResponse
@@ -18,12 +18,12 @@ import kotlinx.coroutines.CompletableDeferred
 /**
  * Fakes for the four interfaces that sit beside `DistrictApi`.
  *
- * ⛔ SEPARATE FROM [TestDistrictApi] RATHER THAN FOLDED IN. That class already crossed detekt's
+ * ⛔ SEPARATE FROM [FakeDistrictApi] RATHER THAN FOLDED IN. That class already crossed detekt's
  * `LargeClass` ceiling once and had to delegate a slice out; these four have one to four methods
  * each, and keeping them apart is also what keeps the production split's whole point — that adding
  * an endpoint does not touch a file everyone else is editing — true of the test tier too.
  */
-internal class TestPersonaApi : PersonaApi {
+class FakePersonaApi : PersonaApi {
 
     var optionsResult: ApiResult<PersonaOptionsResponse> =
         ApiResult.Success(PersonaOptionsResponse(success = true))
@@ -31,8 +31,11 @@ internal class TestPersonaApi : PersonaApi {
     var previewResult: ApiResult<PersonaPreviewTokenResponse> =
         ApiResult.Success(PersonaPreviewTokenResponse(success = true))
 
-    /** ⚠️ Every mint, recorded, because the route is billable and NOT idempotent. */
-    val previewCalls = mutableListOf<PersonaPreviewForm>()
+    /**
+     * ⚠️ Every mint, recorded WITH its workspace, because the route is billable and NOT idempotent,
+     * and a mint charged to the wrong workspace is a billing error rather than a cosmetic one.
+     */
+    val previewCalls = mutableListOf<Pair<String, PersonaPreviewForm>>()
 
     override suspend fun personaOptions(workspaceId: String) = optionsResult
 
@@ -43,13 +46,13 @@ internal class TestPersonaApi : PersonaApi {
         workspaceId: String,
         form: PersonaPreviewForm,
     ): ApiResult<PersonaPreviewTokenResponse> {
-        previewCalls += form
+        previewCalls += workspaceId to form
         previewGate?.await()
         return previewResult
     }
 }
 
-internal class TestCallHandlingApi : CallHandlingApi {
+class FakeCallHandlingApi : CallHandlingApi {
 
     var handlingResult: ApiResult<CallHandlingResponse> =
         ApiResult.Success(CallHandlingResponse(success = true))
@@ -57,6 +60,7 @@ internal class TestCallHandlingApi : CallHandlingApi {
     var availabilityResult: ApiResult<AvailabilityResponse> =
         ApiResult.Success(AvailabilityResponse(success = true))
 
+    /** ⚠️ The exact pair sent, so "only what changed goes on the wire" is checkable. */
     val handlingWrites = mutableListOf<Pair<String?, Int?>>()
     val availabilityWrites = mutableListOf<Boolean>()
 
@@ -82,7 +86,7 @@ internal class TestCallHandlingApi : CallHandlingApi {
     }
 }
 
-internal class TestInboxExtrasApi : InboxExtrasApi {
+class FakeInboxExtrasApi : InboxExtrasApi {
 
     var searchResult: ApiResult<MessageSearchResponse> =
         ApiResult.Success(MessageSearchResponse(success = true))
@@ -90,6 +94,7 @@ internal class TestInboxExtrasApi : InboxExtrasApi {
     var threadResult: ApiResult<MessageThreadResponse> =
         ApiResult.Success(MessageThreadResponse(success = true))
 
+    /** ⚠️ Recorded so "a query below the floor sends nothing" is an assertion rather than a hope. */
     val searches = mutableListOf<String>()
 
     override suspend fun searchMessages(
@@ -109,10 +114,13 @@ internal class TestInboxExtrasApi : InboxExtrasApi {
     }
 }
 
-internal class TestCallControlApi : CallControlApi {
+class FakeCallControlApi : CallControlApi {
 
-    var result: ApiResult<CallHangUpResponse> =
-        ApiResult.Success(CallHangUpResponse(success = true, ended = true))
+    /**
+     * ⚠️ `ended` LEFT TO ITS WIRE DEFAULT (`false`, "the room was already gone"), which is also a
+     * success. A test about which of the two endings was reported sets it explicitly.
+     */
+    var result: ApiResult<CallHangUpResponse> = ApiResult.Success(CallHangUpResponse(success = true))
 
     /** ⛔ The count matters as much as the content: nothing may retry a hang-up. */
     val hangUps = mutableListOf<Pair<String, String>>()

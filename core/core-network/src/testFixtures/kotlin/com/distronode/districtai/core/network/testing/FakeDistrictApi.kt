@@ -1,4 +1,4 @@
-package com.distronode.districtai.core.data
+package com.distronode.districtai.core.network.testing
 
 import com.distronode.districtai.core.model.AiDraftRequest
 import com.distronode.districtai.core.model.AiDraftResponse
@@ -13,9 +13,6 @@ import com.distronode.districtai.core.model.AnalyticsRange
 import com.distronode.districtai.core.model.AnalyticsResponse
 import com.distronode.districtai.core.model.ClearIntelResponse
 import com.distronode.districtai.core.model.DeviceListResponse
-import com.distronode.districtai.core.model.StripeBilling
-import com.distronode.districtai.core.model.WorkspaceBilling
-import com.distronode.districtai.core.model.WorkspaceBillingResponse
 import com.distronode.districtai.core.model.DeviceRevokeResponse
 import com.distronode.districtai.core.model.CallAnswerResponse
 import com.distronode.districtai.core.model.DialResponse
@@ -36,11 +33,11 @@ import com.distronode.districtai.core.model.UnreadCountResponse
 import com.distronode.districtai.core.model.TimelineResponse
 import com.distronode.districtai.core.model.ConversationsResponse
 import com.distronode.districtai.core.model.CallDetailResponse
+import com.distronode.districtai.core.model.CallSummary
+import com.distronode.districtai.core.model.CallTranscriptResponse
 import com.distronode.districtai.core.model.ContactDetailResponse
 import com.distronode.districtai.core.model.ContactListResponse
 import com.distronode.districtai.core.model.ContactMutationResponse
-import com.distronode.districtai.core.model.CallSummary
-import com.distronode.districtai.core.model.CallTranscriptResponse
 import com.distronode.districtai.core.model.HqConfirmRequest
 import com.distronode.districtai.core.model.HqConfirmResponse
 import com.distronode.districtai.core.model.HqPromptRequest
@@ -81,6 +78,9 @@ import com.distronode.districtai.core.model.ToolsPatchRequest
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.model.WorkspaceConfigSaveResponse
+import com.distronode.districtai.core.model.StripeBilling
+import com.distronode.districtai.core.model.WorkspaceBilling
+import com.distronode.districtai.core.model.WorkspaceBillingResponse
 import com.distronode.districtai.core.model.WorkspaceListResponse
 import com.distronode.districtai.core.model.CampaignStatus
 import com.distronode.districtai.core.model.CampaignStatusResponse
@@ -88,13 +88,13 @@ import com.distronode.districtai.core.model.WorkflowListResponse
 import com.distronode.districtai.core.model.WorkflowRunsResponse
 import com.distronode.districtai.core.model.WorkflowToggleResponse
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.network.InboundCallApi
 import com.distronode.districtai.core.network.MessagingApi
+import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.CampaignPauseRequest
 import com.distronode.districtai.core.network.SchedulingEnableRequest
 import com.distronode.districtai.core.network.SchedulingHandOffRequest
 import com.distronode.districtai.core.network.SchedulingApi
-import com.distronode.districtai.core.network.PushApi
-import com.distronode.districtai.core.network.InboundCallApi
 import com.distronode.districtai.core.network.ClearIntelRequest
 import com.distronode.districtai.core.network.CreateContactRequest
 import com.distronode.districtai.core.network.DeviceRevokeRequest
@@ -106,32 +106,28 @@ import com.distronode.districtai.core.network.WorkflowToggleRequest
 import com.distronode.districtai.core.network.EnrichRequest
 import com.distronode.districtai.core.network.RoomTokenRequest
 import com.distronode.districtai.core.network.UpdateContactRequest
-
-/** In-memory [WorkspaceSelectionStore]. The production one is SharedPreferences-backed. */
-internal class FakeSelectionStore(private var selected: String? = null) : WorkspaceSelectionStore {
-    override fun selectedWorkspaceId(): String? = selected
-
-    override fun setSelectedWorkspaceId(workspaceId: String?) {
-        selected = workspaceId
-    }
-}
+import kotlinx.coroutines.CompletableDeferred
 
 /**
- * A [DistrictApi] that answers with whatever it was constructed with.
+ * A [DistrictApi] whose every answer is settable, shared by the repository tests in core-data and
+ * the screen tests in the app.
  *
- * ⚠️ Records the `workspaceId` it was asked for, because "did the repository actually send the
- * ACTIVE workspace" is the assertion that matters most — omitting it is not an error, it just
- * silently reports on whichever workspace the server picks.
+ * ⛔ ONE COPY, PUBLISHED FROM core-network's TEST FIXTURES, BECAUSE TWO HAD ALREADY DRIFTED. The app
+ * and core-data each kept their own 1,200-line fake of this interface, and the copies disagreed on
+ * what they recorded (one kept the workspace id of every read, the other per-endpoint lists and the
+ * gates), so the same assertion could be written in one tier and not the other. Every recorder
+ * either copy had is kept here, which is why some reads land in two lists.
+ *
+ * ⚠️ Deliberately a real implementation rather than a mocking framework: the interface is small, and
+ * a hand-written fake makes "what did the caller actually ask for" assertable by reading a list
+ * rather than by configuring argument captors.
+ *
+ * ⚠️ `open` so a test needing one bespoke endpoint can subclass and override just that one.
  */
-/**
- * ⚠️ `open` so a test needing one bespoke endpoint can subclass and override just that one, instead of
- * every fake in the module having to grow a stub each time an endpoint is added. There are 19 more
- * dashboard sections to build, so that churn adds up.
- */
-internal open class FakeDistrictApi(
+open class FakeDistrictApi(
     /**
-     * ⛔ THE MESSAGING SLICE, DELEGATED RATHER THAN INLINED, BECAUSE THIS CLASS CROSSED detekt's
-     * `LargeClass` CEILING once it carried the five messaging writes. `MessagingApi by`
+     * ⛔ THE MESSAGING SLICE, DELEGATED RATHER THAN INLINED, BECAUSE INLINING IT (five messaging
+     * writes) PUTS THIS CLASS OVER detekt's `LargeClass` CEILING. `MessagingApi by`
      * satisfies the composed interface exactly as an inline stub did; a test reaches the recorders
      * and the settable results through this property (`messagingApi.messagingSaves`).
      *
@@ -142,40 +138,38 @@ internal open class FakeDistrictApi(
      */
     val messagingApi: FakeMessagingApi = FakeMessagingApi(),
     /**
+     * ⛔ THE INBOUND-CALL AND PUSH SLICES, DELEGATED FOR THE REASON [messagingApi] IS: adding them
+     * inline puts this class over detekt's `LargeClass` ceiling. Reach the
+     * recorders through this property (`pushApi.answerRequests`, `pushApi.pushRegisterRequests`).
+     *
+     * ⚠️ ONE FAKE FOR TWO INTERFACES, unlike the production side where `HttpInboundCallApi` and
+     * `HttpPushApi` are separate classes. That split exists so a dialler screen cannot answer a
+     * call; a TEST fake has no such boundary to protect, and two objects would mean two properties
+     * for one feature.
+     */
+    val pushApi: FakeInboundPushApi = FakeInboundPushApi(),
+    /**
      * ⛔ THE BOOKING-PAGES SLICE, DELEGATED FOR THE SAME `LargeClass` REASON [messagingApi] IS. A
      * test reaches its recorders and settable results through this property
      * (`schedulingApi.schedulingEnables`).
      */
     val schedulingApi: FakeSchedulingApi = FakeSchedulingApi(),
-    /**
-     * ⛔ THE INBOUND-CALL AND PUSH SLICE, DELEGATED FOR THE SAME `LargeClass` REASON — and it is
-     * the shape `TestDistrictApi` in the app module already had. Reach its recorders through this
-     * property (`pushApi.answerRequests`).
-     */
-    val pushApi: FakeInboundPushApi = FakeInboundPushApi(),
 ) : DistrictApi,
     MessagingApi by messagingApi,
-    SchedulingApi by schedulingApi,
     InboundCallApi by pushApi,
-    PushApi by pushApi {
+    PushApi by pushApi,
+    SchedulingApi by schedulingApi {
 
-    // ⚠️ MUTABLE PROPERTIES, NOT CONSTRUCTOR PARAMETERS. As a constructor this hit detekt's
-    // LongParameterList ceiling at nine, two sections in — and seventeen sections remain, each adding
-    // endpoints. Properties set with `apply {}` scale without the signature growing.
-    // ⚠️ `success = true` ON THE DEFAULTS, LIKE EVERY SIBLING BELOW. The DTO default is `false`
-    // because the wire format defaults everything, but a fake standing in for a WELL-FORMED
-    // server response has to affirm the envelope or every repository now rejects it as contract
-    // drift. A test that wants the drift case sets `success = false` explicitly, which is also
-    // the only way that intent is readable at the call site.
+    // ⚠️ MUTABLE PROPERTIES, NOT CONSTRUCTOR PARAMETERS — as a constructor this hit detekt's
+    // LongParameterList ceiling two sections in, and seventeen remain. Set them with `apply {}`.
     var workspaceListResult: ApiResult<WorkspaceListResponse> =
         ApiResult.Success(WorkspaceListResponse(success = true))
     var overviewResult: ApiResult<OverviewResponse> = ApiResult.Success(OverviewResponse(success = true))
     var callsResult: ApiResult<List<CallSummary>> = ApiResult.Success(emptyList())
     var detailResult: ApiResult<CallDetailResponse> = ApiResult.Success(CallDetailResponse(success = true))
     var transcriptResult: ApiResult<CallTranscriptResponse> =
-        ApiResult.Success(CallTranscriptResponse(success = true, transcript = "a transcript"))
-    var recordingResult: ApiResult<String> =
-        ApiResult.Success("https://recordings.example.test/presigned")
+        ApiResult.Success(CallTranscriptResponse(success = true, transcript = "Agent: hello."))
+    var recordingResult: ApiResult<String> = ApiResult.Success("https://recordings.test/x.mp3")
     var contactsResult: ApiResult<ContactListResponse> =
         ApiResult.Success(ContactListResponse(success = true))
     var contactResult: ApiResult<ContactDetailResponse> =
@@ -183,23 +177,46 @@ internal open class FakeDistrictApi(
     var mutationResult: ApiResult<ContactMutationResponse> =
         ApiResult.Success(ContactMutationResponse(success = true))
 
+    /** Every per-call read, so "was it fetched once or on every recomposition" is assertable. */
+    val transcriptRequests: MutableList<Pair<String, String>> = mutableListOf()
+    val recordingRequests: MutableList<Pair<String, String>> = mutableListOf()
+    val detailRequests: MutableList<Pair<String, String>> = mutableListOf()
+
+    /** Which workspace each overview request named. Omitting it is not an error, so assert on it. */
+    val overviewRequests: MutableList<String?> = mutableListOf()
+
+    /**
+     * Every workspace-scoped read below that names one (overview, conversations, usage, owned
+     * numbers, workspace billing), in order, beside the per-endpoint lists.
+     *
+     * ⚠️ RECORDED TWICE ON PURPOSE. A repository test asks "did it send the ACTIVE workspace" across
+     * whichever reads it makes, and a screen test asks about one endpoint; omitting the id is not an
+     * error, it just silently reports on whichever workspace the server picks.
+     */
     var requestedWorkspaceIds: MutableList<String?> = mutableListOf()
         private set
 
-    /** (workspaceId, callId) pairs, so tenant scoping on the per-call reads can be asserted. */
+    /** (workspaceId, callId) for detail, transcript and recording reads alike, in order. */
     var callReads: MutableList<Pair<String, String>> = mutableListOf()
         private set
 
-    override suspend fun workspaceList(): ApiResult<WorkspaceListResponse> = workspaceListResult
+    /** Every contacts mutation attempted, so role gating can be asserted as "never even called". */
+    val mutations: MutableList<String> = mutableListOf()
 
-    override suspend fun contacts(workspaceId: String, limit: Int, offset: Int) =
-        contactsResult
+    /** ⚠️ The full `contacts/update` bodies, because that route clears any column a body omits. */
+    val contactUpdates: MutableList<UpdateContactRequest> = mutableListOf()
 
-    /**
-     * ⚠️ COUNTED, because the dossier poll's whole contract is about HOW MANY times this is
-     * called: once per interval while an enrichment is in flight, and not at all afterwards. A
-     * poll that failed to terminate looks identical in state and is only visible here.
-     */
+    override suspend fun workspaceList() = workspaceListResult
+
+    override suspend fun overview(workspaceId: String?): ApiResult<OverviewResponse> {
+        overviewRequests += workspaceId
+        requestedWorkspaceIds += workspaceId
+        return overviewResult
+    }
+
+    override suspend fun contacts(workspaceId: String, limit: Int, offset: Int) = contactsResult
+
+    /** How many times the contact detail was read, so a "re-read on success" claim is checkable. */
     var contactRequestCount: Int = 0
         private set
 
@@ -208,36 +225,26 @@ internal open class FakeDistrictApi(
         return contactResult
     }
 
-    override suspend fun createContact(request: CreateContactRequest) = mutationResult
-
-    /**
-     * ⚠️ RECORDED, because `contacts/update` is a wholesale replace and the BODY is the whole
-     * contract: a request that omits a column the row holds clears it. See ContactsUpdateRepositoryTest.
-     */
-    val contactUpdates: MutableList<UpdateContactRequest> = mutableListOf()
+    override suspend fun createContact(request: CreateContactRequest): ApiResult<ContactMutationResponse> {
+        mutations += "create:${request.name}"
+        return mutationResult
+    }
 
     override suspend fun updateContact(request: UpdateContactRequest): ApiResult<ContactMutationResponse> {
+        mutations += "update:${request.contactId}"
         contactUpdates += request
         return mutationResult
     }
 
-    override suspend fun deleteContact(workspaceId: String, contactId: String) = mutationResult
-
-    override suspend fun overview(workspaceId: String?): ApiResult<OverviewResponse> {
-        requestedWorkspaceIds += workspaceId
-        return overviewResult
+    override suspend fun deleteContact(workspaceId: String, contactId: String): ApiResult<ContactMutationResponse> {
+        mutations += "delete:$contactId"
+        return mutationResult
     }
 
-    override suspend fun calls(
-        workspaceId: String,
-        limit: Int,
-        offset: Int,
-    ): ApiResult<List<CallSummary>> = callsResult
+    override suspend fun calls(workspaceId: String, limit: Int, offset: Int) = callsResult
 
-    override suspend fun callDetail(
-        workspaceId: String,
-        callId: String,
-    ): ApiResult<CallDetailResponse> {
+    override suspend fun callDetail(workspaceId: String, callId: String): ApiResult<CallDetailResponse> {
+        detailRequests += workspaceId to callId
         callReads += workspaceId to callId
         return detailResult
     }
@@ -246,14 +253,13 @@ internal open class FakeDistrictApi(
         workspaceId: String,
         callId: String,
     ): ApiResult<CallTranscriptResponse> {
+        transcriptRequests += workspaceId to callId
         callReads += workspaceId to callId
         return transcriptResult
     }
 
-    override suspend fun callRecordingUrl(
-        workspaceId: String,
-        callId: String,
-    ): ApiResult<String> {
+    override suspend fun callRecordingUrl(workspaceId: String, callId: String): ApiResult<String> {
+        recordingRequests += workspaceId to callId
         callReads += workspaceId to callId
         return recordingResult
     }
@@ -298,6 +304,13 @@ internal open class FakeDistrictApi(
     var timelineCursors: MutableList<Pair<String?, String?>> = mutableListOf()
         private set
 
+    /**
+     * Holds every thread read until completed, so a test can let the draft read finish FIRST.
+     * Against a fake both answer instantly and in launch order, which is the one ordering that hid
+     * a restored draft's attachments being dropped. Left null by default.
+     */
+    var timelineGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
     override suspend fun timeline(
         workspaceId: String,
         contactId: String?,
@@ -306,6 +319,7 @@ internal open class FakeDistrictApi(
         beforeId: String?,
     ): ApiResult<TimelineResponse> {
         timelineCursors += before to beforeId
+        timelineGate?.await()
         return timelinePages[before] ?: timelineResult
     }
 
@@ -422,10 +436,17 @@ internal open class FakeDistrictApi(
     var hqConfirmResult: ApiResult<HqConfirmResponse> =
         ApiResult.Success(HqConfirmResponse(success = true, executed = true, tool = "update_persona"))
 
-    /** Every prompt turn, whole — the history it carried is the interesting half. */
+    /**
+     * Every prompt turn, WITH the history it carried.
+     *
+     * ⛔ THE HISTORY IS RECORDED, NOT JUST THE PROMPT. The route is stateless and drops any turn
+     * whose role is neither `user` nor `model`, silently — so "did the client send the conversation,
+     * and did it label each turn in the server's vocabulary" is the assertion that matters, and it
+     * is only answerable if the request is kept whole.
+     */
     val hqPrompts: MutableList<HqPromptRequest> = mutableListOf()
 
-    /** Every confirmed write. ⛔ One entry here is one real mutation in production. */
+    /** Every confirmed write. ⛔ A write executes per entry here, so a count is a real-world claim. */
     val hqConfirms: MutableList<HqConfirmRequest> = mutableListOf()
 
     override suspend fun hqPrompt(request: HqPromptRequest): ApiResult<HqPromptResponse> {
@@ -445,27 +466,42 @@ internal open class FakeDistrictApi(
     var usageHistoryResult: ApiResult<UsageHistoryResponse> =
         ApiResult.Success(UsageHistoryResponse(success = true))
 
-    /**
-     * Every analytics window that was requested.
-     *
-     * ⚠️ RECORDS THE RANGE, NOT JUST THE WORKSPACE. An unrecognised `timeRange` is not an error
-     * server-side — it silently serves 7d — so "which window did we actually ask for" is the one
-     * thing about this call that cannot be checked by looking at the response.
-     */
+    /** Every window that was asked for, so a range switch can be asserted as a real request. */
     val analyticsRequests: MutableList<Pair<String, AnalyticsRange>> = mutableListOf()
+    val usageRequests: MutableList<String> = mutableListOf()
 
-    /** (workspaceId, months) for each history read, so the clamp argument stays assertable. */
+    /**
+     * `<workspaceId>` to the `months` span asked for, per history read.
+     *
+     * ⚠️ THE SPAN IS RECORDED, NOT JUST THE COUNT. The repository owns the default so the phone
+     * and the web console show the same window; a caller that started passing its own number
+     * would be invisible to an assertion that only counted requests.
+     */
     val usageHistoryRequests: MutableList<Pair<String, Int>> = mutableListOf()
+
+    /**
+     * Holds the analytics read open until it is completed.
+     *
+     * ⛔ THIS IS HOW "THE TWO READS RUN IN PARALLEL" IS ASSERTED AT ALL. Both requests complete
+     * instantly against a fake, so a sequential implementation and a concurrent one produce
+     * identical call lists and identical state — the difference is invisible to any assertion
+     * about outcomes. Blocking one of them makes the ordering observable: with analytics parked,
+     * a usage request that has ALREADY been issued proves the second call was not waiting on the
+     * first. Left null by default so every other test is unaffected.
+     */
+    var analyticsGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
 
     override suspend fun analytics(
         workspaceId: String,
         range: AnalyticsRange,
     ): ApiResult<AnalyticsResponse> {
         analyticsRequests += workspaceId to range
+        analyticsGate?.await()
         return analyticsResult
     }
 
     override suspend fun usage(workspaceId: String): ApiResult<UsageResponse> {
+        usageRequests += workspaceId
         requestedWorkspaceIds += workspaceId
         return usageResult
     }
@@ -489,16 +525,16 @@ internal open class FakeDistrictApi(
         ApiResult.Success(OwnedNumbersResponse(success = true))
 
     /**
-     * ⛔ EVERY ENRICH ATTEMPT, BECAUSE EACH ONE IS A BILLABLE MODEL RUN. A count here is a
-     * real-world claim about spend, which is why "the poll did not re-trigger enrichment" and
-     * "a viewer never reached the endpoint" are assertions about this list rather than about
-     * state.
+     * ⛔ EVERY ENRICH ATTEMPT. Each entry is one external crawl plus one LLM synthesis, so the
+     * SIZE of this list is a claim about real spend — which is what makes "the poll never
+     * re-triggered it" and "a viewer never reached it" checkable at all.
      */
     val enrichRequests: MutableList<EnrichRequest> = mutableListOf()
     val clearIntelRequests: MutableList<ClearIntelRequest> = mutableListOf()
 
-    /** Every search, WITH its filters — the blank-to-absent normalisation is only visible here. */
+    /** Each search's full filter tuple, so the form's values can be asserted as SENT. */
     val searchRequests: MutableList<List<String?>> = mutableListOf()
+    val ownedRequests: MutableList<String> = mutableListOf()
 
     override suspend fun enrichContact(request: EnrichRequest): ApiResult<EnrichResponse> {
         enrichRequests += request
@@ -524,25 +560,39 @@ internal open class FakeDistrictApi(
     }
 
     override suspend fun ownedNumbers(workspaceId: String): ApiResult<OwnedNumbersResponse> {
+        ownedRequests += workspaceId
         requestedWorkspaceIds += workspaceId
         return ownedResult
     }
 
     // ── Devices ──────────────────────────────────────────────────────────────
-    // ⚠️ NO `requestedWorkspaceIds` ENTRY FOR ANY OF THE THREE, and that is the contract rather
-    // than an omission: device management is ACCOUNT-scoped. None of these routes takes a
-    // workspace, so there is nothing to record and nothing a repository could get wrong there.
     var devicesResult: ApiResult<DeviceListResponse> =
         ApiResult.Success(DeviceListResponse(success = true))
 
-    /** ⚠️ One stub for both writes, because the two routes answer the identical shape. */
+    /**
+     * ⚠️ ONE STUB FOR BOTH WRITES, because the two routes answer the identical shape. Which one
+     * was called is recorded in [deviceWrites] instead — a test asserting "revoke-all was the
+     * call" reads a list rather than configuring two near-identical results.
+     */
     var deviceRevokeResult: ApiResult<DeviceRevokeResponse> =
         ApiResult.Success(DeviceRevokeResponse(success = true, revoked = 1))
 
-    /** Every device call attempted, in order: `list`, `revoke:<id>` or `revoke-all`. */
+    /** How many times the list was read, so "did the revoke re-read" is assertable. */
+    val deviceListRequests: MutableList<Unit> = mutableListOf()
+
+    /** Every device write attempted, in order: `revoke:<id>` or `revoke-all`. */
+    val deviceWrites: MutableList<String> = mutableListOf()
+
+    /**
+     * Every device call, reads and writes interleaved in order: `list`, `revoke:<id>`, `revoke-all`.
+     *
+     * ⚠️ NO `requestedWorkspaceIds` ENTRY FOR ANY OF THE THREE, and that is the contract rather than
+     * an omission: device management is ACCOUNT-scoped, so there is no workspace to get wrong.
+     */
     val deviceCalls: MutableList<String> = mutableListOf()
 
     override suspend fun devices(): ApiResult<DeviceListResponse> {
+        deviceListRequests += Unit
         deviceCalls += "list"
         return devicesResult
     }
@@ -550,41 +600,60 @@ internal open class FakeDistrictApi(
     override suspend fun revokeDevice(
         request: DeviceRevokeRequest,
     ): ApiResult<DeviceRevokeResponse> {
+        deviceWrites += "revoke:${request.deviceId}"
         deviceCalls += "revoke:${request.deviceId}"
         return deviceRevokeResult
     }
 
     override suspend fun revokeAllDevices(): ApiResult<DeviceRevokeResponse> {
+        deviceWrites += "revoke-all"
         deviceCalls += "revoke-all"
         return deviceRevokeResult
     }
 
-    // ── Billing ──────────────────────────────────────────────────────────────
+    // ── Billing (Task A6) ────────────────────────────────────────────────────
     var workspaceBillingResult: ApiResult<WorkspaceBillingResponse> =
         ApiResult.Success(WorkspaceBillingResponse(success = true, billing = WorkspaceBilling()))
 
     /**
-     * ⚠️ THE DEFAULT IS A BARE HEALTHY OBJECT, NOT AN AFFIRMED ENVELOPE, and it is the one place
+     * ⚠️ THE DEFAULT IS A HEALTHY BARE OBJECT, NOT AN AFFIRMED ENVELOPE, and that is the one place
      * this fake's convention differs from every sibling above. `GET /api/billing` sends no
-     * `success` key at all, so `StripeBilling()` IS a healthy empty account — there is no envelope
-     * for a repository to reject, and a test that wanted one to exist would be testing a rule the
-     * server does not follow.
+     * `success` key at all, so `StripeBilling()` IS what a healthy empty account looks like —
+     * there is no envelope for a repository to reject. A test wanting the outage sets
+     * `billingUnavailable = true`, which arrives on a 200 rather than as a failure.
      */
     var stripeBillingResult: ApiResult<StripeBilling> = ApiResult.Success(StripeBilling())
 
     /**
-     * ⚠️ ONLY THE WORKSPACE READ RECORDS AN ID, and the asymmetry is the contract: `/api/billing`
-     * is CALLER-scoped and takes no workspace, so there is nothing to record and nothing a
-     * repository could get wrong there — the same note the device block above carries.
+     * Holds the workspace-billing read open until it is completed.
+     *
+     * ⛔ THE ONLY WAY "THE TWO READS ARE CONCURRENT" IS OBSERVABLE AT ALL — same device as
+     * [analyticsGate]. Against a fake both complete instantly, so a sequential implementation and a
+     * parallel one produce identical state; parking one makes the ordering visible. It matters more
+     * here than on analytics: sequentially, a failing Stripe read would prevent the PLAN read being
+     * issued, and the plan read is the half that works when Stripe does not.
      */
+    var workspaceBillingGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
+    /** Every workspace asked about, so the request can be asserted rather than inferred. */
+    val workspaceBillingRequests: MutableList<String> = mutableListOf()
+
+    /** ⚠️ Takes no workspace, so a count is all there is to record. Kept for ordering assertions. */
+    val stripeBillingRequests: MutableList<Unit> = mutableListOf()
+
     override suspend fun workspaceBilling(
         workspaceId: String,
     ): ApiResult<WorkspaceBillingResponse> {
+        workspaceBillingRequests += workspaceId
         requestedWorkspaceIds += workspaceId
+        workspaceBillingGate?.await()
         return workspaceBillingResult
     }
 
-    override suspend fun stripeBilling(): ApiResult<StripeBilling> = stripeBillingResult
+    override suspend fun stripeBilling(): ApiResult<StripeBilling> {
+        stripeBillingRequests += Unit
+        return stripeBillingResult
+    }
 
     // ── Workspace settings ───────────────────────────────────────────────────
     //
@@ -771,19 +840,22 @@ internal open class FakeDistrictApi(
     }
 
     // ── Rooms and meetings ───────────────────────────────────────────────────
-    // ⚠️ THE DEFAULT TOKEN CARRIES NO GUEST INVITE — the VIEWER shape, not the common one. A test
-    // that cares about the invite has to opt in, so no test can accidentally assert against a link
-    // the server would have withheld.
+    /**
+     * ⚠️ THE DEFAULT CARRIES NO GUEST INVITE, which is the VIEWER shape rather than the common
+     * one. Deliberate: a test that cares about the invite has to say so, and a test that does not
+     * cannot accidentally assert against a link the server would have withheld.
+     */
     var roomTokenResult: ApiResult<RoomTokenResponse> = ApiResult.Success(
-        RoomTokenResponse(success = true, token = "fake-jwt", url = "wss://livekit.example.test"),
+        RoomTokenResponse(success = true, token = "test-jwt", url = "wss://livekit.test"),
     )
     var meetingsResult: ApiResult<List<MeetingSummary>> = ApiResult.Success(emptyList())
     var meetingDetailResult: ApiResult<MeetingDetail> = ApiResult.Success(MeetingDetail())
 
+    /** Every room name a token was minted for, in order — the `meet_` prefix guard reads this. */
     val roomTokenRequests: MutableList<RoomTokenRequest> = mutableListOf()
     val meetingsRequests: MutableList<String> = mutableListOf()
 
-    /** `<workspaceId>/<meetingId>`, so the tenant scoping of a detail read is assertable. */
+    /** `<workspaceId>/<meetingId>` per detail read, so the tenant scoping is assertable. */
     val meetingDetailRequests: MutableList<String> = mutableListOf()
 
     override suspend fun roomToken(request: RoomTokenRequest): ApiResult<RoomTokenResponse> {
@@ -853,13 +925,17 @@ internal open class FakeDistrictApi(
     val workflowToggles: MutableList<WorkflowToggleRequest> = mutableListOf()
     val campaignStatusRequests: MutableList<String> = mutableListOf()
 
-    /** Every pause/resume attempted, so the merge-only body is assertable as sent. */
+    /**
+     * Every pause/resume attempted, so a viewer's gating is assertable as "never even called" and
+     * the merge-only body is assertable as sent.
+     */
     val campaignPauses: MutableList<CampaignPauseRequest> = mutableListOf()
 
     /**
-     * ⛔ NULL MEANS "ECHO THE REQUEST BACK", WHICH IS WHAT THE REAL ROUTE DOES — it derives its
-     * reply from the object it merged. A fake that returned a FIXED campaign would let a caller
-     * which ignored the response pass every test.
+     * ⛔ NULL MEANS "ECHO THE REQUEST BACK", WHICH IS WHAT THE REAL ROUTE DOES. It derives its
+     * reply from the object it merged, so a fake returning a FIXED campaign would let a caller
+     * that ignored the response — and re-rendered its own optimistic guess — pass every test.
+     * Set this only to pin a failure or a deliberately surprising reply.
      */
     var campaignPauseResult: ApiResult<CampaignStatusResponse>? = null
 
@@ -903,14 +979,37 @@ internal open class FakeDistrictApi(
     }
 }
 
+/** A minimal call row for tests that only care about identity and a couple of fields. */
+fun testCall(
+    id: String = "c1",
+    status: String = "completed",
+    recordingUrl: String? = null,
+) = CallSummary(
+    id = id,
+    type = "inbound",
+    number = "Ada",
+    status = status,
+    duration = "1m 5s",
+    time = "Aug 15, 02:30 PM",
+    aiSummary = "Booked an appointment.",
+    recordingUrl = recordingUrl,
+    hasTranscript = false,
+    callerName = "Ada",
+    from = "+14165550142",
+    direction = "inbound",
+    durationRaw = 65,
+    summary = "Booked an appointment.",
+    createdAt = "2026-08-15T14:30:00.000Z",
+)
+
 /**
  * The messaging fake, EXTRACTED FROM [FakeDistrictApi].
  *
- * ⛔ ITS OWN CLASS BECAUSE THE COMPOSED FAKE CROSSED detekt's `LargeClass` CEILING when the five
- * messaging writes were added, and the healthy answer to a class that has grown too big is
+ * ⛔ ITS OWN CLASS BECAUSE THE FIVE MESSAGING WRITES PUT THE COMPOSED FAKE OVER detekt's
+ * `LargeClass` CEILING, and the healthy answer to a class that has grown too big is
  * another class rather than a raised threshold — the same call `ContractFixtures` and
  * `MembersDialogs` record. [FakeDistrictApi] keeps satisfying `MessagingApi` through interface DELEGATION, so
- * nothing about which endpoints the fake covers has changed; only where they live.
+ * the split changes only where the endpoints live, not which ones the fake covers.
  *
  * ⛔ THE WRITES RECORD THEIR REQUESTS, NOT A COUNT, BECAUSE THE BODY IS THE CONTRACT ON THIS
  * SURFACE. Five operations share ONE path and are told apart only by an `action` string inside the
@@ -933,7 +1032,7 @@ internal open class FakeDistrictApi(
  * the equivalent "well-formed server" default is an ELIGIBLE workspace with no tenancy row — the
  * ordinary state of every workspace before anybody presses Enable.
  */
-internal class FakeSchedulingApi : SchedulingApi {
+class FakeSchedulingApi : SchedulingApi {
 
     var schedulingStatusResult: ApiResult<SchedulingStatusResponse> =
         ApiResult.Success(SchedulingStatusResponse(eligible = true, canManage = true))
@@ -1009,78 +1108,7 @@ internal class FakeSchedulingApi : SchedulingApi {
     }
 }
 
-/**
- * The inbound-call and push slices of [FakeDistrictApi], as their own object.
- *
- * ⛔ SPLIT OUT BECAUSE `FakeDistrictApi` CROSSED detekt's `LargeClass` CEILING AGAIN when the
- * scheduling slice landed — the same answer the messaging slice got, and the healthy one: another
- * class rather than a raised threshold. The behaviour is identical to an inline stub; only the
- * reach changes (`fake.pushApi.answerRequests`).
- *
- * ⚠️ IT MIRRORS `TestDistrictApi.FakeInboundPushApi` IN THE APP MODULE, WHICH WAS EXTRACTED FIRST
- * AND FOR THE SAME REASON. The two fakes had drifted into different shapes for the same endpoints;
- * this brings them back into line, so a reader moving between the two modules is not learning two
- * conventions for one thing.
- *
- * ⚠️ ONE FAKE FOR TWO INTERFACES, unlike the production side where `HttpInboundCallApi` and
- * `HttpPushApi` are separate classes. That split exists so a dialler screen cannot answer a call; a
- * TEST fake has no such boundary to protect, and two objects would mean two properties for one
- * feature.
- */
-internal class FakeInboundPushApi : InboundCallApi, PushApi {
-    /**
-     * ⚠️ THE DEFAULT IS A REFUSAL, MATCHING [dialResult] AND FOR A RELATED REASON. Answering does
-     * not spend money, but it DOES write the server's rendezvous and put a microphone into a live
-     * customer conversation — so a test that never mentions answering must not walk that path by
-     * accident.
-     */
-    var answerResult: ApiResult<CallAnswerResponse> = ApiResult.HttpFailure(
-        status = 409,
-        message = "no answer stubbed",
-    )
-
-    /** Every answer attempted, as `callId/workspaceId` — "answered once, for the right call". */
-    val answerRequests: MutableList<String> = mutableListOf()
-
-    override suspend fun answerCall(
-        callId: String,
-        request: CallAnswerRequest,
-    ): ApiResult<CallAnswerResponse> {
-        answerRequests += "$callId/${request.workspaceId}"
-        return answerResult
-    }
-
-    /**
-     * ⚠️ THE PUSH DEFAULTS **DO** SUCCEED, unlike the two above, and the asymmetry is the point:
-     * registration is an idempotent upsert that costs nothing and rings nobody, so the interesting
-     * assertions are about ORDER and COUNT rather than about a path being walked by accident.
-     */
-    var pushRegisterResult: ApiResult<PushRegistrationResponse> =
-        ApiResult.Success(PushRegistrationResponse(success = true))
-
-    var pushUnregisterResult: ApiResult<PushRegistrationResponse> =
-        ApiResult.Success(PushRegistrationResponse(success = true))
-
-    /** Every token registered, in order. ⚠️ A rotation is two entries, not one. */
-    val pushRegisterRequests: MutableList<PushTokenRegisterRequest> = mutableListOf()
-
-    /** How many times this installation asked to be unregistered. */
-    var pushUnregisterCount: Int = 0
-
-    override suspend fun registerPushToken(
-        request: PushTokenRegisterRequest,
-    ): ApiResult<PushRegistrationResponse> {
-        pushRegisterRequests += request
-        return pushRegisterResult
-    }
-
-    override suspend fun unregisterPushToken(): ApiResult<PushRegistrationResponse> {
-        pushUnregisterCount += 1
-        return pushUnregisterResult
-    }
-}
-
-internal class FakeMessagingApi : MessagingApi {
+class FakeMessagingApi : MessagingApi {
 
     var messagingResult: ApiResult<MessagingResponse> =
         ApiResult.Success(MessagingResponse(success = true))
@@ -1161,5 +1189,73 @@ internal class FakeMessagingApi : MessagingApi {
     ): ApiResult<MessagingTestResponse> {
         messagingTests += request
         return testCredentialsResult
+    }
+}
+
+/**
+ * The inbound-call and push slices of [FakeDistrictApi], as their own object.
+ *
+ * ⛔ SPLIT OUT BECAUSE `FakeDistrictApi` CROSSED detekt's `LargeClass` CEILING AGAIN — the same
+ * answer the messaging slice got, and the healthy one: another class rather than a raised
+ * threshold. The behaviour is identical to an inline stub; only the reach changes.
+ */
+class FakeInboundPushApi : InboundCallApi, PushApi {
+    /**
+     * ⚠️ THE DEFAULT IS A REFUSAL, MATCHING `FakeDistrictApi.dialResult` AND FOR A RELATED REASON. Answering does
+     * not spend money, but it DOES write the server's rendezvous and put a microphone into a live
+     * customer conversation — so a test that never mentions answering must not walk that path by
+     * accident.
+     */
+    var answerResult: ApiResult<CallAnswerResponse> = ApiResult.HttpFailure(
+        status = 409,
+        message = "no answer stubbed",
+    )
+
+    /** Every answer attempted, as `callId/workspaceId` — "answered once, for the right call". */
+    val answerRequests: MutableList<String> = mutableListOf()
+
+    /**
+     * When set, [answerCall] waits for it before returning: an answer round trip still in flight.
+     *
+     * ⚠️ RECORDED BEFORE THE WAIT, so "the request went out" is assertable while it is held.
+     */
+    var answerGate: CompletableDeferred<Unit>? = null
+
+    override suspend fun answerCall(
+        callId: String,
+        request: CallAnswerRequest,
+    ): ApiResult<CallAnswerResponse> {
+        answerRequests += "$callId/${request.workspaceId}"
+        answerGate?.await()
+        return answerResult
+    }
+
+    /**
+     * ⚠️ THE PUSH DEFAULTS **DO** SUCCEED, unlike the two above, and the asymmetry is the point:
+     * registration is an idempotent upsert that costs nothing and rings nobody, so the interesting
+     * assertions are about ORDER and COUNT rather than about a path being walked by accident.
+     */
+    var pushRegisterResult: ApiResult<PushRegistrationResponse> =
+        ApiResult.Success(PushRegistrationResponse(success = true))
+
+    var pushUnregisterResult: ApiResult<PushRegistrationResponse> =
+        ApiResult.Success(PushRegistrationResponse(success = true))
+
+    /** Every token registered, in order. ⚠️ A rotation is two entries, not one. */
+    val pushRegisterRequests: MutableList<PushTokenRegisterRequest> = mutableListOf()
+
+    /** How many times this installation asked to be unregistered. */
+    var pushUnregisterCount: Int = 0
+
+    override suspend fun registerPushToken(
+        request: PushTokenRegisterRequest,
+    ): ApiResult<PushRegistrationResponse> {
+        pushRegisterRequests += request
+        return pushRegisterResult
+    }
+
+    override suspend fun unregisterPushToken(): ApiResult<PushRegistrationResponse> {
+        pushUnregisterCount += 1
+        return pushUnregisterResult
     }
 }

@@ -13,23 +13,20 @@ import com.distronode.districtai.core.model.WorkspaceListResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.ui.SignedOutCause
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.resourceIdOrNull
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The failure-to-UI mapping.
@@ -45,17 +42,8 @@ class OverviewViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        // viewModelScope is hard-wired to Dispatchers.Main; without this substitution every
-        // launch below would throw "Module with the Main dispatcher had failed to initialize".
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun entry(id: String, name: String = id, role: String = "client") =
         WorkspaceEntry(id = id, name = name, region = "us", role = role)
@@ -67,7 +55,7 @@ class OverviewViewModelTest {
         }
     }
 
-    private fun viewModel(api: TestDistrictApi, store: FakeStore = FakeStore()) = OverviewViewModel(
+    private fun viewModel(api: FakeDistrictApi, store: FakeStore = FakeStore()) = OverviewViewModel(
         workspaceRepository = WorkspaceRepository(api, store),
         overviewRepository = OverviewRepository(api),
     )
@@ -76,7 +64,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `loads the active workspace's overview`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a", "Alpha"))),
             )
@@ -106,7 +94,7 @@ class OverviewViewModelTest {
         // error: the server falls back to index 0 of its OWN listing, which cannot know what the
         // user selected in the app because that selection is local state, not a cookie. The
         // screen would be labelled with one workspace and show another's numbers.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(
                     success = true,
@@ -123,7 +111,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `switching workspace persists the choice and re-reads`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(
                     success = true,
@@ -144,7 +132,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `offers a switcher only when there is more than one workspace`() = runTest(dispatcher) {
-        val single = TestDistrictApi().apply {
+        val single = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a"))),
             )
@@ -153,7 +141,7 @@ class OverviewViewModelTest {
         advanceUntilIdle()
         assertFalse((vmSingle.state.value as OverviewUiState.Content).canSwitchWorkspace)
 
-        val many = TestDistrictApi().apply {
+        val many = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("a"), entry("b"))),
             )
@@ -170,7 +158,7 @@ class OverviewViewModelTest {
         // ⚠️ The per-request role is the EFFECTIVE one: support access resolves to "agency" even
         // with no membership row, so the list's role can understate access. Here
         // the list says viewer and the overview says agency — the overview wins.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(
                     success = true,
@@ -188,7 +176,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `denies mutations to a viewer`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a"))),
             )
@@ -204,7 +192,7 @@ class OverviewViewModelTest {
     @Test
     fun `denies mutations when the role could not be parsed`() = runTest(dispatcher) {
         // Fails closed. Assuming the mutating role would offer actions that all 403.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a"))),
             )
@@ -222,7 +210,7 @@ class OverviewViewModelTest {
     @Test
     fun `a genuinely empty account reports no workspaces`() = runTest(dispatcher) {
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.Success(WorkspaceListResponse(success = true)) }
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.Success(WorkspaceListResponse(success = true)) }
         )
         advanceUntilIdle()
 
@@ -232,7 +220,7 @@ class OverviewViewModelTest {
     @Test
     fun `a lapsed account reports billing, not emptiness`() = runTest(dispatcher) {
         val vm = viewModel(
-            TestDistrictApi().apply {
+            FakeDistrictApi().apply {
                 workspaceListResult = ApiResult.Success(
                     WorkspaceListResponse(success = true, inactiveCount = 3),
                 )
@@ -248,7 +236,7 @@ class OverviewViewModelTest {
         // ⛔ THE INCIDENT THIS PREVENTS. Nothing resolved because a region was down. Reporting
         // NoWorkspaces here is indistinguishable to the user from having lost their account.
         val vm = viewModel(
-            TestDistrictApi().apply {
+            FakeDistrictApi().apply {
                 workspaceListResult = ApiResult.Success(
                     WorkspaceListResponse(success = true, degradedRegions = listOf("eu")),
                 )
@@ -264,7 +252,7 @@ class OverviewViewModelTest {
     @Test
     fun `a degraded-regions failure from the API is unavailable, never empty`() = runTest(dispatcher) {
         val vm = viewModel(
-            TestDistrictApi().apply {
+            FakeDistrictApi().apply {
                 workspaceListResult = ApiResult.RegionsDegraded("unreachable", listOf("apac"))
             },
         )
@@ -280,7 +268,7 @@ class OverviewViewModelTest {
         // Surfacing that is not optional — implying fewer workspaces than the user has is the
         // same class of error as showing none.
         val vm = viewModel(
-            TestDistrictApi().apply {
+            FakeDistrictApi().apply {
                 workspaceListResult = ApiResult.Success(
                     WorkspaceListResponse(
                         success = true,
@@ -302,7 +290,7 @@ class OverviewViewModelTest {
     @Test
     fun `never having signed in is not an error state`() = runTest(dispatcher) {
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(ReauthReason.NoSession) }
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(ReauthReason.NoSession) }
         )
         advanceUntilIdle()
 
@@ -314,7 +302,7 @@ class OverviewViewModelTest {
         // ⚠️ Signs the user out, but re-sending that token would revoke the whole family and log
         // a replay warning describing an attack that did not happen. The wording has to match.
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(ReauthReason.InterruptedRefresh) },
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(ReauthReason.InterruptedRefresh) },
         )
         advanceUntilIdle()
 
@@ -324,7 +312,7 @@ class OverviewViewModelTest {
     @Test
     fun `a refused credential is reported as an invalid session`() = runTest(dispatcher) {
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(ReauthReason.RefreshRejected) },
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(ReauthReason.RefreshRejected) },
         )
         advanceUntilIdle()
 
@@ -333,7 +321,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `a bare 401 with no reason is an invalid session`() = runTest(dispatcher) {
-        val vm = viewModel(TestDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(reason = null) })
+        val vm = viewModel(FakeDistrictApi().apply { workspaceListResult = ApiResult.Unauthorized(reason = null) })
         advanceUntilIdle()
 
         assertEquals(OverviewUiState.SignedOut(SignedOutCause.SESSION_INVALID), vm.state.value)
@@ -345,7 +333,7 @@ class OverviewViewModelTest {
     fun `a rate limit keeps the session and stays retryable`() = runTest(dispatcher) {
         // ⛔ NOT A SIGN-OUT. The server rate-limits before rotating, so nothing was spent, and
         // its limits are sized to tolerate several devices behind one NAT.
-        val vm = viewModel(TestDistrictApi().apply { workspaceListResult = ApiResult.RateLimited("slow down") })
+        val vm = viewModel(FakeDistrictApi().apply { workspaceListResult = ApiResult.RateLimited("slow down") })
         advanceUntilIdle()
 
         assertTrue(vm.state.value is OverviewUiState.Unavailable)
@@ -355,7 +343,7 @@ class OverviewViewModelTest {
     fun `a 404 no-workspace answer reports no workspaces`() = runTest(dispatcher) {
         // ⚠️ The auth guard answers 404, not 403, for an account with no workspace at all.
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.NotFound("User has no workspace") }
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.NotFound("User has no workspace") }
         )
         advanceUntilIdle()
 
@@ -367,7 +355,7 @@ class OverviewViewModelTest {
         // ⛔ "Check your connection" would be wrong AND unactionable — retrying can never fix a
         // shape the app cannot parse. The message has to point at updating the app.
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.DecodeFailure(RuntimeException("nope"), "{}") },
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.DecodeFailure(RuntimeException("nope"), "{}") },
         )
         advanceUntilIdle()
 
@@ -381,7 +369,7 @@ class OverviewViewModelTest {
     @Test
     fun `being offline says so`() = runTest(dispatcher) {
         val vm = viewModel(
-            TestDistrictApi().apply { workspaceListResult = ApiResult.NetworkFailure(IOException("no route")) },
+            FakeDistrictApi().apply { workspaceListResult = ApiResult.NetworkFailure(IOException("no route")) },
         )
         advanceUntilIdle()
 
@@ -396,7 +384,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `a refresh keeps existing content visible instead of flashing a spinner`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a"))),
             )
@@ -421,7 +409,7 @@ class OverviewViewModelTest {
     fun `a failed overview read after a good workspace list is unavailable, never empty`() = runTest(dispatcher) {
         // ⛔ The list answered and named a workspace; only its figures failed. That is "we could not
         // finish looking", and the screen must say so rather than show a workspace with no numbers.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a"))),
             )
@@ -438,7 +426,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `the factory builds a model that reads through the repositories it was given`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a", "Alpha"))),
             )
@@ -458,7 +446,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `a first load shows Loading`() = runTest(dispatcher) {
-        val vm = viewModel(TestDistrictApi())
+        val vm = viewModel(FakeDistrictApi())
 
         assertEquals(OverviewUiState.Loading, vm.state.value)
         advanceUntilIdle()
@@ -469,7 +457,7 @@ class OverviewViewModelTest {
         // ⛔ LAST TO ARRIVE IS NOT LAST ASKED. The cold-start read for A is parked on its overview
         // while the user switches to B; B answers first, then A lands. Before the fix A's figures
         // were painted over B's while the stored selection said B.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(
                     success = true,

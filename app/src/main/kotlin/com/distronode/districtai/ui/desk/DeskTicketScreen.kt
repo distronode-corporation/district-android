@@ -57,6 +57,7 @@ fun DeskTicketScreen(
     onSend: () -> Unit,
     onSetStatus: (DeskTicketStatus) -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -81,7 +82,7 @@ fun DeskTicketScreen(
                     is DeskTicketUiState.Failed -> FailureState(
                         failure = state.failure,
                         onRetry = onRetry,
-                        onSignIn = null,
+                        onSignIn = onSignIn,
                         description = DESK_TICKET_FAILURE_DESCRIPTION,
                     )
                     is DeskTicketUiState.Content ->

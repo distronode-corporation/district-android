@@ -7,7 +7,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,13 +43,7 @@ class PersonaRequestTest {
         server.close()
     }
 
-    private fun api(): PersonaApi = HttpPersonaApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api(): PersonaApi = HttpPersonaApi(testApiClient(server, refreshApi))
 
     private fun okOptions() = MockResponse(
         code = 200,

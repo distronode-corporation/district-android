@@ -12,22 +12,19 @@ import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceListResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.SetupApi
-import com.distronode.districtai.ui.TestDistrictApi
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The overview's "Finish setting up on the web" card, from the ViewModel's side.
@@ -41,15 +38,8 @@ class OverviewSetupCardTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private class FakeStore(private var id: String? = null) : WorkspaceSelectionStore {
         override fun selectedWorkspaceId(): String? = id
@@ -77,7 +67,7 @@ class OverviewSetupCardTest {
     private val midWizard: ApiResult<DistrictSetupResponse> =
         ApiResult.Success(DistrictSetupResponse(setupProgress = SetupProgress()))
 
-    private fun districtApi(vararg ids: String) = TestDistrictApi().apply {
+    private fun districtApi(vararg ids: String) = FakeDistrictApi().apply {
         workspaceListResult = ApiResult.Success(
             WorkspaceListResponse(
                 success = true,
@@ -91,7 +81,7 @@ class OverviewSetupCardTest {
         )
     }
 
-    private fun viewModel(api: TestDistrictApi, setup: SetupApi?, store: FakeStore = FakeStore()) =
+    private fun viewModel(api: FakeDistrictApi, setup: SetupApi?, store: FakeStore = FakeStore()) =
         OverviewViewModel(
             workspaceRepository = WorkspaceRepository(api, store),
             overviewRepository = OverviewRepository(api),

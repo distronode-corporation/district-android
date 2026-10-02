@@ -14,12 +14,12 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.MainLooperDrain
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
-import com.distronode.districtai.ui.testCall
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.testCall
 
 /**
  * The call log fed by a real `Pager`, for the one case a static `PagingData` cannot produce: slots

@@ -51,6 +51,7 @@ fun ContactDetailScreen(
     canMutate: Boolean,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onRename: (String) -> Unit,
     onDelete: () -> Unit,
     onDismissMutationFailure: () -> Unit,
@@ -86,7 +87,7 @@ fun ContactDetailScreen(
                 is ContactDetailUiState.Failed -> FailureState(
                     failure = state.failure,
                     onRetry = onRetry,
-                    onSignIn = null,
+                    onSignIn = onSignIn,
                     description = CONTACT_DETAIL_FAILURE_DESCRIPTION,
                 )
 

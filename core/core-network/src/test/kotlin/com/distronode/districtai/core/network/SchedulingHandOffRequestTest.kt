@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -50,13 +49,7 @@ class SchedulingHandOffRequestTest {
         server.close()
     }
 
-    private fun schedulingApi(): SchedulingApi = HttpSchedulingApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun schedulingApi(): SchedulingApi = HttpSchedulingApi(testApiClient(server, refreshApi))
 
     @Test
     fun `the hand-off is a POST to scheduling handoff carrying the workspace and the next path`() =

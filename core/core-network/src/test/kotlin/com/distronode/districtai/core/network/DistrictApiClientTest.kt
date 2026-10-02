@@ -55,9 +55,8 @@ class DistrictApiClientTest {
         server.close()
     }
 
-    private fun client(signedIn: Boolean = true) = DistrictApiClient(
-        baseUrl = server.url("/"),
-        httpClient = OkHttpClient(),
+    private fun client(signedIn: Boolean = true) = testApiClient(
+        server,
         tokens = if (signedIn) signedInCoordinator(refreshApi) else signedOutCoordinator(),
     )
 
@@ -489,7 +488,7 @@ class DistrictApiClientTest {
 
         val result = DistrictApiClient(
             baseUrl = url,
-            httpClient = OkHttpClient(),
+            httpClient = DistrictHttp.client(),
             tokens = signedInCoordinator(refreshApi),
         ).get(thingPath, Payload.serializer())
 

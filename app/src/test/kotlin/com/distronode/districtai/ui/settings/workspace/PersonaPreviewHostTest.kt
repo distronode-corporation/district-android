@@ -17,7 +17,6 @@ import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
-import com.distronode.districtai.ui.TestPersonaApi
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -26,6 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.FakePersonaApi
 
 /**
  * The host that owns one audition: the sheet it opens, the microphone prompt it raises, and the
@@ -42,7 +42,7 @@ class PersonaPreviewHostTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val api = TestPersonaApi()
+    private val api = FakePersonaApi()
 
     @Before
     fun grantMicrophone() {
@@ -81,7 +81,7 @@ class PersonaPreviewHostTest {
         composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION).performClick()
         composeRule.waitForIdle()
 
-        assertEquals(listOf(PersonaPreviewForm(name = "Bea")), api.previewCalls)
+        assertEquals(listOf("ws-host" to PersonaPreviewForm(name = "Bea")), api.previewCalls)
     }
 
     @Test
@@ -91,7 +91,7 @@ class PersonaPreviewHostTest {
         composeRule.onNodeWithContentDescription(OPEN_BUTTON).performClick()
         composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION).performClick()
         composeRule.waitForIdle()
-        assertEquals(emptyList<PersonaPreviewForm>(), api.previewCalls)
+        assertEquals(emptyList<Pair<String, PersonaPreviewForm>>(), api.previewCalls)
 
         composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_CLOSE_DESCRIPTION).performClick()
         composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_ROOT_DESCRIPTION).assertDoesNotExist()

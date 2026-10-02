@@ -3,18 +3,15 @@ package com.distronode.districtai.ui.calls
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.CallsRepository
-import com.distronode.districtai.ui.TestDistrictApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * ⛔ THE INVARIANT THIS PROTECTS IS ONE VIEWMODEL PER WORKSPACE. The paging source's offsets and
@@ -32,17 +29,10 @@ class CallLogViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun repository() = CallsRepository(TestDistrictApi())
+    private fun repository() = CallsRepository(FakeDistrictApi())
 
     @Test
     fun `carries the workspace it was built for`() {

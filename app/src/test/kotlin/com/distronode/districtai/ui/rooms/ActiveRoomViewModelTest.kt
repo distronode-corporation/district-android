@@ -12,18 +12,14 @@ import com.distronode.districtai.core.model.E2eeInfo
 import com.distronode.districtai.core.model.RoomTokenResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,6 +28,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The live room's state machine.
@@ -56,6 +55,9 @@ class ActiveRoomViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
+
     /**
      * The scope the ViewModel's engine is built with.
      *
@@ -73,14 +75,12 @@ class ActiveRoomViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         engineScope = CoroutineScope(dispatcher)
     }
 
     @After
     fun tearDown() {
         engineScope.cancel()
-        Dispatchers.resetMain()
     }
 
     private val roomName = "meet_ws-abc_standup"
@@ -91,10 +91,10 @@ class ActiveRoomViewModelTest {
             token = "jwt-abc",
             url = "wss://livekit.test",
         ),
-    ) = TestDistrictApi().apply { roomTokenResult = ApiResult.Success(token) }
+    ) = FakeDistrictApi().apply { roomTokenResult = ApiResult.Success(token) }
 
     private fun viewModel(
-        api: TestDistrictApi = api(),
+        api: FakeDistrictApi = api(),
         factory: FakeCallEngineFactory = FakeCallEngineFactory(),
         role: WorkspaceRole? = WorkspaceRole.AGENCY,
         scope: CoroutineScope = engineScope,
@@ -282,7 +282,7 @@ class ActiveRoomViewModelTest {
         // ⛔ BACK TO Idle, NOT Failed. The engine never connected, so its own flow still reads Idle
         // and would overwrite anything set here; the reason the user needs is the API failure, and
         // leaving the state on Connecting would spin over a join that will never happen.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             roomTokenResult = ApiResult.Forbidden("not a member of this workspace")
         }
         val factory = FakeCallEngineFactory()

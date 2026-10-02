@@ -5,7 +5,6 @@ import java.io.File
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -50,13 +49,7 @@ class HttpSetupApiTest {
     fun `the setup read is a bodiless GET addressed by the workspace in the query`() = runTest {
         val body = fixture("district-setup.json")
         server.enqueue(MockResponse(code = 200, body = body))
-        val api = HttpSetupApi(
-            DistrictApiClient(
-                baseUrl = server.url("/"),
-                httpClient = OkHttpClient(),
-                tokens = signedInCoordinator(FakeRefreshApi().apply { rotating() }),
-            ),
-        )
+        val api = HttpSetupApi(testApiClient(server))
 
         val result = api.districtSetup("ws-1")
 
@@ -75,13 +68,7 @@ class HttpSetupApiTest {
         // The route is owner-only. The interface promises callers a Forbidden they can treat as
         // "nothing to show", so the status must survive the client rather than decode as a body.
         server.enqueue(MockResponse(code = 403, body = """{"success":false,"error":"Owner only"}"""))
-        val api = HttpSetupApi(
-            DistrictApiClient(
-                baseUrl = server.url("/"),
-                httpClient = OkHttpClient(),
-                tokens = signedInCoordinator(FakeRefreshApi().apply { rotating() }),
-            ),
-        )
+        val api = HttpSetupApi(testApiClient(server))
 
         assertEquals(ApiResult.Forbidden("Owner only"), api.districtSetup("ws-1"))
     }

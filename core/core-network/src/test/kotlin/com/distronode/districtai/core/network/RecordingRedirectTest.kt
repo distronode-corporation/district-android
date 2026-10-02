@@ -4,7 +4,6 @@ import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -38,13 +37,7 @@ class RecordingRedirectTest {
         server.close()
     }
 
-    private fun api() = HttpDistrictApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api() = HttpDistrictApi(testApiClient(server, refreshApi))
 
     @Test
     fun `returns the redirect target without following it`() = runTest {
@@ -138,7 +131,7 @@ class RecordingRedirectTest {
         // ⛔ The override is applied to a CLONE via newBuilder(). Mutating the shared client would
         // silently stop the whole app following redirects, which would break anything relying on
         // one. Proven by making an ordinary call that DOES redirect and observing it followed.
-        val client = OkHttpClient()
+        val client = DistrictHttp.client()
         val apiClient = DistrictApiClient(
             baseUrl = server.url("/"),
             httpClient = client,

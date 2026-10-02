@@ -7,23 +7,20 @@ import com.distronode.districtai.core.model.ToolConfig
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The capability allowlist's state machine — the destructive half of workspace settings.
@@ -39,15 +36,8 @@ class CapabilitiesViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     /**
      * ⛔ DELIBERATELY NOT IN CATALOG ORDER, AND IT CARRIES AN ID THE CATALOG DOES NOT KNOW.
@@ -66,12 +56,12 @@ class CapabilitiesViewModelTest {
         toolConfig = ToolConfig(allowedTools = storedTools, supportPhoneNumber = "+14165550123"),
     )
 
-    private fun api(config: WorkspaceConfig = storedConfig) = TestDistrictApi().apply {
+    private fun api(config: WorkspaceConfig = storedConfig) = FakeDistrictApi().apply {
         workspaceConfigResult =
             ApiResult.Success(WorkspaceConfigResponse(success = true, config = config))
     }
 
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         CapabilitiesViewModel(WorkspaceConfigRepository(api), workspaceId = "ws-1")
 
     // ── The load gate ────────────────────────────────────────────────────────

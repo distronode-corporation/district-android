@@ -4,7 +4,6 @@ import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,13 +41,7 @@ class SchedulingAdminMediaRequestTest {
         server.close()
     }
 
-    private fun adminApi(): SchedulingAdminApi = HttpSchedulingAdminApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun adminApi(): SchedulingAdminApi = HttpSchedulingAdminApi(testApiClient(server, refreshApi))
 
     @Test
     fun `an upload puts the workspace in the query and the target in a form field`() = runTest {

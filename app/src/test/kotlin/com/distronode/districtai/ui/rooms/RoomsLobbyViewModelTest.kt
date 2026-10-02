@@ -5,22 +5,19 @@ import com.distronode.districtai.core.model.MeetingDetail
 import com.distronode.districtai.core.model.MeetingSummary
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.MeetingsApi
-import com.distronode.districtai.ui.TestDistrictApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The lobby's state machine.
@@ -38,15 +35,8 @@ class RoomsLobbyViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val liveMeeting = MeetingSummary(
         id = "m-live",
@@ -67,9 +57,9 @@ class RoomsLobbyViewModelTest {
     )
 
     private fun api(meetings: List<MeetingSummary> = listOf(liveMeeting, doneMeeting)) =
-        TestDistrictApi().apply { meetingsResult = ApiResult.Success(meetings) }
+        FakeDistrictApi().apply { meetingsResult = ApiResult.Success(meetings) }
 
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         RoomsLobbyViewModel(MeetingsRepository(api), workspaceId = "ws-abc")
 
     // ── The history ──────────────────────────────────────────────────────────
@@ -101,7 +91,7 @@ class RoomsLobbyViewModelTest {
     fun `a failed history read does not disable the join form`() = runTest {
         // ⛔ THEY ARE UNRELATED SERVER SURFACES. Gating the field on the archive would turn an
         // outage of the minutes history into an inability to hold a meeting.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             meetingsResult = ApiResult.RegionsDegraded("eu is down", listOf("eu"))
         }
         val vm = viewModel(api)

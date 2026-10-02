@@ -13,20 +13,18 @@ import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DeskApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDeskApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * One ticket's state machine.
@@ -45,15 +43,8 @@ class DeskTicketViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val detail = DeskTicketDetail(
         id = "tkt_1",
@@ -64,12 +55,12 @@ class DeskTicketViewModelTest {
         messages = listOf(DeskMessage(id = "m1", authorType = "customer", body = "It drips.")),
     )
 
-    private fun api() = FakeDeskApiForUi().apply {
+    private fun api() = FakeDeskApi().apply {
         ticketResult = ApiResult.Success(DeskTicketResponse(success = true, ticket = detail))
     }
 
     private fun viewModel(
-        api: FakeDeskApiForUi,
+        api: FakeDeskApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = DeskTicketViewModel(
         DeskRepository(api) { "key" },

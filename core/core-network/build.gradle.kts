@@ -10,6 +10,15 @@ plugins {
 
 android {
     namespace = "com.distronode.districtai.core.network"
+
+    // ⛔ THE ONE SET OF API FAKES, PUBLISHED AS TEST FIXTURES. FakeDistrictApi and its siblings
+    // (src/testFixtures) are consumed by core-data's repository tests and the app's screen tests
+    // through `testImplementation(testFixtures(projects.core.coreNetwork))`. Each module kept its
+    // own copy before, about 1,300 lines apiece, and the copies drifted on what they recorded.
+    //
+    // ⚠️ NOT PRODUCTION CODE AND NOT MEASURED: the root `kover { }` report collects each module's
+    // `debug` variant, whose classes are `src/main` only, so nothing here counts toward the floors.
+    testFixtures { enable = true }
 }
 
 // ⛔ NO RETROFIT, AND THAT IS A DECISION RATHER THAN AN OMISSION.
@@ -58,6 +67,11 @@ dependencies {
     // wait, or shown an empty account. A stubbed client would only prove the stub agrees
     // with itself.
     testImplementation(libs.okhttp.mockwebserver)
+
+    // `api` because the fixtures' own signatures expose them: MainDispatcherRule IS a JUnit
+    // TestWatcher and takes a TestDispatcher, so every consumer needs both on its classpath anyway.
+    testFixturesApi(libs.junit)
+    testFixturesApi(libs.kotlinx.coroutines.test)
 }
 
 // ── Contract fixture (error envelope) ────────────────────────────────────────

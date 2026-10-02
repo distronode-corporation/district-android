@@ -8,21 +8,18 @@ import com.distronode.districtai.core.model.CallHandling
 import com.distronode.districtai.core.model.CallHandlingResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestCallHandlingApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeCallHandlingApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * Who answers a call, how long this phone rings, and whether it is rung at all.
@@ -36,15 +33,8 @@ class CallHandlingViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun api(
         handling: CallHandlingResponse = CallHandlingResponse(
@@ -56,13 +46,13 @@ class CallHandlingViewModelTest {
             success = true,
             availableForCalls = true,
         ),
-    ) = TestCallHandlingApi().apply {
+    ) = FakeCallHandlingApi().apply {
         handlingResult = ApiResult.Success(handling)
         availabilityResult = ApiResult.Success(availability)
     }
 
     private fun viewModel(
-        api: TestCallHandlingApi,
+        api: FakeCallHandlingApi,
         role: WorkspaceRole? = WorkspaceRole.AGENCY,
     ) = CallHandlingViewModel(CallHandlingRepository(api), workspaceId = "ws-1", role = role)
 

@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -198,13 +197,7 @@ class ApiErrorEnvelopeContractTest {
             val server = MockWebServer()
             server.start()
             try {
-                val api = HttpMembersApi(
-                    DistrictApiClient(
-                        baseUrl = server.url("/"),
-                        httpClient = OkHttpClient(),
-                        tokens = signedInCoordinator(FakeRefreshApi().apply { rotating() }),
-                    ),
-                )
+                val api = HttpMembersApi(testApiClient(server))
 
                 server.enqueue(
                     MockResponse(
@@ -331,13 +324,7 @@ class ApiErrorEnvelopeContractTest {
             val server = MockWebServer()
             server.start()
             try {
-                val api = HttpDialApi(
-                    DistrictApiClient(
-                        baseUrl = server.url("/"),
-                        httpClient = OkHttpClient(),
-                        tokens = signedInCoordinator(FakeRefreshApi().apply { rotating() }),
-                    ),
-                )
+                val api = HttpDialApi(testApiClient(server))
                 server.enqueue(
                     MockResponse(
                         code = HTTP_FORBIDDEN,
@@ -366,13 +353,7 @@ class ApiErrorEnvelopeContractTest {
             val server = MockWebServer()
             server.start()
             try {
-                val api = HttpDialApi(
-                    DistrictApiClient(
-                        baseUrl = server.url("/"),
-                        httpClient = OkHttpClient(),
-                        tokens = signedInCoordinator(FakeRefreshApi().apply { rotating() }),
-                    ),
-                )
+                val api = HttpDialApi(testApiClient(server))
                 server.enqueue(
                     MockResponse(
                         code = HTTP_PAYMENT_REQUIRED,

@@ -5,21 +5,18 @@ import com.distronode.districtai.core.data.ContactsRepository
 import com.distronode.districtai.core.model.ContactMutationResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.resourceIdOrNull
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * Creating a contact.
@@ -34,22 +31,15 @@ class ContactsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = ContactsViewModel(ContactsRepository(api), workspaceId = "ws-1", role = role)
 
-    private fun api(id: String = "new-contact") = TestDistrictApi().apply {
+    private fun api(id: String = "new-contact") = FakeDistrictApi().apply {
         mutationResult = ApiResult.Success(ContactMutationResponse(success = true, id = id))
     }
 

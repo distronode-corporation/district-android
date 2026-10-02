@@ -82,6 +82,22 @@ complexity:
     active: true
     functionThreshold: 8
     ignoreAnnotated: ['Composable']
+  # ⚠️ detekt's default test globs PLUS '**/testFixtures/**'. The shared API fakes live in
+  # core-network's testFixtures source set, which is test code that detekt's defaults do not
+  # recognise, and a fake of an 85-method interface is many functions by construction. Setting
+  # `excludes` replaces the default list, so every default entry is restated here.
+  TooManyFunctions:
+    active: true
+    excludes:
+      - '**/test/**'
+      - '**/testFixtures/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
 
 exceptions:
   # `catch (t: Throwable)` is sometimes the correct thing on a fail-closed auth path,

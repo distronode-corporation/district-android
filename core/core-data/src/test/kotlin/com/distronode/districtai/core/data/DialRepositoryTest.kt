@@ -9,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * The one repository whose mistakes cost money.

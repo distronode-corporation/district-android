@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -52,13 +51,7 @@ class DeskRequestTest {
         server.close()
     }
 
-    private fun api(): DeskApi = HttpDeskApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api(): DeskApi = HttpDeskApi(testApiClient(server, refreshApi))
 
     private fun ok(body: String) = MockResponse(code = 200, body = body)
 

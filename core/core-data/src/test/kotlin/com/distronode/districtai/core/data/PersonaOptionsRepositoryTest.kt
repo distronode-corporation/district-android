@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakePersonaApi
 
 /**
  * The catalogue read, and the credential for one billed audition.

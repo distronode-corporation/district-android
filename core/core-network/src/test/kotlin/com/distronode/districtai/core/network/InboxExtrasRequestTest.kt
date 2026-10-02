@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -43,11 +42,7 @@ class InboxExtrasRequestTest {
         server.close()
     }
 
-    private fun client() = DistrictApiClient(
-        baseUrl = server.url("/"),
-        httpClient = OkHttpClient(),
-        tokens = signedInCoordinator(refreshApi),
-    )
+    private fun client() = testApiClient(server, refreshApi)
 
     private fun inbox(): InboxExtrasApi = HttpInboxExtrasApi(client())
 

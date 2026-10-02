@@ -4,12 +4,12 @@ import com.distronode.districtai.core.data.MessageSearchRepository
 import com.distronode.districtai.core.model.MessageThreadResponse
 import com.distronode.districtai.core.model.MessageThreadTarget
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestInboxExtrasApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
 
 /**
  * Where a tapped message notification lands.
@@ -21,7 +21,7 @@ import java.io.IOException
  */
 class MessageDeepLinkResolverTest {
 
-    private val api = TestInboxExtrasApi()
+    private val api = FakeInboxExtrasApi()
 
     private suspend fun resolve(link: InboxDeepLink): String = resolveMessageDeepLinkRoute(
         repository = MessageSearchRepository(api),

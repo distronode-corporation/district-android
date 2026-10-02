@@ -16,7 +16,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import mockwebserver3.RecordedRequest
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -61,13 +60,7 @@ class HttpDistrictApiTransportTest {
         server.close()
     }
 
-    private fun api(): DistrictApi = HttpDistrictApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api(): DistrictApi = HttpDistrictApi(testApiClient(server, refreshApi))
 
     private fun fixture(name: String): String {
         val configured = System.getProperty("district.contracts.dir")

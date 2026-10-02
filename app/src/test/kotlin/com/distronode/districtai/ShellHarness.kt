@@ -25,12 +25,12 @@ import com.distronode.districtai.core.model.OverviewResponse
 import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceListResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * The application every [MainActivity] test runs under.
@@ -46,7 +46,7 @@ import org.robolectric.android.controller.ActivityController
  */
 internal class ShellTestApplication : Application(), AppContainerOwner {
 
-    val api = TestDistrictApi()
+    val api = FakeDistrictApi()
     val telecom = FakeTelecomBridge()
     val store = ShellTokenStore()
 
@@ -209,7 +209,7 @@ internal class ShellHarness(private val compose: ComposeTestRule) {
 /**
  * An in-memory credential store.
  *
- * ⚠️ EMPTY BY DEFAULT, AND NO FAKE API READS IT: the overview's answer comes from [TestDistrictApi].
+ * ⚠️ EMPTY BY DEFAULT, AND NO FAKE API READS IT: the overview's answer comes from [FakeDistrictApi].
  * What reads it is the push gate ("is anyone signed in on this device"), so a test that needs a
  * push drawn puts a session here.
  */

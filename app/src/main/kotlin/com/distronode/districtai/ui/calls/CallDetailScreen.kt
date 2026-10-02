@@ -42,6 +42,7 @@ fun CallDetailScreen(
     state: CallDetailUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onShowTranscript: () -> Unit,
     onPlayRecording: () -> Unit,
 ) {
@@ -68,7 +69,7 @@ fun CallDetailScreen(
                 is CallDetailUiState.Failed -> FailureState(
                     failure = state.failure,
                     onRetry = onRetry,
-                    onSignIn = null,
+                    onSignIn = onSignIn,
                     description = CALL_DETAIL_FAILURE_DESCRIPTION,
                 )
 

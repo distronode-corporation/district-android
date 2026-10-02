@@ -15,12 +15,12 @@ import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
-import com.distronode.districtai.ui.testCall
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.testCall
 
 /**
  * What one call renders, and — more usefully — what it does NOT.
@@ -56,6 +56,7 @@ class CallDetailScreenTest {
                     state = state,
                     onBack = onBack,
                     onRetry = onRetry,
+                    onSignIn = {},
                     onShowTranscript = onShowTranscript,
                     onPlayRecording = onPlayRecording,
                 )

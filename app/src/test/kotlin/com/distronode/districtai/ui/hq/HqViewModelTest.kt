@@ -7,24 +7,21 @@ import com.distronode.districtai.core.model.HqPendingWrite
 import com.distronode.districtai.core.model.HqPromptResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.resourceIdOrNull
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The console's state machine, and the two guarantees it exists to keep:
@@ -35,17 +32,10 @@ class HqViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun viewModel(api: TestDistrictApi, role: WorkspaceRole? = WorkspaceRole.CLIENT) =
+    private fun viewModel(api: FakeDistrictApi, role: WorkspaceRole? = WorkspaceRole.CLIENT) =
         HqViewModel(HqRepository(api), workspaceId = "ws-1", role = role)
 
     private fun pendingWrite(tool: String = "update_persona") = HqPendingWrite(
@@ -54,7 +44,7 @@ class HqViewModelTest {
         summary = "Update the AI receptionist persona (greeting → \"Good afternoon.\").",
     )
 
-    private fun apiProposing(pending: HqPendingWrite = pendingWrite()) = TestDistrictApi().apply {
+    private fun apiProposing(pending: HqPendingWrite = pendingWrite()) = FakeDistrictApi().apply {
         hqPromptResult = ApiResult.Success(
             HqPromptResponse(
                 success = true,
@@ -69,7 +59,7 @@ class HqViewModelTest {
 
     @Test
     fun `a prompt turn appends the question and then the answer`() = runTest(dispatcher) {
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         vm.ask("How did we do this week?")
@@ -89,7 +79,7 @@ class HqViewModelTest {
         // ⛔ THE ROUTE DROPS ANY TURN WHOSE ROLE IS NEITHER `user` NOR `model`, SILENTLY. The
         // obvious spelling — "assistant" — would lose half the conversation with no error anywhere,
         // and the only symptom would be answers that stop following the thread.
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         vm.ask("First question")
@@ -114,7 +104,7 @@ class HqViewModelTest {
 
     @Test
     fun `the whole transcript is sent, because the SERVER does the trimming`() = runTest(dispatcher) {
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         repeat(5) {
@@ -129,7 +119,7 @@ class HqViewModelTest {
 
     @Test
     fun `a blank prompt is refused without a round trip`() = runTest(dispatcher) {
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         vm.ask("   ")
@@ -143,7 +133,7 @@ class HqViewModelTest {
     fun `a second ask while one is in flight is refused`() = runTest(dispatcher) {
         // ⛔ Two turns racing on one transcript interleave their appends and produce a conversation
         // that never happened — and each is a billable model run over the workspace's data.
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         vm.ask("First")
@@ -160,7 +150,7 @@ class HqViewModelTest {
     fun `a failed turn keeps the transcript, including the unanswered question`() = runTest(dispatcher) {
         // ⛔ THE CENTRAL GUARANTEE. The server holds no conversation, so a screen that blanked on
         // failure would destroy the only copy of it.
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         vm.ask("A question that lands")
@@ -179,7 +169,7 @@ class HqViewModelTest {
 
     @Test
     fun `retrying re-sends the failed turn without duplicating the question`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             hqPromptResult = ApiResult.HttpFailure(502, "Bad gateway")
         }
         val vm = viewModel(api)
@@ -204,7 +194,7 @@ class HqViewModelTest {
     fun `a rate limit surfaces the server's own wording and stays retryable`() = runTest(dispatcher) {
         // ⚠️ 30/min per ACCOUNT, shared by prompts and confirms. The session is intact and the
         // server's message is more specific than anything the client could infer.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             hqPromptResult = ApiResult.RateLimited(
                 "You're sending requests too quickly — give it a second.",
             )
@@ -226,7 +216,7 @@ class HqViewModelTest {
     fun `a 200 that does not affirm success is contract drift, not an empty answer`() = runTest(dispatcher) {
         // ⛔ An empty body decodes cleanly into every-field-defaulted, which would read as the
         // console answering with silence. See rejectedEnvelope.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             hqPromptResult = ApiResult.Success(HqPromptResponse())
         }
         val vm = viewModel(api)
@@ -242,7 +232,7 @@ class HqViewModelTest {
     fun `a confirmation prompt with nothing to confirm is rejected`() = runTest(dispatcher) {
         // ⛔ The answer would say a change was proposed while the screen offered no way to apply it
         // and no sign anything was missing — which the operator reads as "done".
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             hqPromptResult = ApiResult.Success(
                 HqPromptResponse(success = true, answer = "Proposed.", needsConfirmation = true),
             )
@@ -414,7 +404,7 @@ class HqViewModelTest {
         // ⛔ Without this a turn that died on Unauthorized stays failed forever: signing in
         // successfully would leave the operator looking at "your session has ended" behind a button
         // that has already done its job.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             hqPromptResult = ApiResult.HttpFailure(502, "Bad gateway")
         }
         val vm = viewModel(api)
@@ -431,7 +421,7 @@ class HqViewModelTest {
 
     @Test
     fun `a session change on a healthy console does nothing`() = runTest(dispatcher) {
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api)
 
         vm.ask("All good")
@@ -463,7 +453,7 @@ class HqViewModelTest {
     fun `a viewer still gets answers`() = runTest(dispatcher) {
         // ⚠️ Reads admit viewers. Removing the console from them would remove the half of the
         // feature they are entitled to.
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val vm = viewModel(api, role = WorkspaceRole.VIEWER)
 
         vm.ask("How did we do this week?")
@@ -493,7 +483,7 @@ class HqViewModelTest {
     fun `an unparsed role confirms nothing`() = runTest(dispatcher) {
         // ⛔ fromWire fails CLOSED to null, and null must mean "no privileges" rather than the
         // server's default of client — here the role could not be established at all.
-        val vm = viewModel(TestDistrictApi(), role = null)
+        val vm = viewModel(FakeDistrictApi(), role = null)
 
         assertFalse(vm.canConfirm)
     }
@@ -573,7 +563,7 @@ class HqViewModelTest {
 
     @Test
     fun `a failed turn holds the prompt a retry will send`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply { hqPromptResult = ApiResult.HttpFailure(502, "Bad gateway") }
+        val api = FakeDistrictApi().apply { hqPromptResult = ApiResult.HttpFailure(502, "Bad gateway") }
         val vm = viewModel(api)
 
         vm.ask("  Who called?  ")

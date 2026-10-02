@@ -6,6 +6,7 @@ import com.distronode.districtai.core.auth.RefreshApi
 import com.distronode.districtai.core.auth.RefreshResult
 import com.distronode.districtai.core.auth.TokenRefreshCoordinator
 import com.distronode.districtai.core.auth.TokenStore
+import mockwebserver3.MockWebServer
 
 /**
  * A real [TokenRefreshCoordinator] over in-memory fakes.
@@ -118,4 +119,29 @@ internal fun signedInCoordinator(
 internal fun signedOutCoordinator(): TokenRefreshCoordinator = TokenRefreshCoordinator(
     store = FakeTokenStore(null),
     refreshApi = FakeRefreshApi(),
+)
+
+/**
+ * A [DistrictApiClient] pointed at [server] and built on the PRODUCTION HTTP client.
+ *
+ * ⛔ [DistrictHttp.client], NOT A BARE `OkHttpClient()`, AND THAT IS THE POINT OF THE HELPER. The
+ * request tests each built their own client on OkHttp's defaults, so none of them ran against the
+ * configuration that ships: `retryOnConnectionFailure(false)` (a silently re-sent POST is a second
+ * ticket or a second billed call) and the timeouts. A regression in [DistrictHttp] would have
+ * passed every MockWebServer test. The timeouts cannot fire against a local server, so nothing
+ * here is slower for it.
+ *
+ * @param tokens defaults to a signed-in session over [refreshApi]; pass [signedOutCoordinator]
+ *   for the no-session path.
+ */
+internal fun testApiClient(
+    server: MockWebServer,
+    refreshApi: FakeRefreshApi = FakeRefreshApi().apply { rotating() },
+    tokens: TokenRefreshCoordinator = signedInCoordinator(refreshApi),
+    decodeFailures: DecodeFailureReporter = DecodeFailureReporter.NONE,
+): DistrictApiClient = DistrictApiClient(
+    baseUrl = server.url("/"),
+    httpClient = DistrictHttp.client(),
+    tokens = tokens,
+    decodeFailures = decodeFailures,
 )

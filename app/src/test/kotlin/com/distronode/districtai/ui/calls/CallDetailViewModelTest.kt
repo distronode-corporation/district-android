@@ -5,42 +5,32 @@ import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.model.CallDetailResponse
 import com.distronode.districtai.core.model.CallTranscriptResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import com.distronode.districtai.ui.testCall
 import com.distronode.districtai.ui.resourceIdOrNull
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.testCall
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CallDetailViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         CallDetailViewModel(CallsRepository(api), workspaceId = "ws-1", callId = "c1")
 
-    private fun apiWithCall(recordingUrl: String? = null) = TestDistrictApi().apply {
+    private fun apiWithCall(recordingUrl: String? = null) = FakeDistrictApi().apply {
         detailResult = ApiResult.Success(
             CallDetailResponse(success = true, call = testCall(recordingUrl = recordingUrl)),
         )
@@ -65,7 +55,7 @@ class CallDetailViewModelTest {
         // ⚠️ The server reads by id and checks ownership afterwards, so another tenant's id is
         // indistinguishable from a missing one. The message therefore comes from the server rather
         // than being invented as "no such call".
-        val api = TestDistrictApi().apply { detailResult = ApiResult.NotFound("Call not found") }
+        val api = FakeDistrictApi().apply { detailResult = ApiResult.NotFound("Call not found") }
         val vm = viewModel(api)
         advanceUntilIdle()
 
@@ -81,7 +71,7 @@ class CallDetailViewModelTest {
     fun `a success carrying no call is a malformed response, not an empty state`() = runTest(dispatcher) {
         // ⛔ Absence is a 404. A 2xx with no `call` is a server bug, and reporting it as "not found"
         // would hide it behind an ordinary empty screen.
-        val api = TestDistrictApi().apply { detailResult = ApiResult.Success(CallDetailResponse(success = true)) }
+        val api = FakeDistrictApi().apply { detailResult = ApiResult.Success(CallDetailResponse(success = true)) }
         val vm = viewModel(api)
         advanceUntilIdle()
 

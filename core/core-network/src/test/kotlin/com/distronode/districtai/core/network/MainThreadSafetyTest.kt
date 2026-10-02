@@ -17,7 +17,6 @@ import kotlinx.serialization.encoding.Decoder
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -135,15 +134,11 @@ class MainThreadSafetyTest {
     private fun client(io: CoroutineDispatcher? = null) = if (io == null) {
         // ⚠️ NO `io` ARGUMENT: exercises the production default. This is the configuration that
         // ships, so it is the one that has to be safe.
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        )
+        testApiClient(server, refreshApi)
     } else {
         DistrictApiClient(
             baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
+            httpClient = DistrictHttp.client(),
             tokens = signedInCoordinator(refreshApi),
             io = io,
         )

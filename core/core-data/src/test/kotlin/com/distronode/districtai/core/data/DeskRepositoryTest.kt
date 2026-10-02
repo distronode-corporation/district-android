@@ -16,13 +16,13 @@ import com.distronode.districtai.core.model.DeskTicketStatusResponse
 import com.distronode.districtai.core.model.DeskTicketSummary
 import com.distronode.districtai.core.model.DeskTicketsResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.core.network.DeskApi
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDeskApi
 
 /**
  * The desk's data layer.
@@ -384,72 +384,4 @@ class DeskRepositoryTest {
         assertNull(blankToNull("   "))
         assertEquals("ada@example.test", blankToNull("  ada@example.test  "))
     }
-}
-
-/**
- * ⚠️ ITS OWN FAKE RATHER THAN AN ENTRY ON `FakeDistrictApi`. [DeskApi] is a separate interface from
- * `DistrictApi` — see the ⛔ on `HttpDeskApi` — so a desk fake has nothing to add to that class, and
- * keeping it here means this file can be read without it.
- */
-private class FakeDeskApi : DeskApi {
-    var settingsResult: ApiResult<DeskSettingsResponse> =
-        ApiResult.Success(DeskSettingsResponse(success = true, settings = DeskSettings()))
-    var logoRemovalResult: ApiResult<DeskLogoRemovalResponse> =
-        ApiResult.Success(DeskLogoRemovalResponse(success = true, settings = DeskSettings()))
-    var ticketsResult: ApiResult<DeskTicketsResponse> =
-        ApiResult.Success(DeskTicketsResponse(success = true))
-    var ticketResult: ApiResult<DeskTicketResponse> =
-        ApiResult.Success(DeskTicketResponse(success = true, ticket = DeskTicketDetail()))
-    var createResult: ApiResult<DeskTicketCreateResponse> =
-        ApiResult.Success(DeskTicketCreateResponse(success = true, ticket = DeskTicketSummary()))
-    var replyResult: ApiResult<DeskReplyResponse> =
-        ApiResult.Success(DeskReplyResponse(success = true))
-    var statusResult: ApiResult<DeskTicketStatusResponse> =
-        ApiResult.Success(DeskTicketStatusResponse(success = true, ticket = DeskTicketSummary()))
-
-    val patches = mutableListOf<DeskSettingsPatch>()
-    val createDrafts = mutableListOf<DeskTicketDraft>()
-    val createKeys = mutableListOf<String?>()
-    val replyBodies = mutableListOf<String>()
-    val statuses = mutableListOf<DeskTicketStatus>()
-
-    override suspend fun deskSettings(workspaceId: String) = settingsResult
-
-    override suspend fun saveDeskSettings(workspaceId: String, patch: DeskSettingsPatch) =
-        settingsResult.also { patches += patch }
-
-    override suspend fun uploadDeskLogo(
-        workspaceId: String,
-        fileName: String,
-        mimeType: String,
-        bytes: ByteArray,
-    ) = settingsResult
-
-    override suspend fun deleteDeskLogo(workspaceId: String) = logoRemovalResult
-
-    override suspend fun deskTickets(workspaceId: String, status: DeskTicketStatus?) = ticketsResult
-
-    override suspend fun createDeskTicket(
-        workspaceId: String,
-        draft: DeskTicketDraft,
-        idempotencyKey: String?,
-    ) = createResult.also {
-        createDrafts += draft
-        createKeys += idempotencyKey
-    }
-
-    override suspend fun deskTicket(workspaceId: String, ticketId: String) = ticketResult
-
-    override suspend fun replyToDeskTicket(
-        workspaceId: String,
-        ticketId: String,
-        message: String,
-        idempotencyKey: String?,
-    ) = replyResult.also { replyBodies += message }
-
-    override suspend fun setDeskTicketStatus(
-        workspaceId: String,
-        ticketId: String,
-        status: DeskTicketStatus,
-    ) = statusResult.also { statuses += status }
 }

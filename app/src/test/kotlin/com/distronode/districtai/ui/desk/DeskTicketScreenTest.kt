@@ -92,6 +92,7 @@ class DeskTicketScreenTest {
                     onSend = { recorder.sends++ },
                     onSetStatus = { recorder.statuses += it },
                     onRetry = { recorder.retries++ },
+                    onSignIn = {},
                     onBack = { recorder.backs++ },
                 )
             }
@@ -400,6 +401,7 @@ class DeskTicketScreenTest {
                     onSend = {},
                     onSetStatus = { statuses += it },
                     onRetry = {},
+                    onSignIn = {},
                     onBack = {},
                 )
             }

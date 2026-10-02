@@ -59,6 +59,7 @@ fun ThreadScreen(
     onBack: () -> Unit,
     onSend: (String) -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onDismissSendFailure: () -> Unit,
     /** Expand the thread backwards by one page. See `ThreadViewModel.loadOlder`. */
     onLoadOlder: () -> Unit,
@@ -75,7 +76,7 @@ fun ThreadScreen(
                 is ThreadUiState.Failed -> FailureState(
                     failure = state.failure,
                     onRetry = onRetry,
-                    onSignIn = null,
+                    onSignIn = onSignIn,
                     description = THREAD_FAILURE_DESCRIPTION,
                 )
                 is ThreadUiState.Content ->

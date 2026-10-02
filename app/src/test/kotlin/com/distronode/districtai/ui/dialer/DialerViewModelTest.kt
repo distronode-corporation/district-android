@@ -12,22 +12,17 @@ import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.model.DialResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestCallControlApi
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
 import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,6 +31,10 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeCallControlApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The softphone's state machine.
@@ -73,6 +72,9 @@ class DialerViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
+
     /**
      * The scope every call's engine is built with.
      *
@@ -86,20 +88,18 @@ class DialerViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         engineScope = CoroutineScope(dispatcher)
     }
 
     @After
     fun tearDown() {
         engineScope.cancel()
-        Dispatchers.resetMain()
     }
 
     private val telecom = FakeTelecomBridge()
 
     /** ⛔ Recorded per test: the carrier hang-up must be sent exactly once and never retried. */
-    private val callControlApi = TestCallControlApi()
+    private val callControlApi = FakeCallControlApi()
 
     private fun api(
         dial: ApiResult<DialResponse> = ApiResult.Success(
@@ -112,13 +112,13 @@ class DialerViewModelTest {
             ),
         ),
         callbacks: List<CallSummary> = emptyList(),
-    ) = TestDistrictApi().apply {
+    ) = FakeDistrictApi().apply {
         dialResult = dial
         callsResult = ApiResult.Success(callbacks)
     }
 
     private fun viewModel(
-        api: TestDistrictApi = api(),
+        api: FakeDistrictApi = api(),
         factory: FakeCallEngineFactory = FakeCallEngineFactory(),
         role: WorkspaceRole? = WorkspaceRole.AGENCY,
     ) = DialerViewModel(
@@ -760,7 +760,7 @@ class DialerViewModelTest {
     }
 
     /** Holds the call-back read until [gate] opens, as a slow network would. */
-    private class HeldCallsApi : TestDistrictApi() {
+    private class HeldCallsApi : FakeDistrictApi() {
         val gate = CompletableDeferred<Unit>()
 
         override suspend fun calls(workspaceId: String, limit: Int, offset: Int): ApiResult<List<CallSummary>> {

@@ -8,21 +8,18 @@ import com.distronode.districtai.core.model.UsageData
 import com.distronode.districtai.core.model.WorkspaceBilling
 import com.distronode.districtai.core.model.WorkspaceBillingResponse
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The billing screen's state machine, and the three guarantees it exists to keep: the two reads are
@@ -34,17 +31,10 @@ class BillingViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun viewModel(api: TestDistrictApi) =
+    private fun viewModel(api: FakeDistrictApi) =
         BillingViewModel(BillingRepository(api), workspaceId = "ws-1")
 
     private val plan = WorkspaceBilling(
@@ -63,7 +53,7 @@ class BillingViewModelTest {
         customerId = "cus_1",
     )
 
-    private fun healthyApi() = TestDistrictApi().apply {
+    private fun healthyApi() = FakeDistrictApi().apply {
         workspaceBillingResult = ApiResult.Success(
             WorkspaceBillingResponse(success = true, billing = plan),
         )

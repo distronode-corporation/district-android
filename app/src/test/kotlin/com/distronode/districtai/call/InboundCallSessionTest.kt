@@ -19,16 +19,16 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * One ANSWERED inbound call: its engine, its Telecom latch and its clock.
@@ -49,6 +49,9 @@ class InboundCallSessionTest {
 
     private val dispatcher = StandardTestDispatcher()
 
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
+
     /**
      * The scope the session's ENGINE is built with.
      *
@@ -64,7 +67,6 @@ class InboundCallSessionTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         engineScope = CoroutineScope(dispatcher)
         observeScope = CoroutineScope(dispatcher)
     }
@@ -73,7 +75,6 @@ class InboundCallSessionTest {
     fun tearDown() {
         observeScope.cancel()
         engineScope.cancel()
-        Dispatchers.resetMain()
     }
 
     /**

@@ -60,6 +60,7 @@ fun SupportRequestScreen(
     onSend: () -> Unit,
     onClose: () -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
@@ -85,7 +86,7 @@ fun SupportRequestScreen(
                     is SupportRequestUiState.Failed -> FailureState(
                         failure = state.failure,
                         onRetry = onRetry,
-                        onSignIn = null,
+                        onSignIn = onSignIn,
                         description = SUPPORT_REQUEST_FAILURE_DESCRIPTION,
                     )
                     is SupportRequestUiState.Content ->

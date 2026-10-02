@@ -6,7 +6,6 @@ import com.distronode.districtai.call.IncomingCallPhase
 import com.distronode.districtai.core.auth.PersistedSession
 import com.distronode.districtai.push.PushPayload
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +21,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
 
 /**
  * A delivered push, from the container's entry point to the call it rings.
@@ -49,7 +49,7 @@ class AppContainerPushTest {
         seams = AppContainerSeams(
             tokenStore = store,
             pushTokenSource = { null },
-            districtApi = TestDistrictApi(),
+            districtApi = FakeDistrictApi(),
             telecomBridge = telecom,
         ),
     )

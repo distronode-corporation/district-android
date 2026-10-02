@@ -129,6 +129,7 @@ class AnalyticsScreenTest {
                     state = state,
                     onSelectRange = callbacks.onSelectRange,
                     onRetry = callbacks.onRetry,
+                    onSignIn = {},
                     onBack = callbacks.onBack,
                 )
             }
@@ -364,7 +365,13 @@ class AnalyticsScreenTest {
         var state by mutableStateOf(content())
         composeRule.setContent {
             DistrictTheme {
-                AnalyticsScreen(state = state, onSelectRange = { chosen += it }, onRetry = {}, onBack = {})
+                AnalyticsScreen(
+                    state = state,
+                    onSelectRange = { chosen += it },
+                    onRetry = {},
+                    onSignIn = {},
+                    onBack = {},
+                )
             }
         }
 
@@ -483,7 +490,7 @@ class AnalyticsScreenTest {
         var state by mutableStateOf(content())
         composeRule.setContent {
             DistrictTheme {
-                AnalyticsScreen(state = state, onSelectRange = {}, onRetry = {}, onBack = {})
+                AnalyticsScreen(state = state, onSelectRange = {}, onRetry = {}, onSignIn = {}, onBack = {})
             }
         }
         composeRule.onNodeWithText("501").assertIsDisplayed()

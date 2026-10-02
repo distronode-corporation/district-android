@@ -10,24 +10,21 @@ import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.DraftListResponse
 import com.distronode.districtai.core.model.MessageDraft
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import com.distronode.districtai.ui.TestInboxExtrasApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import com.distronode.districtai.core.model.MarkReadRequest
 import com.distronode.districtai.core.model.MarkReadResponse
 import org.junit.Assert.assertNull
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * ⛔ THE ASSERTION THAT MATTERS MOST HERE IS `a viewer never fires a mark-read`. `messages/mark-read`
@@ -44,18 +41,11 @@ class InboxViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        // ⚠️ The ViewModel loads in `init`, so the main dispatcher has to be replaced BEFORE one is
-        // constructed — otherwise viewModelScope posts to the real Android main looper, which does not
-        // exist here.
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    // ⚠️ The ViewModel loads in `init`, so the main dispatcher has to be replaced BEFORE one is
+    // constructed; otherwise viewModelScope posts to the real Android main looper, which does not
+    // exist here. The rule installs it before the test body runs, which is where each is built.
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun summary(
         threadKey: String = "contact:c1",
@@ -72,10 +62,10 @@ class InboxViewModelTest {
     )
 
     /** ⚠️ Per test, so a search assertion can set a result and then read what was requested. */
-    private val searchApi = TestInboxExtrasApi()
+    private val searchApi = FakeInboxExtrasApi()
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = InboxViewModel(
         InboxRepository(api),
@@ -89,7 +79,7 @@ class InboxViewModelTest {
         searchDebounceMillis = 0L,
     )
 
-    private fun apiWith(vararg threads: ConversationSummary) = TestDistrictApi().apply {
+    private fun apiWith(vararg threads: ConversationSummary) = FakeDistrictApi().apply {
         conversationsResult = ApiResult.Success(
             ConversationsResponse(
                 success = true,
@@ -169,7 +159,7 @@ class InboxViewModelTest {
 
     @Test
     fun `a partial list reaches the state rather than being hidden`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             conversationsResult = ApiResult.Success(
                 ConversationsResponse(
                     success = true,
@@ -202,7 +192,7 @@ class InboxViewModelTest {
 
     @Test
     fun `a failure becomes a failed state, not an empty inbox`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             conversationsResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
         }
         val vm = viewModel(api)
@@ -273,7 +263,7 @@ class InboxViewModelTest {
      *
      * ⚠️ A SUBCLASS RATHER THAN NEW FIELDS ON THE SHARED FAKE: only these tests need either.
      */
-    private class SequencedApi : TestDistrictApi() {
+    private class SequencedApi : FakeDistrictApi() {
         val answers = ArrayDeque<ApiResult<ConversationsResponse>>()
         val markReads = mutableListOf<MarkReadRequest>()
 

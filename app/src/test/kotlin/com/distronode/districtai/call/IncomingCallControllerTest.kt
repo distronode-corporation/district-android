@@ -5,14 +5,12 @@ import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.model.CallAnswerResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.push.RecordingPushNotifier
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.CallEngine
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
@@ -20,10 +18,8 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,6 +28,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * A [ForegroundCallHost] that records the start/stop it was asked for.
@@ -68,6 +67,9 @@ class IncomingCallControllerTest {
 
     private val dispatcher = StandardTestDispatcher()
 
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
+
     /**
      * The scope the CONTROLLER runs on, standing in for the application graph's.
      *
@@ -89,7 +91,6 @@ class IncomingCallControllerTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         controllerScope = CoroutineScope(dispatcher)
         engineScope = CoroutineScope(dispatcher)
     }
@@ -100,7 +101,6 @@ class IncomingCallControllerTest {
         // ⚠️ May already be cancelled from inside `InboundCallSession.end`; cancelling twice is a
         // no-op, and asserting it was is not this file's job.
         engineScope.cancel()
-        Dispatchers.resetMain()
     }
 
     private inner class Harness(
@@ -108,7 +108,7 @@ class IncomingCallControllerTest {
         /** When set, the engine's connect waits for it: a join still in flight. */
         joinGate: CompletableDeferred<Unit>? = null,
     ) {
-        val api = TestDistrictApi()
+        val api = FakeDistrictApi()
         val telecom = FakeTelecomBridge()
         val notifier = RecordingPushNotifier()
         val foreground = RecordingForegroundHost()

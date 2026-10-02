@@ -10,24 +10,21 @@ import com.distronode.districtai.core.model.MessageSearchHit
 import com.distronode.districtai.core.model.MessageSearchResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import com.distronode.districtai.ui.TestInboxExtrasApi
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * Full-content search across every message in the workspace.
@@ -42,17 +39,10 @@ class InboxSearchViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    private val searchApi = TestInboxExtrasApi()
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    private val searchApi = FakeInboxExtrasApi()
 
     private fun hit(id: String, threadKey: String = "contact:c1") = MessageSearchHit(
         messageId = id,
@@ -75,7 +65,7 @@ class InboxSearchViewModelTest {
         lastMessage = ConversationLastMessage(body = "hi", direction = "inbound"),
     )
 
-    private fun api(vararg threads: ConversationSummary) = TestDistrictApi().apply {
+    private fun api(vararg threads: ConversationSummary) = FakeDistrictApi().apply {
         conversationsResult = ApiResult.Success(
             ConversationsResponse(
                 success = true,
@@ -86,7 +76,7 @@ class InboxSearchViewModelTest {
         )
     }
 
-    private fun viewModel(api: TestDistrictApi = api()) = InboxViewModel(
+    private fun viewModel(api: FakeDistrictApi = api()) = InboxViewModel(
         InboxRepository(api),
         ComposerRepository(api),
         MessageSearchRepository(searchApi),

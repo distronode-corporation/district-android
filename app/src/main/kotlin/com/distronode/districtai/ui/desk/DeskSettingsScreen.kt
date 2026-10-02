@@ -61,6 +61,7 @@ fun DeskSettingsScreen(
     onPickLogo: () -> Unit,
     onRemoveLogo: () -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
 ) {
     // ⛔ THE SAME GUARD AS THE WORKSPACE-SETTINGS SCREENS. A dirty brand name or toggle used to be
@@ -88,7 +89,7 @@ fun DeskSettingsScreen(
                     is DeskSettingsUiState.Failed -> FailureState(
                         failure = state.failure,
                         onRetry = onRetry,
-                        onSignIn = null,
+                        onSignIn = onSignIn,
                         description = DESK_SETTINGS_FAILURE_DESCRIPTION,
                     )
                     is DeskSettingsUiState.Content -> SettingsForm(

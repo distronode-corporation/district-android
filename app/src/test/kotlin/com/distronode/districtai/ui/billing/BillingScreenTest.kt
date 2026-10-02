@@ -118,6 +118,7 @@ class BillingScreenTest {
                     state = state,
                     role = role,
                     onRetry = onRetry,
+                    onSignIn = {},
                     onOpenInvoice = onOpenInvoice,
                     onBack = {},
                 )
@@ -591,6 +592,7 @@ class BillingScreenTest {
                 state = content(),
                 role = WorkspaceRole.CLIENT,
                 onRetry = {},
+                onSignIn = {},
                 onOpenInvoice = { opened += it },
                 onBack = {},
             )

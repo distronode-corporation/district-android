@@ -58,6 +58,7 @@ fun InboxScreen(
     state: InboxUiState,
     onOpenThread: (ConversationSummary) -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
     searchState: InboxSearchState,
     onSearchQueryChanged: (String) -> Unit,
@@ -83,7 +84,7 @@ fun InboxScreen(
                         is InboxUiState.Failed -> FailureState(
                             failure = state.failure,
                             onRetry = onRetry,
-                            onSignIn = null,
+                            onSignIn = onSignIn,
                             description = INBOX_FAILURE_DESCRIPTION,
                             title = stringResource(R.string.inbox_title),
                         )

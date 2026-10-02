@@ -14,23 +14,20 @@ import com.distronode.districtai.core.model.TimelinePageInfo
 import com.distronode.districtai.core.model.TimelineResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * ⛔ FOUR OF THESE GUARD MONEY. Every send is billable SMS/MMS segments or a Postmark email, and the
@@ -43,17 +40,10 @@ class ThreadViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun api(vararg events: TimelineEvent) = TestDistrictApi().apply {
+    private fun api(vararg events: TimelineEvent) = FakeDistrictApi().apply {
         timelineResult = ApiResult.Success(TimelineResponse(success = true, timeline = events.toList()))
     }
 
@@ -94,7 +84,7 @@ class ThreadViewModelTest {
      * majority of real threads — was never exercised. See the two tests below it.
      */
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
         contactId: String? = "c1",
         address: String? = "+14165550142",
@@ -307,7 +297,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `a load failure becomes a failed state`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
         }
         val vm = viewModel(api)
@@ -318,7 +308,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `sending is impossible from a failed state`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
         }
         val vm = viewModel(api)
@@ -334,7 +324,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `an initial load adopts the server's cursor and its hasMore`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(
                 event("m5", "2026-08-15T09:00:00.000Z"),
                 event("m6", "2026-08-15T10:00:00.000Z"),
@@ -359,7 +349,7 @@ class ThreadViewModelTest {
         runTest(dispatcher) {
             // ⛔ THE FAKE IS KEYED ON THE CURSOR, so serving page two AT ALL is the assertion: a
             // client that sent no cursor, or the wrong one, falls through to the first page again.
-            val api = TestDistrictApi().apply {
+            val api = FakeDistrictApi().apply {
                 timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
                 timelinePages["2026-08-15T09:00:00.000Z"] =
                     page(event("m1", "2026-08-15T07:00:00.000Z"))
@@ -384,7 +374,7 @@ class ThreadViewModelTest {
         // one. Appending blind shows the operator the same message twice AND puts a duplicate key
         // in the LazyColumn, which is a crash rather than a rendering oddity.
         val held = event("call-1", "2026-08-15T08:00:00.000Z")
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(
                 held,
                 event("m5", "2026-08-15T09:00:00.000Z"),
@@ -415,7 +405,7 @@ class ThreadViewModelTest {
             // ⚠️ The page arrives newest-first and interleaves with what is held. Concatenation
             // would leave the conversation reading out of order; the merge re-sorts with the same
             // comparator the repository and the server both use.
-            val api = TestDistrictApi().apply {
+            val api = FakeDistrictApi().apply {
                 timelineResult = page(event("m9", "2026-08-15T09:00:00.000Z"), hasMore = true)
                 timelinePages["2026-08-15T09:00:00.000Z"] = page(
                     event("m3", "2026-08-15T05:00:00.000Z"),
@@ -436,7 +426,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `a page that reports nothing behind it ends the affordance`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
             timelinePages["2026-08-15T09:00:00.000Z"] =
                 page(event("m1", "2026-08-15T07:00:00.000Z"))
@@ -463,7 +453,7 @@ class ThreadViewModelTest {
         // ⛔ hasMore MEANS "A SOURCE FILLED ITS WINDOW", so a source with exactly 50 rows left
         // reports true and this page comes back empty. That is the server being optimistic on
         // purpose, and it must read as the end rather than as an error.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
             timelinePages["2026-08-15T09:00:00.000Z"] = page()
         }
@@ -484,7 +474,7 @@ class ThreadViewModelTest {
     fun `a failed older page keeps the thread on screen`() = runTest(dispatcher) {
         // ⛔ THE CONVERSATION IS STILL CORRECT. Failing to read a page BEHIND it is no reason to
         // take it away — and the cursor survives, so the same control is the retry.
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
             timelinePages["2026-08-15T09:00:00.000Z"] =
                 ApiResult.NetworkFailure(java.io.IOException("offline"))
@@ -505,7 +495,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `a second tap while a page is in flight does not fetch twice`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
             timelinePages["2026-08-15T09:00:00.000Z"] =
                 page(event("m1", "2026-08-15T07:00:00.000Z"))
@@ -526,7 +516,7 @@ class ThreadViewModelTest {
     @Test
     fun `loading older is refused when the server said there is nothing behind`() =
         runTest(dispatcher) {
-            val api = TestDistrictApi().apply {
+            val api = FakeDistrictApi().apply {
                 timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"))
             }
             val vm = viewModel(api)
@@ -544,7 +534,7 @@ class ThreadViewModelTest {
             // ⛔ AN EXPANSION OF HISTORY MUST NOT DISTURB A REPLY HALF-WRITTEN. The text lives in
             // the SavedStateHandle and the attachments are already uploaded; losing either would
             // make the operator retype and re-pick because they scrolled up.
-            val api = TestDistrictApi().apply {
+            val api = FakeDistrictApi().apply {
                 timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
                 timelinePages["2026-08-15T09:00:00.000Z"] =
                     page(event("m1", "2026-08-15T07:00:00.000Z"))
@@ -576,7 +566,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `loading older is impossible from a failed state`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
         }
         val vm = viewModel(api)
@@ -593,7 +583,7 @@ class ThreadViewModelTest {
     fun `a page that says there is more but names no cursor asks for nothing`() = runTest(dispatcher) {
         // ⚠️ An empty first window with an optimistic hasMore: there is no oldest event to page
         // back from, so any request would be a guess at a cursor.
-        val api = TestDistrictApi().apply { timelineResult = page(hasMore = true) }
+        val api = FakeDistrictApi().apply { timelineResult = page(hasMore = true) }
         val vm = viewModel(api)
         advanceUntilIdle()
 
@@ -606,7 +596,7 @@ class ThreadViewModelTest {
 
     @Test
     fun `a send that fails after a reload began does not paint the old thread back`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(event("m1"))
             sendResult = ApiResult.RateLimited("Slow down.")
         }
@@ -628,7 +618,7 @@ class ThreadViewModelTest {
      */
     @Test
     fun `an older page that lands during a reload is dropped`() = runTest(dispatcher) {
-        val api = TestDistrictApi().apply {
+        val api = FakeDistrictApi().apply {
             timelineResult = page(event("m5", "2026-08-15T09:00:00.000Z"), hasMore = true)
             timelinePages["2026-08-15T09:00:00.000Z"] = page(event("m1", "2026-08-15T07:00:00.000Z"))
         }

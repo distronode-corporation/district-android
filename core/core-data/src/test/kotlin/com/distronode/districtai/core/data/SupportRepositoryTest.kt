@@ -12,11 +12,11 @@ import com.distronode.districtai.core.model.SupportRequestKind
 import com.distronode.districtai.core.model.SupportRequestListResponse
 import com.distronode.districtai.core.model.SupportRequestSummary
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.core.network.SupportApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeSupportApi
 
 /**
  * The support surface's data layer.
@@ -314,54 +314,4 @@ class SupportRepositoryTest {
 
         assertEquals(List(5) { "ws-1" }, api.workspaceIds)
     }
-}
-
-/** ⚠️ Its own fake: [SupportApi] is a separate interface from `DistrictApi`. */
-private class FakeSupportApi : SupportApi {
-    var listResult: ApiResult<SupportRequestListResponse> =
-        ApiResult.Success(SupportRequestListResponse(success = true))
-    var detailResult: ApiResult<SupportRequestDetailResponse> =
-        ApiResult.Success(
-            SupportRequestDetailResponse(success = true, request = SupportRequestDetail()),
-        )
-    var createResult: ApiResult<SupportRequestCreateResponse> =
-        ApiResult.Success(SupportRequestCreateResponse(success = true, issueKey = "DA-1"))
-    var replyResult: ApiResult<SupportReplyResponse> =
-        ApiResult.Success(SupportReplyResponse(success = true, message = SupportMessage()))
-    var closeResult: ApiResult<SupportCloseResponse> =
-        ApiResult.Success(SupportCloseResponse(success = true, statusName = "Done"))
-
-    val workspaceIds = mutableListOf<String>()
-    val createDrafts = mutableListOf<SupportRequestDraft>()
-    val createKeys = mutableListOf<String?>()
-    val replyBodies = mutableListOf<String>()
-    var closeCalls = 0
-
-    override suspend fun supportRequests(workspaceId: String) =
-        listResult.also { workspaceIds += workspaceId }
-
-    override suspend fun createSupportRequest(
-        workspaceId: String,
-        draft: SupportRequestDraft,
-        idempotencyKey: String?,
-    ) = createResult.also {
-        workspaceIds += workspaceId
-        createDrafts += draft
-        createKeys += idempotencyKey
-    }
-
-    override suspend fun supportRequest(workspaceId: String, key: String) =
-        detailResult.also { workspaceIds += workspaceId }
-
-    override suspend fun replyToSupportRequest(workspaceId: String, key: String, body: String) =
-        replyResult.also {
-            workspaceIds += workspaceId
-            replyBodies += body
-        }
-
-    override suspend fun closeSupportRequest(workspaceId: String, key: String) =
-        closeResult.also {
-            workspaceIds += workspaceId
-            closeCalls++
-        }
 }

@@ -20,18 +20,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The hand-wired object graph.
@@ -55,15 +53,8 @@ class AppContainerTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun container(scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)) =
         AppContainer(
@@ -215,7 +206,7 @@ class AppContainerTest {
     /**
      * A [RevokeApi] that records what it was asked and answers what the test wants.
      *
-     * ⚠️ Hand-written rather than mocked, for the same reason `TestDistrictApi` is: the question
+     * ⚠️ Hand-written rather than mocked, for the same reason `FakeDistrictApi` is: the question
      * these tests ask is "which token was presented, and in what order relative to the wipe",
      * which reads better as a list than as an argument captor.
      */
@@ -250,7 +241,7 @@ class AppContainerTest {
     }
 
     /**
-     * ⚠️ NOT `Dispatchers.Main.immediate`, which is what production uses. `setMain` has replaced
+     * ⚠️ NOT `Dispatchers.Main.immediate`, which is what production uses. [MainDispatcherRule] has replaced
      * Main with the virtual test dispatcher for this class, so a scope built on it would park the
      * sign-out on a scheduler nothing in these tests advances — the same trap as above, wearing a
      * different hat.

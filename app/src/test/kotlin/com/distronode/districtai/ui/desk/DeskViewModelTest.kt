@@ -11,20 +11,18 @@ import com.distronode.districtai.core.model.DeskTicketSummary
 import com.distronode.districtai.core.model.DeskTicketsResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDeskApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The desk queue's state machine.
@@ -40,15 +38,8 @@ class DeskViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val ticket = DeskTicketSummary(
         id = "tkt_1",
@@ -60,7 +51,7 @@ class DeskViewModelTest {
     private fun api(
         enabled: Boolean = true,
         tickets: List<DeskTicketSummary> = listOf(ticket),
-    ) = FakeDeskApiForUi().apply {
+    ) = FakeDeskApi().apply {
         settingsResult = ApiResult.Success(
             DeskSettingsResponse(success = true, settings = DeskSettings(enabled = enabled)),
         )
@@ -68,7 +59,7 @@ class DeskViewModelTest {
     }
 
     private fun viewModel(
-        api: FakeDeskApiForUi,
+        api: FakeDeskApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = DeskViewModel(DeskRepository(api) { "key" }, workspaceId = "ws-1", role = role)
 

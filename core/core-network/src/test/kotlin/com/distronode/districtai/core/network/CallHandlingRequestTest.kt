@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,13 +41,7 @@ class CallHandlingRequestTest {
         server.close()
     }
 
-    private fun api(): CallHandlingApi = HttpCallHandlingApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api(): CallHandlingApi = HttpCallHandlingApi(testApiClient(server, refreshApi))
 
     private fun okHandling() = MockResponse(
         code = 200,

@@ -53,6 +53,7 @@ fun AnalyticsScreen(
     state: AnalyticsUiState,
     onSelectRange: (AnalyticsRange) -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
     onBack: () -> Unit,
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -68,12 +69,12 @@ fun AnalyticsScreen(
             is AnalyticsUiState.Failed -> FailureState(
                 failure = state.failure,
                 onRetry = onRetry,
-                onSignIn = null,
+                onSignIn = onSignIn,
                 description = ANALYTICS_FAILED_DESCRIPTION,
                 modifier = inset,
                 retryDescription = ANALYTICS_RETRY_DESCRIPTION,
             )
-            is AnalyticsUiState.Content -> ContentState(state, inset, onSelectRange, onRetry)
+            is AnalyticsUiState.Content -> ContentState(state, inset, onSelectRange, onRetry, onSignIn)
         }
     }
 }
@@ -105,6 +106,7 @@ private fun ContentState(
     inset: Modifier,
     onSelectRange: (AnalyticsRange) -> Unit,
     onRetry: () -> Unit,
+    onSignIn: () -> Unit,
 ) {
     Column(
         modifier = inset
@@ -133,6 +135,7 @@ private fun ContentState(
                     title = stringResource(R.string.analytics_failed),
                     failure = analytics.failure,
                     onRetry = onRetry,
+                    onSignIn = onSignIn,
                     description = ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION,
                     modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
@@ -146,6 +149,7 @@ private fun ContentState(
                     title = stringResource(R.string.analytics_usage_failed),
                     failure = usage.failure,
                     onRetry = onRetry,
+                    onSignIn = onSignIn,
                     description = ANALYTICS_USAGE_FAILURE_DESCRIPTION,
                     modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )
@@ -162,6 +166,7 @@ private fun ContentState(
                     title = stringResource(R.string.analytics_history_failed),
                     failure = history.failure,
                     onRetry = onRetry,
+                    onSignIn = onSignIn,
                     description = ANALYTICS_HISTORY_FAILURE_DESCRIPTION,
                     modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
                 )

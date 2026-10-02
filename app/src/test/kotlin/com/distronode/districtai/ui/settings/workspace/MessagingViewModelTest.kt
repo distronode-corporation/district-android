@@ -14,21 +14,18 @@ import com.distronode.districtai.core.model.MessagingTestDetails
 import com.distronode.districtai.core.model.MessagingTestResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The messaging screen's state machine.
@@ -45,15 +42,8 @@ class MessagingViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val twilio = MessagingAccount(
         id = "acct-twilio",
@@ -78,12 +68,12 @@ class MessagingViewModelTest {
         channelDefaults = mapOf("sms" to "acct-twilio"),
     )
 
-    private fun api() = TestDistrictApi().apply {
+    private fun api() = FakeDistrictApi().apply {
         messagingApi.messagingResult = ApiResult.Success(populated)
     }
 
     private fun viewModel(
-        api: TestDistrictApi,
+        api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
     ) = MessagingViewModel(MessagingRepository(api), "ws-1", role)
 

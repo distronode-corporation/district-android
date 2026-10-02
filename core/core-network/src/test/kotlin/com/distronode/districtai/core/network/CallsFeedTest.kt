@@ -3,7 +3,6 @@ package com.distronode.districtai.core.network
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,13 +27,7 @@ class CallsFeedTest {
         server.close()
     }
 
-    private fun api() = HttpDistrictApi(
-        DistrictApiClient(
-            baseUrl = server.url("/"),
-            httpClient = OkHttpClient(),
-            tokens = signedInCoordinator(refreshApi),
-        ),
-    )
+    private fun api() = HttpDistrictApi(testApiClient(server, refreshApi))
 
     private val oneCall = """
         [{"id":"c1","type":"inbound","number":"Ada","status":"completed","duration":"1m 5s",

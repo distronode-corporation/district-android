@@ -83,6 +83,7 @@ class DeskSettingsScreenTest {
                     onPickLogo = { recorder.picks++ },
                     onRemoveLogo = { recorder.removes++ },
                     onRetry = { recorder.retries++ },
+                    onSignIn = {},
                     onBack = { recorder.backs++ },
                 )
             }

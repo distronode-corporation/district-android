@@ -51,15 +51,19 @@ import com.distronode.districtai.core.model.MarkReadRequest
 import com.distronode.districtai.core.model.OverviewMetrics
 import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceRole
-import com.distronode.districtai.ui.desk.FakeDeskApiForUi
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.overview.OverviewUiState
 import com.distronode.districtai.ui.overview.OverviewViewModel
 import com.distronode.districtai.ui.rooms.FakeCallEngine
-import com.distronode.districtai.ui.support.FakeSupportApiForUi
 import kotlinx.coroutines.cancel
 import org.junit.rules.ExternalResource
 import org.robolectric.Shadows.shadowOf
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakePersonaApi
+import com.distronode.districtai.core.network.testing.FakeCallHandlingApi
+import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
+import com.distronode.districtai.core.network.testing.FakeDeskApi
+import com.distronode.districtai.core.network.testing.FakeSupportApi
 
 /**
  * [DistrictNavHost] over a container whose every dependency answers from a fake, on the main looper.
@@ -82,10 +86,10 @@ import org.robolectric.Shadows.shadowOf
 internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
 
     val api = CountingDistrictApi()
-    val desk = FakeDeskApiForUi()
-    val support = FakeSupportApiForUi()
-    val persona = TestPersonaApi()
-    val search = TestInboxExtrasApi()
+    val desk = FakeDeskApi()
+    val support = FakeSupportApi()
+    val persona = FakePersonaApi()
+    val search = FakeInboxExtrasApi()
     val callHandling = CountingCallHandlingApi()
     val telecom = FakeTelecomBridge()
     val registry = ScriptedResultRegistry()
@@ -399,8 +403,8 @@ private class DoneRevokeApi : RevokeApi {
     override suspend fun revoke(refreshToken: String): RevokeResult = RevokeResult.Done
 }
 
-/** A [TestDistrictApi] that also counts workspace-list reads, the first call of every overview load. */
-internal class CountingDistrictApi : TestDistrictApi() {
+/** A [FakeDistrictApi] that also counts workspace-list reads, the first call of every overview load. */
+internal class CountingDistrictApi : FakeDistrictApi() {
     var workspaceListReads = 0
         private set
 
@@ -430,9 +434,9 @@ internal class CountingDistrictApi : TestDistrictApi() {
         super.conversations(workspaceId).also { conversationsReads += 1 }
 }
 
-/** A [TestCallHandlingApi] that also counts the mode read, which is what a reload repeats. */
+/** A [FakeCallHandlingApi] that also counts the mode read, which is what a reload repeats. */
 internal class CountingCallHandlingApi(
-    private val delegate: TestCallHandlingApi = TestCallHandlingApi(),
+    private val delegate: FakeCallHandlingApi = FakeCallHandlingApi(),
 ) : CallHandlingApi by delegate {
     var handlingReads = 0
         private set

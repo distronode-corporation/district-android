@@ -8,24 +8,23 @@ import com.distronode.districtai.core.model.CallHangUpResponse
 import com.distronode.districtai.core.model.DialResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestCallControlApi
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeCallControlApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * Ending the CARRIER leg, which is the half `Room.disconnect()` cannot do.
@@ -41,22 +40,23 @@ class DialerServerHangUpTest {
 
     private val dispatcher = StandardTestDispatcher()
 
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
+
     private lateinit var engineScope: CoroutineScope
 
     private val telecom = FakeTelecomBridge()
 
-    private val callControlApi = TestCallControlApi()
+    private val callControlApi = FakeCallControlApi()
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         engineScope = CoroutineScope(dispatcher)
     }
 
     @After
     fun tearDown() {
         engineScope.cancel()
-        Dispatchers.resetMain()
     }
 
     private val placed = DialResponse(
@@ -68,13 +68,13 @@ class DialerServerHangUpTest {
     )
 
     private fun api(dial: ApiResult<DialResponse> = ApiResult.Success(placed)) =
-        TestDistrictApi().apply {
+        FakeDistrictApi().apply {
             dialResult = dial
             callsResult = ApiResult.Success(emptyList())
         }
 
     private fun viewModel(
-        api: TestDistrictApi = api(),
+        api: FakeDistrictApi = api(),
         factory: FakeCallEngineFactory = FakeCallEngineFactory(),
     ) = DialerViewModel(
         dialRepository = DialRepository(api),

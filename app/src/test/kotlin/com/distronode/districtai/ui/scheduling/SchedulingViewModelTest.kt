@@ -8,22 +8,19 @@ import com.distronode.districtai.core.model.SchedulingEnableResponse
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.core.network.ApiResult
-import com.distronode.districtai.ui.TestDistrictApi
 import com.distronode.districtai.ui.resourceIdOrNull
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import org.junit.Rule
+import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
  * The Scheduling screen's state machine.
@@ -41,15 +38,8 @@ class SchedulingViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val readyTenant = SchedulingTenant(
         status = "ready",
@@ -60,17 +50,17 @@ class SchedulingViewModelTest {
         bookingUrl = "https://acme-book.distronode.com/book/phone-consultation",
     )
 
-    private fun api(block: TestDistrictApi.() -> Unit = {}) = TestDistrictApi().apply(block)
+    private fun api(block: FakeDistrictApi.() -> Unit = {}) = FakeDistrictApi().apply(block)
 
     /**
      * ⚠️ `ApiEnvironment.baseUrl` RATHER THAN A LITERAL, exactly as the production graph wires it.
      * The repository verifies the dashboard hand-off url against this origin, so a fixture host
      * here would exercise the check against a value nothing else in the build agrees with.
      */
-    private fun repository(api: TestDistrictApi) =
+    private fun repository(api: FakeDistrictApi) =
         SchedulingRepository(api, ApiEnvironment.baseUrl)
 
-    private fun model(api: TestDistrictApi) = SchedulingViewModel(repository(api), "ws-1")
+    private fun model(api: FakeDistrictApi) = SchedulingViewModel(repository(api), "ws-1")
 
     // ── The read ─────────────────────────────────────────────────────────────
 

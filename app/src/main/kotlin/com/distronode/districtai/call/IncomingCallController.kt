@@ -82,7 +82,10 @@ data class IncomingCallUiState(
  * allowed to replace. `DistrictCallRegistry` holds at most one connection, one engine owns the
  * device's audio focus, and a replacement would tear down a conversation the user is having in order
  * to ring them about another. The dropped call still reaches the server's timeout and falls back to
- * PSTN, which is the correct outcome for a person who is already on the phone.
+ * PSTN, which is the correct outcome for a person who is already on the phone. ⛔ "LIVE" MEANS
+ * RINGING, ANSWERING OR IN_CALL, NOT ENDED: an ENDED summary waits for a Dismiss the user may never
+ * give (a missed ring in a pocket, a Decline from the notification), and treating it as live dropped
+ * every later call until they opened the app.
  *
  * ⛔ **`setActive()` IS NOT CALLED WHEN ANSWER IS PRESSED.** It is called by [InboundCallSession]
  * after media connects, mirroring the outbound answer-latch. Telling the OS a call is ACTIVE while
@@ -174,8 +177,13 @@ internal class IncomingCallController(
      * suppression), and losing it must not lose the call.
      */
     fun onIncomingCall(workspaceId: String, callId: String) {
-        // ⛔ See the ⛔ on the class: dropped, not queued and not a replacement.
-        if (_state.value != null) return
+        // ⛔ See the ⛔ on the class: dropped, not queued and not a replacement, while a call is live.
+        val current = _state.value
+        if (current != null && current.phase != IncomingCallPhase.ENDED) return
+        // ⚠️ AN ENDED CALL IS REPLACED, AND ITS MIRROR GOES WITH IT, exactly as [dismiss] would: the
+        // old session emitting afterwards must not paint its finished call onto this ring.
+        callScope?.cancel()
+        callScope = null
         _state.value = IncomingCallUiState(
             workspaceId = workspaceId,
             callId = callId,
@@ -213,7 +221,18 @@ internal class IncomingCallController(
         notifier.cancelIncomingCall()
         _state.value = current.copy(phase = IncomingCallPhase.ANSWERING)
         scope.launch {
-            when (val outcome = repository.answer(current.workspaceId, current.callId)) {
+            val outcome = repository.answer(current.workspaceId, current.callId)
+            // ⛔ A HANG-UP CAN LAND DURING THE ANSWER ROUND TRIP, before [join] has a session to
+            // compare: a headset or the OS's own call surface reaches [decline] at any phase. Acting
+            // on the outcome after that joined the room with the microphone on, started the
+            // `phoneCall` service and repainted IN_CALL for a call the user had ended; a late refusal
+            // would end whatever call rang next. Nothing is owed to the server: its rendezvous has
+            // already been read, and a decline sends nothing by design.
+            val now = _state.value
+            if (now == null || now.callId != current.callId || now.phase != IncomingCallPhase.ANSWERING) {
+                return@launch
+            }
+            when (outcome) {
                 is AnswerOutcome.Joinable ->
                     join(outcome.session.url, outcome.session.token)
                 // ⚠️ NOT AN ERROR, AND NOT WORDED AS ONE. The overwhelmingly common way to reach
@@ -304,7 +323,8 @@ internal class IncomingCallController(
         val live = sessions.create()
         session = live
         // ⚠️ No earlier call scope to cancel: a join follows a RINGING phase, which only a call
-        // arriving on a cleared screen starts, and [dismiss] cancels and clears it as it clears that.
+        // arriving on a cleared or ENDED screen starts, and both [dismiss] and [onIncomingCall]
+        // cancel and clear it on the way.
         val watch = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext[Job]))
         callScope = watch
         live.begin(watch)

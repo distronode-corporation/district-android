@@ -1,13 +1,19 @@
 package com.distronode.districtai.ui.rooms
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import com.distronode.districtai.core.data.MeetingsRepository
 import com.distronode.districtai.core.media.CallConnectionState
+import com.distronode.districtai.core.media.CallEngine
+import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.media.MediaParticipant
 import com.distronode.districtai.core.model.E2eeInfo
 import com.distronode.districtai.core.model.RoomTokenResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestDistrictApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -15,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -609,6 +616,46 @@ class ActiveRoomViewModelTest {
 
         assertTrue("no token is minted for a room already left", api.roomTokenRequests.isEmpty())
         assertFalse(factory.engine.calls.any { it.startsWith("connect:") })
+    }
+
+    @Test
+    fun `a join cancelled by clearing the screen is not reported as a failed one`() = runTest {
+        // ⚠️ `runCatching` CAUGHT THE CANCELLATION and wrote `Failed` with a coroutine-internals
+        // message over a teardown. Cancellation now propagates; the release still disconnects.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val store = ViewModelStore()
+        val vm = ViewModelProvider(
+            store,
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = ActiveRoomViewModel(
+                    engineFactory = CallEngineFactory {
+                        object : CallEngine by engine {
+                            override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+                                gate.await()
+                                engine.connect(url, token, e2eeKeyBase64)
+                            }
+                        }
+                    },
+                    repository = MeetingsRepository(api()),
+                    roomName = roomName,
+                    role = WorkspaceRole.AGENCY,
+                    webOrigin = "https://www.distronode.test",
+                    engineScope = engineScope,
+                ) as T
+            },
+        )[ActiveRoomViewModel::class.java]
+        runCurrent()
+        vm.onPermissionsResult(microphoneGranted = true, cameraGranted = true)
+        runCurrent()
+        assertEquals(CallConnectionState.Connecting, vm.state.value.connection)
+
+        store.clear()
+        runCurrent()
+
+        assertFalse(vm.state.value.connection is CallConnectionState.Failed)
+        assertEquals(listOf("disconnect"), engine.calls)
     }
 
     @Test

@@ -12,9 +12,11 @@ import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.core.model.PersonaPreviewTokenResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * One persona audition: a real, billed call to this workspace's own voice agent, answering as the
@@ -75,6 +78,15 @@ class PersonaPreviewViewModel(
     private var released = false
 
     /**
+     * The mint and the join that follows it.
+     *
+     * ⛔ HELD SO [release] CAN CANCEL IT. Left running, a sheet stopped or dismissed during the mint
+     * round trip joined a billed agent session afterwards, speaker on and microphone published,
+     * with no UI left to stop it and `onCleared` a no-op on an already-released object.
+     */
+    private var mintJob: Job? = null
+
+    /**
      * ⛔ CAPTURED WHEN THE BUTTON IS PRESSED, NOT WHEN THE SCREEN IS BUILT, and the difference is
      * the whole promise of the feature. The form is edited continuously; an audition is of what was
      * on screen at the tap, and a form supplied at construction would go stale the moment the next
@@ -126,7 +138,7 @@ class PersonaPreviewViewModel(
             microphoneDenied = !granted,
             phase = PersonaPreviewPhase.Minting,
         )
-        viewModelScope.launch { mintAndConnect(form) }
+        mintJob = viewModelScope.launch { mintAndConnect(form) }
     }
 
     /**
@@ -148,18 +160,24 @@ class PersonaPreviewViewModel(
 
     private suspend fun connect(credential: PersonaPreviewTokenResponse) {
         _state.value = _state.value.copy(phase = PersonaPreviewPhase.Connecting)
-        val outcome = runCatching {
+        val failure = runCatching {
             // ⛔ THE KEY IS PASSED VERBATIM AND IS NEVER BASE64-DECODED. Every LiveKit SDK
             // UTF-8-encodes this string and runs PBKDF2 over those ASCII bytes; decoding it to 32
             // raw bytes selects a different derivation, and the failure is not an error — both
             // sides join and every track is undecryptable noise.
             engine.connect(credential.url, credential.token, credential.e2ee?.key)
-        }
-        if (outcome.isFailure) {
-            // ⚠️ The engine has already published a Failed connection state; this records that the
-            // throw was seen rather than letting it escape a coroutine with no catch above it.
-            return
-        }
+        }.exceptionOrNull()
+        // ⛔ STOPPED WHILE THE JOIN WAS IN FLIGHT: [release] already launched its disconnect, and
+        // nothing orders it against a join the SDK finishes afterwards, so the room is left again
+        // now that the join has resolved, whatever it resolved to. ⚠️ `NonCancellable` and in this
+        // coroutine, because [release] cancelled both it and the engine scope.
+        if (released) withContext(NonCancellable) { engine.disconnect() }
+        // ⛔ CANCELLATION IS NOT A FAILED JOIN, AND IT IS RETHROWN rather than swallowed with it.
+        if (failure is CancellationException) throw failure
+        // ⚠️ On a failure the engine has already published a Failed connection state; returning
+        // records that the throw was seen rather than letting it escape a coroutine with no catch
+        // above it.
+        if (released || failure != null) return
         // ⛔ SPEAKER ON AND THE MICROPHONE PUBLISHED, WHICH IS THE OPPOSITE OF A MEETING AND RIGHT
         // HERE. An audition is held at arm's length while somebody watches the form, and one joined
         // muted is an audition of nothing.
@@ -252,6 +270,7 @@ class PersonaPreviewViewModel(
     private fun release() {
         if (released) return
         released = true
+        mintJob?.cancel()
         engineScope.launch {
             try {
                 engine.disconnect()

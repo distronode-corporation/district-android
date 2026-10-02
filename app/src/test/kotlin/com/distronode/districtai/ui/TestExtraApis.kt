@@ -13,6 +13,7 @@ import com.distronode.districtai.core.network.CallControlApi
 import com.distronode.districtai.core.network.CallHandlingApi
 import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
+import kotlinx.coroutines.CompletableDeferred
 
 /**
  * Fakes for the four interfaces that sit beside `DistrictApi`.
@@ -35,11 +36,15 @@ internal class TestPersonaApi : PersonaApi {
 
     override suspend fun personaOptions(workspaceId: String) = optionsResult
 
+    /** When set, [personaPreviewToken] waits for it before returning: a mint still in flight. */
+    var previewGate: CompletableDeferred<Unit>? = null
+
     override suspend fun personaPreviewToken(
         workspaceId: String,
         form: PersonaPreviewForm,
     ): ApiResult<PersonaPreviewTokenResponse> {
         previewCalls += form
+        previewGate?.await()
         return previewResult
     }
 }

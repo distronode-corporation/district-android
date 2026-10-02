@@ -4,17 +4,22 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.media.CallConnectionState
+import com.distronode.districtai.core.media.CallEngine
+import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.media.MediaParticipant
 import com.distronode.districtai.core.model.E2eeInfo
 import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.core.model.PersonaPreviewTokenResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.TestPersonaApi
+import com.distronode.districtai.ui.rooms.FakeCallEngine
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
 import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -23,6 +28,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -74,7 +80,7 @@ class PersonaPreviewViewModelTest {
 
     private fun viewModel(
         api: TestPersonaApi,
-        factory: FakeCallEngineFactory = FakeCallEngineFactory(),
+        factory: CallEngineFactory = FakeCallEngineFactory(),
     ) = PersonaPreviewViewModel(
         repository = PersonaOptionsRepository(api),
         workspaceId = "ws-1",
@@ -436,6 +442,83 @@ class PersonaPreviewViewModelTest {
 
         assertEquals("disconnect", factory.engine.calls.last())
         assertFalse("nothing may still claim a live microphone", vm.state.value.micEnabled)
+    }
+
+    /**
+     * An engine whose `connect` waits for [gate]: a join in flight.
+     *
+     * @param ignoresCancellation true models an SDK whose join does not stop when its coroutine is
+     *   cancelled, which is the case the released check after the connect exists for.
+     */
+    private fun gatedFactory(gate: CompletableDeferred<Unit>, engine: FakeCallEngine, ignoresCancellation: Boolean) =
+        CallEngineFactory {
+            object : CallEngine by engine {
+                override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+                    if (ignoresCancellation) withContext(NonCancellable) { gate.await() } else gate.await()
+                    engine.connect(url, token, e2eeKeyBase64)
+                }
+            }
+        }
+
+    @Test
+    fun `stopping while the token is minting cancels the join`() = runTest {
+        // ⛔ THE BUG THIS PINS: nothing cancelled the mint, so a sheet dismissed during the round
+        // trip joined a billed agent session afterwards, speaker on and microphone published, with
+        // no UI left to stop it and `onCleared` a no-op.
+        val api = api().apply { previewGate = CompletableDeferred() }
+        val factory = FakeCallEngineFactory()
+        val vm = viewModel(api, factory)
+        advanceUntilIdle()
+        vm.audition()
+        runCurrent()
+        assertEquals(PersonaPreviewPhase.Minting, vm.state.value.phase)
+
+        vm.stop()
+        runCurrent()
+        api.previewGate?.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(listOf("disconnect"), factory.engine.calls)
+        assertEquals(PersonaPreviewPhase.Ended(PersonaPreviewEnding.Stopped), vm.state.value.phase)
+    }
+
+    @Test
+    fun `stopping while the join is in flight leaves the room and publishes nothing`() = runTest {
+        // ⛔ THE JOIN IS CANCELLED WITH THE MINT, AND A DISCONNECT FOLLOWS IT ANYWAY: nothing orders
+        // `release`'s disconnect against a half-finished join inside the SDK.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val vm = viewModel(api(), gatedFactory(gate, engine, ignoresCancellation = false))
+        advanceUntilIdle()
+        vm.audition()
+        runCurrent()
+        assertEquals(PersonaPreviewPhase.Connecting, vm.state.value.phase)
+
+        vm.stop()
+        runCurrent()
+
+        assertEquals(listOf("disconnect", "disconnect"), engine.calls)
+        assertEquals(PersonaPreviewPhase.Ended(PersonaPreviewEnding.Stopped), vm.state.value.phase)
+    }
+
+    @Test
+    fun `a join that resolves after the stop is disconnected again, with nothing published`() = runTest {
+        // ⛔ AN SDK THAT FINISHES ITS JOIN DESPITE THE CANCELLATION still reaches the line after
+        // `connect`; the released check there is what keeps the microphone and speaker off.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val vm = viewModel(api(), gatedFactory(gate, engine, ignoresCancellation = true))
+        advanceUntilIdle()
+        vm.audition()
+        runCurrent()
+
+        vm.stop()
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(listOf("disconnect", "connect:wss://media:jwt", "disconnect"), engine.calls)
+        assertEquals(PersonaPreviewPhase.Ended(PersonaPreviewEnding.Stopped), vm.state.value.phase)
     }
 
     private companion object {

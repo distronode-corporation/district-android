@@ -106,6 +106,7 @@ import com.distronode.districtai.core.network.WorkflowToggleRequest
 import com.distronode.districtai.core.network.EnrichRequest
 import com.distronode.districtai.core.network.RoomTokenRequest
 import com.distronode.districtai.core.network.UpdateContactRequest
+import kotlinx.coroutines.CompletableDeferred
 
 /**
  * A [DistrictApi] whose every answer is settable.
@@ -1169,11 +1170,19 @@ internal class FakeInboundPushApi : InboundCallApi, PushApi {
     /** Every answer attempted, as `callId/workspaceId` — "answered once, for the right call". */
     val answerRequests: MutableList<String> = mutableListOf()
 
+    /**
+     * When set, [answerCall] waits for it before returning: an answer round trip still in flight.
+     *
+     * ⚠️ RECORDED BEFORE THE WAIT, so "the request went out" is assertable while it is held.
+     */
+    var answerGate: CompletableDeferred<Unit>? = null
+
     override suspend fun answerCall(
         callId: String,
         request: CallAnswerRequest,
     ): ApiResult<CallAnswerResponse> {
         answerRequests += "$callId/${request.workspaceId}"
+        answerGate?.await()
         return answerResult
     }
 

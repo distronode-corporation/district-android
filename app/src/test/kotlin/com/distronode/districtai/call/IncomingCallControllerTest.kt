@@ -611,6 +611,132 @@ class IncomingCallControllerTest {
         }
     }
 
+    @Test
+    fun `a push after a missed call rings again rather than being dropped`() = callTest { h ->
+        // ⛔ THE BUG THIS PINS: an unanswered or declined ring left the controller ENDED until the
+        // user opened the app and tapped Dismiss, and every push meanwhile was dropped as if a call
+        // were live. A pocketed phone that missed one call silently missed every call after it.
+        h.controller.onIncomingCall("ws-1", "CA1")
+        advanceTimeBy(RING_MILLIS + 1)
+        runCurrent()
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+
+        h.controller.onIncomingCall("ws-1", "CA2")
+
+        assertEquals("CA2", h.controller.state.value?.callId)
+        assertEquals(IncomingCallPhase.RINGING, h.controller.state.value?.phase)
+        assertEquals(listOf("incoming", "disconnected", "incoming"), h.telecom.calls)
+        assertEquals(listOf("call:ws-1:CA1", "cancel", "call:ws-1:CA2"), h.notifier.drawn)
+
+        // ⚠️ AND THE NEW RING IS BOUNDED BY ITS OWN TIMEOUT, like any other.
+        advanceTimeBy(RING_MILLIS + 1)
+        runCurrent()
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+    }
+
+    @Test
+    fun `a push after an ended call replaces it and stops mirroring the old session`() = callTest { h ->
+        // ⚠️ THE SAME CLEAN-UP `dismiss` DOES, because the user may never dismiss: the old session
+        // emitting afterwards must not paint its finished call onto the new ring.
+        h.answerable()
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+        h.controller.hangUp()
+        settle()
+        assertEquals(true, h.controller.state.value?.call?.ended)
+
+        h.controller.onIncomingCall("ws-1", "CA2")
+        h.engine.emitConnection(CallConnectionState.Reconnecting)
+        settle()
+
+        assertEquals("CA2", h.controller.state.value?.callId)
+        assertNull("the new ring carries no call from the old session", h.controller.state.value?.call)
+        assertEquals("only the new ring's timeout is left", 1, liveJobs())
+    }
+
+    @Test
+    fun `a push during a connected call is still dropped`() = callTest { h ->
+        h.answerable()
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+
+        h.controller.onIncomingCall("ws-1", "CA2")
+
+        assertEquals("CA1", h.controller.state.value?.callId)
+        assertEquals(IncomingCallPhase.IN_CALL, h.controller.state.value?.phase)
+        assertEquals(listOf("call:ws-1:CA1", "cancel"), h.notifier.drawn)
+    }
+
+    @Test
+    fun `a hang-up while the answer request is in flight never joins the room`() = callTest { h ->
+        // ⛔ THE BUG THIS PINS: the answer's outcome was acted on without asking whether the call had
+        // been ended meanwhile. A headset rejecting within one round trip left the screen ENDED, and
+        // then the Joinable answer joined the room with the microphone on, started the `phoneCall`
+        // foreground service and repainted IN_CALL for a call the user had ended.
+        val gate = CompletableDeferred<Unit>()
+        h.answerable()
+        h.api.pushApi.answerGate = gate
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+        assertEquals(IncomingCallPhase.ANSWERING, h.controller.state.value?.phase)
+
+        h.telecom.systemHangUp()
+        settle()
+        gate.complete(Unit)
+        settle()
+
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+        assertNull("a hang-up is not a failure", h.controller.state.value?.message)
+        assertEquals("no engine is touched", emptyList<String>(), h.engine.calls)
+        assertEquals("the service is never started", listOf(false), h.foreground.calls)
+        assertEquals(listOf("incoming", "disconnected"), h.telecom.calls)
+        h.controller.dismiss()
+        assertEquals(0, liveJobs())
+    }
+
+    @Test
+    fun `an answer that lands after the ended call was dismissed conjures nothing`() = callTest { h ->
+        val gate = CompletableDeferred<Unit>()
+        h.answerable()
+        h.api.pushApi.answerGate = gate
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+        h.controller.hangUp()
+        h.controller.dismiss()
+
+        gate.complete(Unit)
+        settle()
+
+        assertNull(h.controller.state.value)
+        assertEquals(emptyList<String>(), h.engine.calls)
+        assertEquals(listOf(false), h.foreground.calls)
+    }
+
+    @Test
+    fun `an answer refused after the hang-up does not end the next call to ring`() = callTest { h ->
+        // ⚠️ ANY OUTCOME IS STALE ONCE THE CALL IT ANSWERED IS GONE, not only a Joinable one: a
+        // late refusal would otherwise end whatever call is on screen by then.
+        val gate = CompletableDeferred<Unit>()
+        h.api.pushApi.answerResult = ApiResult.NotFound("Call not found")
+        h.api.pushApi.answerGate = gate
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+        h.controller.hangUp()
+        h.controller.onIncomingCall("ws-1", "CA2")
+
+        gate.complete(Unit)
+        settle()
+
+        assertEquals("CA2", h.controller.state.value?.callId)
+        assertEquals(IncomingCallPhase.RINGING, h.controller.state.value?.phase)
+        assertNull(h.controller.state.value?.message)
+    }
+
     /** Coroutines still running on the application scope the controller was given. */
     private fun liveJobs(): Int = controllerScope.coroutineContext.job.children.count { it.isActive }
 

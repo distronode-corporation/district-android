@@ -6,8 +6,11 @@ name: Release
 #   push of a v* tag                          build, sign, upload to the internal track
 #   dispatch on main, approval empty          the same, from main: a test build (internal only)
 #   dispatch on a v* tag with the approval    the same, then submit it for review (job `submit`)
+#                                             and publish the tag's GitHub Release (job
+#                                             `github-release`)
 #
-# A build left waiting is submitted later with submit.yml, which runs the same submission script.
+# A build left waiting is submitted later with submit.yml, which runs the same submission action
+# and the same release script.
 #
 # ⛔ NO SIGNING KEY OR STORE CREDENTIAL LIVES IN THIS REPOSITORY OR IN GITHUB. Every job that needs
 # one runs in the `release` environment (deployment policy: main and v* tags only) and borrows it
@@ -200,3 +203,34 @@ jobs:
           version-name: ${{ needs.build.outputs.version_name }}
           workload-identity-provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service-account: ${{ env.RELEASE_SERVICE_ACCOUNT }}
+
+  # The tag's GitHub Release, only after the production submit above succeeded: the same script
+  # and the same shape as submit.yml's `github-release` job. Its own job, so the one token that
+  # can write to the repository never shares a job with the Google Cloud credential.
+  github-release:
+    name: GitHub Release
+    needs: [build, submit]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write # publish the release
+      actions: read # find the release.yml run that built the tag
+    steps:
+      # This workflow's commit is the tag, so the script and the CHANGELOG are both the tag's.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
+
+      # The build run is the tag's push run, whose upload Play holds (a re-run of the upload here
+      # skips a bundle Play already has). When the tag has no successful push run, this run is
+      # the one that built and uploaded it, and the release says so in one sentence.
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          SUBMIT_RUN: ${{ github.run_id }}
+        run: |
+          build_run=$(scripts/github-release.sh build-run "$TAG")
+          scripts/github-release.sh publish "$TAG" "$VERSION_CODE" "$SUBMIT_RUN" "${build_run:-$SUBMIT_RUN}"

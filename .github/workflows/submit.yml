@@ -6,8 +6,10 @@ name: Submit for review
 # It builds nothing. It checks out the tag, derives the same versionCode release.yml built
 # (scripts/release-version.sh, the same checks), finds that bundle on Google Play, and releases
 # it to production with the tag's CHANGELOG section as release notes. Committing that edit is
-# what sends a published app's release for review. Re-running it after a partial failure is safe:
-# scripts/play-publish.sh does nothing if production already carries the build.
+# what sends a published app's release for review. Then, and only once that has succeeded, the
+# `github-release` job publishes the tag's GitHub Release (scripts/github-release.sh). Re-running
+# it after a partial failure is safe: scripts/play-publish.sh does nothing if production already
+# carries the build, and scripts/github-release.sh does nothing if the release already exists.
 #
 # Same rules as release.yml: the `release` environment and workload identity for credentials,
 # no pull_request trigger, inputs reach shell only through `env:`.
@@ -43,6 +45,8 @@ jobs:
     permissions:
       contents: read
       id-token: write # workload identity federation to Google Cloud
+    outputs:
+      version_code: ${{ steps.version.outputs.version_code }}
     steps:
       # First, before anything is checked out or any credential is minted.
       - name: Approval
@@ -101,3 +105,45 @@ jobs:
           version-name: ${{ steps.version.outputs.version_name }}
           workload-identity-provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service-account: ${{ env.RELEASE_SERVICE_ACCOUNT }}
+
+  # The tag's GitHub Release, only after the production submit above succeeded. Its own job, so
+  # the one token that can write to the repository never shares a job with the Google Cloud
+  # credential, and the submit job keeps its read-only token.
+  github-release:
+    name: GitHub Release
+    needs: submit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write # publish the release
+      actions: read # find the release.yml run that built the tag
+    steps:
+      # ⛔ THE SCRIPT COMES FROM THIS WORKFLOW'S COMMIT, THE CHANGELOG FROM THE TAG. The tag may
+      # predate scripts/github-release.sh (v1.2 and earlier do), and the release notes are the
+      # tag's own CHANGELOG section, the same text submitted to Play.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          sparse-checkout: scripts
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: refs/tags/${{ inputs.tag }}
+          path: .tag
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+
+      # The build run is release.yml's successful push run for the tag, the one whose upload Play
+      # holds. If there is none, the release names only this run rather than guess.
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANGELOG: .tag/CHANGELOG.md
+          TAG: ${{ inputs.tag }}
+          VERSION_CODE: ${{ needs.submit.outputs.version_code }}
+          SUBMIT_RUN: ${{ github.run_id }}
+        run: |
+          build_run=$(scripts/github-release.sh build-run "$TAG")
+          scripts/github-release.sh publish "$TAG" "$VERSION_CODE" "$SUBMIT_RUN" "$build_run"

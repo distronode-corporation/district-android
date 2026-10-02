@@ -115,10 +115,11 @@ Maintainers release by pushing a `v*` tag that equals `versionName`, on a commit
 with a `CHANGELOG.md` section for that version (Google Play takes at most 500 characters of
 release notes, and the workflow refuses a longer section rather than cut it).
 `.github/workflows/release.yml` builds, signs and uploads it to the internal testing track;
-submission for store review runs only with the maintainers' explicit approval. No signing key
-or store credential is stored in this repository or in GitHub: the `release` environment
-borrows them from Distronode's Google Cloud for one run at a time. A fork's pull request never
-runs either release workflow. See the README's Releases section for the details.
+submission for store review runs only with the maintainers' explicit approval, and publishes
+the tag's GitHub Release once it has succeeded. No signing key or store credential is stored
+in this repository or in GitHub: the `release` environment borrows them from Distronode's
+Google Cloud for one run at a time. A fork's pull request never runs either release workflow.
+See the README's Releases section for the details.
 
 ## Comments
 

@@ -14,9 +14,10 @@ import kotlinx.serialization.json.JsonObject
  * [ApiResult.Success] with a nullable payload would let a caller read a refusal as an empty
  * answer, which on this surface means "this tenancy has no bookings" for "the scheduler is down".
  *
- * ⚠️ IT IS A TRANSPORT-LEVEL DISTINCTION AND NOT A UI ONE. The five-recovery vocabulary a screen
- * branches on is `SchedulingAdminFailureCode` in core-data, which collapses this arm together
- * with the HTTP refusals. Nothing above core-data should switch on [Refusal] directly.
+ * ⚠️ IT IS A TRANSPORT-LEVEL DISTINCTION AND NOT A UI ONE. A screen should branch on a small
+ * recovery vocabulary that collapses this arm together with the HTTP refusals, built in core-data
+ * beside the first screen that calls this route (none does today), and never switch on [Refusal]
+ * directly.
  */
 sealed interface SchedulingAdminEnvelope<out T> {
 
@@ -49,7 +50,12 @@ sealed interface SchedulingAdminEnvelope<out T> {
  * ⛔ A SEPARATE INTERFACE FROM [DistrictApi], NOT A SET OF METHODS ON IT. `DistrictApi` composes
  * twenty-odd per-family interfaces whose methods are all ordinary typed endpoints; this one is a
  * generic RPC whose response type is the CALLER's choice, and it carries an envelope no other
- * route on the API sends. A later step wires it into `AppContainer` beside the others.
+ * route on the API sends.
+ *
+ * ⚠️ NOTHING IN THE APP CALLS THIS YET, AND NOTHING CONSTRUCTS IT. The typed core-data layer that
+ * once sat on top of it was deleted unused; the interface and [HttpSchedulingAdminApi] stay
+ * because endpoint parity counts their methods and the contract tests decode their DTOs. The
+ * first screen that needs the admin surface wires it into `AppContainer` itself.
  *
  * ⛔ NOTHING HERE RETRIES, AND THE SERVER'S OWN RETRY IS THE REASON IT MUST NOT START. The server's
  * op route already performs exactly ONE re-mint and ONE re-send on a 401, bounded because an unbounded one
@@ -71,8 +77,8 @@ interface SchedulingAdminApi {
      * ⚠️ THE RESPONSE TYPE IS THE CALLER'S CHOICE AND IS NOT CHECKED AGAINST THE OP. Nothing on
      * this side knows that `eventTypes.list` answers a list of event types — the catalog does, and
      * it is not importable from Kotlin. Naming the wrong type is an [ApiResult.DecodeFailure] at
-     * runtime rather than a compile error, which is the cost of not duplicating 75 schemas. The
-     * typed wrappers in core-data are what close that gap; use them rather than this directly.
+     * runtime rather than a compile error, which is the cost of not duplicating 75 schemas. Close
+     * that gap with one typed wrapper per op in core-data rather than calling this from a screen.
      *
      * @param params sent EXACTLY as given, including path keys, and never trimmed. An op that
      *   takes nothing sends `{}` rather than omitting the key: the route defaults a missing

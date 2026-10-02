@@ -67,35 +67,6 @@
 # the field silently rather than failing loudly.
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault
 
-# ── DTOs that are declared and called from code no screen reaches yet ────────
-#
-# ⛔ WITHOUT THESE, THE RELEASE-MINIFICATION GATE FAILS WHILE EVERY LOCAL DEBUG GATE IS GREEN.
-# The scheduling-admin and message-thread data layers exist ahead of their screens:
-# `AppContainer` constructs the repositories, nothing on screen calls them, so R8 correctly
-# finds every `Scheduling*$$serializer` and
-# `MessageThread*$$serializer` unreachable and drops it. `verify-release-minification.sh`
-# refuses on the SOURCE reference rather than the call graph, deliberately: a DTO that is
-# referenced and stripped is a release-only crash the day its screen lands, and that day
-# nobody will be looking at R8. This block keeps the gate and the graph agreeing until the
-# screens exist. When they do, the rule is redundant rather than wrong, so it can stay.
-#
-# ⚠️ `*` NOT `**`: a single star stops at package separators, so this names the model
-# package's own classes and their nested `$$serializer` types and nothing below it.
--keep class com.distronode.districtai.core.model.Scheduling*$$serializer { *; }
--keep class com.distronode.districtai.core.model.MessageThread*$$serializer { *; }
-#
-# ⛔ AN ENUM HAS NO `$$serializer`, SO THE TWO RULES ABOVE CANNOT MATCH ONE, AND THEY LEFT
-# FAILURE BEHIND (one declared serializer not retained). kotlinx.serialization
-# builds an enum's serializer from the enum's own entries through its Companion rather than
-# generating a nested class, and `SchedulingWebhookEvent` is used in production only through
-# `.wire`, so R8 unboxed the enum away entirely: no `$$serializer`, no `$Companion`, no class
-# for the gate to find. Nothing decodes it in release today (its only `serializer()` call is a
-# contract test), so this is the gate and the graph disagreeing, not a live crash, and the
-# fix is the same as above: keep the name so they agree. `enum` scopes the pattern to enums,
-# so it adds nothing for the data classes the lines above already cover.
--keep enum com.distronode.districtai.core.model.Scheduling* { *; }
--keep enum com.distronode.districtai.core.model.MessageThread* { *; }
-
 # ── OkHttp ────────────────────────────────────────────────────────────────────
 #
 # ⚠️ OkHttp ships its own consumer rules, so nothing is needed for normal use. These two silence

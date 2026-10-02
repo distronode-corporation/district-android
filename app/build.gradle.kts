@@ -129,7 +129,7 @@ android {
         applicationId = "com.distronode.districtai"
 
         versionCode = districtVersionCode.get()
-        versionName = "1.1"
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

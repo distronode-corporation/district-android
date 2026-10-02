@@ -112,7 +112,8 @@ androidxBrowser = "1.10.0"
 # "module was compiled with an incompatible version of Kotlin" style failures, or worse,
 # a TestDispatcher that does not control the dispatcher the code under test actually uses.
 kotlinxCoroutines = "1.11.0"
-# Backports java.time and friends onto minSdk 26.
+# Core library desugaring. Not for java.time (native at minSdk 26): kept for dependencies'
+# java.* calls, see `isCoreLibraryDesugaringEnabled` in district.android.base.gradle.kts.
 desugarJdkLibs = "2.1.5"
 androidxLifecycle = "2.11.0"
 # BOM governs every androidx.compose.* artifact version; those get no explicit

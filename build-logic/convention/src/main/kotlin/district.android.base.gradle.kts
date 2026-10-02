@@ -43,7 +43,13 @@ extensions.configure<CommonExtension> {
         // change is a visible diff here rather than a silent behaviour shift.
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        // Required for java.time and friends on minSdk 26.
+        // ⚠️ NOT FOR java.time: it is native from API 26, which is minSdk. Kept as
+        // insurance for DEPENDENCIES. Desugaring rewrites every class in the dex,
+        // libraries included, while Lint's NewApi reads only this repo's sources, so
+        // a library calling a newer java.* API it backports would build cleanly and
+        // crash on an older phone. With the flag off, lintDebug reports no NewApi in
+        // this repo's code and checkDebugAarMetadata passes, so nothing of OURS needs
+        // it. Removing it first needs the release dex checked against minSdk.
         isCoreLibraryDesugaringEnabled = true
     }
 
@@ -94,9 +100,9 @@ extensions.configure<CommonExtension> {
         // explicitly so a future AGP default change is a visible diff here.
         abortOnError = true
 
-        // ⚠️ DELIBERATELY NOT `warningsAsErrors = true`. 23 warnings exist today,
-        // most of them `UnusedResources` for strings whose screens are half-built and
-        // `NewerVersionAvailable` for versions this repo pins ON PURPOSE (see the long
+        // ⚠️ DELIBERATELY NOT `warningsAsErrors = true`. Warnings exist today (no
+        // `UnusedResources` any more: the unreferenced strings were deleted), among
+        // them `NewerVersionAvailable` for versions this repo pins ON PURPOSE (see the long
         // notes in libs.versions.toml — bumping Kotlin independently of AGP is a hard
         // error there). Promoting those to errors would make the gate impossible to
         // satisfy honestly and the first response would be to disable it.

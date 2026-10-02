@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.designsystem
 
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
@@ -120,10 +119,5 @@ class DistrictPaletteTest {
         // The accent is indigo in both modes but not the same indigo: the light palette carries a
         // far deeper one for AA contrast on white.
         assertNotEquals(DistrictColors.DISTRICT, scheme.primary)
-    }
-
-    @Test
-    fun `the one easing curve is the web's expo-out`() {
-        assertEquals(CubicBezierEasing(0.16f, 1.0f, 0.3f, 1.0f), DistrictMotion.Emphasized)
     }
 }

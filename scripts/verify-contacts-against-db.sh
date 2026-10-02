@@ -11,15 +11,13 @@ set -u
 # The local server and a psql command for its database. Both can be overridden; the defaults
 # are the maintainers' own setup, described in scripts/README.md.
 BASE="${DISTRICT_BASE_URL:-http://127.0.0.1:3100}"
-REDIRECT="districtai://auth"
 DEVICE_ID="t10-validate-$(date +%s)"
 CONTRACTS="$(cd "$(dirname "$0")/.." && pwd)/contracts"
 WS="${DISTRICT_WS:?set DISTRICT_WS to a workspace id in the local server database}"
 PG="${DISTRICT_PSQL:-docker exec -i distronode-test-pg psql -U postgres -d dev_hub -qtAX}"
 
-pass() { printf '  \033[32mPASS\033[0m %s\n' "$1"; }
-fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILURES=$((FAILURES + 1)); }
-FAILURES=0
+# shellcheck source=lib/district-auth.sh
+. "$(dirname "$0")/lib/district-auth.sh"
 
 cleanup() {
   $PG -c "DELETE FROM \"Contact\" WHERE id LIKE 't10seed-%';" >/dev/null 2>&1
@@ -59,31 +57,9 @@ SEEDED=$($PG -c "SELECT count(*) FROM \"Contact\" WHERE id LIKE 't10seed-%';")
 
 echo
 echo "== warming routes =="
-for p in "/auth/native?code_challenge=x&state=y&redirect_uri=z" \
-         "/api/district/contacts?workspaceId=$WS&limit=1" \
-         "/api/district/contacts/get?workspaceId=$WS&contactId=t10seed-001"; do
-  curl -sS -o /dev/null --max-time 120 -H 'Cookie: distronode_session=local-dev-mock' "$BASE$p" 2>/dev/null
-done
-curl -sS -o /dev/null --max-time 120 -X POST "$BASE/api/auth/native/token" \
-  -H 'Content-Type: application/json' -d '{}' 2>/dev/null
-echo "  done"
-
-VERIFIER=$(head -c 32 /dev/urandom | basenc --base64url | tr -d '=')
-CHALLENGE=$(printf '%s' "$VERIFIER" | openssl dgst -sha256 -binary | basenc --base64url | tr -d '=')
-STATE=$(head -c 16 /dev/urandom | basenc --base64url | tr -d '=')
-AUTH_HTML=$(curl -sS --max-time 30 -H 'Cookie: distronode_session=local-dev-mock' \
-  "$BASE/auth/native?code_challenge=$CHALLENGE&state=$STATE&redirect_uri=$(printf '%s' "$REDIRECT" | sed 's|:|%3A|g; s|/|%2F|g')")
-CODE=$(printf '%s' "$AUTH_HTML" | grep -oE 'districtai://auth\?code=[A-Za-z0-9_-]+' | head -1 | sed 's/.*code=//')
-[ -n "$CODE" ] || { fail "no authorization code"; exit 1; }
-EXCHANGE=$(curl -sS --max-time 30 -X POST "$BASE/api/auth/native/token" -H 'Content-Type: application/json' \
-  -d "{\"code\":\"$CODE\",\"codeVerifier\":\"$VERIFIER\",\"redirectUri\":\"$REDIRECT\",\"deviceId\":\"$DEVICE_ID\",\"deviceName\":\"T10\",\"platform\":\"android\"}")
-ACCESS=$(printf '%s' "$EXCHANGE" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("accessToken",""))' 2>/dev/null)
-if [ -z "$ACCESS" ]; then
-  fail "no access token"
-  echo "       server said: $EXCHANGE"
-  exit 1
-fi
-pass "minted a bearer token"
+warm_routes "/api/district/contacts?workspaceId=$WS&limit=1" \
+            "/api/district/contacts/get?workspaceId=$WS&contactId=t10seed-001"
+mint_access_token "$DEVICE_ID" "T10"
 
 AUTH=(-H "Authorization: Bearer $ACCESS")
 

@@ -51,6 +51,16 @@ class BillingFormatTest {
         assertEquals("-2.50", formatCents(-250))
     }
 
+    @Test
+    fun `a credit under one dollar keeps its minus sign`() {
+        // ⛔ `cents / 100` is 0 for -1..-99, and a zero has no sign to print, so -50 used to
+        // render as "0.50": a 50-cent credit read as 50 cents owed. The sign is formatted on its own.
+        assertEquals("-0.50", formatCents(-50))
+        assertEquals("-0.01", formatCents(-1))
+        assertEquals("-0.99", formatCents(-99))
+        assertEquals("-1.00", formatCents(-100))
+    }
+
     // ── An invoice's amount ──────────────────────────────────────────────────
 
     @Test

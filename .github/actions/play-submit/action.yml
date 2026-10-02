@@ -1,0 +1,64 @@
+name: Submit to Google Play production
+description: >-
+  Writes the tag's CHANGELOG section as release notes, mints a Play publishing token through
+  workload identity federation, and submits an already-uploaded build to production. The one copy
+  of the submission sequence, used by release.yml's `submit` job and by submit.yml.
+
+# ⛔ THIS ACTION DOES NOT CHECK THE APPROVAL OR THE REF. Both callers do that before they get here
+# (release.yml in the job's `if:`, submit.yml in its first steps), and the job that calls it must
+# run in the `release` environment with `id-token: write`, or the token step below has nothing to
+# exchange.
+#
+# ⚠️ Inputs reach shell only through `env:`, never interpolated into a script: the same rule as the
+# workflows, and it matters more here because a composite action's caller can be any workflow.
+#
+# ⚠️ Every `uses:` below is SHA-pinned to the same commit the workflows pin. The organisation
+# allows only allowlisted actions by SHA, and a local composite action is still subject to that
+# for whatever it calls.
+
+inputs:
+  version-code:
+    description: The versionCode already uploaded to the internal track.
+    required: true
+  version-name:
+    description: The versionName, which selects the CHANGELOG section used as release notes.
+    required: true
+  workload-identity-provider:
+    description: The workload identity provider the calling workflow trusts.
+    required: true
+  service-account:
+    description: The service account that can mint a token for the Play publishing account.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # To a file first, then shown, so the file is what gets submitted and the log shows exactly
+    # that. (A composite `shell: bash` step runs with pipefail, unlike a workflow step without
+    # `shell:`, but the file is what play-publish.sh reads either way.)
+    - name: Release notes
+      shell: bash
+      env:
+        VERSION_NAME: ${{ inputs.version-name }}
+      run: |
+        scripts/release-notes.sh "$VERSION_NAME" > "$RUNNER_TEMP/release-notes.txt"
+        cat "$RUNNER_TEMP/release-notes.txt"
+
+    # An access token only: no credentials file in the workspace and nothing exported to the
+    # environment, so the token reaches only the step that names it.
+    - id: gcp
+      uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+      with:
+        workload_identity_provider: ${{ inputs.workload-identity-provider }}
+        service_account: ${{ inputs.service-account }}
+        token_format: access_token
+        create_credentials_file: false
+        export_environment_variables: false
+
+    - name: Submit to production
+      shell: bash
+      env:
+        GCP_TOKEN: ${{ steps.gcp.outputs.access_token }}
+        VERSION_CODE: ${{ inputs.version-code }}
+        VERSION_NAME: ${{ inputs.version-name }}
+      run: scripts/play-publish.sh submit "$VERSION_CODE" "$VERSION_NAME" "$RUNNER_TEMP/release-notes.txt"

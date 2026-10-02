@@ -1614,18 +1614,6 @@ const val NAV_CONTACTS_DESCRIPTION: String = "district-nav-contacts"
 const val NAV_ACCOUNT_DESCRIPTION: String = "district-nav-account"
 
 /**
- * Hand a resolved recording URL to whatever app can play it.
- *
- * ⛔ A device with nothing able to play audio THROWS rather than doing nothing, and an unhandled
- * ActivityNotFoundException here crashes the app.
- *
- * ⛔ AND EVERY OTHER THROWABLE IS REPORTED TOO, NOT DISCARDED IN SILENCE. Inspecting only
- * `ActivityNotFoundException` would drop the rest of `runCatching`'s result on the floor, so a
- * SecurityException from a restrictive player, or a background-activity-start refusal, would make
- * the button do literally nothing: no message, no log, no way for the user to tell a broken
- * recording from a broken app. Both branches say something.
- */
-/**
  * Open an attachment in whatever the device uses for https.
  *
  * ⛔ NEW_TASK IS REQUIRED. `context` here is the application context (see the ⛔ in
@@ -1954,6 +1942,18 @@ private fun shareInvite(context: Context, link: String) {
     }
 }
 
+/**
+ * Hand a resolved recording URL to whatever app can play it.
+ *
+ * ⛔ A device with nothing able to play audio THROWS rather than doing nothing, and an unhandled
+ * ActivityNotFoundException here crashes the app.
+ *
+ * ⛔ AND EVERY OTHER THROWABLE IS REPORTED TOO, NOT DISCARDED IN SILENCE. Inspecting only
+ * `ActivityNotFoundException` would drop the rest of `runCatching`'s result on the floor, so a
+ * SecurityException from a restrictive player, or a background-activity-start refusal, would make
+ * the button do literally nothing: no message, no log, no way for the user to tell a broken
+ * recording from a broken app. Both branches say something.
+ */
 private fun playRecording(
     context: Context,
     url: String,

@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -223,37 +222,23 @@ class SchedulingContractFixtureTest {
         // ABSENT — the same shape the server produces elsewhere. A default that swallowed one (an
         // empty string for the reason, say) would decode and re-encode to something different,
         // which no decode assertion above can see.
-        val verbose = Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-
-        fun <T> roundTrip(serializer: KSerializer<T>, fixtureName: String) {
-            val decoded = json.decodeFromString(serializer, fixture(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a round trip through an explicit-nulls encoding",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(SchedulingStatusResponse.serializer(), "district-scheduling-status-ready.json")
-        roundTrip(
+        WireMirror.assertFixtureRoundTrips(
+            SchedulingStatusResponse.serializer(),
+            "district-scheduling-status-ready.json",
+        )
+        WireMirror.assertFixtureRoundTrips(
             SchedulingStatusResponse.serializer(),
             "district-scheduling-status-provisioning.json",
         )
-        roundTrip(SchedulingStatusResponse.serializer(), "district-scheduling-status-error.json")
-        roundTrip(SchedulingStatusResponse.serializer(), "district-scheduling-status-legacy.json")
-        roundTrip(SchedulingEnableResponse.serializer(), "district-scheduling-enable.json")
+        WireMirror.assertFixtureRoundTrips(
+            SchedulingStatusResponse.serializer(),
+            "district-scheduling-status-error.json",
+        )
+        WireMirror.assertFixtureRoundTrips(
+            SchedulingStatusResponse.serializer(),
+            "district-scheduling-status-legacy.json",
+        )
+        WireMirror.assertFixtureRoundTrips(SchedulingEnableResponse.serializer(), "district-scheduling-enable.json")
     }
 
     @Test

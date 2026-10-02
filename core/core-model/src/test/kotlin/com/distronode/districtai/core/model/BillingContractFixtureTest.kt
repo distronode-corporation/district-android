@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -239,34 +238,14 @@ class BillingContractFixtureTest {
         // encoding also writes as absent — so a default that swallowed one (an empty object for
         // `paymentMethods`, say) would decode and re-encode to something different. That is what
         // this catches and what no decode assertion above can.
-        val verbose = Json {
-            encodeDefaults = true
-            explicitNulls = true
-        }
-        val terse = Json {
-            encodeDefaults = false
-            explicitNulls = false
-        }
-
-        fun <T> roundTrip(serializer: KSerializer<T>, fixtureName: String) {
-            val decoded = json.decodeFromString(serializer, fixture(fixtureName))
-            assertEquals(
-                "$fixtureName must survive a round trip through an explicit-nulls encoding",
-                decoded,
-                json.decodeFromString(serializer, verbose.encodeToString(serializer, decoded)),
-            )
-            assertEquals(
-                "$fixtureName must survive a round trip in the server's own omit-defaults shape",
-                decoded,
-                json.decodeFromString(serializer, terse.encodeToString(serializer, decoded)),
-            )
-        }
-
-        roundTrip(WorkspaceBillingResponse.serializer(), "district-workspace-billing.json")
-        roundTrip(WorkspaceBillingResponse.serializer(), "district-workspace-billing-null-usage.json")
-        roundTrip(StripeBilling.serializer(), "district-billing.json")
-        roundTrip(StripeBilling.serializer(), "district-billing-unavailable.json")
-        roundTrip(StripeBilling.serializer(), "district-billing-no-customer.json")
+        WireMirror.assertFixtureRoundTrips(WorkspaceBillingResponse.serializer(), "district-workspace-billing.json")
+        WireMirror.assertFixtureRoundTrips(
+            WorkspaceBillingResponse.serializer(),
+            "district-workspace-billing-null-usage.json",
+        )
+        WireMirror.assertFixtureRoundTrips(StripeBilling.serializer(), "district-billing.json")
+        WireMirror.assertFixtureRoundTrips(StripeBilling.serializer(), "district-billing-unavailable.json")
+        WireMirror.assertFixtureRoundTrips(StripeBilling.serializer(), "district-billing-no-customer.json")
     }
 
     @Test

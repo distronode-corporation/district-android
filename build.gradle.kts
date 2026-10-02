@@ -278,8 +278,6 @@ kover {
                     // Compose compiler: lambda-caching singletons, one per file with
                     // composable literals.
                     "*.ComposableSingletons*",
-                    // Compose tooling: @Preview functions, which exist only for the IDE.
-                    "*.*Preview*Kt",
                     // kotlinx.serialization: the generated serializer for every
                     // @Serializable DTO. These ARE exercised, transitively, by the
                     // contract tests — but they are generated, so counting them
@@ -288,6 +286,15 @@ kover {
                     // Sentry Gradle plugin: build-time options it writes as Java source.
                     "io.sentry.android.core.SentryGeneratedBuildTimeOptions",
                 )
+                // Compose tooling: @Preview functions, which exist only for the IDE.
+                //
+                // ⛔ BY ANNOTATION, NEVER BY A NAME GLOB. The glob this replaced
+                // (`*.*Preview*Kt`) matched every file facade with "Preview" in its name,
+                // so it also hid PersonaPreviewDialog.kt, PersonaPreviewHost.kt and
+                // PersonaPreviewViewModel.kt, a real feature, from the floor. The
+                // annotation names only what the IDE renders. Kover's JaCoCo path reads
+                // class-file annotations of BINARY retention, which @Preview has.
+                annotatedBy("androidx.compose.ui.tooling.preview.Preview")
             }
         }
 

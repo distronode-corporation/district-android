@@ -39,9 +39,15 @@ import java.util.Locale
  * ⚠️ `Locale.US` PINS THE SEPARATOR, deliberately, and matches what the web console renders. A
  * locale-formatted "249,00" beside an unlocalised "$" would be a half-localised amount, which is
  * worse than a consistent one.
+ *
+ * ⛔ THE SIGN IS FORMATTED SEPARATELY FROM THE DIGITS. `cents / 100` is 0 for -1..-99, and a zero
+ * carries no sign, so formatting the quotient directly turned a 50-cent credit into "0.50" (owed).
  */
-internal fun formatCents(cents: Long): String =
-    String.format(Locale.US, "%d.%02d", cents / CENTS_PER_UNIT, kotlin.math.abs(cents % CENTS_PER_UNIT))
+internal fun formatCents(cents: Long): String {
+    val sign = if (cents < 0) "-" else ""
+    val magnitude = kotlin.math.abs(cents)
+    return String.format(Locale.US, "%s%d.%02d", sign, magnitude / CENTS_PER_UNIT, magnitude % CENTS_PER_UNIT)
+}
 
 /**
  * What an invoice row should show as its amount.
@@ -71,8 +77,7 @@ internal const val INVOICE_STATUS_UNCOLLECTIBLE: String = "uncollectible"
  * assertion on a rendered date passes on the machine that wrote it and fails on a runner in
  * another timezone — and the failure reads as a data problem rather than as an environment one.
  *
- * ⚠️ `java.time` on minSdk 26 rides core-library desugaring, which the base convention plugin
- * already enables for exactly this reason.
+ * ⚠️ `java.time` is native from API 26, which is minSdk, so this needs no desugaring.
  */
 internal fun formatUnixSeconds(
     seconds: Long,

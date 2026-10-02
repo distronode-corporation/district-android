@@ -1,7 +1,10 @@
 package com.distronode.districtai.ui.dialer
 
+import com.distronode.districtai.core.media.CallConnectionState
+import com.distronode.districtai.core.media.CallEngine
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import com.distronode.districtai.ui.rooms.FakeCallEngineFactory
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,10 +15,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -84,7 +89,89 @@ class SoftphoneSessionTest {
             second.cancel()
         }
 
+    /** A session whose engine holds `connect` open until [gate] completes: a join in flight. */
+    private fun gatedSession(
+        gate: CompletableDeferred<Unit>,
+        engine: FakeCallEngine,
+        telecom: FakeTelecomBridge,
+        scope: CoroutineScope,
+    ) = SoftphoneSession(
+        number = NUMBER,
+        engine = object : CallEngine by engine {
+            override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+                gate.await()
+                engine.connect(url, token, e2eeKeyBase64)
+            }
+        },
+        scope = scope,
+        telecom = telecom,
+        tickMillis = TICK,
+    )
+
+    @Test
+    fun `a hang-up during the join leaves the room disconnected, with the microphone never on`() =
+        runTest(dispatcher) {
+            // ⛔ THE INBOUND FIX THE OUTBOUND SESSION NEVER RECEIVED. `end` launches its disconnect
+            // while `connect` is still inside the engine, and nothing orders the two inside the SDK.
+            // A connect that resolved after that disconnect turned the microphone on in a room the
+            // operator had left, and only the server's best-effort room delete removed it.
+            val gate = CompletableDeferred<Unit>()
+            val engine = FakeCallEngine()
+            val telecom = FakeTelecomBridge()
+            val observeScope = CoroutineScope(dispatcher)
+            val session = gatedSession(gate, engine, telecom, CoroutineScope(dispatcher))
+            session.begin(observeScope) {}
+            launch { session.connect("wss://x", "t") }
+            runCurrent()
+
+            var ended = 0
+            session.end { ended++ }
+            runCurrent()
+            assertEquals(
+                "end's own disconnect ran while the connect was still open",
+                listOf("disconnect"),
+                engine.calls,
+            )
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(listOf("disconnect", "connect:wss://x:t", "disconnect"), engine.calls)
+            assertFalse(engine.calls.contains("mic:true"))
+            assertEquals("Telecom was told once, by end", listOf("outgoing:$NUMBER", "disconnected"), telecom.calls)
+            assertEquals("onEnded runs exactly once", 1, ended)
+            observeScope.cancel()
+        }
+
+    @Test
+    fun `a cancelled join is not reported as a failed one, and does not carry on`() = runTest(dispatcher) {
+        // ⚠️ `runCatching` CAUGHT THE CANCELLATION: Telecom was told the call was over, the screen
+        // read `Failed` with a coroutine-internals message, and the cancelled coroutine went on.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val telecom = FakeTelecomBridge()
+        val observeScope = CoroutineScope(dispatcher)
+        val session = gatedSession(gate, engine, telecom, CoroutineScope(dispatcher))
+        session.begin(observeScope) {}
+        var resumed = false
+        val joining = launch {
+            session.connect("wss://x", "t")
+            resumed = true
+        }
+        runCurrent()
+
+        joining.cancel()
+        runCurrent()
+
+        assertFalse("nothing runs after a cancelled join", resumed)
+        assertEquals("Telecom is left to whoever cancelled", listOf("outgoing:$NUMBER"), telecom.calls)
+        assertFalse(session.state.value.connection is CallConnectionState.Failed)
+        session.end {}
+        runCurrent()
+        observeScope.cancel()
+    }
+
     private companion object {
         const val TICK = 1000L
+        const val NUMBER = "+14165550100"
     }
 }

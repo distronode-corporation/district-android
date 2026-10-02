@@ -57,6 +57,8 @@ class DistrictConnectionServiceTest {
         DistrictCallRegistry.current()?.let { DistrictCallRegistry.release(it) }
     }
 
+    private fun bridge() = AndroidTelecomBridge(ApplicationProvider.getApplicationContext())
+
     private fun request(number: String? = "+14165550100"): ConnectionRequest {
         val handle = PhoneAccountHandle(
             ComponentName(
@@ -132,7 +134,9 @@ class DistrictConnectionServiceTest {
         val connection = service.onCreateOutgoingConnection(null, request()) as DistrictConnection
 
         assertEquals(Connection.STATE_DIALING, connection.state)
-        connection.setAnswered()
+        // ⚠️ THROUGH THE BRIDGE, WHICH IS THE PRODUCTION PATH: the sessions' answer latch calls
+        // `TelecomBridge.setActive`, which drives whatever connection the registry published.
+        bridge().setActive()
         assertEquals(Connection.STATE_ACTIVE, connection.state)
         connection.setDisconnectedAndDestroy(DisconnectCause(DisconnectCause.LOCAL))
         assertEquals(Connection.STATE_DISCONNECTED, connection.state)
@@ -345,7 +349,7 @@ class DistrictConnectionServiceTest {
         connection.onAnswer()
         assertEquals(Connection.STATE_RINGING, connection.state)
 
-        connection.setAnswered()
+        bridge().setActive()
         assertEquals(Connection.STATE_ACTIVE, connection.state)
     }
 

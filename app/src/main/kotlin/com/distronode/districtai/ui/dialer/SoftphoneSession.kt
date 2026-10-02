@@ -1,18 +1,13 @@
 package com.distronode.districtai.ui.dialer
 
-import com.distronode.districtai.core.media.CallConnectionState
+import com.distronode.districtai.call.CALL_TICK_MILLIS
+import com.distronode.districtai.call.CallSessionCore
+import com.distronode.districtai.call.newCallScope
 import com.distronode.districtai.core.media.CallEngine
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.telecom.TelecomBridge
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -34,29 +29,24 @@ import kotlinx.coroutines.launch
  * ⚠️ IT HOLDS THE CALL'S STATE AND THE ViewModel MIRRORS IT, rather than the other way round. The
  * duration ticker and the answer latch both belong to the call, so a session that ended cannot
  * keep writing into a screen that has moved on.
+ *
+ * ⚠️ THE LIFECYCLE ITSELF (the release latch, the toggles, the teardown, the in-flight hang-up guard
+ * and the clock) IS [CallSessionCore], SHARED WITH `InboundCallSession`. What stays here is what is
+ * outbound-only: announcing the call to Telecom, and the participant answer signal.
  */
 internal class SoftphoneSession(
     /** ⚠️ As the operator typed it. The server normalised its own copy; this is what they recognise. */
     val number: String,
     private val engine: CallEngine,
     /** ⛔ Outlives `onCleared`. See the class doc. */
-    private val scope: CoroutineScope,
+    scope: CoroutineScope,
     private val telecom: TelecomBridge,
-    private val tickMillis: Long,
+    tickMillis: Long,
 ) {
 
-    private val _state = MutableStateFlow(ActiveCallUiState(number = number))
-    val state: StateFlow<ActiveCallUiState> = _state.asStateFlow()
+    private val core = CallSessionCore(engine, scope, telecom, tickMillis, number)
 
-    /**
-     * ⛔ ONE-WAY, AND IT IS WHAT MAKES "HANG UP DISCONNECTS EXACTLY ONCE" TRUE. Three paths reach
-     * [end] on an ordinary exit — the hang-up button, the OS's own end-call affordance, and the
-     * ViewModel clearing — and a second disconnect would race the first one's cancellation of
-     * [scope].
-     */
-    private var released = false
-
-    private var timer: Job? = null
+    val state: StateFlow<ActiveCallUiState> get() = core.state
 
     /**
      * Start watching the engine and tell the OS a call is being placed.
@@ -68,30 +58,21 @@ internal class SoftphoneSession(
      *
      * @param observeScope the ViewModel's own scope. ⚠️ The collectors feed the UI, so they should
      *   stop when the screen does — the disconnect is the one thing that must not, and it runs in
-     *   [scope].
+     *   the session's own scope.
      */
     fun begin(observeScope: CoroutineScope, onSystemHangUp: () -> Unit) {
-        observeScope.launch {
-            engine.connectionState.collect { connection ->
-                _state.value = _state.value.copy(connection = connection)
-            }
-        }
+        core.observe(observeScope)
         observeScope.launch {
             engine.participants.collect { people ->
                 // ⛔ THE ANSWER SIGNAL, AND THE ONLY ONE THIS CLIENT HAS. LiveKit's SIP bridge adds
                 // the callee as a participant when the call is PICKED UP; the dial route returns
                 // without waiting for an answer, so there is no signalling channel that says so.
                 //
-                // ⛔ LATCHED IN [answer], NEVER RECOMPUTED. Once answered, an emptying list means
+                // ⛔ LATCHED IN THE CORE, NEVER RECOMPUTED. Once answered, an emptying list means
                 // the callee hung up rather than that they were never there — a flag that fell
                 // back to false would redraw the ring UI over a call that had just ended and
                 // restart the duration from zero.
-                if (people.isNotEmpty()) answer(observeScope)
-            }
-        }
-        observeScope.launch {
-            engine.isMicrophoneEnabled.collect { on ->
-                _state.value = _state.value.copy(micEnabled = on)
+                if (people.isNotEmpty()) core.markAnswered(observeScope)
             }
         }
         telecom.startOutgoing(number, onSystemHangUp)
@@ -104,97 +85,21 @@ internal class SoftphoneSession(
      * created it on — the TRUNK's, not the workspace's — so a client that derived a URL would join
      * a bus that has never heard of this room, on a call that is already live and billed.
      *
-     * ⚠️ IT DOES NOT THROW. The engine sets its own state to `Failed` and rethrows; swallowing that
-     * here is correct because the connection state IS the user-facing outcome, and letting it
-     * escape would crash the process over a network condition.
+     * ⛔ A HANG-UP THAT LANDS WHILE THIS IS IN FLIGHT NEVER TURNS THE MICROPHONE ON, and the room is
+     * disconnected again once the join resolves. That guard, the failure handling and the
+     * cancellation handling are [CallSessionCore.connect]'s; the outcome is not needed here, because
+     * the participant signal (not the join) is what answers an outbound call.
      */
     suspend fun connect(url: String, token: String) {
-        runCatching { engine.connect(url, token) }
-            .onFailure { failure ->
-                // ⛔ TELECOM IS TOLD, BECAUSE THE OS ALREADY BELIEVES A CALL IS UP. A failed connect
-                // that left the connection DIALING would hold audio focus and suppress the ringer
-                // indefinitely, for a call that is not happening.
-                telecom.setDisconnected()
-                _state.value = _state.value.copy(
-                    connection = CallConnectionState.Failed(failure.message),
-                )
-                return
-            }
-        // ⚠️ UNCONDITIONALLY ON, unlike the room screen's `canPublish` gate: the dial route excludes
-        // viewers server-side, so a token that reached here always carries publish rights, and the
-        // permission was answered before the request was sent.
-        engine.setMicrophoneEnabled(true)
+        core.connect(url, token)
     }
 
-    fun toggleMicrophone(observeScope: CoroutineScope) {
-        observeScope.launch { engine.setMicrophoneEnabled(!_state.value.micEnabled) }
-    }
+    fun toggleMicrophone(observeScope: CoroutineScope) = core.toggleMicrophone(observeScope)
 
-    /**
-     * ⚠️ SET SYNCHRONOUSLY, AND THE FLAG IS THIS SCREEN'S OWN BELIEF. The engine exposes no route to
-     * read back — see the audio-routing note on [CallEngine] — so this records what the app asked
-     * for. Honest for a toggle; it would not be honest as a status readout.
-     */
-    fun toggleSpeaker() {
-        val next = !_state.value.speakerOn
-        engine.setSpeakerphoneOn(next)
-        _state.value = _state.value.copy(speakerOn = next)
-    }
+    fun toggleSpeaker() = core.toggleSpeaker()
 
-    /**
-     * End the call, then tell the caller.
-     *
-     * ⛔ THE CALLBACK RUNS AFTER THE DISCONNECT RESOLVES. Reporting first would let the caller tear
-     * this object down while the socket was still closing.
-     *
-     * ⚠️ THE UI MOVES TO `ended` IMMEDIATELY, BEFORE THE SOCKET CLOSES. A hang-up that looked
-     * unresponsive for the length of a network round trip is one the operator presses again.
-     */
-    fun end(onEnded: () -> Unit) {
-        if (released) {
-            onEnded()
-            return
-        }
-        released = true
-        timer?.cancel()
-        timer = null
-        _state.value = _state.value.copy(ended = true)
-        telecom.setDisconnected()
-        scope.launch {
-            try {
-                engine.disconnect()
-            } finally {
-                onEnded()
-                // ⚠️ LAST, AND FROM INSIDE THE SCOPE IT CANCELS. The disconnect is the only reason
-                // this scope outlives the ViewModel; leaving it alive would leak the engine's
-                // event collector.
-                scope.cancel()
-            }
-        }
-    }
-
-    private fun answer(observeScope: CoroutineScope) {
-        if (_state.value.answered || released) return
-        telecom.setActive()
-        _state.value = _state.value.copy(answered = true)
-        // ⛔ THE TIMER STARTS AT THE ANSWER, NOT AT THE DIAL, and the operator will compare it to an
-        // invoice. The platform bills answered time; counting from the dial would overstate every
-        // call by its ring duration and make the app the thing that looks wrong.
-        //
-        // ⚠️ ONE JOB. Two tickers would advance the same counter twice per second; the `answered`
-        // latch above is what guarantees it, since this line runs at most once per session.
-        timer = observeScope.launch {
-            while (true) {
-                delay(tickMillis)
-                // ⚠️ Stops counting the moment the call ends, rather than being cancelled from
-                // outside and racing one last tick past the frozen duration.
-                if (_state.value.ended) return@launch
-                _state.value = _state.value.copy(
-                    elapsedSeconds = _state.value.elapsedSeconds + 1,
-                )
-            }
-        }
-    }
+    /** End the call, then tell the caller. See [CallSessionCore.end] for the ordering. */
+    fun end(onEnded: () -> Unit) = core.end(onEnded)
 }
 
 /**
@@ -227,11 +132,9 @@ class SoftphoneSessionFactory(
      * ⚠️ Injectable so a test can drive a call's lifetime deterministically; the production default
      * is `Main.immediate` because the state it writes is read by Compose.
      */
-    private val engineScopeFactory: () -> CoroutineScope = {
-        CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    },
+    private val engineScopeFactory: () -> CoroutineScope = ::newCallScope,
     /** ⚠️ The timer's granularity, not a poll interval — nothing is fetched. Injectable for tests. */
-    private val tickMillis: Long = TICK_MILLIS,
+    private val tickMillis: Long = CALL_TICK_MILLIS,
 ) {
 
     /**
@@ -248,10 +151,5 @@ class SoftphoneSessionFactory(
             telecom = telecom,
             tickMillis = tickMillis,
         )
-    }
-
-    private companion object {
-        /** One second. Named because detekt counts a bare 1000 as a magic number. */
-        const val TICK_MILLIS = 1000L
     }
 }

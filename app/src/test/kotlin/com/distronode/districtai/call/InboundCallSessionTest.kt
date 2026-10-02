@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -344,6 +345,62 @@ class InboundCallSessionTest {
         assertFalse(engine.calls.contains("mic:true"))
         assertEquals("Telecom is not told a second time", listOf("disconnected"), telecom.calls)
         assertEquals(1, ended)
+        observeScope.cancel()
+    }
+
+    @Test
+    fun `a cancelled join is not reported as a failed one, and does not carry on`() = runTest {
+        // ⚠️ `runCatching` CAUGHT THE CANCELLATION: Telecom was told the call was over, the screen
+        // read `Failed` with a coroutine-internals message, and the cancelled coroutine went on to
+        // act on a `false` it should never have been handed.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val telecom = FakeTelecomBridge()
+        val session = gatedSession(gate, engine, telecom)
+        session.begin(observeScope)
+        var resumed = false
+        val joining = launch {
+            session.connect("wss://x", "t", observeScope)
+            resumed = true
+        }
+        runCurrent()
+
+        joining.cancel()
+        runCurrent()
+
+        assertFalse("nothing runs after a cancelled join", resumed)
+        assertEquals("Telecom is left to whoever cancelled", emptyList<String>(), telecom.calls)
+        assertEquals(CallConnectionState.Idle, session.state.value.connection)
+        session.end {}
+        runCurrent()
+        observeScope.cancel()
+    }
+
+    @Test
+    fun `a join cancelled after the hang-up still leaves the room, then stops`() = runTest {
+        // ⛔ THE IN-FLIGHT GUARD RUNS FOR A CANCELLATION TOO: the SDK may have half-joined when the
+        // coroutine was cancelled, so the second disconnect is still owed, and only then does the
+        // cancellation propagate.
+        val gate = CompletableDeferred<Unit>()
+        val engine = FakeCallEngine()
+        val telecom = FakeTelecomBridge()
+        val session = gatedSession(gate, engine, telecom)
+        session.begin(observeScope)
+        var resumed = false
+        val joining = launch {
+            session.connect("wss://x", "t", observeScope)
+            resumed = true
+        }
+        runCurrent()
+
+        session.end {}
+        runCurrent()
+        joining.cancel()
+        runCurrent()
+
+        assertEquals(listOf("disconnect", "disconnect"), engine.calls)
+        assertEquals(listOf("disconnected"), telecom.calls)
+        assertFalse("nothing runs after a cancelled join", resumed)
         observeScope.cancel()
     }
 

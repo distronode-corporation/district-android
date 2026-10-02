@@ -12,6 +12,7 @@ import com.distronode.districtai.core.model.RoomTokenResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -188,6 +189,10 @@ class ActiveRoomViewModel(
             engine.connect(token.url, token.token, token.e2ee?.key?.takeIf { it.isNotBlank() })
         }
             .onFailure { failure ->
+                // ⛔ CANCELLATION IS NOT A FAILED JOIN, AND IT IS RETHROWN. Caught, it painted
+                // `Failed` with a coroutine-internals message over a teardown and let the cancelled
+                // coroutine carry on.
+                if (failure is CancellationException) throw failure
                 // ⚠️ The engine has already set its own state to Failed and rethrown; this only
                 // records that the throw was seen. Swallowing it here is correct: the connection
                 // state IS the user-facing outcome, and letting it escape would crash the process

@@ -66,11 +66,6 @@ internal class DistrictConnection private constructor(
         setAudioModeIsVoip(true)
     }
 
-    /** ⚠️ Idempotent by construction: Telecom ignores a state change to the state it is already in. */
-    fun setAnswered() {
-        setActive()
-    }
-
     /**
      * ⛔ `destroy()` MUST FOLLOW, AND IT MUST FOLLOW `setDisconnected`. A connection left
      * undestroyed keeps audio focus and keeps the OS suppressing the ringer for a call that ended;

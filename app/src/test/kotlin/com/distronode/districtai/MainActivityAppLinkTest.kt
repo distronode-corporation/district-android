@@ -66,6 +66,18 @@ class MainActivityAppLinkTest {
     }
 
     @Test
+    fun `a relaunch after process death does not re-navigate to the link`() {
+        // ⛔ THE CLEARED `data` WAS THIS PROCESS'S COPY; the system restores from the original.
+        harness.signedOut()
+        harness.launch(harness.viewIntent("https://distronode.com/dashboard/district/calls"))
+        harness.container.appLinkDeepLinks.clear()
+
+        harness.relaunchAfterProcessDeath(harness.viewIntent("https://distronode.com/dashboard/district/calls"))
+
+        assertNull(harness.container.appLinkDeepLinks.pending.value)
+    }
+
+    @Test
     fun `a link on our host that the app has no screen for opens in the pinned browser`() {
         harness.installBrowser()
         harness.signedOut()

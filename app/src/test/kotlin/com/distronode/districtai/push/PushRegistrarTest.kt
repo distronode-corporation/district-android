@@ -60,6 +60,9 @@ private class RecordingPushApi(
 @OptIn(ExperimentalCoroutinesApi::class)
 class PushRegistrarTest {
 
+    /** What the registrar would have sent to Sentry, in order. */
+    private val reports: MutableList<String> = mutableListOf()
+
     private fun registrar(
         api: RecordingPushApi,
         scope: CoroutineScope,
@@ -69,15 +72,14 @@ class PushRegistrarTest {
         repository = PushTokenRepository(api),
         tokens = { token },
         scope = scope,
+        reportFailure = { reports += it },
         unregisterTimeoutMillis = timeoutMillis,
     )
 
     @Test
     fun `a completed sign-in registers the current token`() = runTest {
-        // ⛔ AND NOT AT APP START. Before a login there is no bearer, so a register would spend a
-        // 401 against a 20/min per-account ceiling and record nothing — and the server's upsert is
-        // keyed on the INSTALLATION, so a phone previously signed in as somebody else keeps
-        // delivering THEIR notifications until this account claims the row.
+        // ⛔ The server's upsert is keyed on the INSTALLATION, so a phone previously signed in as
+        // somebody else keeps delivering THEIR notifications until this account claims the row.
         val api = RecordingPushApi()
 
         registrar(api, this).onSignedIn()
@@ -123,6 +125,66 @@ class PushRegistrarTest {
         advanceUntilIdle()
 
         assertEquals(listOf("register:fcm-token-1"), api.calls)
+        assertEquals(listOf(PushRegistrar.REGISTER_NOT_AFFIRMED_SIGN_IN), reports)
+    }
+
+    @Test
+    fun `a process start with a stored session registers the current token`() = runTest {
+        // ⛔ THE ONLY RETRY A FAILED REGISTRATION GETS. Sign-in and rotation are single attempts,
+        // so without this a rotation that met an unreachable API left the server holding a dead
+        // token until the user signed out and back in.
+        val api = RecordingPushApi()
+
+        registrar(api, this).onProcessStart { true }
+        advanceUntilIdle()
+
+        assertEquals(listOf("register:fcm-token-1"), api.calls)
+        assertEquals(emptyList<String>(), reports)
+    }
+
+    @Test
+    fun `a process start with no session registers nothing`() = runTest {
+        // ⛔ BEFORE A LOGIN THERE IS NO BEARER, so a register would spend a 401 against the 20/min
+        // per-account ceiling and record nothing.
+        val api = RecordingPushApi()
+
+        registrar(api, this).onProcessStart { false }
+        advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), api.calls)
+        assertEquals(emptyList<String>(), reports)
+    }
+
+    @Test
+    fun `a registration the server did not affirm is reported, without the token`() = runTest {
+        // ⚠️ "PUSH QUIETLY STOPPED" IS OTHERWISE INVISIBLE, so each trigger reports its own fixed
+        // message. ⛔ And none of them may carry the token: it is a credential FCM delivers to.
+        val api = RecordingPushApi(result = ApiResult.HttpFailure(status = 503, message = "down"))
+        val subject = registrar(api, this, token = "fcm-secret-token")
+
+        subject.onProcessStart { true }
+        subject.onNewToken("fcm-rotated-secret")
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(
+                PushRegistrar.REGISTER_NOT_AFFIRMED_PROCESS_START,
+                PushRegistrar.REGISTER_NOT_AFFIRMED_ROTATION,
+            ),
+            reports,
+        )
+        assertFalse(reports.any { it.contains("secret") })
+    }
+
+    @Test
+    fun `a missing token is not reported, because it is the ordinary answer without Play Services`() = runTest {
+        val api = RecordingPushApi()
+
+        registrar(api, this, token = null).onProcessStart { true }
+        advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), api.calls)
+        assertEquals(emptyList<String>(), reports)
     }
 
     @Test

@@ -101,7 +101,7 @@ class SignInScreenTest {
             LoginStatus.DidNotComplete to context.getString(R.string.login_status_did_not_complete),
             LoginStatus.Completing to context.getString(R.string.login_status_completing),
             LoginStatus.Refused to context.getString(R.string.login_status_refused),
-            LoginStatus.LinkExpired to context.getString(R.string.login_status_link_expired),
+            LoginStatus.Interrupted to context.getString(R.string.login_status_interrupted),
             LoginStatus.Expired to context.getString(R.string.login_status_expired),
             LoginStatus.RateLimited to context.getString(R.string.login_status_rate_limited),
             LoginStatus.Unreachable to context.getString(R.string.login_status_unreachable),

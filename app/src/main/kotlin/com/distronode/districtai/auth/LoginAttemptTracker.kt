@@ -69,7 +69,4 @@ class LoginAttemptTracker {
         awaitingCallback = false
         pausedSinceStart = false
     }
-
-    /** Whether a browser leg is outstanding. Exposed for the UI's waiting state. */
-    val isAwaitingCallback: Boolean get() = awaitingCallback
 }

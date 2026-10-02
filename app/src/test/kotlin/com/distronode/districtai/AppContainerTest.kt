@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -536,6 +537,29 @@ class AppContainerTest {
         assertEquals(false, push.calls.contains("register"))
     }
 
+    @Test
+    fun `a cold start with a stored session registers the current push token`() {
+        // ⛔ THE ONLY RETRY A FAILED REGISTRATION GETS. Sign-in and `onNewToken` were the only two
+        // triggers, so a rotation that landed while the API was unreachable left the server holding
+        // a dead token, and push stayed off until the user signed out and back in.
+        val store = storeWithSession()
+        val push = RecordingPushApi(store = store)
+
+        AppContainer(
+            ApplicationProvider.getApplicationContext(),
+            appScope = realScope(),
+            seams = AppContainerSeams(
+                tokenStore = store,
+                revokeApi = RecordingRevokeApi(store = store),
+                pushApi = push,
+                pushTokenSource = { "fcm-token-1" },
+            ),
+        )
+
+        runBlocking { withTimeout(AWAIT_TIMEOUT_MS) { while (push.calls.isEmpty()) delay(POLL_MS) } }
+        assertEquals(listOf("register"), push.calls)
+    }
+
     // ── Draining the outbox ──────────────────────────────────────────────────
 
     @Test
@@ -585,5 +609,8 @@ class AppContainerTest {
     private companion object {
         /** Generous, because it bounds a real Keystore/SharedPreferences hop rather than a poll. */
         const val AWAIT_TIMEOUT_MS = 5_000L
+
+        /** How often a test that waits on a fake's recorded calls looks again. */
+        const val POLL_MS = 10L
     }
 }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Bundle
 import android.os.Looper
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -119,6 +120,21 @@ internal class ShellHarness(private val compose: ComposeTestRule) {
     /** A configuration change: the instance is destroyed and rebuilt with the same launch intent. */
     fun recreate() {
         checkNotNull(controller).recreate()
+        settle()
+    }
+
+    /**
+     * The process died in the background and the system rebuilds the activity from its saved state.
+     *
+     * ⚠️ [intent] IS A FRESH OBJECT, NOT THE ONE THE DEAD INSTANCE HELD. The consumers' clears mutate
+     * the in-process `Intent` only; what the system relaunches with is its own record of the original
+     * launch intent, extras and data intact. The container outlives this in the test, which a real
+     * process death would not; a test clears what it inspects before calling this.
+     */
+    fun relaunchAfterProcessDeath(intent: Intent) {
+        val saved = Bundle()
+        checkNotNull(controller).pause().saveInstanceState(saved).stop().destroy()
+        controller = Robolectric.buildActivity(MainActivity::class.java, intent).setup(saved)
         settle()
     }
 

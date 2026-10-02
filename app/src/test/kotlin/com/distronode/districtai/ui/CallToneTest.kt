@@ -82,7 +82,7 @@ class CallToneTest {
     fun `recoverable failures warn rather than alarm`() {
         listOf(
             LoginStatus.DidNotComplete,
-            LoginStatus.LinkExpired,
+            LoginStatus.Interrupted,
             LoginStatus.Expired,
             LoginStatus.RateLimited,
             LoginStatus.Unreachable,

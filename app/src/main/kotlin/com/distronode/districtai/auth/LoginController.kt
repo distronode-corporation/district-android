@@ -157,7 +157,7 @@ class LoginController(
         LoginOutcome.Success -> null
         // Deliberately blunt: this is the authorization-code-injection case.
         LoginOutcome.StateMismatch -> LoginStatus.Refused
-        LoginOutcome.NoAttemptInProgress -> LoginStatus.LinkExpired
+        LoginOutcome.NoAttemptInProgress -> LoginStatus.Interrupted
         LoginOutcome.Rejected -> LoginStatus.Expired
         LoginOutcome.RateLimited -> LoginStatus.RateLimited
         LoginOutcome.Unreachable -> LoginStatus.Unreachable
@@ -190,8 +190,16 @@ sealed interface LoginStatus {
     /** The response did not match this request. ⚠️ The code-injection case; say so plainly. */
     data object Refused : LoginStatus
 
-    /** No attempt was in progress for this callback — usually a re-opened stale link. */
-    data object LinkExpired : LoginStatus
+    /**
+     * A callback arrived with no attempt in progress.
+     *
+     * ⚠️ WORDED AS "INTERRUPTED", NOT "LINK EXPIRED", BECAUSE A REAL CAUSE IS PROCESS DEATH. The
+     * PKCE verifier lives in memory only, so a process the OS killed while the browser was open
+     * (an SSO with an authenticator-app hop on a low-RAM phone) comes back with nothing to complete,
+     * and "expired" blamed a link the user did nothing wrong with. A stale callback re-opened from
+     * history lands here too, and "try again" is the right advice for both.
+     */
+    data object Interrupted : LoginStatus
 
     /** The authorization code was expired, replayed, or failed PKCE. */
     data object Expired : LoginStatus

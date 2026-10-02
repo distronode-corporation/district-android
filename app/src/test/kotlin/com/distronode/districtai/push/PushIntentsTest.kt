@@ -99,19 +99,22 @@ class PushIntentsTest {
     }
 
     @Test
-    fun `the four request codes are distinct`() {
+    fun `the fixed request codes are distinct, and no message tap can land on one`() {
         // ⛔ `PendingIntent` EQUALITY IGNORES EXTRAS, so two intents to the same component with the
         // same action and flags are THE SAME pending intent — the second `getActivity` returns the
         // first one's payload. Tapping the body of an incoming-call notification would then answer
         // it. The codes are the only thing keeping them apart.
         val codes = listOf(
-            PushIntents.REQUEST_INBOX,
             PushIntents.REQUEST_SHOW_CALL,
             PushIntents.REQUEST_ANSWER_CALL,
             PushIntents.REQUEST_DECLINE_CALL,
         )
 
-        assertEquals("every notification action needs its own request code", 4, codes.toSet().size)
+        assertEquals("every notification action needs its own request code", 3, codes.toSet().size)
+        // ⚠️ A message tap's request code is its notification id, so that range must not reach one
+        // of these, or a message would rewrite the ringing call's Answer intent.
+        val messageCode = AndroidPushNotifier.messageNotificationId("msg-1")
+        assertTrue(codes.all { it < messageCode })
     }
 
     @Test

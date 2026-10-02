@@ -98,6 +98,26 @@ class PushNotifierTest {
     }
 
     @Test
+    fun `each message notification opens its own message, not the newest one`() {
+        // ⛔ `PendingIntent` IDENTITY IS THE REQUEST CODE PLUS `filterEquals`, WHICH IGNORES EXTRAS.
+        // With one shared request code, the second message's `FLAG_UPDATE_CURRENT` rewrote the
+        // first notification's intent, so tapping the older message opened the newer one, or
+        // nothing at all when the newer one was in a workspace that was not active.
+        notifier.showMessage("ws-1", "msg-1")
+        notifier.showMessage("ws-2", "msg-2")
+
+        val first = shadowOf(manager).getNotification(AndroidPushNotifier.messageNotificationId("msg-1"))
+        val second = shadowOf(manager).getNotification(AndroidPushNotifier.messageNotificationId("msg-2"))
+        val firstIntent = shadowOf(first.contentIntent).savedIntent
+        val secondIntent = shadowOf(second.contentIntent).savedIntent
+
+        assertEquals("msg-1", firstIntent.getStringExtra(PushIntents.EXTRA_MESSAGE_ID))
+        assertEquals("ws-1", firstIntent.getStringExtra(PushIntents.EXTRA_WORKSPACE_ID))
+        assertEquals("msg-2", secondIntent.getStringExtra(PushIntents.EXTRA_MESSAGE_ID))
+        assertEquals("ws-2", secondIntent.getStringExtra(PushIntents.EXTRA_WORKSPACE_ID))
+    }
+
+    @Test
     fun `a message notification carries no content, only a way to open the app`() {
         // ⛔ THE SERVER'S IDS-ONLY DISCIPLINE REACHING THE SCREEN. A notification is readable by the
         // OS and by any installed notification-listener app, so the sender never puts a body, a

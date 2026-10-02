@@ -1,5 +1,6 @@
 package com.distronode.districtai
 
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -171,19 +172,49 @@ class MainActivitySignInTest {
     }
 
     @Test
-    fun `a stale callback on a cold start reports an expired link, once`() {
+    fun `a callback with no attempt behind it on a cold start reports an interrupted sign-in, once`() {
         // ⛔ THE ROTATION BUG. The launch intent is re-delivered to onCreate on every recreation, and
         // without the clear a second pass would re-run the exchange on a spent attempt.
+        // ⚠️ This is also what a process killed mid-login sees: the verifier died with it.
         harness.signedOut()
 
         harness.launch(harness.viewIntent("districtai://auth?code=stale&state=stale"))
 
-        harness.await("the expired-link status") { harness.loginStatus == LoginStatus.LinkExpired }
+        harness.await("the interrupted status") { harness.loginStatus == LoginStatus.Interrupted }
+        harness.awaitText(harness.string(R.string.login_status_interrupted))
         assertNull(harness.activity.intent.data)
 
         harness.container.loginController.clearStatus()
         harness.recreate()
 
         assertNull("a recreation must not replay the consumed callback", harness.loginStatus)
+    }
+
+    @Test
+    fun `the manifest routes the redirect URI to this activity`() {
+        // ⛔ THE MANIFEST SPELLS THE SCHEME AS A LITERAL, the one copy Kotlin cannot share. If it
+        // drifted from ApiEnvironment the server would redirect to a URI nothing on the device
+        // handles, and every sign-in would end in the browser.
+        val callback = Intent(Intent.ACTION_VIEW, Uri.parse(ApiEnvironment.PKCE_REDIRECT_URI))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+
+        val handlers = harness.app.packageManager.queryIntentActivities(callback, 0)
+
+        assertEquals(listOf(MainActivity::class.java.name), handlers.map { it.activityInfo.name })
+    }
+
+    @Test
+    fun `a callback relaunched from Recents is not run through the exchange again`() {
+        // ⛔ RECENTS RELAUNCHES THE TASK WITH ITS ORIGINAL INTENT, and for a task the callback
+        // started that is the callback. Replaying it can only fail (its attempt is long gone), so
+        // a user returning to the app would be greeted with a sign-in error they did not cause.
+        harness.signedOut()
+
+        harness.launch(
+            harness.viewIntent("districtai://auth?code=old&state=old")
+                .addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY),
+        )
+
+        assertNull(harness.loginStatus)
     }
 }

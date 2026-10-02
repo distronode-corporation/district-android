@@ -101,7 +101,17 @@ internal class AndroidPushNotifier(context: Context) : PushNotifier {
         )
     }
 
+    /**
+     * ⛔ THE NOTIFICATION ID IS ALSO THE PENDING INTENT'S REQUEST CODE, AND THAT IS THE FIX FOR A
+     * WRONG-THREAD TAP. Every message used to share one request code, and pending-intent identity
+     * ignores extras, so each new message's `FLAG_UPDATE_CURRENT` rewrote the intent behind every
+     * older notification still on screen: tapping an older one opened the newest message, or nothing
+     * when that message was in a workspace that was not active. One code per notification keeps each
+     * tap with its own message. ⚠️ Two messages whose ids hash to the same notification id still
+     * share a pending intent, which is consistent: the second notification has replaced the first.
+     */
     override fun showMessage(workspaceId: String, messageId: String) {
+        val id = messageNotificationId(messageId)
         val notification = Notification.Builder(appContext, CHANNEL_MESSAGES)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(appContext.getString(R.string.push_message_title))
@@ -110,12 +120,12 @@ internal class AndroidPushNotifier(context: Context) : PushNotifier {
             .setContentIntent(
                 PushIntents.activity(
                     appContext,
-                    PushIntents.REQUEST_INBOX,
+                    id,
                     PushIntents.inbox(appContext, workspaceId, messageId),
                 ),
             )
             .build()
-        notify(messageNotificationId(messageId), notification)
+        notify(id, notification)
     }
 
     override fun showIncomingCall(workspaceId: String, callId: String) {
@@ -218,7 +228,9 @@ internal class AndroidPushNotifier(context: Context) : PushNotifier {
          * message more than once — it guarantees at-least-once — so a counter would put two
          * notifications on screen for one message. ⚠️ The `absoluteValue` and the offset keep it
          * clear of [NOTIFICATION_ID_INCOMING_CALL] and [NOTIFICATION_ID_ONGOING_CALL]; a hash that
-         * happened to land on one of those would let a message cancel a ringing call.
+         * happened to land on one of those would let a message cancel a ringing call. The same
+         * range keeps it clear of the fixed `PushIntents.REQUEST_*` codes, because [showMessage]
+         * uses it as the tap intent's request code as well.
          */
         fun messageNotificationId(messageId: String): Int =
             MESSAGE_ID_BASE + (messageId.hashCode() % MESSAGE_ID_SPACE).let {

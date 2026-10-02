@@ -160,7 +160,7 @@ class LoginControllerTest {
     @Test
     fun `every failure outcome maps to a distinct status and none advances the epoch`() = runTest {
         val expected = mapOf(
-            LoginOutcome.NoAttemptInProgress to LoginStatus.LinkExpired,
+            LoginOutcome.NoAttemptInProgress to LoginStatus.Interrupted,
             LoginOutcome.Rejected to LoginStatus.Expired,
             LoginOutcome.RateLimited to LoginStatus.RateLimited,
             LoginOutcome.Unreachable to LoginStatus.Unreachable,

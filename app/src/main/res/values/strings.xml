@@ -12,7 +12,7 @@
     <string name="login_status_completing">Completing sign-in…</string>
     <!-- Deliberately blunt: this is the authorization-code-injection case. -->
     <string name="login_status_refused">Sign-in refused: the response did not match this request.</string>
-    <string name="login_status_link_expired">That sign-in link has expired. Try again.</string>
+    <string name="login_status_interrupted">Sign-in was interrupted. Tap Sign in to try again.</string>
     <string name="login_status_expired">Sign-in expired. Please try again.</string>
     <string name="login_status_rate_limited">Too many attempts. Wait a moment and retry.</string>
     <string name="login_status_unreachable">Could not reach District AI. Check your connection.</string>

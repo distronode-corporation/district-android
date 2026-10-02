@@ -507,6 +507,7 @@ class AppContainer(
         repository = pushTokenRepository,
         tokens = seams.pushTokenSource ?: FirebasePushTokenSource(),
         scope = appScope,
+        reportFailure = DistrictSentry::reportNonFatal,
     )
 
     /**
@@ -698,6 +699,9 @@ class AppContainer(
      */
     init {
         appScope.launch { drainPendingRevoke() }
+        // ⚠️ THE SAME "ALWAYS RUNS" HOOK, FOR PUSH: the only retry a failed or missed registration
+        // gets. Gated on a stored session; see moment (2) on PushRegistrar.
+        pushRegistrar.onProcessStart(::hasStoredSession)
     }
 
     /**

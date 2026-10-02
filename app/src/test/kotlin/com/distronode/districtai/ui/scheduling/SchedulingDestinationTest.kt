@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.scheduling
 import android.content.ActivityNotFoundException
 import android.content.Context
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
@@ -86,7 +88,11 @@ class SchedulingDestinationTest {
 
         harness.tap(SCHEDULING_OPEN_DESCRIPTION)
 
-        assertEquals(listOf(browserMissing), harness.messages)
+        // ⛔ ON THE SCREEN, NOT THROUGH `onShowMessage`. The launcher outlives a rotation, so it may
+        // not hold the Activity's snackbar; see `MainActivitySchedulingHandOffTest`.
+        composeRule.onNodeWithContentDescription(SCHEDULING_NOTICE_DESCRIPTION).assertExists()
+        composeRule.onNodeWithText(browserMissing).assertExists()
+        assertTrue(harness.messages.isEmpty())
         assertTrue(harness.started.isEmpty())
     }
 }

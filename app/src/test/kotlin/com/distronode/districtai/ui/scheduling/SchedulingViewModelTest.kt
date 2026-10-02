@@ -9,6 +9,7 @@ import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.resourceIdOrNull
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -325,7 +326,7 @@ class SchedulingViewModelTest {
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openDashboard { delivered += it }
+        viewModel.openDashboard { delivered.add(it) }
         advanceUntilIdle()
 
         // ⛔ THE DASHBOARD ROUTE, NOT THE SSO ONE. The scheduler console is switched off region by
@@ -360,7 +361,7 @@ class SchedulingViewModelTest {
             val viewModel = model(api)
             advanceUntilIdle()
 
-            viewModel.openDashboard { }
+            viewModel.openDashboard { true }
             advanceUntilIdle()
 
             assertEquals(
@@ -384,7 +385,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { }
+        viewModel.openDashboard { true }
         advanceUntilIdle()
 
         // ⚠️ AND IT IS ITS OWN SENTENCE RATHER THAN `scheduling_too_many_attempts`, which is about
@@ -408,7 +409,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { }
+        viewModel.openDashboard { true }
         advanceUntilIdle()
 
         assertEquals(R.string.failure_offline, viewModel.state.value.notice?.resourceIdOrNull)
@@ -426,8 +427,8 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { }
-        viewModel.openDashboard { }
+        viewModel.openDashboard { true }
+        viewModel.openDashboard { true }
         advanceUntilIdle()
 
         assertEquals(1, api.schedulingApi.schedulingHandOffs.size)
@@ -445,14 +446,66 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { }
+        viewModel.openDashboard { true }
         assertTrue(viewModel.state.value.openingDashboard)
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         assertTrue("the console hand-off started anyway", viewModel.state.value.openingConsole)
         advanceUntilIdle()
 
         assertEquals(1, api.schedulingApi.schedulingHandOffs.size)
         assertEquals(1, api.schedulingApi.schedulingSsoRequests.size)
+    }
+
+    @Test
+    fun `a hand-off no browser took says so in the notice, on either action`() = runTest {
+        // ⛔ IN STATE, NOT THROUGH THE CALL SITE'S SNACKBAR. The launcher is held across the mint and
+        // may only capture the application context, so "no browser" cannot be shown by it; the
+        // notice is rendered by whichever Activity exists when the mint lands.
+        val api = api {
+            schedulingApi.schedulingStatusResult = ApiResult.Success(
+                SchedulingStatusResponse(eligible = true, canManage = true, tenant = readyTenant),
+            )
+        }
+        val viewModel = model(api)
+        advanceUntilIdle()
+
+        viewModel.openDashboard { false }
+        advanceUntilIdle()
+        assertEquals(R.string.settings_browser_missing, viewModel.state.value.notice?.resourceIdOrNull)
+        assertFalse(viewModel.state.value.openingDashboard)
+
+        viewModel.dismissNotice()
+        viewModel.openScheduler { false }
+        advanceUntilIdle()
+        assertEquals(R.string.settings_browser_missing, viewModel.state.value.notice?.resourceIdOrNull)
+        assertFalse(viewModel.state.value.openingConsole)
+    }
+
+    @Test
+    fun `a launch that worked leaves the other hand-off's failure on screen`() = runTest {
+        // ⚠️ THE SUCCESS PATH NOW WRITES `notice`, SO IT MUST NOT WIPE ONE IT DID NOT CAUSE. The
+        // console hand-off fails while the dashboard mint is still in flight; its sentence is still
+        // true when the dashboard opens a moment later.
+        val gate = CompletableDeferred<Unit>()
+        val api = api {
+            schedulingApi.schedulingStatusResult = ApiResult.Success(
+                SchedulingStatusResponse(eligible = true, canManage = true, tenant = readyTenant),
+            )
+            schedulingApi.schedulingSsoResult = ApiResult.HttpFailure(status = 503, message = "no secret")
+            schedulingApi.schedulingHandOffGate = gate
+        }
+        val viewModel = model(api)
+        advanceUntilIdle()
+
+        viewModel.openDashboard { true }
+        advanceUntilIdle()
+        viewModel.openScheduler { true }
+        advanceUntilIdle()
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.state.value.openingDashboard)
+        assertEquals(R.string.failure_server, viewModel.state.value.notice?.resourceIdOrNull)
     }
 
     // ── The scheduler console hand-off (the SECONDARY action) ────────────────
@@ -468,7 +521,7 @@ class SchedulingViewModelTest {
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openScheduler { delivered += it }
+        viewModel.openScheduler { delivered.add(it) }
         advanceUntilIdle()
 
         assertEquals(
@@ -494,7 +547,7 @@ class SchedulingViewModelTest {
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openScheduler { delivered += it }
+        viewModel.openScheduler { delivered.add(it) }
         advanceUntilIdle()
 
         assertEquals(emptyList<String>(), delivered)
@@ -515,7 +568,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         advanceUntilIdle()
 
         // ⚠️ A 5xx BODY IS NOT SHOWABLE — the shared mapper substitutes its own sentence rather
@@ -533,8 +586,8 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openScheduler { }
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
+        viewModel.openScheduler { true }
         advanceUntilIdle()
 
         // ⚠️ EACH PRESS MINTS A TOKEN AND CLAIMS A NONCE AT THE FAR END, so a double tap would burn
@@ -560,7 +613,7 @@ class SchedulingViewModelTest {
         viewModel.enable()
         assertTrue("the provision is in flight", viewModel.state.value.busy)
 
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         assertTrue("and the hand-off started anyway", viewModel.state.value.openingConsole)
         advanceUntilIdle()
 
@@ -591,7 +644,7 @@ class SchedulingViewModelTest {
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openScheduler { delivered += it }
+        viewModel.openScheduler { delivered.add(it) }
         advanceUntilIdle()
 
         assertEquals(emptyList<String>(), delivered)
@@ -617,10 +670,10 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         advanceUntilIdle()
         api.schedulingApi.schedulingSsoResult = ApiResult.NetworkFailure(java.io.IOException("down"))
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         advanceUntilIdle()
 
         assertTrue(viewModel.state.value.consoleRetired)
@@ -642,7 +695,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.consoleRetired)
@@ -665,11 +718,11 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openScheduler { }
+        viewModel.openScheduler { true }
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openDashboard { delivered += it }
+        viewModel.openDashboard { delivered.add(it) }
         advanceUntilIdle()
 
         assertEquals(1, delivered.size)

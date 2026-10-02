@@ -41,6 +41,13 @@ import kotlinx.coroutines.launch
  * cheap to serve from a value that is already spent. Same shape as `DevicesViewModel.revokeDevice`
  * handing its sign-out back to the call site.
  *
+ * ⛔ AND THAT CALLBACK OUTLIVES THE ACTIVITY, SO IT ONLY LAUNCHES AND REPORTS NO MESSAGE ITSELF.
+ * This ViewModel is scoped to the nav entry and survives a rotation; the mint can take as long as
+ * the network does. The callback used to show "no browser" through the Activity's snackbar, which
+ * captured the pressing Activity for the whole mint and, after a rotation, delivered the message to
+ * a destroyed one whose cancelled scope dropped it. Now it answers whether a browser took the URL,
+ * and a refusal lands in [SchedulingUiState.notice], which whichever Activity exists renders.
+ *
  * ⚠️ NO ROLE ARGUMENT, WHICH IS UNUSUAL FOR A WORKSPACE-SCOPED SCREEN IN THIS APP. `canManage`
  * arrives on every status read, so the server is what decides whether Enable is drawn — see
  * [offersEnable]. A constructor role would be a second, weaker copy of an answer already in hand.
@@ -94,20 +101,22 @@ class SchedulingViewModel(
      * Mint a signed-in browser onto the dashboard's scheduling pages, for one press. THE PRIMARY
      * ACTION.
      *
-     * @param onHandOff invoked with the URL when there is one. ⛔ It is spent immediately by the
-     *   caller and never kept: 60 seconds, one use, and this one redeems into a SESSION COOKIE
-     *   rather than a sign-in to somebody else's console. When the mint fails, this is NOT called
-     *   and the reason lands in [SchedulingUiState.notice] instead, so the call site never has to
-     *   invent copy for a failure it did not classify.
+     * @param launch invoked with the URL when there is one, answering whether a browser took it.
+     *   ⛔ It is spent immediately by the caller and never kept: 60 seconds, one use, and this one
+     *   redeems into a SESSION COOKIE rather than a sign-in to somebody else's console. When the
+     *   mint fails, this is NOT called and the reason lands in [SchedulingUiState.notice] instead,
+     *   so the call site never has to invent copy for a failure it did not classify. ⛔ It MUST NOT
+     *   CAPTURE AN ACTIVITY, or anything holding one (a snackbar, a `lifecycleScope`): it is held
+     *   across the mint, which a rotation can outlast. See the class doc.
      */
-    fun openDashboard(onHandOff: (String) -> Unit) {
+    fun openDashboard(launch: (String) -> Boolean) {
         if (_state.value.openingDashboard) return
         _state.value = _state.value.copy(openingDashboard = true, notice = null)
         viewModelScope.launch {
             when (val result = repository.dashboardHandOff(workspaceId)) {
                 is ApiResult.Success -> {
-                    _state.value = _state.value.copy(openingDashboard = false)
-                    onHandOff(result.value)
+                    val notice = noticeAfterLaunch(launch(result.value))
+                    _state.value = _state.value.copy(openingDashboard = false, notice = notice)
                 }
                 is ApiResult.Failure ->
                     _state.value = _state.value.copy(
@@ -127,16 +136,16 @@ class SchedulingViewModel(
      * flipped, every later attempt in this session gets the identical answer. Leaving the control
      * on screen would offer a press whose only possible outcome is the same sentence again.
      *
-     * @param onHandOff see [openDashboard]. Same rule, different far end.
+     * @param launch see [openDashboard]. Same rule, different far end.
      */
-    fun openScheduler(onHandOff: (String) -> Unit) {
+    fun openScheduler(launch: (String) -> Boolean) {
         if (_state.value.openingConsole) return
         _state.value = _state.value.copy(openingConsole = true, notice = null)
         viewModelScope.launch {
             when (val result = repository.schedulerHandOff(workspaceId)) {
                 is ApiResult.Success -> {
-                    _state.value = _state.value.copy(openingConsole = false)
-                    onHandOff(result.value)
+                    val notice = noticeAfterLaunch(launch(result.value))
+                    _state.value = _state.value.copy(openingConsole = false, notice = notice)
                 }
                 is ApiResult.Failure ->
                     _state.value = _state.value.copy(
@@ -149,6 +158,15 @@ class SchedulingViewModel(
             }
         }
     }
+
+    /**
+     * ⚠️ Only the NO-BROWSER outcome says anything, as `DistrictNavHost.openInBrowser` does. A Custom
+     * Tab and a plain browser are both a working hand-off. ⚠️ A launch that worked keeps whatever
+     * notice is already showing rather than clearing it: the other hand-off may have failed while
+     * this one was in flight, and its sentence is still true.
+     */
+    private fun noticeAfterLaunch(launched: Boolean): UiText? =
+        if (launched) _state.value.notice else UiText.Resource(R.string.settings_browser_missing)
 
     /** ⚠️ The notice is transient by nature, so the screen can dismiss it without a re-read. */
     fun dismissNotice() {

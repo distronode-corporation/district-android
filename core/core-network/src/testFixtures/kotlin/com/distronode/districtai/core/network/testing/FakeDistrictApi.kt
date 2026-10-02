@@ -1047,9 +1047,9 @@ class FakeSchedulingApi : SchedulingApi {
         ApiResult.HttpFailure(status = 403, message = "no enable stubbed")
 
     /**
-     * ⚠️ A PLAUSIBLE `Location`, NOT A BARE STRING. The repository refuses anything that is not
-     * https, so a fake answering "ok" would exercise the refusal path on every test that never
-     * mentioned the scheme.
+     * ⚠️ A PLAUSIBLE `Location`, NOT A BARE STRING. The real client (`redirectTarget`) refuses
+     * anything that is not https, so a fake answering "ok" would hand every test a value
+     * production can never produce.
      */
     var schedulingSsoResult: ApiResult<String> =
         ApiResult.Success("https://acme-book.distronode.com/v1/auth/sso?token=stub")
@@ -1078,6 +1078,12 @@ class FakeSchedulingApi : SchedulingApi {
     /** Every dashboard hand-off attempted, whole — the `next` is asserted from this. */
     val schedulingHandOffs: MutableList<SchedulingHandOffRequest> = mutableListOf()
 
+    /**
+     * ⚠️ HOLDS THE DASHBOARD MINT OPEN until a test completes it, so a configuration change can land
+     * while the request is in flight, which is the window the real 60-second mint leaves open.
+     */
+    var schedulingHandOffGate: CompletableDeferred<Unit>? = null
+
     override suspend fun schedulingStatus(
         workspaceId: String,
     ): ApiResult<SchedulingStatusResponse> {
@@ -1104,6 +1110,7 @@ class FakeSchedulingApi : SchedulingApi {
         request: SchedulingHandOffRequest,
     ): ApiResult<SchedulingHandOffResponse> {
         schedulingHandOffs += request
+        schedulingHandOffGate?.await()
         return schedulingHandOffResult
     }
 }

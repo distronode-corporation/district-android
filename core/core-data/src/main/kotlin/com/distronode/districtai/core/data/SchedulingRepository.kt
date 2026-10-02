@@ -108,21 +108,18 @@ class SchedulingRepository(
      * browser closed and would make a second press cheap to serve from a value that is already
      * spent. Every diagnostic below is written from the STATUS and never from the header.
      *
-     * ⛔ HTTPS ONLY, CHECKED HERE RATHER THAN TRUSTED, and the check is not ceremony. The route
-     * builds `https://<publicHost>/v1/auth/sso`, so anything else is contract drift — and a
-     * hand-off that is not TLS would put a live token on the wire in clear. A non-https or
-     * unparseable value is reported as [ApiResult.DecodeFailure] (contract drift, noisy in debug,
-     * not retryable) rather than being handed to a browser to find out.
+     * ⛔ HTTPS ONLY, AND THE CHECK LIVES IN `DistrictApiClient.redirectTarget`, NOT HERE. The route
+     * builds `https://<publicHost>/v1/auth/sso`, so anything else is contract drift, and a hand-off
+     * that is not TLS would put a live token on the wire in clear. The client refuses a non-https
+     * or unparseable `Location` as [ApiResult.DecodeFailure] for every redirect route at once (the
+     * call recording had no check of its own), so a second copy here could only drift from it.
      *
      * ⚠️ A **409** REACHES THE CALLER UNCHANGED. It means the tenancy is not `ready`, which is the
      * honest state of a workspace mid-provision, and the screen words it as such rather than as a
      * fault the user would try to fix.
      */
     suspend fun schedulerHandOff(workspaceId: String): ApiResult<String> =
-        when (val result = api.schedulingSsoTarget(workspaceId, SCHEDULER_ADMIN_PATH)) {
-            is ApiResult.Success -> verifiedTarget(result.value)
-            is ApiResult.Failure -> result
-        }
+        api.schedulingSsoTarget(workspaceId, SCHEDULER_ADMIN_PATH)
 
     /**
      * Ask for a signed-in browser onto the dashboard's own scheduling pages.
@@ -140,8 +137,10 @@ class SchedulingRepository(
      * already expired.
      *
      * ⛔ AND IT IS VERIFIED AGAINST THIS BUILD'S OWN ORIGIN, WHICH IS STRICTLY MORE THAN THE `https`
-     * TEST [verifiedTarget] DOES. That one guards a URL built from a per-workspace scheduler host
-     * this client cannot know in advance, so the scheme is all there is to check. Here the server
+     * TEST [schedulerHandOff] GETS FROM `redirectTarget`. That one guards a URL built from a
+     * per-workspace scheduler host this client cannot know in advance, so the scheme is all there
+     * is to check. ⚠️ And this one is a JSON body read through `send`, which never passes through
+     * `redirectTarget`, so its scheme check below is its own and is not redundant. Here the server
      * builds the URL from the request's own host, so the answer is knowable — and a URL that is not
      * on it is either drift or a redirect somewhere else, and it would be carrying a live session
      * credential when it went.
@@ -185,27 +184,6 @@ class SchedulingRepository(
             )
         }
     }
-
-    /**
-     * ⚠️ A PREFIX TEST RATHER THAN A `Uri` PARSE, AND THE REASON IS TESTABILITY. `android.net.Uri`
-     * is a framework class whose statics return null under a plain JVM unit test (this module sets
-     * `isReturnDefaultValues = true`), so a parse here could only be exercised under Robolectric —
-     * and `core-data` has none. `startsWith("https://")` is also strictly the stronger check for
-     * the one thing that matters: `Uri.parse` accepts a relative value and reports a null scheme,
-     * which a careless caller reads as "no scheme, probably fine".
-     */
-    private fun verifiedTarget(location: String): ApiResult<String> =
-        if (location.startsWith(HTTPS_PREFIX, ignoreCase = true)) {
-            ApiResult.Success(location)
-        } else {
-            ApiResult.DecodeFailure(
-                cause = IllegalStateException("the scheduler hand-off was not an https address"),
-                // ⛔ NO PREVIEW OF THE VALUE. A `Location` from this route carries a live
-                // single-use token, and a diagnostic that quoted it would put that credential
-                // wherever the diagnostic goes. The only reportable fact is the shape.
-                bodyPreview = "SchedulingSSO{scheme!=https}",
-            )
-        }
 
     private companion object {
         /**

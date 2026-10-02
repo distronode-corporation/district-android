@@ -2,14 +2,12 @@ package com.distronode.districtai.ui.scheduling
 
 import android.content.Context
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.distronode.districtai.AppContainer
-import com.distronode.districtai.R
 import com.distronode.districtai.auth.CustomTabsLauncher
 import com.distronode.districtai.ui.ARG_WORKSPACE_ID
 import com.distronode.districtai.ui.OnSessionChanged
@@ -55,14 +53,26 @@ import com.distronode.districtai.ui.pathArgument
  * ⛔ AND THE URL IS SPENT IMMEDIATELY AND KEPT NOWHERE. It carries a 60-second single-use JWT; the
  * ViewModel answers it through a callback rather than parking it on a `StateFlow` for exactly that
  * reason, and nothing here logs it.
+ *
+ * ⛔ THAT CALLBACK CAPTURES THE APPLICATION CONTEXT AND NOTHING ELSE, because the ViewModel holds it
+ * across the mint and a rotation can land mid-mint. It used to report "no browser" through
+ * `onShowMessage`, the Activity's snackbar on the Activity's `lifecycleScope`, so the pressing
+ * Activity was held for the whole request and, once rotated, the message went to a destroyed one
+ * and was dropped. The no-browser outcome is now a notice in the ViewModel's state, which the
+ * live screen renders (`MainActivitySchedulingHandOffTest`). ⚠️ `applicationContext` is taken here
+ * rather than trusted from the caller, so the rule holds whatever `context` is passed in.
  */
 internal fun NavGraphBuilder.schedulingDestination(
     container: AppContainer,
     navController: NavHostController,
     sessionEpoch: Int,
     context: Context,
-    onShowMessage: (String) -> Unit,
 ) {
+    val appContext = context.applicationContext
+    val launchInBrowser: (String) -> Boolean = { url ->
+        CustomTabsLauncher.launch(appContext, url) !is CustomTabsLauncher.LaunchResult.NoBrowser
+    }
+
     composable(Routes.SCHEDULING) { entry ->
         val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
         val viewModel: SchedulingViewModel = viewModel(
@@ -80,40 +90,14 @@ internal fun NavGraphBuilder.schedulingDestination(
         // token was refreshed, and each call reaches two third parties.
         OnSessionChanged(sessionEpoch) { viewModel.load() }
 
-        // ⛔ RESOLVED HERE, NOT INSIDE THE CALLBACK — the `LocalContextGetResourceValueCall` rule
-        // `DistrictNavHost` documents on the settings screen. `context.getString` from a composable
-        // reads through a Context captured at composition time and does not update with a locale or
-        // font-scale change.
-        val browserMissing = stringResource(R.string.settings_browser_missing)
-
         SchedulingScreen(
             state = state,
             onBack = { navController.popBackStack() },
             onRetry = viewModel::load,
             onEnable = viewModel::enable,
-            onOpenDashboard = {
-                viewModel.openDashboard { url -> handOff(context, url, browserMissing, onShowMessage) }
-            },
-            onOpenScheduler = {
-                viewModel.openScheduler { url -> handOff(context, url, browserMissing, onShowMessage) }
-            },
+            onOpenDashboard = { viewModel.openDashboard(launchInBrowser) },
+            onOpenScheduler = { viewModel.openScheduler(launchInBrowser) },
             onDismissNotice = viewModel::dismissNotice,
         )
-    }
-}
-
-/**
- * ⚠️ Only the NO-BROWSER case is reported, exactly as `DistrictNavHost.openInBrowser` does. A Custom
- * Tab and a plain browser are both a working hand-off; the third outcome is the one the user can
- * neither retry past nor understand.
- */
-private fun handOff(
-    context: Context,
-    url: String,
-    browserMissingMessage: String,
-    onShowMessage: (String) -> Unit,
-) {
-    if (CustomTabsLauncher.launch(context, url) is CustomTabsLauncher.LaunchResult.NoBrowser) {
-        onShowMessage(browserMissingMessage)
     }
 }

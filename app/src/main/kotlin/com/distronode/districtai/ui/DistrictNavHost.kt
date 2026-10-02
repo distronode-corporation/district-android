@@ -855,7 +855,7 @@ fun DistrictNavHost(
                 // at the threshold rather than above it), so a further top-level builder here
                 // fails the build, while inlining the destination fails `CyclomaticComplexMethod`
                 // on `DistrictNavHost` instead. See that file's header for the full reasoning.
-                schedulingDestination(container, navController, sessionEpoch, context, onShowMessage)
+                schedulingDestination(container, navController, sessionEpoch, context)
 
                 // ── Workspace settings ────────────────────────────────────────
                 //
@@ -1628,24 +1628,42 @@ const val NAV_ACCOUNT_DESCRIPTION: String = "district-nav-account"
 /**
  * Open an attachment in whatever the device uses for https.
  *
- * ⛔ NEW_TASK IS REQUIRED. `context` here is the application context (see the ⛔ in
- * [DistrictNavHost]), and starting an activity from a non-activity context without it throws —
- * the same trap [playRecording] documents.
+ * ⛔ HTTPS ONLY, AND ANYTHING ELSE IS DROPPED BEFORE AN INTENT EXISTS. The URL is message data from
+ * the server and this fires an IMPLICIT ACTION_VIEW, so its scheme alone chooses which app on the
+ * device answers: `intent:` can name an arbitrary exported component, `content:` and `file:` reach
+ * providers and storage, `javascript:` runs in whatever browser takes it, and `http:` is the same
+ * attachment in clear. A media URL is always an absolute https address, so a value that is not one
+ * (a relative path and an opaque `https:host` included, both of which have no host) is drift or an
+ * attack, and neither is worth opening. Pinned by `OpenAttachmentTest`.
+ *
+ * ⛔ NEW_TASK IS REQUIRED WHENEVER `context` IS NOT AN ACTIVITY. The thread call site passes its
+ * Activity, but [playRecording] documents the throw a non-activity context gets without it, and
+ * the flag is harmless on an Activity.
  *
  * ⚠️ NO FAILURE CHANNEL, UNLIKE [playRecording], AND THE ASYMMETRY IS DELIBERATE. That one opens
  * an audio URL, for which a device may genuinely have no handler; this opens an ordinary https
  * URL, which every device with a browser resolves. Threading an error state back into the thread
  * for a case that needs a device with no browser at all would cost a ViewModel entry point for a
  * failure nobody has seen. `runCatching` still keeps it from crashing the app.
+ *
+ * ⚠️ SO A REFUSED URL IS A SILENT NO-OP: the tap does nothing. It is not logged either, because
+ * this app writes nothing to logcat anywhere and the only fact worth recording (the value) is
+ * server data that may not belong in a device log. A refusal needs a server that sends a
+ * non-https media URL, which the route does not build.
  */
-private fun openAttachment(context: Context, url: String) {
+internal fun openAttachment(context: Context, url: String) {
+    val uri = Uri.parse(url)
+    if (!uri.scheme.equals(ATTACHMENT_SCHEME, ignoreCase = true) || uri.host.isNullOrEmpty()) return
     runCatching {
         context.startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            Intent(Intent.ACTION_VIEW, uri)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }
 }
+
+/** The one scheme [openAttachment] hands to another app. */
+private const val ATTACHMENT_SCHEME = "https"
 
 /**
  * Hand an authenticated URL to the system browser, reporting the one outcome the user must be told

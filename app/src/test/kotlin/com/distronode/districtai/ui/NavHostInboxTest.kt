@@ -302,7 +302,10 @@ class NavHostInboxTest {
     private companion object {
         const val PICKER_AUTHORITY = "navhost.picker"
 
-        /** Not an http(s) URL, so the thumbnail loader refuses it without opening a socket. */
-        const val MEDIA_URL = "media://thumb-1"
+        /**
+         * ⚠️ HTTPS, BECAUSE `openAttachment` OPENS NOTHING ELSE, and port 0, which OkHttp's URL
+         * parser rejects, so the real thumbnail loader still fails without opening a socket.
+         */
+        const val MEDIA_URL = "https://thumb-1.invalid:0/media"
     }
 }

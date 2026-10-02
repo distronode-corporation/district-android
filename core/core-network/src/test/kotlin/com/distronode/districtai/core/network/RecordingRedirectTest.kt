@@ -113,6 +113,43 @@ class RecordingRedirectTest {
     }
 
     @Test
+    fun `a Location that is not an https address is refused, and never quoted`() = runTest {
+        // ⛔ EVERY CALLER HANDS THIS VALUE STRAIGHT TO ANOTHER APP: a media player for a recording,
+        // a browser for a scheduler sign-in. Each URL carries its own credential (a presigned
+        // signature, a single-use token), so a plaintext scheme puts it on the wire in clear and an
+        // `intent:` or `content:` scheme is not a download at all. One check, here, covers all three
+        // routes that answer with a redirect.
+        val refused = listOf(
+            "http://storage.example.test/recordings/a.mp3?X-Amz-Signature=deadbeef",
+            "intent://storage.example.test/a.mp3?sig=deadbeef#Intent;end",
+            "content://storage.example.test/a.mp3?sig=deadbeef",
+            "javascript:deadbeef",
+            "/recordings/a.mp3?sig=deadbeef",
+            "//storage.example.test/a.mp3?sig=deadbeef",
+            "https://",
+        )
+
+        for (location in refused) {
+            server.enqueue(MockResponse(code = 302, headers = Headers.headersOf("Location", location)))
+
+            val result = api().callRecordingUrl("ws-1", "call-1")
+
+            assertTrue("'$location' must be refused, got $result", result is ApiResult.DecodeFailure)
+            // ⛔ THE DIAGNOSTIC NAMES THE SHAPE, NEVER THE VALUE, which carries the credential.
+            val preview = (result as ApiResult.DecodeFailure).bodyPreview
+            assertEquals("RedirectTarget{scheme!=https}", preview)
+        }
+    }
+
+    @Test
+    fun `an upper-case HTTPS scheme is still https`() = runTest {
+        val presigned = "HTTPS://storage.example.test/recordings/a.mp3"
+        server.enqueue(MockResponse(code = 302, headers = Headers.headersOf("Location", presigned)))
+
+        assertEquals(ApiResult.Success(presigned), api().callRecordingUrl("ws-1", "call-1"))
+    }
+
+    @Test
     fun `still refreshes and retries once on a rejected token`() = runTest {
         // The redirect path shares the auth/retry loop, so it inherits the single retry. Asserted
         // because it is easy to reimplement a bespoke request and lose it.

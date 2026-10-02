@@ -149,14 +149,28 @@ class MainActivitySignInTest {
     }
 
     @Test
-    fun `our scheme on a foreign host is still held to the state check`() {
-        // ⚠️ THE ACTIVITY CHECKS THE SCHEME ONLY; the host is not what protects this. The state is,
-        // and a hostile app firing `districtai://evil` cannot know it.
+    fun `our scheme on a foreign host is ignored, not reported as a failed login`() {
+        // ⛔ ONLY `districtai://auth` IS A CALLBACK. Any app can fire `districtai://<anything>` at
+        // this exported activity, and matching the scheme alone ran every one of them through the
+        // exchange: the state check still refused the code, but the user's real attempt was
+        // reported as Refused and abandoned while their browser was still open on it.
         startLogin()
 
-        harness.deliver(harness.viewIntent("districtai://evil?code=injected&state=guessed"))
+        for (foreign in listOf("districtai://evil?code=injected&state=guessed", "districtai:auth?code=x")) {
+            harness.deliver(harness.viewIntent(foreign))
 
-        assertEquals(LoginStatus.Refused, harness.loginStatus)
+            assertEquals(foreign, LoginStatus.WaitingForBrowser, harness.loginStatus)
+            assertEquals("left for whoever owns it", foreign, harness.activity.intent.data.toString())
+        }
+    }
+
+    @Test
+    fun `our scheme on a foreign host on a cold start says nothing about a login`() {
+        harness.signedOut()
+
+        harness.launch(harness.viewIntent("districtai://evil?code=injected&state=guessed"))
+
+        assertNull("a non-callback must not read as an interrupted sign-in", harness.loginStatus)
     }
 
     @Test

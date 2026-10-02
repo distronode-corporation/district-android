@@ -8,6 +8,7 @@ import com.distronode.districtai.core.network.ApiResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.distronode.districtai.core.network.testing.FakeDistrictApi
@@ -25,15 +26,16 @@ import com.distronode.districtai.core.network.testing.FakeDistrictApi
  *   4. a 403 or a 429 is a real failure and passes through untouched, because each needs its own
  *      wording (the allowlist, and five presses an hour shared by the whole workspace).
  *
- * ⛔ AND THE HAND-OFFS ARE THE CALLS THIS LAYER ACTUALLY GUARDS. Everything else here is a
- * pass-through. `schedulerHandOff` refuses a `Location` that is not https, and `dashboardHandOff`
- * refuses a url that is not https AND not on this build's own website origin — both values are
- * about to be handed to a browser carrying a live single-use credential in a query string.
+ * ⛔ AND THE DASHBOARD HAND-OFF IS THE CALL THIS LAYER ACTUALLY GUARDS. Everything else here is a
+ * pass-through. `dashboardHandOff` refuses a url that is not https AND not on this build's own
+ * website origin, because it is about to be handed to a browser carrying a live single-use
+ * credential in a query string.
  *
- * ⛔ THE TWO GUARDS ARE NOT THE SAME STRENGTH, AND THE DIFFERENCE IS WHAT IS KNOWABLE. The console
- * hand-off lands on a per-workspace scheduler host this client cannot predict, so the scheme is
- * all there is to check; the dashboard hand-off is built by the server from the request's own
- * host, so the expected answer is known exactly and anything else is drift or a redirection.
+ * ⛔ THE CONSOLE HAND-OFF'S GUARD IS IN THE NETWORK CLIENT, AND THE DIFFERENCE IS WHAT IS KNOWABLE.
+ * It lands on a per-workspace scheduler host this client cannot predict, so the scheme is all
+ * there is to check, and `DistrictApiClient.redirectTarget` checks it for every redirect route at
+ * once (`RecordingRedirectTest`). The dashboard hand-off is built by the server from the request's
+ * own host, so the expected answer is known exactly and anything else is drift or a redirection.
  */
 class SchedulingRepositoryTest {
 
@@ -234,23 +236,14 @@ class SchedulingRepositoryTest {
     }
 
     @Test
-    fun `a non-https hand-off is refused rather than handed to a browser`() = runTest {
-        // ⛔ THE ONE GUARD IN THIS REPOSITORY, AND IT IS NOT CEREMONY. The URL is about to be given
-        // to a Custom Tab and it carries a 60-second single-use JWT in its query string, so a
-        // plaintext scheme would put a live credential on the wire in clear. The route builds
-        // `https://<publicHost>/v1/auth/sso`, so anything else is contract drift.
-        val api = FakeDistrictApi().apply {
-            schedulingApi.schedulingSsoResult = ApiResult.Success("http://acme-book.distronode.com/v1/auth/sso")
-        }
+    fun `the SECONDARY hand-off passes the client's refusal through untouched`() = runTest {
+        // ⛔ THE https CHECK MOVED TO `DistrictApiClient.redirectTarget`, which answers a non-https
+        // `Location` as this exact failure. The repository must hand it on as it is: re-wrapping it
+        // would lose the shape-only preview, which is what keeps the token out of a diagnostic.
+        val refused = ApiResult.DecodeFailure(IllegalStateException("not https"), "RedirectTarget{scheme!=https}")
+        val api = FakeDistrictApi().apply { schedulingApi.schedulingSsoResult = refused }
 
-        val result = repository(api).schedulerHandOff("ws-1")
-
-        assertTrue(result is ApiResult.DecodeFailure)
-        // ⛔ AND THE DIAGNOSTIC QUOTES THE SHAPE, NEVER THE VALUE. A preview carrying the refused
-        // Location would put the token wherever the diagnostic goes.
-        val preview = (result as ApiResult.DecodeFailure).bodyPreview
-        assertEquals("SchedulingSSO{scheme!=https}", preview)
-        assertTrue("the refused address must not be quoted", !preview.contains("acme-book"))
+        assertSame(refused, repository(api).schedulerHandOff("ws-1"))
     }
 
     // ── The dashboard hand-off ───────────────────────────────────────────────

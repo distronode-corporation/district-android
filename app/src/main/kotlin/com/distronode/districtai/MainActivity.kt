@@ -236,15 +236,22 @@ class MainActivity : ComponentActivity() {
      * message. Rotating during the exchange was enough to trigger it. ⚠️ The clear lives in this
      * process only; `isRedelivery` is what covers a relaunch the system rebuilds from the original.
      *
-     * ⚠️ Cleared BEFORE the controller is called, and only after the scheme check, so an unrelated
-     * VIEW intent is left untouched.
+     * ⚠️ Cleared BEFORE the controller is called, and only after the scheme and host check, so an
+     * unrelated VIEW intent is left untouched.
+     *
+     * ⛔ SCHEME AND HOST, BECAUSE THE SCHEME ALONE LET ANY APP END A SIGN-IN. This activity is
+     * exported, so `districtai://evil` fired by another app used to reach the controller as a
+     * callback. The state check still refused its code, but the user's real attempt was reported
+     * as Refused while their browser was open on it (and, with no attempt pending, a stray URI
+     * read as an interrupted sign-in). Only [ApiEnvironment.PKCE_REDIRECT_URI]'s scheme and host
+     * are a callback; anything else on our scheme is ignored like any other foreign VIEW intent.
      */
     private fun consumeCallback(intent: Intent) {
         // ⚠️ `Intent`, not `Intent?`, in all three consumers: the system never starts or
         // re-delivers to an activity without one, so a null branch here could never run.
         val uri = intent.data ?: return
-        // Only our callback scheme; ignore anything else that resolves here.
-        if (uri.scheme != ApiEnvironment.PKCE_CALLBACK_SCHEME) return
+        // Only our callback's scheme AND host; ignore anything else that resolves here.
+        if (uri.scheme != ApiEnvironment.PKCE_CALLBACK_SCHEME || uri.host != ApiEnvironment.PKCE_CALLBACK_HOST) return
         intent.data = null
         loginController.onCallback(uri)
     }

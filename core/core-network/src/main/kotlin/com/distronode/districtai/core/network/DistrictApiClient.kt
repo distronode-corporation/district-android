@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JsonElement
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -135,6 +136,19 @@ class DistrictApiClient(
      *
      * ⚠️ A call with no recording at all is a 404 with a JSON body, not a redirect, so the normal
      * error mapping still applies.
+     *
+     * ⛔ HTTPS ONLY, CHECKED HERE ONCE FOR EVERY CALLER. Each route that answers through this (a
+     * call recording, a scheduler recording download, the scheduler sign-in) redirects to a URL
+     * that carries its own credential, a presigned signature or a 60-second single-use token, and
+     * every caller hands it straight to another app. A plaintext `Location` would put that
+     * credential on the wire in clear, and an `intent:`, `content:` or relative one is not a
+     * download at all. The routes only ever build absolute https URLs, so anything else is drift
+     * (or a proxy rewriting the header) and is reported as [ApiResult.DecodeFailure]: noisy in
+     * debug, not retryable, never handed onwards. Pinned by `RecordingRedirectTest`.
+     *
+     * ⚠️ THE REFUSED VALUE IS NEVER RETURNED OR QUOTED, not even in the preview, for the same
+     * reason: it is a credential. And the accepted value is returned VERBATIM rather than as the
+     * parsed [HttpUrl], whose canonical re-encoding could change the bytes a signature covers.
      */
     suspend fun redirectTarget(
         segments: List<String>,
@@ -151,15 +165,19 @@ class DistrictApiClient(
         ) { response ->
             val location = response.header("Location")
             when {
-                // A 3xx with a Location IS the success path here, even though it is not a 2xx.
-                response.isRedirect && !location.isNullOrBlank() -> ApiResult.Success(location)
-                response.isRedirect -> ApiResult.HttpFailure(
+                // Not a redirect (e.g. the 404 for a call with no recording): fall through to the
+                // ordinary error mapping by answering null.
+                !response.isRedirect -> null
+                location.isNullOrBlank() -> ApiResult.HttpFailure(
                     response.code,
                     "The recording location was missing from the server's response.",
                 )
-                // Not a redirect (e.g. the 404 for a call with no recording): fall through to the
-                // ordinary error mapping by answering null.
-                else -> null
+                // A 3xx with an https Location IS the success path here, even though it is not a 2xx.
+                isHttpsAddress(location) -> ApiResult.Success(location)
+                else -> ApiResult.DecodeFailure(
+                    cause = IllegalStateException("the redirect target was not an https address"),
+                    bodyPreview = REDIRECT_NOT_HTTPS_PREVIEW,
+                )
             }
         }
     }
@@ -492,6 +510,19 @@ class DistrictApiClient(
 
         /** Enough of a body to identify a shape mismatch, short enough not to log a transcript. */
         private const val BODY_PREVIEW_CHARS = 512
+
+        /** ⛔ The SHAPE of a refused redirect, never its value; see [redirectTarget]. */
+        private const val REDIRECT_NOT_HTTPS_PREVIEW = "RedirectTarget{scheme!=https}"
+
+        private const val HTTPS_PREFIX = "https://"
+
+        /**
+         * ⚠️ BOTH TESTS, BECAUSE EACH ALONE LETS SOMETHING THROUGH. The prefix is what pins the
+         * scheme to https and nothing else (the parse accepts `http`); the parse is what refuses a
+         * prefix with no usable host behind it, such as a bare `https://`.
+         */
+        private fun isHttpsAddress(location: String): Boolean =
+            location.startsWith(HTTPS_PREFIX, ignoreCase = true) && location.toHttpUrlOrNull() != null
 
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
 

@@ -32,6 +32,18 @@ object ApiEnvironment {
     const val PKCE_CALLBACK_SCHEME: String = "districtai"
 
     /**
+     * The host half of [PKCE_REDIRECT_URI], which `MainActivity` checks a callback against
+     * together with [PKCE_CALLBACK_SCHEME].
+     *
+     * ⛔ THE SCHEME ALONE IS NOT A CALLBACK. The activity is exported for VIEW intents, so any app
+     * can fire `districtai://<anything>` at it; only this host is what the server redirects to. The
+     * manifest's `<data android:host>` is the same literal, held to it by the package-manager test
+     * that resolves [PKCE_REDIRECT_URI]. ⚠️ Declared before [PKCE_REDIRECT_URI] for the reason the
+     * scheme is.
+     */
+    const val PKCE_CALLBACK_HOST: String = "auth"
+
+    /**
      * PKCE callback the authorize page redirects to.
      *
      * ⛔ MUST MATCH THE SERVER'S `NATIVE_REDIRECT_ALLOWLIST` (its native OAuth
@@ -49,5 +61,5 @@ object ApiEnvironment {
      * first upload). Both forms are already allowlisted server-side, so switching
      * later needs no server change.
      */
-    const val PKCE_REDIRECT_URI: String = "$PKCE_CALLBACK_SCHEME://auth"
+    const val PKCE_REDIRECT_URI: String = "$PKCE_CALLBACK_SCHEME://$PKCE_CALLBACK_HOST"
 }

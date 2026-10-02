@@ -53,29 +53,36 @@ appId: com.distronode.districtai.debug
 # Leg one: the app hands off to the browser. Waiting on the login HEADING rather than on
 # a field proves the page actually rendered, instead of matching a chrome affordance
 # that exists before the document does.
+# ⚠️ A REPEAT RUN SKIPS THE LOGIN FORM. The emulator keeps Chrome's website session, so
+# the server goes straight to the consent page ("Sign in to District AI" / "Signed in as
+# ..."). Wait for either page (Maestro text is a full-match regex), and fill the form
+# only when it is there.
 - extendedWaitUntil:
     visible:
-      text: "Login"
+      text: "Login|Sign in to District AI"
     timeout: 45000
-- takeScreenshot: 02-browser-login
-
-- tapOn:
-    text: "Work Email"
-- inputText: ${DISTRICT_SMOKE_EMAIL}
-# ⛔ HIDE THE KEYBOARD BEFORE THE PASSWORD TAP. With it up, the Password label sits under
-# the keyboard, the tap lands on a key, focus stays in Work Email, and the password is
-# typed into the EMAIL field in plain text (2026-10-02: it was, and a screenshot kept it).
-- hideKeyboard
-- tapOn:
-    text: "Password"
-- inputText: ${DISTRICT_SMOKE_PASSWORD}
-
-# ⚠️ The soft keyboard covers the submit button on a 1080x2400 screen once both fields
-# are filled. Hiding it is what makes the next tap land on the button rather than on the
-# keyboard, and the failure without it is a tap that silently does nothing.
-- hideKeyboard
-- tapOn:
-    text: "Enter platform"
+- runFlow:
+    when:
+      visible: "Login"
+    commands:
+      - takeScreenshot: 02-browser-login
+      - tapOn:
+          text: "Work Email"
+      - inputText: ${DISTRICT_SMOKE_EMAIL}
+      # ⛔ HIDE THE KEYBOARD BEFORE THE PASSWORD TAP. With it up, the Password label sits
+      # under the keyboard, the tap lands on a key, focus stays in Work Email, and the
+      # password is typed into the EMAIL field in plain text (2026-10-02: it was, and a
+      # screenshot kept it).
+      - hideKeyboard
+      - tapOn:
+          text: "Password"
+      - inputText: ${DISTRICT_SMOKE_PASSWORD}
+      # ⚠️ The soft keyboard covers the submit button on a 1080x2400 screen once both
+      # fields are filled. Hiding it is what makes the next tap land on the button rather
+      # than on the keyboard, and the failure without it is a tap that silently does nothing.
+      - hideKeyboard
+      - tapOn:
+          text: "Enter platform"
 
 # Leg two: consent. See the ⛔ above, this is a press, not a redirect.
 - extendedWaitUntil:

@@ -8,10 +8,17 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [1.2] - 2026-10-02
+
 ### Fixed
 
-- After a change to the device's security settings, signing in keeps you signed in again,
-  instead of returning you to the sign-in screen at every launch.
+- After you miss or decline a call, the next calls still ring. Before, they could stop arriving
+  until you opened the app.
+- If you hang up just after answering, the call no longer connects anyway.
+- Tapping a message notification opens that message, not the newest one.
+- A draft's pictures are kept when you reopen the conversation.
+- A credit under $1 shows its minus sign.
+- After a change to the device's security settings, signing in keeps you signed in again.
 
 ## [1.1] - 2026-09-28
 

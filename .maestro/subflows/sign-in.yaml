@@ -37,6 +37,19 @@ appId: com.distronode.districtai.debug
 - tapOn:
     text: "district-sign-in-action"
 
+# ⚠️ A FRESH DEVICE SHOWS CHROME'S FIRST-RUN SCREENS before the Custom Tab, and nothing
+# below can get past them. Each tap is optional: on a device that has already run Chrome
+# they are simply absent.
+- tapOn:
+    text: "Stay signed out"
+    optional: true
+- tapOn:
+    text: "No thanks"
+    optional: true
+- tapOn:
+    text: "Use without an account"
+    optional: true
+
 # Leg one: the app hands off to the browser. Waiting on the login HEADING rather than on
 # a field proves the page actually rendered, instead of matching a chrome affordance
 # that exists before the document does.
@@ -49,6 +62,10 @@ appId: com.distronode.districtai.debug
 - tapOn:
     text: "Work Email"
 - inputText: ${DISTRICT_SMOKE_EMAIL}
+# ⛔ HIDE THE KEYBOARD BEFORE THE PASSWORD TAP. With it up, the Password label sits under
+# the keyboard, the tap lands on a key, focus stays in Work Email, and the password is
+# typed into the EMAIL field in plain text (2026-10-02: it was, and a screenshot kept it).
+- hideKeyboard
 - tapOn:
     text: "Password"
 - inputText: ${DISTRICT_SMOKE_PASSWORD}

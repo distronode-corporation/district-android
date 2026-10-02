@@ -102,8 +102,11 @@ fi
 # ── Emulator ────────────────────────────────────────────────────────────────────
 SERIAL="emulator-${SMOKE_EMULATOR_PORT:-5554}"
 STARTED_EMULATOR=0
+DEBUG_DIR=""
 
 cleanup() {
+  # Maestro's debug tree holds the -e values (see the ⛔ before the maestro call).
+  if [ -n "$DEBUG_DIR" ]; then rm -rf "$DEBUG_DIR"; fi
   if [ "$STARTED_EMULATOR" -eq 1 ]; then
     echo "== stopping $SERIAL =="
     "$ADB" -s "$SERIAL" emu kill >/dev/null 2>&1 || true
@@ -178,7 +181,10 @@ for _ in $(seq 1 60); do
       "$ADB" -s "$SERIAL" shell input keyevent KEYCODE_ENTER >/dev/null 2>&1 || true
       ;;
   esac
-  if [ "$ANIM" = "stopped" ] && printf '%s' "$FOCUS" | grep -q 'launcher'; then
+  # ⚠️ EMPTY COUNTS AS DONE. This script boots with -no-boot-anim, so the bootanim service
+  # never starts and its property stays unset; requiring "stopped" made this loop wait the
+  # full 300s on every run and fall through (found by the fail-loud check below on API 37).
+  if { [ "$ANIM" = "stopped" ] || [ -z "$ANIM" ]; } && printf '%s' "$FOCUS" | grep -q 'launcher'; then
     echo "== launcher has focus; device is serving =="
     SETTLED=1
     break
@@ -230,12 +236,19 @@ fi
 # is the quietest possible way to lose the evidence. `--debug-output` moves that tree
 # here and `--flatten-debug-output` drops the per-run timestamp directory, which is
 # exactly what its own help text recommends for CI.
+#
+# ⛔ AND THE DEBUG TREE GOES TO A PRIVATE TEMP DIRECTORY THAT IS DELETED, BECAUSE MAESTRO
+# WRITES THE -e VALUES INTO IT. commands.json records every variable, maestro.log records
+# each inputText, and the screen-hierarchy dumps record what was typed: the first
+# authenticated run (2026-10-02) left the review account's password in all three under
+# build/smoke. Only the screenshots and the JUnit report are copied out of it.
 cd "$ROOT"
+DEBUG_DIR="$(mktemp -d)"
 set +e
 "$MAESTRO" test \
   --format junit \
   --output "$OUT/report.xml" \
-  --debug-output "$OUT" \
+  --debug-output "$DEBUG_DIR" \
   --flatten-debug-output \
   -e DISTRICT_SMOKE_EMAIL="${DISTRICT_SMOKE_EMAIL:-}" \
   -e DISTRICT_SMOKE_PASSWORD="${DISTRICT_SMOKE_PASSWORD:-}" \
@@ -245,6 +258,8 @@ set +e
 STATUS=$?
 set -e
 
+find "$DEBUG_DIR" -name '*.png' -exec cp {} "$OUT/" \; 2>/dev/null || true
+rm -rf "$DEBUG_DIR"
 echo "== maestro exited $STATUS; report at $OUT/report.xml =="
 # ⚠️ COUNT THE SCREENSHOTS AND SAY SO. A flow can pass while writing none of them (see
 # the ⛔ above), and "0 screenshots" beside a green report is the only visible sign.

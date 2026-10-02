@@ -174,7 +174,7 @@ class HttpSchedulingAdminApi(
  * file every other endpoint family shares.
  */
 internal object SchedulingAdminPaths {
-    private val SCHEDULING = listOf("api", "district", "scheduling")
+    private val SCHEDULING = ApiRoots.DISTRICT + "scheduling"
 
     val ADMIN: List<String> = SCHEDULING + "admin"
 

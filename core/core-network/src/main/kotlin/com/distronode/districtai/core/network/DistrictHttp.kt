@@ -19,6 +19,8 @@ object DistrictHttp {
      * inside the read timeout indefinitely never trips any of them — the request simply never
      * finishes. `callTimeout` bounds the whole thing, which is what a UI waiting on a spinner
      * actually needs.
+     *
+     * ⚠️ A multipart upload runs on a clone with this budget scaled to its body; see [forUpload].
      */
     private const val CALL_TIMEOUT_SECONDS = 30L
 
@@ -60,3 +62,35 @@ object DistrictHttp {
         .retryOnConnectionFailure(false)
         .build()
 }
+
+/**
+ * A clone of this client whose call timeout also covers sending [bytes] at a slow uplink.
+ *
+ * ⛔ THE SHARED [DistrictHttp] BUDGET IS SIZED FOR A JSON READ, NOT FOR A 5 MB BODY. Every multipart
+ * route (MMS attachments, the desk logo, scheduling images) accepts up to 5 MiB, and 5 MiB in 30
+ * seconds needs about 1.4 Mbit/s of uplink. Below that the upload timed out every time, and the
+ * retry timed out identically, so a photo could not be attached on a weak cellular signal at all.
+ *
+ * ⚠️ SCALED, NOT LIFTED. Removing the call timeout for uploads would bring back the trickle the
+ * shared one exists to stop (see [DistrictHttp]); the write timeout bounds only one stalled write,
+ * not a body crawling just above it. So the shared budget stays and gains one second per
+ * [UPLOAD_FLOOR_BYTES_PER_SECOND] of body: about three minutes more for the 5 MiB cap.
+ *
+ * ⚠️ A PER-CALL CLONE, the way `redirectTarget` builds its no-redirects client. `newBuilder()`
+ * shares the connection pool and dispatcher, and every other request keeps the shared budget.
+ *
+ * ⚠️ ZERO STAYS ZERO. It is OkHttp's "no call timeout", and scaling it would invent a limit the
+ * caller never set.
+ */
+internal fun OkHttpClient.forUpload(bytes: Long): OkHttpClient {
+    if (callTimeoutMillis == 0) return this
+    val extraMillis = bytes * MILLIS_PER_SECOND / UPLOAD_FLOOR_BYTES_PER_SECOND
+    return newBuilder()
+        .callTimeout(callTimeoutMillis + extraMillis, TimeUnit.MILLISECONDS)
+        .build()
+}
+
+/** The slowest uplink an upload is budgeted for: 32 KiB/s, about 256 kbit/s. */
+private const val UPLOAD_FLOOR_BYTES_PER_SECOND = 32L * 1024
+
+private const val MILLIS_PER_SECOND = 1_000L

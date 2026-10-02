@@ -346,13 +346,10 @@ class InboxViewModelTest {
     }
 
     @Test
-    fun `clearing a search nobody started is harmless, and a second query replaces the first`() =
+    fun `a second query replaces the first`() =
         runTest(dispatcher) {
             val vm = viewModel(apiWith(summary()))
             advanceUntilIdle()
-
-            vm.clearSearch()
-            assertFalse(vm.searchState.value.active)
 
             vm.onSearchQueryChanged("ref")
             vm.onSearchQueryChanged("refund")

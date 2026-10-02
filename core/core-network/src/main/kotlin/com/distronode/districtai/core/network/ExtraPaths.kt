@@ -1,11 +1,7 @@
 package com.distronode.districtai.core.network
 
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-
 /**
- * The paths and the body encoder for the endpoints that live OUTSIDE [DistrictApi].
+ * The paths for the endpoints that live OUTSIDE [DistrictApi].
  *
  * ⛔ WHY THIS FILE EXISTS AT ALL, BECAUSE IT IS A PROCESS DECISION AND NOT AN ARCHITECTURAL ONE.
  * `DistrictApi.kt` / `HttpDistrictApi.kt` are one 85-method interface and its delegating
@@ -74,30 +70,4 @@ internal object ExtraPaths {
      * This one ENDS a call, `answer` takes one, and `dial` places one.
      */
     fun callHangUp(callId: String): List<String> = DistrictPaths.CALLS + callId + "hangup"
-
-    /** The block WRITE. ⚠️ One letter from its read below, and the two take different verbs. */
-    val CONTACTS_BLOCK: List<String> = DistrictPaths.CONTACTS + "block"
-
-    /** The blocked-set READ. */
-    val CONTACTS_BLOCKED: List<String> = DistrictPaths.CONTACTS + "blocked"
 }
-
-/**
- * Encode a request body the way this client's other writes are encoded.
- *
- * ⛔ `explicitNulls = false` IS THE LOAD-BEARING SETTING, NOT TIDINESS. Four of the five bodies in
- * this group depend on a null being ABSENT rather than explicit: `workspace/persona` merges
- * presence-wise so an explicit null would be a value, `call-handling` refuses a body carrying only
- * the workspace, the preview sanitiser reads each key it knows and leaves the agent on its own
- * fallback for the rest, and `contacts/block` is pinned to the absent form for the id or number it
- * was not given, so both native clients send the same body (its route would take a null too).
- *
- * ⚠️ A SECOND `Json` INSTANCE, AND IT IS A KNOWN COST. `HttpDistrictApi.kt` has a private one with
- * the same configuration and that file is deliberately untouched here (see [ExtraPaths]); the
- * mitigation is that both are pinned by MockWebServer tests that assert the ABSENCE of a key
- * rather than by inspection.
- */
-internal fun <T> T.toExtraJson(serializer: SerializationStrategy<T>): JsonElement =
-    EXTRA_BODY_JSON.encodeToJsonElement(serializer, this)
-
-private val EXTRA_BODY_JSON = Json { explicitNulls = false }

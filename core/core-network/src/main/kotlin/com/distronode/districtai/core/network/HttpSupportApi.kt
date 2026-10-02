@@ -6,8 +6,6 @@ import com.distronode.districtai.core.model.SupportRequestCreateResponse
 import com.distronode.districtai.core.model.SupportRequestDetailResponse
 import com.distronode.districtai.core.model.SupportRequestDraft
 import com.distronode.districtai.core.model.SupportRequestListResponse
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
@@ -91,15 +89,8 @@ class HttpSupportApi(private val client: DistrictApiClient) : SupportApi {
         )
 }
 
-private fun workspaceQuery(workspaceId: String): Map<String, String?> =
-    mapOf("workspaceId" to workspaceId)
-
-/** ⚠️ Null-valued pairs are dropped. Nothing on this surface sends an explicit null. */
-private fun jsonObjectOf(vararg pairs: Pair<String, JsonElement?>): JsonObject =
-    JsonObject(pairs.mapNotNull { (key, value) -> value?.let { key to it } }.toMap())
-
 private object SupportPaths {
-    private val SUPPORT = listOf("api", "district", "support")
+    private val SUPPORT = ApiRoots.DISTRICT + "support"
 
     val REQUESTS = SUPPORT + "requests"
 

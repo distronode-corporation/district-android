@@ -99,18 +99,6 @@ class InboxRepository(private val api: DistrictApi) {
         }
 
     /**
-     * The workspace's unread total, for the nav badge.
-     *
-     * ⚠️ A SEPARATE CALL FROM [conversations]. The badge needs one integer and must not pay for the
-     * 500-message scan the list costs; the web sidebar polls this same route for the same reason.
-     */
-    suspend fun unreadCount(workspaceId: String): ApiResult<Int> =
-        when (val result = api.unreadCount(workspaceId)) {
-            is ApiResult.Success -> ApiResult.Success(result.value.count)
-            is ApiResult.Failure -> result
-        }
-
-    /**
      * Send a reply.
      *
      * ⛔ BILLABLE, AND NEVER RETRIED AUTOMATICALLY. Each send is SMS/MMS segments or a Postmark email,
@@ -153,14 +141,7 @@ class InboxRepository(private val api: DistrictApi) {
                 if (result.value.success) {
                     ApiResult.Success(Unit)
                 } else {
-                    // ⚠️ Mapped to an HTTP-shaped failure so the UI's existing failure mapper renders
-                    // it, rather than inventing a second refusal channel the screens would each have
-                    // to learn. 200 is the status the server actually sent; pretending it was a 4xx
-                    // would make a log line disagree with the wire.
-                    ApiResult.HttpFailure(
-                        status = HTTP_OK,
-                        message = result.value.error.orEmpty(),
-                    )
+                    refusedEnvelope(result.value.error)
                 }
             is ApiResult.Failure -> result
         }
@@ -187,10 +168,6 @@ class InboxRepository(private val api: DistrictApi) {
             is ApiResult.Success -> ApiResult.Success(result.value.marked)
             is ApiResult.Failure -> result
         }
-    }
-
-    private companion object {
-        const val HTTP_OK = 200
     }
 }
 

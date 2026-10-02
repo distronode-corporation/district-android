@@ -318,6 +318,9 @@ class ThreadComposerViewModelTest {
             listOf("https://www.distronode.test/api/media/media-1"),
             api.sends.single().mediaUrls,
         )
+        // ⛔ AND THEY ARE GONE AFTERWARDS. The post-send reload carries attachments over, so a
+        // send that left them in place would put the same pictures on the next reply.
+        assertTrue(content(vm).attachments.isEmpty())
     }
 
     /**
@@ -686,9 +689,15 @@ class ThreadComposerViewModelTest {
         assertEquals(1, content(vm).attachments.size)
     }
 
+    /**
+     * ⛔ THE ATTACHMENTS OUTLIVE A FAILED THREAD READ AND COME BACK ON RETRY. They used to be
+     * dropped here, and the next autosave then wrote the draft back with `mediaUrls = []`, which
+     * erased the pictures server-side for every device.
+     */
     @Test
-    fun `a restored draft's attachments are dropped when the thread itself failed to load`() =
+    fun `a restored draft's attachments survive a failed thread load and return on retry`() =
         runTest(dispatcher) {
+            val media = "https://www.distronode.test/api/media/media-9"
             val api = api().apply {
                 timelineResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
                 draftResult = ApiResult.Success(
@@ -697,7 +706,7 @@ class ThreadComposerViewModelTest {
                         draft = MessageDraft(
                             threadKey = "contact:c1",
                             body = "See attached.",
-                            mediaUrls = listOf("https://www.distronode.test/api/media/media-9"),
+                            mediaUrls = listOf(media),
                         ),
                     ),
                 )
@@ -708,5 +717,46 @@ class ThreadComposerViewModelTest {
             // The text still comes back, since it lives in the composer rather than in the thread.
             assertEquals("See attached.", vm.composerText.value)
             assertTrue(vm.state.value is ThreadUiState.Failed)
+
+            vm.onComposerChange("See attached!")
+            advanceUntilIdle()
+            assertEquals(listOf(media), api.draftSaves.single().mediaUrls)
+
+            api.timelineResult = ApiResult.Success(TimelineResponse(success = true))
+            vm.load()
+            advanceUntilIdle()
+
+            assertEquals(listOf(media), content(vm).attachments.map { it.url })
         }
+
+    /**
+     * ⛔ THE DRAFT READ IS SMALL AND USUALLY WINS THE RACE AGAINST THE THREAD READ. When it does,
+     * the state is still Loading, and the attachments must wait for the thread rather than be
+     * dropped, or the next autosave erases them server-side.
+     */
+    @Test
+    fun `a draft that arrives before the thread keeps its attachments`() = runTest(dispatcher) {
+        val media = "https://www.distronode.test/api/media/media-9"
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val api = api().apply {
+            timelineGate = gate
+            draftResult = ApiResult.Success(
+                DraftResponse(
+                    success = true,
+                    draft = MessageDraft(threadKey = "contact:c1", body = "See attached.", mediaUrls = listOf(media)),
+                ),
+            )
+        }
+        val vm = viewModel(api)
+        advanceUntilIdle()
+        assertTrue("the draft must land first", vm.state.value is ThreadUiState.Loading)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(listOf(media), content(vm).attachments.map { it.url })
+
+        vm.onComposerChange("See attached!")
+        advanceUntilIdle()
+        assertEquals(listOf(media), api.draftSaves.single().mediaUrls)
+    }
 }

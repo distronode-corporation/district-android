@@ -48,3 +48,26 @@ internal fun rejectedEnvelope(name: String, success: Boolean): ApiResult.DecodeF
             bodyPreview = "$name{success=false}",
         )
     }
+
+/**
+ * A 200 whose `success: false` is a REFUSAL carrying the server's own sentence.
+ *
+ * ⛔ THE OTHER MEANING OF `success: false`, AND THE TWO MUST NOT BE CONFUSED. [rejectedEnvelope] is
+ * for reads, where a 200 that does not affirm success is contract drift. The billable writes
+ * (`messages/send`, `messages/media`, `messages/draft`) answer `success: false` on purpose, for a
+ * refusal the server handled (an unverified sender, an exhausted A2P registration, a type the
+ * carrier will not take), and the text is specific enough to act on. Reporting that as drift would
+ * tell the operator to update the app.
+ *
+ * ⚠️ AN HTTP-SHAPED FAILURE so the UI's existing failure mapper renders it, rather than a second
+ * refusal channel every screen would have to learn. [REFUSAL_STATUS] is the status the server
+ * actually sent; pretending it was a 4xx would make a log line disagree with the wire.
+ */
+internal fun refusedEnvelope(error: String?): ApiResult.HttpFailure =
+    ApiResult.HttpFailure(status = REFUSAL_STATUS, message = error.orEmpty())
+
+/**
+ * The status a refusal is reported under: the 200 the server sent. Also used for the refusals a
+ * repository makes LOCALLY in the server's place, so both kinds render alike.
+ */
+internal const val REFUSAL_STATUS: Int = 200

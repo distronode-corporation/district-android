@@ -136,6 +136,18 @@ class ThreadViewModel(
     /** The pending debounced save. Cancelled and replaced on every edit. */
     private var autosaveJob: Job? = null
 
+    /**
+     * The composer's attachments while there is no [ThreadUiState.Content] to hold them.
+     *
+     * ⛔ WITHOUT THIS A RESTORED DRAFT LOST ITS PICTURES, AND THEN ERASED THEM SERVER-SIDE. The draft
+     * read is small and usually lands before the thread read, while the state is still Loading; a
+     * failed thread read and its Retry go through Loading too. Applying the restored attachments to
+     * Content alone dropped them in all three cases, and the next autosave wrote the draft back with
+     * `mediaUrls = []`. [load] parks the current attachments here and hands them to the Content it
+     * builds; while Content exists, IT is the truth and this value is stale by design.
+     */
+    private var parkedAttachments: List<UploadedMedia> = emptyList()
+
     init {
         load()
         restoreDraft()
@@ -149,8 +161,12 @@ class ThreadViewModel(
      * operator the server's current truth; re-walking the cursor to rebuild the expansion would
      * spend N requests to restore scrollback nobody asked for. The affordance is still there to
      * expand again.
+     *
+     * ⚠️ THE ATTACHMENTS ARE CARRIED OVER, NOT RESET. See [parkedAttachments]. [send] clears them
+     * explicitly before its reload, which is the one caller that wants them gone.
      */
     fun load() {
+        (_state.value as? ThreadUiState.Content)?.let { parkedAttachments = it.attachments }
         _state.value = ThreadUiState.Loading
         viewModelScope.launch {
             when (val result = repository.thread(target.workspaceId, target.contactId, target.address)) {
@@ -159,6 +175,7 @@ class ThreadViewModel(
                         events = result.value.events,
                         hasMore = result.value.hasMore,
                         olderCursor = result.value.cursor,
+                        attachments = parkedAttachments,
                     )
                 is ApiResult.Failure ->
                     _state.value = ThreadUiState.Failed(result.toFailureText())
@@ -256,9 +273,10 @@ class ThreadViewModel(
                     threadKey = target.threadKey,
                     body = text,
                     // ⚠️ Read at FIRE time, not at edit time: an image attached during the
-                    // debounce belongs on the draft the timer is about to write.
-                    mediaUrls = (_state.value as? ThreadUiState.Content)
-                        ?.attachments.orEmpty().map { it.url },
+                    // debounce belongs on the draft the timer is about to write. ⛔ And the parked
+                    // set when the thread is not loaded: `[]` here ERASES the draft's pictures.
+                    mediaUrls = ((_state.value as? ThreadUiState.Content)?.attachments ?: parkedAttachments)
+                        .map { it.url },
                 )
             }
         }
@@ -308,6 +326,9 @@ class ThreadViewModel(
                     // just sent, which is the duplicate-reply bug in slow motion.
                     autosaveJob?.cancel()
                     savedState[KEY_COMPOSER] = ""
+                    // ⛔ CLEARED HERE BECAUSE [load] CARRIES THEM OVER. Left in place, the sent
+                    // pictures would ride along on the next reply.
+                    _state.withContent { it.copy(attachments = emptyList()) }
                     composer.deleteDraft(target.workspaceId, target.threadKey)
                     load()
                 }
@@ -452,8 +473,15 @@ class ThreadViewModel(
                 // of strings, not media rows. The id, mime type and size are unknown and unused:
                 // the chip renders from the URL and the send route takes the URL. Leaving them at
                 // their defaults is honest because nothing reads them.
-                _state.withContent { content ->
-                    content.copy(attachments = draft.mediaUrls.map { UploadedMedia(url = it) })
+                //
+                // ⛔ PARKED WHEN THE THREAD IS NOT LOADED YET (or failed), never dropped: see
+                // [parkedAttachments]. The draft read usually beats the thread read.
+                val restored = draft.mediaUrls.map { UploadedMedia(url = it) }
+                val current = _state.value
+                if (current is ThreadUiState.Content) {
+                    _state.value = current.copy(attachments = restored)
+                } else {
+                    parkedAttachments = restored
                 }
             }
         }

@@ -22,6 +22,6 @@ class HttpCallControlApi(private val client: DistrictApiClient) : CallControlApi
             // requiring a non-empty `workspaceId`; a query parameter would leave it undefined and
             // answer 400 "Missing required parameters" while the URL looked perfectly correct.
             body = CallHangUpRequest(workspaceId = workspaceId)
-                .toExtraJson(CallHangUpRequest.serializer()),
+                .toJson(CallHangUpRequest.serializer()),
         )
 }

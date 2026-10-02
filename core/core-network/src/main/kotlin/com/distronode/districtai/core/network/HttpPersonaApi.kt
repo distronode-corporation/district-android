@@ -36,6 +36,6 @@ class HttpPersonaApi(private val client: DistrictApiClient) : PersonaApi {
             segments = ExtraPaths.WORKSPACE_PERSONA_PREVIEW_TOKEN,
             serializer = PersonaPreviewTokenResponse.serializer(),
             body = PersonaPreviewTokenRequest(workspaceId = workspaceId, formData = form)
-                .toExtraJson(PersonaPreviewTokenRequest.serializer()),
+                .toJson(PersonaPreviewTokenRequest.serializer()),
         )
 }

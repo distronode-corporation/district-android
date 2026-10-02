@@ -122,9 +122,10 @@ fi
 # ── Is a stripped DTO's reference itself reachable from the app? ────────────
 #
 # ⛔ A REFERENCE ONLY COUNTS IF SOMETHING THE APP RUNS CAN REACH IT. Treating any mention outside the
-# DTO's own file as "used" fails on DTOs whose only reference is a transport ported for endpoint
-# parity that no screen calls yet (e.g. `HttpContactBlockingApi`): R8 removes the transport and its
-# DTOs together, correctly, and a naive check reports that as a stripped serializer.
+# DTO's own file as "used" fails on DTOs whose only reference is code ported for endpoint parity
+# that no screen calls yet (e.g. the `ContactBlockingApi` interface, which declares the block
+# endpoints and has no implementation): R8 removes that code and its DTOs together, correctly, and a
+# naive check reports that as a stripped serializer.
 #
 # ⚠️ WHY NOT ASK mapping.txt WHETHER THE REFERRER SURVIVED. R8 inlines and merges classes that ARE in
 # use, so a live class can be absent from the mapping under its own name: `HttpPersonaApi`, which

@@ -81,9 +81,7 @@ import com.distronode.districtai.core.model.CampaignStatusResponse
 import com.distronode.districtai.core.model.WorkflowListResponse
 import com.distronode.districtai.core.model.WorkflowRunsResponse
 import com.distronode.districtai.core.model.WorkflowToggleResponse
-import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
@@ -1250,7 +1248,7 @@ internal class HttpSchedulingApi(private val client: DistrictApiClient) : Schedu
 }
 
 internal object DistrictPaths {
-    private val DISTRICT = listOf("api", "district")
+    private val DISTRICT = ApiRoots.DISTRICT
     private val WORKSPACE = DISTRICT + "workspace"
     val WORKSPACE_LIST = WORKSPACE + "list"
 
@@ -1344,7 +1342,7 @@ internal object DistrictPaths {
      * `/api/district/billing` does not exist and would 404. See [WORKSPACE_BILLING] for the one
      * that IS a district route.
      */
-    val BILLING = listOf("api", "billing")
+    val BILLING = ApiRoots.BILLING
 
     /**
      * ⚠️ THE MARKETPLACE'S TWO ROUTES ARE NOT SIBLINGS, WHICH LOOKS LIKE AN ACCIDENT AND IS NOT
@@ -1491,31 +1489,11 @@ internal object DistrictPaths {
      * the server's and mirroring it here is the only option — inventing `devices/revoke-all`
      * to make them look like a pair would 404.
      */
-    private val NATIVE_AUTH = listOf("api", "auth", "native")
+    private val NATIVE_AUTH = ApiRoots.NATIVE_AUTH
     val NATIVE_DEVICES = NATIVE_AUTH + "devices"
     val NATIVE_DEVICES_REVOKE = NATIVE_DEVICES + "revoke"
     val NATIVE_REVOKE_ALL = NATIVE_AUTH + "revoke-all"
 }
-
-/**
- * ⚠️ Encoded through a JsonElement rather than a raw string so `explicitNulls = false` applies: a
- * null field is OMITTED rather than sent as an explicit null. That matters for `contacts/update`,
- * whose schema treats an explicit null differently from an absent key — sending null would attempt
- * to CLEAR the column rather than leave it alone. It matters again for `messages/mark-read`, which
- * takes `contactId` OR `counterpart` and validates that at least one is PRESENT.
- *
- * ⚠️ FILE-SCOPED, not a member. It was private to the contacts section until the Inbox needed it
- * too, and the alternative — a second copy with its own Json instance — is exactly how one of them
- * ends up with `explicitNulls` left at the default.
- */
-private fun <T> T.toJson(serializer: SerializationStrategy<T>): JsonElement =
-    BODY_JSON.encodeToJsonElement(serializer, this)
-
-/**
- * ⛔ `explicitNulls = false` is the load-bearing setting — see [toJson]. Kept separate from the
- * client's decoding Json so a change there cannot silently start sending explicit nulls.
- */
-private val BODY_JSON = Json { explicitNulls = false }
 
 /** See the ⛔ at `revokeAllDevices`: the smallest body OkHttp will let a POST carry. */
 private val EMPTY_BODY: JsonElement = JsonObject(emptyMap())

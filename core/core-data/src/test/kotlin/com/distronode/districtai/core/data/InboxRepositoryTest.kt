@@ -7,7 +7,6 @@ import com.distronode.districtai.core.model.SendMessageResponse
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.TimelinePageInfo
 import com.distronode.districtai.core.model.TimelineResponse
-import com.distronode.districtai.core.model.UnreadCountResponse
 import com.distronode.districtai.core.network.ApiResult
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
@@ -314,18 +313,7 @@ class InboxRepositoryTest {
         assertEquals(1, api.sends.size)
     }
 
-    // ── Unread + mark read ───────────────────────────────────────────────────
-
-    @Test
-    fun `the unread count is unwrapped from its envelope`() = runTest {
-        val api = FakeDistrictApi().apply {
-            unreadCountResult = ApiResult.Success(
-                UnreadCountResponse(success = true, count = 7, workspaceId = "ws-1"),
-            )
-        }
-
-        assertEquals(7, (InboxRepository(api).unreadCount("ws-1") as ApiResult.Success).value)
-    }
+    // ── Mark read ────────────────────────────────────────────────────────────
 
     @Test
     fun `mark read reports how many rows it touched`() = runTest {
@@ -339,16 +327,11 @@ class InboxRepositoryTest {
     }
 
     @Test
-    fun `a failed unread count or mark read is passed through rather than read as zero`() = runTest {
-        // ⚠️ Zero is a real answer (nothing unread, nothing marked); a failure must not look like it.
+    fun `a failed mark read is passed through rather than read as zero`() = runTest {
+        // ⚠️ Zero is a real answer (nothing marked); a failure must not look like it.
         val offline = ApiResult.NetworkFailure(IOException("offline"))
-        val api = FakeDistrictApi().apply {
-            unreadCountResult = offline
-            markReadResult = offline
-        }
-        val repository = InboxRepository(api)
+        val api = FakeDistrictApi().apply { markReadResult = offline }
 
-        assertEquals(offline, repository.unreadCount("ws-1"))
-        assertEquals(offline, repository.markRead("ws-1", null, "+14165550142"))
+        assertEquals(offline, InboxRepository(api).markRead("ws-1", null, "+14165550142"))
     }
 }

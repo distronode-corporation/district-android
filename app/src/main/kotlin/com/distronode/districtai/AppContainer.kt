@@ -164,6 +164,7 @@ class AppContainer(
         baseUrl = "${ApiEnvironment.baseUrl}/".toHttpUrl(),
         httpClient = httpClient,
         tokens = tokenCoordinator,
+        decodeFailures = SentryDecodeFailureReporter(),
     )
 
     private val districtApi: DistrictApi = seams.districtApi ?: HttpDistrictApi(apiClient)

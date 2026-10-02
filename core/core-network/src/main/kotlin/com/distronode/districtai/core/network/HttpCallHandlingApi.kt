@@ -34,7 +34,7 @@ class HttpCallHandlingApi(private val client: DistrictApiClient) : CallHandlingA
                 workspaceId = workspaceId,
                 callHandling = callHandling,
                 appRingSeconds = appRingSeconds,
-            ).toExtraJson(CallHandlingPatchRequest.serializer()),
+            ).toJson(CallHandlingPatchRequest.serializer()),
         )
 
     override suspend fun availability(workspaceId: String): ApiResult<AvailabilityResponse> =
@@ -58,6 +58,6 @@ class HttpCallHandlingApi(private val client: DistrictApiClient) : CallHandlingA
             body = AvailabilityPatchRequest(
                 workspaceId = workspaceId,
                 availableForCalls = availableForCalls,
-            ).toExtraJson(AvailabilityPatchRequest.serializer()),
+            ).toJson(AvailabilityPatchRequest.serializer()),
         )
 }

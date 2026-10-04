@@ -146,7 +146,7 @@ allprojects {
 //     line   19800/19809 = 99.95%  ->  floor 99
 //     branch  6960/7055  = 98.65%  ->  floor 98
 //
-// Measured on the Voice Studio (2.0.0) tree. Two full runs (the second with --rerun-tasks) gave
+// Measured on the Voice Studio (2.0) tree. Two full runs (the second with --rerun-tasks) gave
 // the same missed counts, 9 lines and 95 branches, class for class; the branch TOTAL differed by
 // 12 inside DistrictNavHostKt between an incremental and a clean compile, and the clean compile's
 // figure is the one above.

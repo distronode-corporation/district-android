@@ -60,6 +60,7 @@ class WorkspaceSettingsScreenTest {
 
         listOf(
             WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION,
+            WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION,
@@ -104,6 +105,10 @@ class WorkspaceSettingsScreenTest {
         composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION)
             .performClick()
         assertEquals("members", section)
+
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION)
+            .performClick()
+        assertEquals("voice-studio", section)
     }
 
     @Test
@@ -127,6 +132,8 @@ class WorkspaceSettingsScreenTest {
 
         listOf(
             WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION,
+            // ⛔ The Studio read and the persona PATCH both exclude `viewer`.
+            WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION,

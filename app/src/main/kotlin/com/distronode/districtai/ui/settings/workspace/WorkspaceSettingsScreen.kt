@@ -103,6 +103,17 @@ fun WorkspaceSettingsScreen(
                         },
                     )
                     DistrictRowDivider()
+                    // ⛔ THE STUDIO READ AND THE PERSONA PATCH BOTH EXCLUDE `viewer`, so the row
+                    // sits with the persona's, inside the gate.
+                    DistrictListRow(
+                        title = stringResource(R.string.voice_studio_title),
+                        subtitle = stringResource(R.string.workspace_settings_voice_studio_subtitle),
+                        onClick = { onOpenSection(SECTION_VOICE_STUDIO) },
+                        modifier = Modifier.semantics {
+                            contentDescription = WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION
+                        },
+                    )
+                    DistrictRowDivider()
                     DistrictListRow(
                         title = stringResource(R.string.capabilities_title),
                         subtitle = stringResource(R.string.workspace_settings_capabilities_subtitle),
@@ -229,6 +240,8 @@ fun WorkspaceSettingsScreen(
 
 /** Stable handles for tests; a literal duplicated in a test drifts silently. */
 const val WORKSPACE_SETTINGS_ROOT_DESCRIPTION: String = "district-workspace-settings-root"
+const val WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION: String =
+    "district-workspace-settings-row-voice-studio"
 const val WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION: String =
     "district-workspace-settings-row-persona"
 const val WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION: String =
@@ -262,3 +275,4 @@ internal const val SECTION_KNOWLEDGE = "knowledge"
 internal const val SECTION_MESSAGING = "messaging"
 internal const val SECTION_MEMBERS = "members"
 internal const val SECTION_CALLS = "calls"
+internal const val SECTION_VOICE_STUDIO = "voice-studio"

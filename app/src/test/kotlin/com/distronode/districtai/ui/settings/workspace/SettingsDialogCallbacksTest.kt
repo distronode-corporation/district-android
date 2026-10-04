@@ -171,9 +171,8 @@ class SettingsDialogCallbacksTest {
                     onSave = {},
                     onRetry = {},
                     onBack = { calls += "back:$g" },
-                    onSelectEngine = {},
                     onSelectLanguage = {},
-                    onUpdateEngineValues = {},
+                    onSelectResponseLength = {},
                     onPreview = {},
                 )
             }

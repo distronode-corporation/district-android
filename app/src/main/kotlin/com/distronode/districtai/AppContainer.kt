@@ -19,6 +19,7 @@ import com.distronode.districtai.core.data.CallHandlingRepository
 import com.distronode.districtai.core.data.DeskRepository
 import com.distronode.districtai.core.data.MessageSearchRepository
 import com.distronode.districtai.core.data.PersonaOptionsRepository
+import com.distronode.districtai.core.data.VoiceStudioRepository
 import com.distronode.districtai.core.data.DevicesRepository
 import com.distronode.districtai.core.data.DialRepository
 import com.distronode.districtai.core.data.CallsRepository
@@ -337,6 +338,12 @@ class AppContainer(
      * persists nothing.
      */
     val personaOptionsRepository: PersonaOptionsRepository = PersonaOptionsRepository(personaApi)
+
+    /**
+     * The Voice Studio: its read is on [personaApi], its save is the persona PATCH on
+     * [districtApi], and every save is followed by the read. ⚠️ No cache: see the repository.
+     */
+    val voiceStudioRepository: VoiceStudioRepository = VoiceStudioRepository(personaApi, districtApi)
 
     val callHandlingRepository: CallHandlingRepository = CallHandlingRepository(callHandlingApi)
 

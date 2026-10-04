@@ -7,10 +7,9 @@ import com.distronode.districtai.ui.FailureText
 enum class PersonaField { NAME, GREETING, PERSONALITY }
 
 /**
- * Whether the persona form may offer its engine, language and voice pickers at all.
+ * Whether the persona form may offer its language and answer-length pickers at all.
  *
- * ⛔ A FAILED READ MAKES THE ENGINE SECTION READ-ONLY AND MUST NEVER FALL BACK TO A BUILT-IN
- * CATALOGUE. `PATCH workspace/persona` COERCES rather than rejects, so a hardcoded list does not
+ * ⛔ A FAILED READ HIDES THOSE PICKERS AND MUST NEVER FALL BACK TO A BUILT-IN CATALOGUE. `PATCH workspace/persona` COERCES rather than rejects, so a hardcoded list does not
  * fail when it drifts — every value it offered would still be accepted, stored, and then quietly
  * substituted by the agent, with a 200 and nothing anywhere reporting it. That is the exact failure
  * `workspace/persona/options` exists to retire.
@@ -23,7 +22,7 @@ sealed interface PersonaOptionsState {
 
     data object Loading : PersonaOptionsState
 
-    data class Ready(val draft: PersonaEngineDraft) : PersonaOptionsState
+    data class Ready(val draft: PersonaIdentityDraft) : PersonaOptionsState
 
     data class LoadFailed(val failure: FailureText) : PersonaOptionsState
 }
@@ -37,7 +36,7 @@ data class PersonaFormUiState(
 
     val persona: AiPersona? get() = (load as? ConfigState.Ready)?.config?.aiPersona
 
-    val draft: PersonaEngineDraft? get() = (options as? PersonaOptionsState.Ready)?.draft
+    val draft: PersonaIdentityDraft? get() = (options as? PersonaOptionsState.Ready)?.draft
 
     fun stored(field: PersonaField): String = when (field) {
         PersonaField.NAME -> persona?.name
@@ -50,16 +49,11 @@ data class PersonaFormUiState(
     val dirtyFields: Set<PersonaField>
         get() = edits.filter { (field, draft) -> draft != stored(field) }.keys
 
-    /** ⚠️ Empty when the catalogue never loaded, which is why the engine section is read-only then. */
-    val engineChanges: PersonaEngineChanges
-        get() = draft?.changes ?: PersonaEngineChanges()
+    /** ⚠️ False when the catalogue never loaded, which is why those pickers are absent then. */
+    val hasUnsavedChanges: Boolean get() = dirtyFields.isNotEmpty() || draft?.isDirty == true
 
-    val hasUnsavedChanges: Boolean get() = dirtyFields.isNotEmpty() || !engineChanges.isEmpty
-
-    /** ⚠️ A null draft (no catalogue) has no engine edits to refuse. See [PersonaEngineDraft.engineSelectable]. */
     val canSave: Boolean
-        get() = load is ConfigState.Ready && save != SaveState.Saving && hasUnsavedChanges &&
-            draft?.engineSelectable != false
+        get() = load is ConfigState.Ready && save != SaveState.Saving && hasUnsavedChanges
 
     /**
      * ⛔ THE PREVIEW NEEDS THE CATALOGUE, NOT JUST A LOADED CONFIG. A `modelId` the registry does

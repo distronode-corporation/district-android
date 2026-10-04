@@ -19,15 +19,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * The agent's three free-text fields, and the seven engine fields that are drawn from the server's
- * own catalogue.
+ * The agent's three free-text fields, and its language and answer length, which are drawn from the
+ * server's own catalogue.
+ *
+ * ⛔ THE ENGINE, VOICE AND TUNING ARE NOT EDITED HERE. They belong to the Voice Studio, a screen
+ * of their own (`studio/`), as on the web, and this form never sends them except for the one
+ * cascade [PersonaIdentityDraft.selectLanguage] documents.
  *
  * ⛔ TWO READS, AND THE ENGINE HALF IS UNAVAILABLE WITHOUT THE SECOND ONE. `workspace/config`
  * carries what is STORED; `workspace/persona/options` carries what may be OFFERED. The save route
  * COERCES rather than rejects — an unrecognised `modelId` becomes `deepgram-pipeline` and an
  * unrecognised `voice` is stored and then silently replaced by the agent, both with a 200 — so a
  * picker built on anything but the catalogue produces a persona nobody chose and reports nothing.
- * A failed catalogue read therefore leaves the engine section read-only; it never falls back.
+ * A failed catalogue read therefore hides those pickers; it never falls back.
  *
  * ⚠️ THE TEXT HALF SURVIVES A FAILED CATALOGUE READ. Those three fields are free text on the
  * server too, so there is nothing for a catalogue to authorise and no reason to withhold them.
@@ -68,7 +72,7 @@ class PersonaFormViewModel(
     /**
      * ⛔ THE DRAFT NEEDS BOTH ANSWERS. Hydrating from a catalogue without the stored persona would
      * start every field on a default, and saving that would overwrite the workspace's voice with
-     * one nobody chose. A config failure therefore reports itself in the engine section too, using
+     * one nobody chose. A config failure therefore reports itself in the language section too, using
      * the config's own failure sentence.
      */
     private fun hydrated(
@@ -81,7 +85,7 @@ class PersonaFormViewModel(
         is ApiResult.Success -> when (config) {
             is ApiResult.Failure -> PersonaOptionsState.LoadFailed(config.toFailureText())
             is ApiResult.Success -> PersonaOptionsState.Ready(
-                PersonaEngineDraft.hydrate(config.value.aiPersona, options.value),
+                PersonaIdentityDraft.hydrate(config.value.aiPersona, options.value),
             )
         }
     }
@@ -94,13 +98,8 @@ class PersonaFormViewModel(
         )
     }
 
-    /**
-     * ⛔ EVERY ENGINE EDIT GOES THROUGH ONE PRIVATE ENTRY POINT so the two cascading ones cannot be
-     * bypassed, and it is a no-op without a loaded catalogue. Changing engine clears a language it
-     * does not publish and moves the voice; changing language moves the voice for the
-     * language-keyed engine only. See [PersonaEngineDraft].
-     */
-    private fun editEngine(transform: (PersonaEngineDraft) -> PersonaEngineDraft) {
+    /** ⚠️ A no-op without a loaded catalogue, which is when the pickers are absent. */
+    private fun editIdentity(transform: (PersonaIdentityDraft) -> PersonaIdentityDraft) {
         val current = _state.value.options
         if (current !is PersonaOptionsState.Ready) return
         _state.value = _state.value.copy(
@@ -109,25 +108,10 @@ class PersonaFormViewModel(
         )
     }
 
-    /** ⛔ Cascades. Never assign `modelId` through [updateValues]. */
-    fun selectEngine(engineId: String) = editEngine { it.selectEngine(engineId) }
+    /** ⛔ Cascades to the voice for the language-keyed engine. See [PersonaIdentityDraft.selectLanguage]. */
+    fun selectLanguage(language: String) = editIdentity { it.selectLanguage(language) }
 
-    /** ⛔ Cascades for the language-keyed engine. Never assign `language` through [updateValues]. */
-    fun selectLanguage(language: String) = editEngine { it.selectLanguage(language) }
-
-    /**
-     * The five fields with no cascade — voice, response length, temperature, voice style and
-     * preemptive TTS.
-     *
-     * ⚠️ ONE ENTRY POINT RATHER THAN FIVE NAMED ONES, which is a detekt `TooManyFunctions` ceiling
-     * respected rather than raised: five setters that each do `copy` of one field earn no
-     * correctness by being named, while [selectEngine] and [selectLanguage] do.
-     *
-     * ⛔ IT MUST NOT BE USED TO SET `modelId` OR `language`. Doing so would skip the cascades and
-     * leave a Deepgram voice selected for a language that engine cannot speak — which the save
-     * route stores happily.
-     */
-    fun updateValues(values: PersonaEngineValues) = editEngine { it.copy(values = values) }
+    fun selectResponseLength(level: String) = editIdentity { it.selectResponseLength(level) }
 
     /**
      * ⛔ ONLY WHAT CHANGED GOES ON THE WIRE, with one deliberate exception. The route merges per
@@ -141,7 +125,7 @@ class PersonaFormViewModel(
         val current = _state.value
         if (!current.canSave) return
         val dirty = current.dirtyFields
-        val engine = current.draft?.write ?: PersonaEngineWrite()
+        val identity = current.draft?.write ?: PersonaIdentityWrite()
 
         _state.value = current.copy(save = SaveState.Saving)
         viewModelScope.launch {
@@ -152,13 +136,10 @@ class PersonaFormViewModel(
                     .takeIf { PersonaField.GREETING in dirty },
                 personality = current.value(PersonaField.PERSONALITY)
                     .takeIf { PersonaField.PERSONALITY in dirty },
-                voice = engine.voice,
-                language = engine.language,
-                modelId = engine.modelId,
-                responseLength = engine.responseLength,
-                temperature = engine.temperature,
-                voiceStyle = engine.voiceStyle,
-                preemptiveTts = engine.preemptiveTts,
+                voice = identity.voice,
+                language = identity.language,
+                modelId = identity.modelId,
+                responseLength = identity.responseLength,
             )
             applyOutcome(repository.savePersona(request))
         }
@@ -181,7 +162,7 @@ class PersonaFormViewModel(
             edits = if (outcome is SaveOutcome.NotSaved) current.edits else emptyMap(),
             save = outcome.saveState,
             options = if (saved != null && draft != null) {
-                PersonaOptionsState.Ready(PersonaEngineDraft.hydrate(saved.aiPersona, draft.options))
+                PersonaOptionsState.Ready(PersonaIdentityDraft.hydrate(saved.aiPersona, draft.options))
             } else {
                 current.options
             },

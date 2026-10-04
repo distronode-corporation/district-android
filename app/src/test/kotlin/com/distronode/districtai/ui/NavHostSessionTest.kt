@@ -80,6 +80,10 @@ class NavHostSessionTest {
             Case(Routes.workspaceSettings("ws-1", role, Routes.SECTION_DIRECTORY), { api.configRequests.size }),
             Case(Routes.workspaceSettings("ws-1", role, Routes.SECTION_ROUTING), { api.configRequests.size }),
             Case(Routes.workspaceSettings("ws-1", role, Routes.SECTION_PERSONA), { api.configRequests.size }),
+            Case(
+                Routes.workspaceSettings("ws-1", role, Routes.SECTION_VOICE_STUDIO),
+                { harness.persona.voiceStudioCalls.size },
+            ),
             Case(Routes.workspaceSettings("ws-1", role, Routes.SECTION_CAPABILITIES), { api.configRequests.size }),
             Case(Routes.workspaceSettings("ws-1", role, Routes.SECTION_KNOWLEDGE), { api.knowledgeListRequests.size }),
             Case(

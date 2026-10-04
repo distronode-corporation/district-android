@@ -31,7 +31,7 @@ class PersonaFormUiStateTest {
     private val loaded = ConfigState.Ready(WorkspaceConfig(aiPersona = persona))
 
     private val catalogue =
-        PersonaOptionsState.Ready(PersonaEngineDraft.hydrate(persona, TEST_PERSONA_OPTIONS))
+        PersonaOptionsState.Ready(PersonaIdentityDraft.hydrate(persona, TEST_PERSONA_OPTIONS))
 
     @Test
     fun `a workspace with no persona reads every box as empty rather than failing`() {
@@ -42,11 +42,11 @@ class PersonaFormUiStateTest {
     }
 
     @Test
-    fun `an engine change alone is unsaved work, and so is a text change alone`() {
-        val engineOnly = catalogue.draft.let { it.copy(values = it.values.copy(temperature = 0.1)) }
+    fun `a picker change alone is unsaved work, and so is a text change alone`() {
+        val lengthOnly = catalogue.draft.selectResponseLength("balanced")
         val byEngine = PersonaFormUiState(
             load = loaded,
-            options = PersonaOptionsState.Ready(engineOnly),
+            options = PersonaOptionsState.Ready(lengthOnly),
         )
         assertTrue(byEngine.hasUnsavedChanges)
         assertTrue(byEngine.canSave)

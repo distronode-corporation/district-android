@@ -14,6 +14,7 @@ import com.distronode.districtai.core.model.MeetingSummary
 import com.distronode.districtai.core.model.RoomTokenResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.ui.dialer.DIALER_CALL_DESCRIPTION
 import com.distronode.districtai.ui.dialer.DIALER_FIELD_DESCRIPTION
 import com.distronode.districtai.ui.rooms.ACTIVE_ROOM_ROOT_DESCRIPTION
@@ -24,6 +25,9 @@ import com.distronode.districtai.ui.rooms.ROOM_SHARE_DESCRIPTION
 import com.distronode.districtai.ui.rooms.STATUS_IN_PROGRESS
 import com.distronode.districtai.ui.rooms.meetingRejoinDescription
 import com.distronode.districtai.ui.settings.workspace.PERSONA_ROOT_DESCRIPTION
+import com.distronode.districtai.core.network.testing.VoiceStudioFixture
+import com.distronode.districtai.ui.settings.workspace.WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION
+import com.distronode.districtai.ui.settings.workspace.studio.VOICE_STUDIO_SAVE_DESCRIPTION
 import com.distronode.districtai.ui.settings.workspace.WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
@@ -223,5 +227,21 @@ class NavHostMediaTest {
         assertEquals(Routes.WORKSPACE_SETTINGS_PERSONA, harness.route())
         harness.awaitDescription(PERSONA_ROOT_DESCRIPTION)
         assertEquals(listOf("ws-1"), harness.api.configRequests)
+    }
+
+    @Test
+    fun `the hub's Voice Studio row opens the Studio, which reads this workspace's studio`() {
+        harness.persona.voiceStudioResults.add(ApiResult.Success(VoiceStudioFixture.studio))
+        harness.render()
+        harness.navigate(Routes.workspaceSettings("ws-1", WorkspaceRole.AGENCY))
+
+        harness.tap(WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION)
+
+        assertEquals(Routes.WORKSPACE_SETTINGS_VOICE_STUDIO, harness.route())
+        harness.awaitDescription(VOICE_STUDIO_SAVE_DESCRIPTION)
+        assertEquals(listOf("ws-1"), harness.persona.voiceStudioCalls)
+
+        harness.tap(TOP_BAR_BACK_DESCRIPTION)
+        assertEquals(Routes.WORKSPACE_SETTINGS, harness.route())
     }
 }

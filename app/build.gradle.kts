@@ -110,6 +110,17 @@ tasks.withType<Test>().configureEach {
     systemProperty("district.sentry.dsn", districtSentryDsn)
 }
 
+// The Voice Studio screen tests decode the committed Studio fixture through core-network's
+// `VoiceStudioFixture`. Same wiring as core-model; ⛔ `inputs.dir` keeps a fixture change from
+// leaving this task UP-TO-DATE.
+tasks.withType<Test>().configureEach {
+    val contractsDir = rootProject.file("contracts")
+    systemProperty("district.contracts.dir", contractsDir.absolutePath)
+    inputs.dir(contractsDir)
+        .withPropertyName("androidContractFixtures")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 // ⚠️ Printed at configuration time, so with the configuration cache on it appears on the run that
 // computes the configuration and not on a run that reuses it.
 if (districtSentryDsn.isEmpty()) {
@@ -129,7 +140,7 @@ android {
         applicationId = "com.distronode.districtai"
 
         versionCode = districtVersionCode.get()
-        versionName = "1.2"
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

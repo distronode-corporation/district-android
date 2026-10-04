@@ -4,7 +4,6 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.AiPersona
-import com.distronode.districtai.core.model.PersonaEngineOption
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
@@ -313,8 +312,9 @@ class PersonaFormViewModelTest {
             advanceUntilIdle()
 
             assertTrue(vm.state.value.options is PersonaOptionsState.LoadFailed)
-            vm.selectEngine("gemini-live-2.5-flash-native-audio")
-            assertNull("an engine edit without a catalogue is a no-op", vm.state.value.draft)
+            vm.selectLanguage("it-IT")
+            vm.selectResponseLength("balanced")
+            assertNull("a picker edit without a catalogue is a no-op", vm.state.value.draft)
 
             vm.edit(PersonaField.PERSONALITY, "Brisk.")
             vm.save()
@@ -333,7 +333,7 @@ class PersonaFormViewModelTest {
         }
 
     @Test
-    fun `a failed config read reports itself in the engine section too`() = runTest {
+    fun `a failed config read reports itself in the language section too`() = runTest {
         // ⛔ HYDRATING FROM A CATALOGUE WITHOUT THE STORED PERSONA would start every picker on a
         // default, and saving that would replace the workspace's voice with one nobody chose.
         val api = api().apply { workspaceConfigResult = ApiResult.NetworkFailure(IOException("down")) }
@@ -346,99 +346,58 @@ class PersonaFormViewModelTest {
     }
 
     @Test
-    fun `a changed engine that is not selectable cannot be saved`() = runTest {
-        // ⛔ THE PICKER DISABLES AN OUT-OF-REGION ROW, AND THE SAVE NOW AGREES. Before the fix a
-        // programmatic selection of one went out with a 200 and was stored, which is a residency
-        // decision nobody made on a settings screen.
-        val api = api()
-        val personaApi = FakePersonaApi().apply {
-            optionsResult = ApiResult.Success(
-                TEST_PERSONA_OPTIONS.copy(
-                    engines = TEST_PERSONA_OPTIONS.engines +
-                        PersonaEngineOption(id = "eu-only-engine", label = "EU only", inRegion = false),
-                ),
-            )
-        }
-        val vm = viewModel(api, personaApi)
-        advanceUntilIdle()
+    fun `a language change on the language-keyed engine moves the voice, and only what changed is sent`() =
+        runTest {
+            // ⛔ `aura-2-asteria-en` CANNOT SPEAK ITALIAN, and the route would store the mismatch.
+            val api = api()
+            val vm = viewModel(api, catalogueApi())
+            advanceUntilIdle()
+            assertTrue(vm.state.value.canPreview)
 
-        vm.selectEngine("eu-only-engine")
-        assertTrue(vm.state.value.hasUnsavedChanges)
-        assertFalse(vm.state.value.canSave)
-        vm.save()
-        advanceUntilIdle()
-        assertTrue(api.personaPatches.isEmpty())
+            vm.selectLanguage("it-IT")
+            assertEquals("aura-2-alba-it", vm.state.value.draft!!.values.voice)
+            assertTrue(vm.state.value.hasUnsavedChanges)
 
-        vm.selectEngine("gemini-live-2.5-flash-native-audio")
-        assertTrue(vm.state.value.canSave)
-    }
-
-    @Test
-    fun `a stored engine that has left the region does not block saving anything else`() = runTest {
-        // ⚠️ ONLY A CHANGED ENGINE IS VALIDATED. The stored one is what the workspace runs on today.
-        val api = api()
-        val personaApi = FakePersonaApi().apply {
-            optionsResult = ApiResult.Success(
-                TEST_PERSONA_OPTIONS.copy(
-                    engines = TEST_PERSONA_OPTIONS.engines.map {
-                        if (it.id == "deepgram-pipeline") it.copy(inRegion = false) else it
-                    },
-                ),
-            )
-        }
-        val vm = viewModel(api, personaApi)
-        advanceUntilIdle()
-
-        vm.edit(PersonaField.GREETING, "Hello there.")
-        assertTrue(vm.state.value.canSave)
-        vm.save()
-        advanceUntilIdle()
-
-        assertEquals("Hello there.", api.personaPatches.single().greeting)
-    }
-
-    @Test
-    fun `engine edits cascade, mark the form dirty, and save only what changed`() = runTest {
-        val api = api()
-        val vm = viewModel(api, catalogueApi())
-        advanceUntilIdle()
-        assertTrue(vm.state.value.canPreview)
-
-        vm.selectLanguage("it-IT")
-        assertEquals("aura-2-alba-it", vm.state.value.draft!!.values.voice)
-        vm.updateValues(vm.state.value.draft!!.values.copy(temperature = 0.2))
-        vm.selectEngine("gemini-live-2.5-flash-native-audio")
-        assertEquals("Puck", vm.state.value.draft!!.values.voice)
-        assertTrue(vm.state.value.hasUnsavedChanges)
-
-        // The re-read after the save reports what was written, which becomes the new baseline.
-        api.workspaceConfigResult = ApiResult.Success(
-            WorkspaceConfigResponse(
-                success = true,
-                config = WorkspaceConfig(
-                    aiPersona = storedPersona.copy(
-                        modelId = "gemini-live-2.5-flash-native-audio",
-                        voice = "Puck",
-                        temperature = 0.2,
+            api.workspaceConfigResult = ApiResult.Success(
+                WorkspaceConfigResponse(
+                    success = true,
+                    config = WorkspaceConfig(
+                        aiPersona = storedPersona.copy(language = "it-IT", voice = "aura-2-alba-it"),
                     ),
                 ),
-            ),
-        )
-        vm.save()
-        advanceUntilIdle()
+            )
+            vm.save()
+            advanceUntilIdle()
 
-        val sent = api.personaPatches.single()
-        assertEquals("gemini-live-2.5-flash-native-audio", sent.modelId)
-        assertEquals("Puck", sent.voice)
-        assertEquals(0.2, sent.temperature!!, 0.0001)
-        assertNull("no free-text field was touched", sent.name)
-        assertEquals(SaveState.Saved, vm.state.value.save)
-        assertFalse(
-            "the draft is rehydrated from the re-read, so nothing is dirty",
-            vm.state.value.hasUnsavedChanges,
-        )
-        assertEquals("Puck", vm.state.value.draft!!.values.voice)
-    }
+            val sent = api.personaPatches.single()
+            assertEquals("it-IT", sent.language)
+            assertEquals("aura-2-alba-it", sent.voice)
+            // ⛔ THE ENGINE AND ITS TUNING ARE THE VOICE STUDIO'S: never sent from this form.
+            assertNull(sent.modelId)
+            assertNull(sent.temperature)
+            assertNull(sent.engineMix)
+            assertNull(sent.responseLength)
+            assertEquals(SaveState.Saved, vm.state.value.save)
+            assertFalse(vm.state.value.hasUnsavedChanges)
+        }
+
+    @Test
+    fun `an answer length change carries the stored engine id, because the level is stored under it`() =
+        runTest {
+            val api = api()
+            val vm = viewModel(api, catalogueApi())
+            advanceUntilIdle()
+
+            vm.selectResponseLength("balanced")
+            vm.save()
+            advanceUntilIdle()
+
+            val sent = api.personaPatches.single()
+            assertEquals("balanced", sent.responseLength)
+            assertEquals("deepgram-pipeline", sent.modelId)
+            assertNull(sent.language)
+            assertNull(sent.voice)
+        }
 
     @Test
     fun `the factory builds a ViewModel that reads both halves for the workspace it was given`() =

@@ -630,14 +630,10 @@
          "leave it blank to keep the old one" is what a reader would otherwise assume. -->
     <string name="persona_clear_hint">Clearing a box saves it as empty. Anything you do not change
         is left exactly as it is.</string>
-    <string name="persona_engine_title">Voice and engine</string>
-    <string name="persona_engine_body">Engine %1$s · Voice %2$s · Language %3$s</string>
-    <string name="persona_engine_default">not set</string>
-    <!-- ⛔ THE FALLBACK WHEN THE CATALOGUE READ FAILED, NOT A PERMANENT STATE. These values
-         belong to registries the save route COERCES against, so offering them from a built-in list
-         would silently retarget every subsequent call with a 200. -->
-    <string name="persona_engine_read_only">The list of available engines and voices could not be
-        loaded, so these cannot be changed right now.</string>
+    <!-- ⚠️ SAYS WHERE THE ENGINE WENT. The persona form no longer shows the engine, voice or tuning,
+         and without this line it reads as a persona with no voice at all. -->
+    <string name="persona_voice_studio_note">The voice, the engine and how fast the agent replies are
+        set in Voice Studio, in workspace settings.</string>
 
     <!-- ── Agent capabilities ────────────────────────────────────────────────
          ⛔ THE ALLOWLIST IS REPLACED WHOLESALE BY ITS SAVE ROUTE. -->
@@ -1416,24 +1412,33 @@
         it is resolved and we will close it.</string>
     <string name="support_author_agent">Distronode Support</string>
     <string name="support_author_you">You</string>
-    <!-- ── Persona engine pickers ───────────────────────────────────────────
-         ⛔ EVERY LIST BELOW COMES FROM `workspace/persona/options`. The save route COERCES rather
-         than refusing: an unrecognised engine becomes `deepgram-pipeline` and an unrecognised voice
-         is stored and then replaced by the agent at synthesis time, both with a 200. -->
-    <string name="persona_engine_label">Engine</string>
+    <!-- ── Persona pickers ──────────────────────────────────────────────────
+         ⛔ BOTH LISTS COME FROM `workspace/persona/options`. The save route COERCES rather than
+         refusing, so a value typed or remembered is stored with a 200 and replaced later. -->
     <string name="persona_language_label">Language</string>
-    <string name="persona_voice_label">Voice</string>
     <string name="persona_response_length_label">Answer length</string>
-    <string name="persona_voice_style_label">Voice style</string>
-    <string name="persona_temperature_label">Variation</string>
-    <string name="persona_temperature_hint">Lower is more consistent, higher is more varied.</string>
-    <string name="persona_preemptive_tts_label">Start speaking early</string>
-    <string name="persona_preemptive_tts_body">Begins synthesising a reply before the answer is
-        finished. Faster, and it is charged for whatever it produces.</string>
-    <!-- ⛔ STATED, NEVER CORRECTED. A voice the catalogue has dropped is still what this workspace
-         speaks in today, and substituting it silently would change the agent because a list moved. -->
-    <string name="persona_voice_off_catalogue">%1$s is not in the current list for this engine and
-        language. It is still what the agent uses.</string>
+
+    <!-- ── Voice Studio ─────────────────────────────────────────────────────
+         ⛔ THE STUDIO'S OWN LABELS ARRIVE FROM THE SERVER IN THE READER'S PORTAL LANGUAGE and are
+         shown verbatim. Only this app's chrome is here: the title before the read lands, the hub
+         row, the change count, and a meter for an unsaved edit the server has not described. The
+         numbers in those are measured medians the server sent; nothing here estimates one. -->
+    <string name="voice_studio_title">Voice Studio</string>
+    <string name="workspace_settings_voice_studio_subtitle">Recipes, the signal chain, voices and
+        tuning, with how fast the agent replies.</string>
+    <plurals name="voice_studio_based_on">
+        <item quantity="one">Based on %1$s, %2$d change</item>
+        <item quantity="other">Based on %1$s, %2$d changes</item>
+    </plurals>
+    <string name="voice_studio_meter_about">About %1$s ms</string>
+    <!-- ⛔ "AT LEAST", NEVER "ABOUT", WHEN A STAGE IS UNMEASURED. The missing stage is not
+         estimated, so the real time is longer than the sum shown. -->
+    <string name="voice_studio_meter_at_least">At least %1$s ms</string>
+    <string name="voice_studio_ms">%1$s ms</string>
+    <string name="voice_studio_use_default">Use the default</string>
+    <string name="voice_studio_selected">Selected</string>
+    <string name="voice_studio_advanced_show">Show</string>
+    <string name="voice_studio_advanced_hide">Hide</string>
 
     <!-- ── Persona preview ──────────────────────────────────────────────────
          ⛔ A REAL, BILLED CALL TO THE WORKSPACE'S OWN VOICE AGENT, NOT A DRY RUN. Capped at 10 a

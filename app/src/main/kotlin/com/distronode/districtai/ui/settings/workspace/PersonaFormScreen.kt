@@ -24,7 +24,9 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.districtFieldColors
-import com.distronode.districtai.core.model.AiPersona
+import com.distronode.districtai.ui.resolve
+import com.distronode.districtai.ui.settings.workspace.studio.PickerOption
+import com.distronode.districtai.ui.settings.workspace.studio.StudioPicker
 
 /**
  * The agent persona form.
@@ -36,13 +38,10 @@ import com.distronode.districtai.core.model.AiPersona
  * anyway" is a habit that deletes a workspace's transfer directory the first time it is copied to
  * the wrong screen.
  *
- * ⛔ THREE EDITABLE FIELDS, AND THE REST OF THE PERSONA IS SHOWN READ-ONLY ON PURPOSE. `voice`,
- * `language`, `modelId`, `voiceStyle` and the avatar fields are drawn from server-side
- * vocabularies that COERCE rather than reject — an unrecognised `modelId` is silently rewritten
- * to `deepgram-pipeline`, an unrecognised `voice` is stored verbatim and the agent then speaks in
- * a voice nobody chose, and `responseLength` is a per-engine map the route only writes alongside
- * a valid `modelId`. All of those answer 200. Showing them is useful; letting a phone type into
- * them is not. See [PersonaField].
+ * ⛔ THREE FREE-TEXT FIELDS, AND TWO PICKERS FROM THE SERVER'S CATALOGUE. The language and the
+ * answer length are drawn from server-side vocabularies that COERCE rather than reject, so they are
+ * picked from `workspace/persona/options` and never typed. The engine, voice and tuning are the
+ * Voice Studio's (its own screen), and this form neither shows nor sends them. See [PersonaField].
  *
  * ⚠️ THE PENDING-EDIT WARNING IS ON BACK, not on save. The save button is disabled when nothing
  * is dirty, so the only way to lose work here is to leave.
@@ -54,9 +53,8 @@ fun PersonaFormScreen(
     onSave: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    onSelectEngine: (String) -> Unit,
     onSelectLanguage: (String) -> Unit,
-    onUpdateEngineValues: (PersonaEngineValues) -> Unit,
+    onSelectResponseLength: (String) -> Unit,
     onPreview: () -> Unit,
 ) {
     val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
@@ -82,11 +80,10 @@ fun PersonaFormScreen(
                 is ConfigState.Ready -> {
                     ContentContainer { PersonaFields(state, onEdit, onSave) }
                     ContentContainer {
-                        EngineArea(
+                        IdentityArea(
                             state = state,
-                            onSelectEngine = onSelectEngine,
                             onSelectLanguage = onSelectLanguage,
-                            onUpdateValues = onUpdateEngineValues,
+                            onSelectResponseLength = onSelectResponseLength,
                             onRetry = onRetry,
                             onPreview = onPreview,
                         )
@@ -150,6 +147,7 @@ private fun PersonaFields(
         )
 
         SaveNotice(state = state.save, description = PERSONA_NOTICE_DESCRIPTION)
+        state.refit?.let { RefitNotice(it) }
 
         DistrictButton(
             text = stringResource(
@@ -197,54 +195,43 @@ private fun PersonaTextField(
 }
 
 /**
- * The engine and voice configuration, shown and not editable.
+ * The language and answer length, drawn from the server's catalogue, and the audition.
  *
- * ⛔ THIS IS NOT A PLACEHOLDER FOR CONTROLS THAT ARE COMING. Every value here belongs to a
- * server-side vocabulary that coerces a wrong answer instead of refusing it, so a mobile control
- * would be a way to silently retarget every subsequent call. It is displayed because an operator
- * reading a persona needs to know which brain is speaking it — and because a screen that hid it
- * would look like the whole persona.
- */
-/**
- * The engine half: server-driven pickers when the catalogue loaded, and the stored values
- * read-only when it did not.
+ * ⛔ A FAILED CATALOGUE READ OFFERS A RETRY, NEVER A BUILT-IN LIST. `PATCH workspace/persona`
+ * COERCES rather than rejects, so a hardcoded catalogue does not fail when it drifts; it produces
+ * a persona nobody chose, with a 200.
  *
- * ⛔ THE FALLBACK IS READ-ONLY TEXT, NEVER A BUILT-IN LIST. `PATCH workspace/persona` COERCES
- * rather than rejects — an unrecognised `modelId` becomes `deepgram-pipeline` and an unrecognised
- * `voice` is stored and then silently replaced by the agent, both with a 200 — so a hardcoded
- * catalogue does not fail when it drifts; it produces a persona nobody chose, with nothing
- * anywhere reporting the substitution. That is the exact failure the options route exists to
- * retire, and offering values from memory would reintroduce it.
- *
- * ⚠️ THE STORED VALUES ARE STILL SHOWN WHEN THE CATALOGUE FAILS. They are what the workspace is
- * speaking in today, and a blank panel would read as "unset" rather than "unavailable".
+ * ⛔ THE ENGINE, VOICE AND TUNING ARE NOT HERE. They are the Voice Studio's, a screen of its own
+ * in workspace settings; the note says so, so the persona does not read as engine-less.
  */
 @Composable
-private fun EngineArea(
+private fun IdentityArea(
     state: PersonaFormUiState,
-    onSelectEngine: (String) -> Unit,
     onSelectLanguage: (String) -> Unit,
-    onUpdateValues: (PersonaEngineValues) -> Unit,
+    onSelectResponseLength: (String) -> Unit,
     onRetry: () -> Unit,
     onPreview: () -> Unit,
 ) {
-    when (val options = state.options) {
-        PersonaOptionsState.Loading -> ConfigSkeleton()
-        is PersonaOptionsState.LoadFailed -> Column(
-            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-        ) {
-            ReadOnlyEngine(state.persona)
-            ConfigLoadFailure(failure = options.failure, onRetry = onRetry)
-        }
-        is PersonaOptionsState.Ready -> Column(
-            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-        ) {
-            PersonaEngineSection(
-                draft = options.draft,
-                enabled = !state.save.busy,
-                onSelectEngine = onSelectEngine,
-                onSelectLanguage = onSelectLanguage,
-                onUpdateValues = onUpdateValues,
+    Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+        // ⚠️ An `if` chain rather than an exhaustive `when`, whose synthetic last arm no test reaches.
+        val options = state.options
+        if (options is PersonaOptionsState.Ready) {
+            val enabled = !state.save.busy
+            StudioPicker(
+                label = stringResource(R.string.persona_language_label),
+                options = options.draft.languages.map { PickerOption(it.value, it.label) },
+                selected = options.draft.values.language,
+                enabled = enabled,
+                description = PERSONA_LANGUAGE_DESCRIPTION,
+                onSelect = onSelectLanguage,
+            )
+            StudioPicker(
+                label = stringResource(R.string.persona_response_length_label),
+                options = options.draft.responseLengths.map { PickerOption(it.value, it.label) },
+                selected = options.draft.values.responseLength,
+                enabled = enabled,
+                description = PERSONA_RESPONSE_LENGTH_DESCRIPTION,
+                onSelect = onSelectResponseLength,
             )
             // ⛔ THE AUDITION IS A REAL, BILLED CALL, and the button says so through the dialog it
             // opens rather than starting one on tap.
@@ -257,34 +244,18 @@ private fun EngineArea(
                     .padding(horizontal = DistrictTheme.spacing.gutter)
                     .semantics { contentDescription = PERSONA_PREVIEW_OPEN_DESCRIPTION },
             )
+        } else if (options is PersonaOptionsState.LoadFailed) {
+            ConfigLoadFailure(failure = options.failure, onRetry = onRetry)
+        } else {
+            ConfigSkeleton()
         }
-    }
-}
-
-/** ⚠️ The stored triple, shown verbatim when there is no catalogue to edit against. */
-@Composable
-private fun ReadOnlyEngine(persona: AiPersona?) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = PERSONA_ENGINE_DESCRIPTION },
-        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-    ) {
-        Eyebrow(stringResource(R.string.persona_engine_title))
         Text(
-            text = stringResource(
-                R.string.persona_engine_body,
-                persona?.modelId ?: stringResource(R.string.persona_engine_default),
-                persona?.voice ?: stringResource(R.string.persona_engine_default),
-                persona?.language ?: stringResource(R.string.persona_engine_default),
-            ),
+            text = stringResource(R.string.persona_voice_studio_note),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-        )
-        Text(
-            text = stringResource(R.string.persona_engine_read_only),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.mutedForeground,
+            modifier = Modifier
+                .padding(horizontal = DistrictTheme.spacing.gutter)
+                .semantics { contentDescription = PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION },
         )
     }
 }
@@ -295,8 +266,11 @@ const val PERSONA_NAME_DESCRIPTION: String = "district-persona-name"
 const val PERSONA_GREETING_DESCRIPTION: String = "district-persona-greeting"
 const val PERSONA_PERSONALITY_DESCRIPTION: String = "district-persona-personality"
 const val PERSONA_SAVE_DESCRIPTION: String = "district-persona-save"
+const val PERSONA_REFIT_DESCRIPTION: String = "district-persona-refit"
 const val PERSONA_NOTICE_DESCRIPTION: String = "district-persona-notice"
-const val PERSONA_ENGINE_DESCRIPTION: String = "district-persona-engine"
+const val PERSONA_LANGUAGE_DESCRIPTION: String = "district-persona-language"
+const val PERSONA_RESPONSE_LENGTH_DESCRIPTION: String = "district-persona-response-length"
+const val PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION: String = "district-persona-voice-studio-note"
 const val PERSONA_PREVIEW_OPEN_DESCRIPTION: String = "district-persona-preview-open"
 
 /**
@@ -310,4 +284,28 @@ val PERSONA_EDITABLE_DESCRIPTIONS: List<String> = listOf(
     PERSONA_GREETING_DESCRIPTION,
     PERSONA_PERSONALITY_DESCRIPTION,
     PERSONA_SAVE_DESCRIPTION,
+    PERSONA_LANGUAGE_DESCRIPTION,
+    PERSONA_RESPONSE_LENGTH_DESCRIPTION,
 )
+
+/** How fitting the voice chain to a new language went. See [PersonaRefit]. */
+@Composable
+private fun RefitNotice(refit: PersonaRefit) {
+    val text = when (refit) {
+        PersonaRefit.Running -> stringResource(R.string.persona_refit_running)
+        PersonaRefit.Refitted -> stringResource(R.string.persona_refit_done)
+        PersonaRefit.NoFit -> stringResource(R.string.persona_refit_no_fit)
+        PersonaRefit.NotSeen -> stringResource(R.string.persona_refit_not_seen)
+        is PersonaRefit.Failed -> stringResource(R.string.persona_refit_failed, refit.failure.message.resolve())
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = if (refit is PersonaRefit.Failed || refit == PersonaRefit.NoFit) {
+            DistrictTheme.colors.destructive
+        } else {
+            DistrictTheme.colors.foreground
+        },
+        modifier = Modifier.semantics { contentDescription = PERSONA_REFIT_DESCRIPTION },
+    )
+}

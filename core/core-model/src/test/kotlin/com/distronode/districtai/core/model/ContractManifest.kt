@@ -30,7 +30,7 @@ internal object ContractManifest {
      * without re-counting. A new fixture should arrive DECODED by its own test, so the count moves
      * and [NOT_YET_MODELLED] does not grow, which it may not.
      */
-    const val EXPECTED_FIXTURE_COUNT: Int = 156
+    const val EXPECTED_FIXTURE_COUNT: Int = 157
 
     /**
      * ⛔ SHRINK-ONLY RATCHET. [NOT_YET_MODELLED] may LOSE entries and must never gain one.

@@ -7,10 +7,9 @@ import com.distronode.districtai.ui.FailureText
 enum class PersonaField { NAME, GREETING, PERSONALITY }
 
 /**
- * Whether the persona form may offer its engine, language and voice pickers at all.
+ * Whether the persona form may offer its language and answer-length pickers at all.
  *
- * ⛔ A FAILED READ MAKES THE ENGINE SECTION READ-ONLY AND MUST NEVER FALL BACK TO A BUILT-IN
- * CATALOGUE. `PATCH workspace/persona` COERCES rather than rejects, so a hardcoded list does not
+ * ⛔ A FAILED READ HIDES THOSE PICKERS AND MUST NEVER FALL BACK TO A BUILT-IN CATALOGUE. `PATCH workspace/persona` COERCES rather than rejects, so a hardcoded list does not
  * fail when it drifts — every value it offered would still be accepted, stored, and then quietly
  * substituted by the agent, with a 200 and nothing anywhere reporting it. That is the exact failure
  * `workspace/persona/options` exists to retire.
@@ -23,9 +22,31 @@ sealed interface PersonaOptionsState {
 
     data object Loading : PersonaOptionsState
 
-    data class Ready(val draft: PersonaEngineDraft) : PersonaOptionsState
+    data class Ready(val draft: PersonaIdentityDraft) : PersonaOptionsState
 
     data class LoadFailed(val failure: FailureText) : PersonaOptionsState
+}
+
+/**
+ * Fitting a chain of the member's own to a new language, after the save that changed it (see
+ * [PersonaFormViewModel.save] and `studio/StudioRefit`).
+ */
+sealed interface PersonaRefit {
+
+    /** Reading the Studio for the new language, saving the moved chain, or reading it back. */
+    data object Running : PersonaRefit
+
+    /** Moved, and the read after the save shows the server accepting the chain. */
+    data object Refitted : PersonaRefit
+
+    /** No model this workspace may use speaks the new language for the ear or the voice. */
+    data object NoFit : PersonaRefit
+
+    /** Could not be moved: a read or the second save failed. */
+    data class Failed(val failure: FailureText) : PersonaRefit
+
+    /** Saved, and the read after it does not show it fitting, or could not be taken. */
+    data object NotSeen : PersonaRefit
 }
 
 data class PersonaFormUiState(
@@ -33,11 +54,12 @@ data class PersonaFormUiState(
     val edits: Map<PersonaField, String> = emptyMap(),
     val save: SaveState = SaveState.Idle,
     val options: PersonaOptionsState = PersonaOptionsState.Loading,
+    val refit: PersonaRefit? = null,
 ) {
 
     val persona: AiPersona? get() = (load as? ConfigState.Ready)?.config?.aiPersona
 
-    val draft: PersonaEngineDraft? get() = (options as? PersonaOptionsState.Ready)?.draft
+    val draft: PersonaIdentityDraft? get() = (options as? PersonaOptionsState.Ready)?.draft
 
     fun stored(field: PersonaField): String = when (field) {
         PersonaField.NAME -> persona?.name
@@ -50,16 +72,12 @@ data class PersonaFormUiState(
     val dirtyFields: Set<PersonaField>
         get() = edits.filter { (field, draft) -> draft != stored(field) }.keys
 
-    /** ⚠️ Empty when the catalogue never loaded, which is why the engine section is read-only then. */
-    val engineChanges: PersonaEngineChanges
-        get() = draft?.changes ?: PersonaEngineChanges()
+    /** ⚠️ False when the catalogue never loaded, which is why those pickers are absent then. */
+    val hasUnsavedChanges: Boolean get() = dirtyFields.isNotEmpty() || draft?.isDirty == true
 
-    val hasUnsavedChanges: Boolean get() = dirtyFields.isNotEmpty() || !engineChanges.isEmpty
-
-    /** ⚠️ A null draft (no catalogue) has no engine edits to refuse. See [PersonaEngineDraft.engineSelectable]. */
     val canSave: Boolean
-        get() = load is ConfigState.Ready && save != SaveState.Saving && hasUnsavedChanges &&
-            draft?.engineSelectable != false
+        get() = load is ConfigState.Ready && save != SaveState.Saving && refit != PersonaRefit.Running &&
+            hasUnsavedChanges
 
     /**
      * ⛔ THE PREVIEW NEEDS THE CATALOGUE, NOT JUST A LOADED CONFIG. A `modelId` the registry does

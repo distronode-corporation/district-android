@@ -34,3 +34,15 @@ dependencies {
 // without re-reading from the top — the offsets have already shifted. Adding Room before there
 // is a real offline requirement would buy a schema, a migration story and an invalidation
 // problem in exchange for nothing.
+
+// ── Contract fixture (Voice Studio) ──────────────────────────────────────────
+// VoiceStudioRepositoryTest decodes the committed Studio fixture through core-network's
+// `VoiceStudioFixture`. Same wiring as core-model; ⛔ `inputs.dir` keeps a fixture change from
+// leaving this task UP-TO-DATE.
+tasks.withType<Test>().configureEach {
+    val contractsDir = rootProject.file("contracts")
+    systemProperty("district.contracts.dir", contractsDir.absolutePath)
+    inputs.dir(contractsDir)
+        .withPropertyName("androidContractFixtures")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

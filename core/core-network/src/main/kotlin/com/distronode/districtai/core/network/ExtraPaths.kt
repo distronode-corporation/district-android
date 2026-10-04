@@ -32,6 +32,12 @@ internal object ExtraPaths {
      */
     val WORKSPACE_PERSONA_OPTIONS: List<String> = DistrictPaths.WORKSPACE_PERSONA + "options"
 
+    /**
+     * ⛔ ALSO A CHILD OF `workspace/persona`. The Studio READS here and WRITES through the persona
+     * PATCH itself; there is no `voice-studio` write.
+     */
+    val WORKSPACE_PERSONA_VOICE_STUDIO: List<String> = DistrictPaths.WORKSPACE_PERSONA + "voice-studio"
+
     /** ⛔ Its sibling, and the only route on this surface that starts a billed media session. */
     val WORKSPACE_PERSONA_PREVIEW_TOKEN: List<String> = DistrictPaths.WORKSPACE_PERSONA + "preview-token"
 

@@ -455,6 +455,8 @@ class RoutesTest {
                 Routes.workspaceSettings("ws-1", WorkspaceRole.AGENCY, Routes.SECTION_MESSAGING),
             Routes.WORKSPACE_SETTINGS_MEMBERS to
                 Routes.workspaceSettings("ws-1", WorkspaceRole.AGENCY, Routes.SECTION_MEMBERS),
+            Routes.WORKSPACE_SETTINGS_VOICE_STUDIO to
+                Routes.workspaceSettings("ws-1", WorkspaceRole.AGENCY, Routes.SECTION_VOICE_STUDIO),
         ).forEach { (template, built) ->
             assertEquals(
                 "$built must have the same shape as $template",
@@ -502,6 +504,14 @@ class RoutesTest {
             com.distronode.districtai.ui.settings.workspace.SECTION_MEMBERS,
             Routes.SECTION_MEMBERS,
         )
+        assertEquals(
+            com.distronode.districtai.ui.settings.workspace.SECTION_VOICE_STUDIO,
+            Routes.SECTION_VOICE_STUDIO,
+        )
+        assertEquals(
+            "workspace/ws-1/settings/agency/voice-studio",
+            Routes.workspaceSettings("ws-1", WorkspaceRole.AGENCY, Routes.SECTION_VOICE_STUDIO),
+        )
     }
 
     @Test
@@ -516,6 +526,7 @@ class RoutesTest {
             Routes.WORKSPACE_SETTINGS_KNOWLEDGE,
             Routes.WORKSPACE_SETTINGS_MESSAGING,
             Routes.WORKSPACE_SETTINGS_MEMBERS,
+            Routes.WORKSPACE_SETTINGS_VOICE_STUDIO,
         ).forEach { template ->
             assertTrue("$template must nest under the hub", template.startsWith(Routes.WORKSPACE_SETTINGS))
         }

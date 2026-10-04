@@ -1,6 +1,9 @@
 package com.distronode.districtai.core.network
 
+import com.distronode.districtai.core.model.EngineMix
+import com.distronode.districtai.core.model.PersonaPatchRequest
 import com.distronode.districtai.core.model.PersonaPreviewForm
+import java.io.File
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -129,5 +132,61 @@ class PersonaRequestTest {
         val form = body["formData"] as JsonObject
         assertEquals("false", form["preemptiveTts"]?.jsonPrimitive?.content)
         assertEquals("0.0", form["temperature"]?.jsonPrimitive?.content)
+    }
+
+    private fun fixture(name: String): String {
+        val configured = System.getProperty("district.contracts.dir")
+        assertTrue("district.contracts.dir is not set", !configured.isNullOrBlank())
+        val file = File(configured!!, name)
+        assertTrue("Missing contract fixture ${file.absolutePath}.", file.isFile)
+        return file.readText()
+    }
+
+    @Test
+    fun `the Voice Studio read is a GET on the persona route's child path, and the fixture decodes`() =
+        runTest {
+            server.enqueue(MockResponse(code = 200, body = fixture("district-voice-studio.json")))
+
+            val result = api().personaVoiceStudio("ws-7")
+
+            val recorded = server.takeRequest()
+            assertEquals("GET", recorded.method)
+            assertEquals("/api/district/workspace/persona/voice-studio", recorded.url.encodedPath)
+            assertEquals(setOf("workspaceId"), recorded.url.queryParameterNames)
+            assertEquals("ws-7", recorded.url.queryParameter("workspaceId"))
+            assertTrue(result is ApiResult.Success)
+            assertEquals("us", (result as ApiResult.Success).value.region)
+        }
+
+    @Test
+    fun `a refused chain is a 400 whose code names it, and the mix travels inside the PATCH`() = runTest {
+        // ⛔ `invalid_engine_mix` IS IN THE BODY, NOT A HEADER, and NOTHING was written: the screen
+        // must keep the operator's edits and say the chain was refused.
+        server.enqueue(
+            MockResponse(
+                code = 400,
+                body = """{"success":false,"error":"That voice chain cannot be saved.",""" +
+                    """"code":"invalid_engine_mix"}""",
+            ),
+        )
+        val studio = Json { ignoreUnknownKeys = true }
+            .parseToJsonElement(fixture("district-voice-studio.json")) as JsonObject
+        val mix = Json.decodeFromJsonElement(
+            EngineMix.serializer(),
+            ((studio["current"] as JsonObject)["chain"] as JsonObject)["engineMix"]!!,
+        )
+
+        val result = HttpDistrictApi(testApiClient(server, refreshApi)).savePersona(
+            PersonaPatchRequest(workspaceId = "ws-7", modelId = "custom-pipeline", engineMix = mix),
+        )
+
+        val body = Json.parseToJsonElement(server.takeRequest().body?.utf8().orEmpty()) as JsonObject
+        assertEquals("custom-pipeline", body["modelId"]?.jsonPrimitive?.content)
+        val sent = body["engineMix"] as JsonObject
+        assertEquals("1", sent["v"]?.jsonPrimitive?.content)
+        assertFalse("bilingual was not set and must not be sent", "bilingual" in body)
+        assertTrue(result is ApiResult.HttpFailure)
+        assertEquals(400, (result as ApiResult.HttpFailure).status)
+        assertEquals("invalid_engine_mix", result.code)
     }
 }

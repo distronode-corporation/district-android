@@ -126,5 +126,10 @@ internal object EndpointParity {
         // leave by DELETION here rather than by arriving on iOS, and when it does, this set
         // becomes empty rather than shorter.
         "schedulingSsoTarget",
+        // ⚠️ THE NATIVE VOICE STUDIO READ (`GET workspace/persona/voice-studio`), built for all
+        // three apps at once. The vendored iOS snapshot predates it; this entry leaves when the
+        // snapshot is refreshed from an iOS build that has it (under this name, or recorded in
+        // SPELLING_DELTAS if iOS spells it differently).
+        "personaVoiceStudio",
     )
 }

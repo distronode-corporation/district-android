@@ -107,6 +107,8 @@ import com.distronode.districtai.ui.settings.workspace.MessagingViewModel
 import com.distronode.districtai.ui.settings.workspace.PersonaFormScreen
 import com.distronode.districtai.ui.settings.workspace.PersonaPreviewHost
 import com.distronode.districtai.ui.settings.workspace.PersonaFormViewModel
+import com.distronode.districtai.ui.settings.workspace.studio.VoiceStudioScreen
+import com.distronode.districtai.ui.settings.workspace.studio.VoiceStudioViewModel
 import com.distronode.districtai.ui.settings.workspace.RoutingRulesScreen
 import com.distronode.districtai.ui.settings.workspace.RoutingRulesViewModel
 import com.distronode.districtai.ui.settings.workspace.WorkspaceSettingsScreen
@@ -1129,6 +1131,7 @@ fun DistrictNavHost(
                         factory = PersonaFormViewModel.factory(
                             container.workspaceConfigRepository,
                             container.personaOptionsRepository,
+                            container.voiceStudioRepository,
                             workspaceId,
                         ),
                     )
@@ -1154,12 +1157,31 @@ fun DistrictNavHost(
                             onSave = viewModel::save,
                             onRetry = viewModel::load,
                             onBack = { navController.popBackStack() },
-                            onSelectEngine = viewModel::selectEngine,
                             onSelectLanguage = viewModel::selectLanguage,
-                            onUpdateEngineValues = viewModel::updateValues,
+                            onSelectResponseLength = viewModel::selectResponseLength,
                             onPreview = openPreview,
                         )
                     }
+                }
+
+                composable(Routes.WORKSPACE_SETTINGS_VOICE_STUDIO) { entry ->
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val viewModel: VoiceStudioViewModel = viewModel(
+                        // ⚠️ Keyed on the workspace: every residency sentence the Studio shows is a
+                        // claim about ONE workspace's region.
+                        key = "workspace-voice-studio-$workspaceId",
+                        factory = VoiceStudioViewModel.factory(container.voiceStudioRepository, workspaceId),
+                    )
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+
+                    // ⛔ REPLAYS THE LOAD, NEVER THE SAVE, as on the persona form.
+                    OnSessionChanged(sessionEpoch, viewModel::load)
+
+                    VoiceStudioScreen(
+                        state = state,
+                        actions = viewModel,
+                        onBack = { navController.popBackStack() },
+                    )
                 }
 
                 composable(Routes.WORKSPACE_SETTINGS_CAPABILITIES) { entry ->
@@ -2094,6 +2116,14 @@ object Routes {
      */
     const val WORKSPACE_SETTINGS = "workspace/{workspaceId}/settings/{role}"
     const val WORKSPACE_SETTINGS_PERSONA = "workspace/{workspaceId}/settings/{role}/persona"
+
+    /**
+     * ⛔ A SIBLING OF THE PERSONA FORM, NEVER A CHILD OF IT. Both write the same persona PATCH,
+     * and a persona form left on the back stack under the Studio would come back holding the engine
+     * it loaded before the Studio changed it, then send that engine id with its next answer-length
+     * save. As siblings under the hub, leaving one destroys its ViewModel before the other opens.
+     */
+    const val WORKSPACE_SETTINGS_VOICE_STUDIO = "workspace/{workspaceId}/settings/{role}/voice-studio"
     const val WORKSPACE_SETTINGS_CAPABILITIES =
         "workspace/{workspaceId}/settings/{role}/capabilities"
 
@@ -2276,6 +2306,7 @@ object Routes {
 
     /** The section segments [workspaceSettings] appends. Matched to the templates above. */
     const val SECTION_PERSONA = "persona"
+    const val SECTION_VOICE_STUDIO = "voice-studio"
     const val SECTION_CAPABILITIES = "capabilities"
     const val SECTION_DIRECTORY = "directory"
     const val SECTION_ROUTING = "routing"

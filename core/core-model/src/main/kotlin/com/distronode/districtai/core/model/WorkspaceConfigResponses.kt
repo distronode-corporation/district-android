@@ -265,6 +265,20 @@ data class PersonaPatchRequest(
     val voiceStyle: String? = null,
     /** ⚠️ Every engine EXCEPT Gemini Live, which has no TTS stage to speculate ahead of. */
     val preemptiveTts: Boolean? = null,
+    /**
+     * The Voice Studio's chain, sent ONLY beside `modelId` `custom-pipeline`.
+     *
+     * ⛔ THE ONE KEY ON THIS ROUTE THAT IS REFUSED RATHER THAN COERCED. A mix the catalogue does
+     * not accept (an unknown model, a voice or location not offered, a language a leg cannot
+     * speak, too many key terms) answers 400 `invalid_engine_mix` and writes NOTHING, the rest of
+     * the body included.
+     */
+    val engineMix: EngineMix? = null,
+    /**
+     * English and French on one call. ⚠️ Only meaningful on `custom-pipeline` and
+     * `gemini-3.8-live` with an English or French persona; the route ignores it elsewhere.
+     */
+    val bilingual: Boolean? = null,
 )
 
 /**

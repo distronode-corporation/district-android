@@ -9,7 +9,7 @@ import org.junit.Test
  * Turns [ContractManifest] from a comment into a gate.
  *
  * ⛔ WHAT THIS PREVENTS, CONCRETELY. `ContractFixtureTest.contracts directory contains fixtures`
- * asserts the directory is NOT EMPTY. That is a floor of one: 155 of the 156 committed fixtures
+ * asserts the directory is NOT EMPTY. That is a floor of one: 156 of the 157 committed fixtures
  * could stop being decoded by anything and the suite would still be green, and a fixture the
  * website's generator adds for a brand-new endpoint arrives silently. These four tests make both
  * events a named, one-line failure.
@@ -32,7 +32,7 @@ import org.junit.Test
  *
  * ⚠️ THE SCAN CANNOT PASS VACUOUSLY EITHER, AND THAT IS BY CONSTRUCTION RATHER THAN BY LUCK. If
  * the walk finds nothing — wrong property, moved module, pruned checkout — the decoded set is
- * empty, and `every fixture is decoded or recorded as not yet modelled` then reports all 152
+ * empty, and `every fixture is decoded or recorded as not yet modelled` then reports all 153
  * decoded fixtures as unaccounted for. The failure is loud and names them.
  *
  * ⚠️ THE ONE SOFTNESS, STATED RATHER THAN HIDDEN: a fixture name written inside a COMMENT in a

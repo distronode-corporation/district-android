@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -60,14 +61,8 @@ class PersonaFormScreenTest {
         ),
     )
 
-    /**
-     * A catalogue with one in-region engine and one that is not.
-     *
-     * ⛔ THE OUT-OF-REGION ROW IS PART OF THE FIXTURE ON PURPOSE. `inRegion: false` is
-     * selectable-LOOKING and not selectable, and the label is what says where its audio would be
-     * processed — a screen that hid it would be hiding a residency statement.
-     */
-    private val catalogue = PersonaEngineDraft.hydrate(
+    /** A catalogue for the stored engine: its languages and answer lengths. */
+    private val catalogue = PersonaIdentityDraft.hydrate(
         persona = loaded.config.aiPersona,
         options = PersonaOptionsResponse(
             success = true,
@@ -77,7 +72,10 @@ class PersonaFormScreenTest {
                     id = "deepgram-pipeline",
                     label = "Deepgram Pipeline — US (processed in your region)",
                     inRegion = true,
-                    responseLengths = listOf(PersonaLabelledValue("concise", "Concise")),
+                    responseLengths = listOf(
+                        PersonaLabelledValue("concise", "Concise"),
+                        PersonaLabelledValue("balanced", "Balanced"),
+                    ),
                 ),
                 PersonaEngineOption(
                     id = "elevenlabs-pipeline",
@@ -87,7 +85,10 @@ class PersonaFormScreenTest {
                 ),
             ),
             languages = PersonaLanguageCatalog(
-                deepgram = listOf(PersonaLabelledValue("en-US", "English (US)")),
+                deepgram = listOf(
+                    PersonaLabelledValue("en-US", "English (US)"),
+                    PersonaLabelledValue("it-IT", "Italian"),
+                ),
                 general = listOf(PersonaLabelledValue("en-US", "English (US)")),
             ),
             voices = listOf(
@@ -118,6 +119,8 @@ class PersonaFormScreenTest {
         onSave: () -> Unit = {},
         onRetry: () -> Unit = {},
         onBack: () -> Unit = {},
+        onSelectLanguage: (String) -> Unit = {},
+        onSelectResponseLength: (String) -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -127,9 +130,8 @@ class PersonaFormScreenTest {
                     onSave = onSave,
                     onRetry = onRetry,
                     onBack = onBack,
-                    onSelectEngine = {},
-                    onSelectLanguage = {},
-                    onUpdateEngineValues = {},
+                    onSelectLanguage = onSelectLanguage,
+                    onSelectResponseLength = onSelectResponseLength,
                     onPreview = {},
                 )
             }
@@ -216,13 +218,10 @@ class PersonaFormScreenTest {
     }
 
     @Test
-    fun `a failed catalogue read shows the stored engine and offers NO picker`() {
-        // ⛔ THE FALLBACK IS READ-ONLY TEXT, NEVER A BUILT-IN LIST. `PATCH workspace/persona`
-        // COERCES rather than refusing — an unrecognised engine becomes `deepgram-pipeline` and an
-        // unrecognised voice is stored and then replaced by the agent, both with a 200 — so a
-        // hardcoded catalogue would not fail when it drifted; it would produce a persona nobody
-        // chose. ⚠️ The stored values are still SHOWN, because they are what the workspace speaks
-        // in today and a blank panel would read as "unset" rather than "unavailable".
+    fun `a failed catalogue read offers a retry and NO picker, never a built-in list`() {
+        // ⛔ `PATCH workspace/persona` COERCES rather than refusing, so a hardcoded catalogue would
+        // not fail when it drifted; it would produce a persona nobody chose. The text boxes stay.
+        var retries = 0
         render(
             PersonaFormUiState(
                 load = loaded,
@@ -230,50 +229,46 @@ class PersonaFormScreenTest {
                     FailureText(UiText.Literal("The list could not be loaded.")),
                 ),
             ),
+            onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText(
-            "Engine deepgram-pipeline · Voice aura-2-asteria-en · Language en-US",
-        ).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_PICKER_DESCRIPTION)
-            .assertDoesNotExist()
+        composeRule.onNodeWithText("The list could not be loaded.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
+        assertEquals(1, retries)
     }
 
     @Test
-    fun `a loaded catalogue offers the pickers and the audition, and no free-text engine box`() {
-        // ⛔ THE WHOLE POINT OF THE OPTIONS ROUTE. Every value on offer is the server's own, so a
-        // save cannot store one the registry will silently rewrite.
+    fun `a loaded catalogue offers the language, the answer length and the audition, and points at the Studio`() {
+        // ⛔ THE ENGINE, VOICE AND TUNING ARE THE VOICE STUDIO'S. The note says where they went,
+        // so the persona does not read as one with no voice.
         render(PersonaFormUiState(load = loaded, options = PersonaOptionsState.Ready(catalogue)))
 
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_SECTION_DESCRIPTION)
-            .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_PICKER_DESCRIPTION)
-            .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_VOICE_PICKER_DESCRIPTION)
-            .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_OPEN_DESCRIPTION)
-            .assertIsDisplayed()
-        // ⛔ THE READ-ONLY FALLBACK MUST NOT BE DRAWN AS WELL. Two descriptions of the same three
-        // values, one of them stale, is worse than either alone.
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("English (US)").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("Concise").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_OPEN_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
-    fun `an out-of-region engine is offered as a disabled row rather than hidden`() {
-        // ⛔ ITS LABEL CARRIES THE RESIDENCY CLAIM. Hiding it leaves an operator unable to see why
-        // their region offers fewer choices; offering it would make a data-residency decision on a
-        // settings screen, silently, with a 200.
-        render(PersonaFormUiState(load = loaded, options = PersonaOptionsState.Ready(catalogue)))
+    fun `the pickers report the value chosen from the catalogue`() {
+        val picked = mutableListOf<String>()
+        render(
+            PersonaFormUiState(load = loaded, options = PersonaOptionsState.Ready(catalogue)),
+            onSelectLanguage = { picked += "language:$it" },
+            onSelectResponseLength = { picked += "length:$it" },
+        )
 
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_PICKER_DESCRIPTION).performClick()
+        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION).performClick()
+        composeRule.onNodeWithText("Italian").performClick()
+        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION).performClick()
+        composeRule.onNodeWithText("Balanced").performClick()
 
-        composeRule.onNodeWithContentDescription(
-            personaEngineOptionDescription("deepgram-pipeline"),
-        ).assertIsEnabled()
-        composeRule.onNodeWithContentDescription(
-            personaEngineOptionDescription("elevenlabs-pipeline"),
-        ).assertIsNotEnabled()
+        assertEquals(listOf("language:it-IT", "length:balanced"), picked)
     }
 
     @Test
@@ -410,22 +405,7 @@ class PersonaFormScreenTest {
     // ── The rest of the states ───────────────────────────────────────────────
 
     @Test
-    fun `a failed catalogue read on a workspace with no persona says every engine value is not set`() {
-        // ⚠️ "NOT SET" RATHER THAN BLANK. A blank panel would read as a rendering fault, not as a
-        // workspace that has never chosen.
-        render(
-            PersonaFormUiState(
-                load = ConfigState.Ready(WorkspaceConfig()),
-                options = PersonaOptionsState.LoadFailed(FailureText(UiText.Literal("Offline."))),
-            ),
-        )
-
-        composeRule.onNodeWithText("Engine not set · Voice not set · Language not set")
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun `saving locks the engine pickers as well as the text boxes`() {
+    fun `saving locks the pickers as well as the text boxes`() {
         render(
             PersonaFormUiState(
                 load = loaded,
@@ -435,7 +415,9 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_ENGINE_PICKER_DESCRIPTION)
+        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION)
+            .assertHasNoClickAction()
+        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION)
             .assertHasNoClickAction()
         composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
     }
@@ -460,9 +442,8 @@ class PersonaFormScreenTest {
                     onSave = {},
                     onRetry = {},
                     onBack = onBack,
-                    onSelectEngine = {},
                     onSelectLanguage = {},
-                    onUpdateEngineValues = {},
+                    onSelectResponseLength = {},
                     onPreview = {},
                 )
             }
@@ -481,5 +462,37 @@ class PersonaFormScreenTest {
         composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
 
         assertEquals(listOf("NAME:Cara", "GREETING:Hi.", "PERSONALITY:Brisk.", "back"), calls)
+    }
+
+    @Test
+    fun `fitting the voice chain to a new language says how it went`() {
+        val state = mutableStateOf(PersonaFormUiState(load = loaded, refit = PersonaRefit.Running))
+        composeRule.setContent {
+            DistrictTheme {
+                PersonaFormScreen(state.value, { _, _ -> }, {}, {}, {}, {}, {}, {})
+            }
+        }
+        val notice = composeRule.onNodeWithContentDescription(PERSONA_REFIT_DESCRIPTION)
+        notice.assertTextEquals("Checking that the voice chain speaks the new language.")
+
+        state.value = state.value.copy(refit = PersonaRefit.Refitted)
+        notice.assertTextEquals(
+            "The voice chain was moved to models that speak the new language. Voice Studio shows it.",
+        )
+        state.value = state.value.copy(refit = PersonaRefit.NoFit)
+        notice.assertTextEquals(
+            "No model this workspace may use speaks the new language for every part of the voice chain. " +
+                "Choose them in Voice Studio.",
+        )
+        state.value = state.value.copy(refit = PersonaRefit.NotSeen)
+        notice.assertTextEquals(
+            "The voice chain was saved, but Voice Studio does not show it fitting the new language. Check it there.",
+        )
+        state.value = state.value.copy(refit = PersonaRefit.Failed(FailureText(UiText.Literal("Refused."))))
+        notice.assertTextEquals(
+            "The voice chain could not be moved to the new language. Fit it in Voice Studio. Refused.",
+        )
+        state.value = state.value.copy(refit = null)
+        composeRule.onNodeWithContentDescription(PERSONA_REFIT_DESCRIPTION).assertDoesNotExist()
     }
 }

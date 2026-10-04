@@ -8,11 +8,13 @@ import com.distronode.districtai.core.model.MessageThreadResponse
 import com.distronode.districtai.core.model.PersonaOptionsResponse
 import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.core.model.PersonaPreviewTokenResponse
+import com.distronode.districtai.core.model.VoiceStudioResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.CallControlApi
 import com.distronode.districtai.core.network.CallHandlingApi
 import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
+import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 
 /**
@@ -38,6 +40,18 @@ class FakePersonaApi : PersonaApi {
     val previewCalls = mutableListOf<Pair<String, PersonaPreviewForm>>()
 
     override suspend fun personaOptions(workspaceId: String) = optionsResult
+
+    /** ⚠️ No default success: a Studio read is a large object a test builds on purpose. */
+    var voiceStudioResults: ArrayDeque<ApiResult<VoiceStudioResponse>> = ArrayDeque()
+
+    /** Every Studio read, by workspace. */
+    val voiceStudioCalls = mutableListOf<String>()
+
+    override suspend fun personaVoiceStudio(workspaceId: String): ApiResult<VoiceStudioResponse> {
+        voiceStudioCalls += workspaceId
+        return voiceStudioResults.removeFirstOrNull()
+            ?: ApiResult.NetworkFailure(IOException("no Studio read queued"))
+    }
 
     /** When set, [personaPreviewToken] waits for it before returning: a mint still in flight. */
     var previewGate: CompletableDeferred<Unit>? = null

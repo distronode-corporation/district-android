@@ -8,6 +8,17 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Added
+
+- Voice Studio, in workspace settings: pick a starting point, see the signal chain from Ear to
+  Voice with where each part is processed and how fast the agent starts to reply, and fine-tune
+  any part of the call. Its words follow your portal language.
+
+### Changed
+
+- The agent persona screen keeps the name, greeting, character, language and answer length. The
+  voice and engine are set in Voice Studio.
+
 ### Removed
 
 - A call no longer offers to play a recording. Calls are not recorded; the transcript is the

@@ -4,6 +4,7 @@ import com.distronode.districtai.core.model.PersonaOptionsResponse
 import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.core.model.PersonaPreviewTokenRequest
 import com.distronode.districtai.core.model.PersonaPreviewTokenResponse
+import com.distronode.districtai.core.model.VoiceStudioResponse
 
 /**
  * [PersonaApi] over [DistrictApiClient].
@@ -19,6 +20,13 @@ class HttpPersonaApi(private val client: DistrictApiClient) : PersonaApi {
         client.get(
             segments = ExtraPaths.WORKSPACE_PERSONA_OPTIONS,
             serializer = PersonaOptionsResponse.serializer(),
+            query = mapOf("workspaceId" to workspaceId),
+        )
+
+    override suspend fun personaVoiceStudio(workspaceId: String): ApiResult<VoiceStudioResponse> =
+        client.get(
+            segments = ExtraPaths.WORKSPACE_PERSONA_VOICE_STUDIO,
+            serializer = VoiceStudioResponse.serializer(),
             query = mapOf("workspaceId" to workspaceId),
         )
 

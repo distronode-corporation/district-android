@@ -3,6 +3,7 @@ package com.distronode.districtai.core.network
 import com.distronode.districtai.core.model.PersonaOptionsResponse
 import com.distronode.districtai.core.model.PersonaPreviewForm
 import com.distronode.districtai.core.model.PersonaPreviewTokenResponse
+import com.distronode.districtai.core.model.VoiceStudioResponse
 
 /**
  * The persona form's vocabularies, and the credential for auditioning one.
@@ -43,6 +44,20 @@ interface PersonaApi {
      * ⚠️ IT EXCLUDES `viewer` SERVER-SIDE, the same bar the save route and `workspace/config` set.
      */
     suspend fun personaOptions(workspaceId: String): ApiResult<PersonaOptionsResponse>
+
+    /**
+     * Everything the Voice Studio draws: recipes, the resolved signal chain, the time-to-first-word
+     * meter, the per-leg catalogue, voices and every tuning key, with every label already in the
+     * reader's PORTAL locale.
+     *
+     * ⛔ THE SAVE IS NOT HERE. The Studio writes through the existing persona PATCH, which refuses
+     * an invalid chain with 400 `invalid_engine_mix` and silently ignores a few wrong types with a
+     * 200; this read is how a client finds out which: re-read after every save and compare
+     * `current.fields` with what was sent.
+     *
+     * ⚠️ RATE LIMITED, 60/min per WORKSPACE, and excludes `viewer`, like [personaOptions].
+     */
+    suspend fun personaVoiceStudio(workspaceId: String): ApiResult<VoiceStudioResponse>
 
     /**
      * Mint a credential for one persona preview session.

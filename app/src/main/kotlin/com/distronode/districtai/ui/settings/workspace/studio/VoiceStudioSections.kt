@@ -7,23 +7,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.model.VoiceStudioLabels
 
 /** The signal chain: one block per leg (one for a realtime engine); tapping a block opens its editor. */
 @Composable
 internal fun ChainSection(state: VoiceStudioUiState.Ready, actions: VoiceStudioActions) {
     Eyebrow(state.studio.labels.chainLabel)
     StudioReadout.blocks(state.held.engine, state.studio).forEach { block ->
-        val notMeasured = state.studio.labels.notMeasured
-        ChainBlock(block, selected = block.leg == state.leg, notMeasured = notMeasured) @DontMemoize {
+        ChainBlock(block, block.leg == state.leg, state.studio.labels) @DontMemoize {
             actions.selectLeg(block.leg)
         }
     }
@@ -31,7 +29,7 @@ internal fun ChainSection(state: VoiceStudioUiState.Ready, actions: VoiceStudioA
 
 /** One block of the signal chain. Tapping it opens that leg's editor. */
 @Composable
-private fun ChainBlock(block: BlockView, selected: Boolean, notMeasured: String, onClick: () -> Unit) {
+private fun ChainBlock(block: BlockView, selected: Boolean, labels: VoiceStudioLabels, onClick: () -> Unit) {
     DistrictCard(
         onClick = onClick,
         modifier = Modifier.semantics(
@@ -48,7 +46,7 @@ private fun ChainBlock(block: BlockView, selected: Boolean, notMeasured: String,
         Text(block.model, style = MaterialTheme.typography.titleSmall, color = DistrictTheme.colors.foreground)
         Caption(block.role)
         Text(block.where, style = MaterialTheme.typography.bodySmall, color = residencyColor(block.inRegion))
-        Caption(latencyText(block.latency, notMeasured))
+        Caption(latencyText(block.latency, labels))
         block.note?.let { Caption(it) }
     }
 }
@@ -60,24 +58,15 @@ internal fun MeterSection(state: VoiceStudioUiState.Ready) {
     val meter = StudioReadout.meter(state.held.engine, state.studio)
     Eyebrow(labels.meterHeading)
     Caption(labels.meterDescription)
-    val headline = meter.headline
     Text(
-        // ⚠️ An `if` chain rather than an exhaustive `when`, whose synthetic last arm no test reaches.
-        text = if (headline is MeterHeadline.Server) {
-            headline.text
-        } else if (headline is MeterHeadline.Local) {
-            stringResource(
-                if (headline.atLeast) R.string.voice_studio_meter_at_least else R.string.voice_studio_meter_about,
-                formatMillis(headline.ms),
-            )
-        } else {
-            labels.notMeasured
-        },
+        text = StudioText.meter(meter.headline, labels),
         style = MaterialTheme.typography.titleMedium,
         color = DistrictTheme.colors.foreground,
         modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_METER_DESCRIPTION },
     )
-    meter.stages.forEach { stage -> Caption("${stage.label}: ${latencyText(stage.value, labels.notMeasured)}") }
+    meter.stages.forEach { stage ->
+        Caption("${stage.label}: ${latencyText(stage.value, labels)}")
+    }
     meter.note?.let { Caption(it) }
     Caption(state.studio.latency.sourceText)
 }
@@ -102,17 +91,14 @@ internal fun Caption(text: String) {
 }
 
 @Composable
-private fun latencyText(latency: LatencyText, notMeasured: String): String =
+private fun latencyText(latency: LatencyText, labels: VoiceStudioLabels): String =
     if (latency is LatencyText.Server) {
         latency.text
     } else if (latency is LatencyText.Millis) {
-        stringResource(R.string.voice_studio_ms, formatMillis(latency.ms))
+        StudioText.millis(latency.ms, labels)
     } else {
-        notMeasured
+        labels.notMeasured
     }
-
-/** ⚠️ Whole milliseconds in the device's own digits; the server's sentences carry their own. */
-private fun formatMillis(ms: Double): String = java.text.NumberFormat.getIntegerInstance().format(ms)
 
 /** ⛔ The badge TEXT carries the meaning; the tone only repeats it, as on the web. */
 internal fun channelTone(channel: String): Tone = when (channel) {

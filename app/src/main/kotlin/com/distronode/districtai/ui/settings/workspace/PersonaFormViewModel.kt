@@ -7,11 +7,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.SaveOutcome
+import com.distronode.districtai.core.data.VoiceStudioRepository
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.PersonaOptionsResponse
 import com.distronode.districtai.core.model.PersonaPatchRequest
+import com.distronode.districtai.core.model.VoiceStudioResponse
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.ui.settings.workspace.studio.StudioSave
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,10 +38,19 @@ import kotlinx.coroutines.launch
  *
  * ⚠️ THE TEXT HALF SURVIVES A FAILED CATALOGUE READ. Those three fields are free text on the
  * server too, so there is nothing for a catalogue to authorise and no reason to withhold them.
+ *
+ * ⛔ A NEW LANGUAGE CAN STRAND A CHAIN OF THE MEMBER'S OWN. The language is saved with the stored
+ * chain left as it was, and a `custom-pipeline` chain whose ear or voice does not speak the new
+ * language is one the server no longer accepts. So, as the web form and district-linux do, the
+ * Studio is read after that save; when its `current.engineMix` is null the chain is moved to the
+ * nearest offered models that speak the language ([PersonaChainRefit]), saved, and read back, and
+ * [PersonaFormUiState.refit] says how that went. The chain to move is the one stored BEFORE the
+ * save (the config read does not carry it), so the Studio is also read once before such a save.
  */
 class PersonaFormViewModel(
     private val repository: WorkspaceConfigRepository,
     private val personaOptions: PersonaOptionsRepository,
+    private val studio: VoiceStudioRepository,
     private val workspaceId: String,
 ) : ViewModel() {
 
@@ -127,8 +139,12 @@ class PersonaFormViewModel(
         val dirty = current.dirtyFields
         val identity = current.draft?.write ?: PersonaIdentityWrite()
 
-        _state.value = current.copy(save = SaveState.Saving)
+        // A chain of the member's own is fitted to a new language once the language is saved.
+        val refits = identity.language != null && current.persona?.modelId == StudioSave.CUSTOM_PIPELINE
+
+        _state.value = current.copy(save = SaveState.Saving, refit = null)
         viewModelScope.launch {
+            val before = if (refits) studio.load(workspaceId) else null
             val request = PersonaPatchRequest(
                 workspaceId = workspaceId,
                 name = current.value(PersonaField.NAME).takeIf { PersonaField.NAME in dirty },
@@ -141,8 +157,15 @@ class PersonaFormViewModel(
                 modelId = identity.modelId,
                 responseLength = identity.responseLength,
             )
-            applyOutcome(repository.savePersona(request))
+            val outcome = repository.savePersona(request)
+            applyOutcome(outcome)
+            if (before != null && outcome !is SaveOutcome.NotSaved) refit(before)
         }
+    }
+
+    private suspend fun refit(before: ApiResult<VoiceStudioResponse>) {
+        _state.value = _state.value.copy(refit = PersonaRefit.Running)
+        _state.value = _state.value.copy(refit = PersonaChainRefit(studio, workspaceId).after(before))
     }
 
     /**
@@ -173,9 +196,10 @@ class PersonaFormViewModel(
         fun factory(
             repository: WorkspaceConfigRepository,
             personaOptions: PersonaOptionsRepository,
+            studio: VoiceStudioRepository,
             workspaceId: String,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { PersonaFormViewModel(repository, personaOptions, workspaceId) }
+            initializer { PersonaFormViewModel(repository, personaOptions, studio, workspaceId) }
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -461,5 +462,37 @@ class PersonaFormScreenTest {
         composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
 
         assertEquals(listOf("NAME:Cara", "GREETING:Hi.", "PERSONALITY:Brisk.", "back"), calls)
+    }
+
+    @Test
+    fun `fitting the voice chain to a new language says how it went`() {
+        val state = mutableStateOf(PersonaFormUiState(load = loaded, refit = PersonaRefit.Running))
+        composeRule.setContent {
+            DistrictTheme {
+                PersonaFormScreen(state.value, { _, _ -> }, {}, {}, {}, {}, {}, {})
+            }
+        }
+        val notice = composeRule.onNodeWithContentDescription(PERSONA_REFIT_DESCRIPTION)
+        notice.assertTextEquals("Checking that the voice chain speaks the new language.")
+
+        state.value = state.value.copy(refit = PersonaRefit.Refitted)
+        notice.assertTextEquals(
+            "The voice chain was moved to models that speak the new language. Voice Studio shows it.",
+        )
+        state.value = state.value.copy(refit = PersonaRefit.NoFit)
+        notice.assertTextEquals(
+            "No model this workspace may use speaks the new language for every part of the voice chain. " +
+                "Choose them in Voice Studio.",
+        )
+        state.value = state.value.copy(refit = PersonaRefit.NotSeen)
+        notice.assertTextEquals(
+            "The voice chain was saved, but Voice Studio does not show it fitting the new language. Check it there.",
+        )
+        state.value = state.value.copy(refit = PersonaRefit.Failed(FailureText(UiText.Literal("Refused."))))
+        notice.assertTextEquals(
+            "The voice chain could not be moved to the new language. Fit it in Voice Studio. Refused.",
+        )
+        state.value = state.value.copy(refit = null)
+        composeRule.onNodeWithContentDescription(PERSONA_REFIT_DESCRIPTION).assertDoesNotExist()
     }
 }

@@ -85,6 +85,23 @@ data class VoiceStudioLabels(
     val legs: VoiceStudioLegLabels,
     val stages: VoiceStudioStageLabels,
     val channels: VoiceStudioChannelLabels,
+    // Templates and one value for text the client builds itself (the unsaved-edit meter and the
+    // "Based on" line). Each placeholder is replaced once, as literal text; the unit and its
+    // no-break space are already in the template.
+    /** `About {ms} ms`: the unsaved meter when every stage is measured. */
+    val meterAbout: String,
+    /** `At least {ms} ms`: the unsaved meter when some stage is not measured. */
+    val meterAtLeast: String,
+    /** The unsaved meter when nothing is measured. */
+    val meterNone: String,
+    /** Shown under [meterAtLeast]. */
+    val meterPartial: String,
+    /** A VALUE, not a template: inserted between 3-digit groups of a whole-ms total. */
+    val numberGrouping: String,
+    /** `Based on {recipe}, 1 change.` */
+    val basedOnOne: String,
+    /** `Based on {recipe}, {n} changes.` */
+    val basedOnMany: String,
 )
 
 @Serializable

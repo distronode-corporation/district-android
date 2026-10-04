@@ -628,6 +628,11 @@
     <string name="persona_personality">Character</string>
     <!-- ⚠️ Says out loud that blank means blank. The server stores an empty string verbatim, and
          "leave it blank to keep the old one" is what a reader would otherwise assume. -->
+    <string name="persona_refit_running">Checking that the voice chain speaks the new language.</string>
+    <string name="persona_refit_done">The voice chain was moved to models that speak the new language. Voice Studio shows it.</string>
+    <string name="persona_refit_no_fit">No model this workspace may use speaks the new language for every part of the voice chain. Choose them in Voice Studio.</string>
+    <string name="persona_refit_failed">The voice chain could not be moved to the new language. Fit it in Voice Studio. %1$s</string>
+    <string name="persona_refit_not_seen">The voice chain was saved, but Voice Studio does not show it fitting the new language. Check it there.</string>
     <string name="persona_clear_hint">Clearing a box saves it as empty. Anything you do not change
         is left exactly as it is.</string>
     <!-- ⚠️ SAYS WHERE THE ENGINE WENT. The persona form no longer shows the engine, voice or tuning,
@@ -1426,15 +1431,6 @@
     <string name="voice_studio_title">Voice Studio</string>
     <string name="workspace_settings_voice_studio_subtitle">Recipes, the signal chain, voices and
         tuning, with how fast the agent replies.</string>
-    <plurals name="voice_studio_based_on">
-        <item quantity="one">Based on %1$s, %2$d change</item>
-        <item quantity="other">Based on %1$s, %2$d changes</item>
-    </plurals>
-    <string name="voice_studio_meter_about">About %1$s ms</string>
-    <!-- ⛔ "AT LEAST", NEVER "ABOUT", WHEN A STAGE IS UNMEASURED. The missing stage is not
-         estimated, so the real time is longer than the sum shown. -->
-    <string name="voice_studio_meter_at_least">At least %1$s ms</string>
-    <string name="voice_studio_ms">%1$s ms</string>
     <string name="voice_studio_use_default">Use the default</string>
     <string name="voice_studio_selected">Selected</string>
     <string name="voice_studio_advanced_show">Show</string>

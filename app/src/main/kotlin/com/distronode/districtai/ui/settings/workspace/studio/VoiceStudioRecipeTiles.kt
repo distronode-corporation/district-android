@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -48,18 +47,13 @@ internal fun RecipeSection(state: VoiceStudioUiState.Ready, enabled: Boolean, ac
             actions.applyRecipe(recipe.id)
         }
     }
-    if (state.changes > 0) {
+    StudioText.basedOn(labels, state.baseName, state.changes)?.let { basedOn ->
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         ) {
             Text(
-                text = pluralStringResource(
-                    R.plurals.voice_studio_based_on,
-                    state.changes,
-                    state.baseName,
-                    state.changes,
-                ),
+                text = basedOn,
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.foreground,
                 modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_BASED_ON_DESCRIPTION },

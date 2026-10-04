@@ -103,7 +103,7 @@ class StudioReadoutTest {
             val meter = StudioReadout.meter(engine, studio)
             assertEquals(MeterHeadline.Local(520.0, atLeast = true), meter.headline)
             assertEquals(LatencyText.None, meter.stages[1].value)
-            assertEquals("Some steps are not measured yet, so the real time is longer.", meter.note)
+            assertEquals(studio.labels.meterPartial, meter.note)
             assertEquals(LatencyText.None, StudioReadout.blocks(engine, studio)[2].latency)
         }
     }

@@ -24,6 +24,7 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.districtFieldColors
+import com.distronode.districtai.ui.resolve
 import com.distronode.districtai.ui.settings.workspace.studio.PickerOption
 import com.distronode.districtai.ui.settings.workspace.studio.StudioPicker
 
@@ -146,6 +147,7 @@ private fun PersonaFields(
         )
 
         SaveNotice(state = state.save, description = PERSONA_NOTICE_DESCRIPTION)
+        state.refit?.let { RefitNotice(it) }
 
         DistrictButton(
             text = stringResource(
@@ -264,6 +266,7 @@ const val PERSONA_NAME_DESCRIPTION: String = "district-persona-name"
 const val PERSONA_GREETING_DESCRIPTION: String = "district-persona-greeting"
 const val PERSONA_PERSONALITY_DESCRIPTION: String = "district-persona-personality"
 const val PERSONA_SAVE_DESCRIPTION: String = "district-persona-save"
+const val PERSONA_REFIT_DESCRIPTION: String = "district-persona-refit"
 const val PERSONA_NOTICE_DESCRIPTION: String = "district-persona-notice"
 const val PERSONA_LANGUAGE_DESCRIPTION: String = "district-persona-language"
 const val PERSONA_RESPONSE_LENGTH_DESCRIPTION: String = "district-persona-response-length"
@@ -284,3 +287,25 @@ val PERSONA_EDITABLE_DESCRIPTIONS: List<String> = listOf(
     PERSONA_LANGUAGE_DESCRIPTION,
     PERSONA_RESPONSE_LENGTH_DESCRIPTION,
 )
+
+/** How fitting the voice chain to a new language went. See [PersonaRefit]. */
+@Composable
+private fun RefitNotice(refit: PersonaRefit) {
+    val text = when (refit) {
+        PersonaRefit.Running -> stringResource(R.string.persona_refit_running)
+        PersonaRefit.Refitted -> stringResource(R.string.persona_refit_done)
+        PersonaRefit.NoFit -> stringResource(R.string.persona_refit_no_fit)
+        PersonaRefit.NotSeen -> stringResource(R.string.persona_refit_not_seen)
+        is PersonaRefit.Failed -> stringResource(R.string.persona_refit_failed, refit.failure.message.resolve())
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = if (refit is PersonaRefit.Failed || refit == PersonaRefit.NoFit) {
+            DistrictTheme.colors.destructive
+        } else {
+            DistrictTheme.colors.foreground
+        },
+        modifier = Modifier.semantics { contentDescription = PERSONA_REFIT_DESCRIPTION },
+    )
+}

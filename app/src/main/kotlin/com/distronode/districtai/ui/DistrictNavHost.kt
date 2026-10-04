@@ -1131,6 +1131,7 @@ fun DistrictNavHost(
                         factory = PersonaFormViewModel.factory(
                             container.workspaceConfigRepository,
                             container.personaOptionsRepository,
+                            container.voiceStudioRepository,
                             workspaceId,
                         ),
                     )

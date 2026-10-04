@@ -2,14 +2,19 @@ package com.distronode.districtai.ui.settings.workspace
 
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.core.data.PersonaOptionsRepository
+import com.distronode.districtai.core.data.VoiceStudioRepository
 import com.distronode.districtai.core.data.WorkspaceConfigRepository
 import com.distronode.districtai.core.model.AiPersona
+import com.distronode.districtai.core.model.PersonaPatchRequest
+import com.distronode.districtai.core.model.VoiceStudioResponse
+import com.distronode.districtai.core.model.WorkspaceConfigSaveResponse
 import com.distronode.districtai.core.model.WorkspaceConfig
 import com.distronode.districtai.core.model.WorkspaceConfigResponse
 import com.distronode.districtai.core.network.ApiResult
 import java.io.IOException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,6 +24,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.distronode.districtai.core.network.testing.FakeDistrictApi
 import com.distronode.districtai.core.network.testing.FakePersonaApi
+import com.distronode.districtai.core.network.testing.VoiceStudioFixture
 import org.junit.Rule
 import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
@@ -65,6 +71,7 @@ class PersonaFormViewModelTest {
     ) = PersonaFormViewModel(
         WorkspaceConfigRepository(api),
         PersonaOptionsRepository(personaApi),
+        VoiceStudioRepository(personaApi, api),
         workspaceId = "ws-1",
     )
 
@@ -404,7 +411,12 @@ class PersonaFormViewModelTest {
         runTest {
             val api = api()
             val vm = PersonaFormViewModel
-                .factory(WorkspaceConfigRepository(api), PersonaOptionsRepository(catalogueApi()), "ws-1")
+                .factory(
+                    WorkspaceConfigRepository(api),
+                    PersonaOptionsRepository(catalogueApi()),
+                    VoiceStudioRepository(catalogueApi(), api),
+                    "ws-1",
+                )
                 .create(PersonaFormViewModel::class.java, CreationExtras.Empty)
             advanceUntilIdle()
 
@@ -412,4 +424,159 @@ class PersonaFormViewModelTest {
             assertEquals("Ada", vm.state.value.value(PersonaField.NAME))
             assertTrue(vm.state.value.options is PersonaOptionsState.Ready)
         }
+
+    // ── A new language for a chain of the member's own ──────────────────────
+
+    private val custom = storedPersona.copy(modelId = "custom-pipeline", language = "en-US")
+    private fun customApi() = api(WorkspaceConfig(aiPersona = custom))
+
+    private val fixture = VoiceStudioFixture.studio
+    private val mix = fixture.current.chain.engineMix!!
+
+    /** The Studio read for the stored custom chain, before the language save. */
+    private val before =
+        fixture.copy(current = fixture.current.copy(modelId = "custom-pipeline", engineMix = mix))
+
+    /** The Studio read for the new language: the stored chain no longer fits, and [mouths] speak it. */
+    private fun unfit(mouths: Set<String> = setOf("sonic-3")) = fixture.copy(
+        language = "it-IT",
+        current = fixture.current.copy(modelId = "custom-pipeline", engineMix = null),
+        catalog = fixture.catalog.copy(
+            stt = fixture.catalog.stt.map { it.copy(forLanguage = it.model == "flux-general-multi") },
+            tts = fixture.catalog.tts.map { it.copy(forLanguage = it.model in mouths) },
+        ),
+    )
+
+    private fun studioApi(vararg reads: ApiResult<VoiceStudioResponse>) = catalogueApi().apply {
+        voiceStudioResults = ArrayDeque(reads.toList())
+    }
+
+    private fun TestScope.languageSaved(
+        api: FakeDistrictApi,
+        personaApi: FakePersonaApi,
+    ): PersonaFormViewModel {
+        val vm = viewModel(api, personaApi)
+        advanceUntilIdle()
+        vm.selectLanguage("it-IT")
+        vm.save()
+        advanceUntilIdle()
+        return vm
+    }
+
+    @Test
+    fun `a stranded chain is moved to models that speak the new language, saved and read back`() = runTest {
+        val api = customApi()
+        val refitted = before.copy(language = "it-IT")
+        val personaApi = studioApi(
+            ApiResult.Success(before),
+            ApiResult.Success(unfit()),
+            ApiResult.Success(refitted),
+        )
+
+        val vm = languageSaved(api, personaApi)
+
+        assertEquals(PersonaRefit.Refitted, vm.state.value.refit)
+        assertEquals(3, personaApi.voiceStudioCalls.size)
+        val (language, moved) = api.personaPatches
+        assertEquals("it-IT", language.language)
+        assertNull("the language save leaves the chain alone", language.engineMix)
+        assertEquals("custom-pipeline", moved.modelId)
+        assertEquals("flux-general-multi", moved.engineMix!!.stt.model)
+        assertEquals("sonic-3", moved.engineMix!!.tts.model)
+        assertEquals(moved.engineMix!!.tts.voice, moved.voice)
+        assertNull("only the chain rides on the second save", moved.language)
+        assertFalse("nothing is left to save", vm.state.value.canSave)
+    }
+
+    @Test
+    fun `a chain the new language still accepts is left alone and nothing is said`() = runTest {
+        val api = customApi()
+        val personaApi = studioApi(ApiResult.Success(before), ApiResult.Success(before))
+
+        val vm = languageSaved(api, personaApi)
+
+        assertNull(vm.state.value.refit)
+        assertEquals(1, api.personaPatches.size)
+    }
+
+    @Test
+    fun `a moved chain the read back does not show fitting says so`() = runTest {
+        val api = customApi()
+        val stale = studioApi(ApiResult.Success(before), ApiResult.Success(unfit()), ApiResult.Success(unfit()))
+        assertEquals(PersonaRefit.NotSeen, languageSaved(api, stale).state.value.refit)
+
+        val unread = studioApi(ApiResult.Success(before), ApiResult.Success(unfit()))
+        assertEquals(PersonaRefit.NotSeen, languageSaved(customApi(), unread).state.value.refit)
+    }
+
+    @Test
+    fun `a second save that fails says the chain could not be moved`() = runTest {
+        val api = object : FakeDistrictApi() {
+            override suspend fun savePersona(
+                request: PersonaPatchRequest,
+            ): ApiResult<WorkspaceConfigSaveResponse> {
+                super.savePersona(request)
+                return if (request.engineMix == null) {
+                    ApiResult.Success(WorkspaceConfigSaveResponse(success = true))
+                } else {
+                    ApiResult.NetworkFailure(IOException("down"))
+                }
+            }
+        }.apply {
+            workspaceConfigResult = ApiResult.Success(
+                WorkspaceConfigResponse(success = true, config = WorkspaceConfig(aiPersona = custom)),
+            )
+        }
+        val personaApi = studioApi(ApiResult.Success(before), ApiResult.Success(unfit()))
+
+        val vm = languageSaved(api, personaApi)
+
+        assertTrue(vm.state.value.refit is PersonaRefit.Failed)
+        assertEquals(2, api.personaPatches.size)
+        assertEquals(SaveState.Saved, vm.state.value.save)
+    }
+
+    @Test
+    fun `a read that fails, before or after the language save, says the chain could not be moved`() = runTest {
+        val down = ApiResult.NetworkFailure(IOException("down"))
+        val after = studioApi(ApiResult.Success(before), down)
+        assertTrue(languageSaved(customApi(), after).state.value.refit is PersonaRefit.Failed)
+
+        val beforeDown = studioApi(down, ApiResult.Success(unfit()))
+        val api = customApi()
+        assertTrue(languageSaved(api, beforeDown).state.value.refit is PersonaRefit.Failed)
+        assertEquals("the language save still lands", 1, api.personaPatches.size)
+    }
+
+    @Test
+    fun `nothing that speaks the language, or no stored chain, is no fit`() = runTest {
+        val noVoice = studioApi(ApiResult.Success(before), ApiResult.Success(unfit(mouths = emptySet())))
+        assertEquals(PersonaRefit.NoFit, languageSaved(customApi(), noVoice).state.value.refit)
+
+        val unsanitised = before.copy(current = before.current.copy(engineMix = null))
+        val noChain = studioApi(ApiResult.Success(unsanitised), ApiResult.Success(unfit()))
+        assertEquals(PersonaRefit.NoFit, languageSaved(customApi(), noChain).state.value.refit)
+    }
+
+    @Test
+    fun `no refit for a fixed engine, for a save without a language, or for a language save that failed`() = runTest {
+        val fixed = studioApi()
+        languageSaved(api(), fixed)
+        assertTrue("a fixed engine reads no Studio", fixed.voiceStudioCalls.isEmpty())
+
+        val text = studioApi()
+        val vm = viewModel(customApi(), text)
+        advanceUntilIdle()
+        vm.edit(PersonaField.NAME, "Grace")
+        vm.save()
+        advanceUntilIdle()
+        assertTrue("a text-only save reads no Studio", text.voiceStudioCalls.isEmpty())
+
+        val refused = customApi().apply {
+            savePersonaResult = ApiResult.NetworkFailure(IOException("down"))
+        }
+        val failed = studioApi(ApiResult.Success(before))
+        assertNull(languageSaved(refused, failed).state.value.refit)
+        assertEquals("only the read before the save", 1, failed.voiceStudioCalls.size)
+    }
 }

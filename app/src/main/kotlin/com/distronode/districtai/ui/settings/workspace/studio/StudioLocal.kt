@@ -77,11 +77,10 @@ internal object StudioLocal {
         val measured = stages.mapNotNull { it.second?.ms }
         val missing = measured.size < stages.size
         val headline = if (measured.isEmpty()) MeterHeadline.None else MeterHeadline.Local(measured.sum(), missing)
-        // The "some steps are not measured" sentence is the server's; every meter carries the same one.
-        val note = studio.recipes.map { it.timeToFirstWord.note }.plus(studio.latency.note).firstOrNull { it != null }
         return MeterView(
             headline = headline,
-            note = note.takeIf { missing && measured.isNotEmpty() },
+            // The server's `meterPartial`, shown only under an "at least" headline.
+            note = studio.labels.meterPartial.takeIf { missing && measured.isNotEmpty() },
             stages = stages.map { (label, latency) -> StageView(label, StudioLegFacts.stageText(latency)) },
         )
     }

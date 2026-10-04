@@ -174,7 +174,7 @@ class VoiceStudioScreenTest {
     fun `an edit says how far it is from its recipe, and reset takes it back`() {
         val actions = render(ready().withMix { it.copy(preemptiveTts = true) })
 
-        composeRule.onNodeWithText("Based on Fastest, 1 change").assertIsDisplayed()
+        composeRule.onNodeWithText("Based on Fastest, 1 change.").assertIsDisplayed()
         tap(VOICE_STUDIO_RESET_DESCRIPTION)
 
         assertEquals(0, actions.ready.changes)
@@ -230,11 +230,11 @@ class VoiceStudioScreenTest {
     fun `an unsaved edit's meter is summed from measured medians, and a missing stage says at least`() {
         val actions = render(ready().withMix { it.copy(llm = it.llm.copy(location = "global")) })
         val meter = composeRule.onNodeWithContentDescription(VOICE_STUDIO_METER_DESCRIPTION)
-        meter.assertTextEquals("At least 520 ms")
+        meter.assertTextEquals("At least 520\u00a0ms")
         composeRule.onNodeWithText("${labels.stages.llmTtft}: ${labels.notMeasured}").assertIsDisplayed()
 
         actions.editMix { it.copy(llm = it.llm.copy(location = "auto"), preemptiveTts = true) }
-        meter.assertTextEquals("About 970 ms")
+        meter.assertTextEquals("About 970\u00a0ms")
 
         val measured = studio.copy(
             voices = studio.voices.map { list ->
@@ -258,12 +258,33 @@ class VoiceStudioScreenTest {
         actions.state = VoiceStudioUiState.Ready.of(measured).withMix {
             it.copy(tts = it.tts.copy(voice = "aura-2-luna-en"))
         }
-        composeRule.onNodeWithText("${labels.stages.ttsTtfb}: 140 ms").assertIsDisplayed()
+        composeRule.onNodeWithText("${labels.stages.ttsTtfb}: 140\u00a0ms").assertIsDisplayed()
 
         actions.state = VoiceStudioUiState.Ready.of(studio.copy(latency = studio.latency.copy(eou = null))).withMix {
             it.copy(llm = it.llm.copy(location = "global"), tts = it.tts.copy(voice = "aura-2-luna-en"))
         }
-        meter.assertTextEquals(labels.notMeasured)
+        meter.assertTextEquals(labels.meterNone)
+    }
+
+    @Test
+    fun `a French reader's unsaved meter and based-on line come from the French templates`() {
+        val french = studio.copy(
+            locale = "fr",
+            labels = labels.copy(
+                meterAbout = "Environ {ms} ms",
+                meterAtLeast = "Au moins {ms} ms",
+                meterPartial = "Certaines étapes ne sont pas encore mesurées, donc le délai réel est plus long.",
+                numberGrouping = " ",
+                basedOnOne = "Basé sur {recipe}, 1 modification.",
+                basedOnMany = "Basé sur {recipe}, {n} modifications.",
+            ),
+        )
+        render(VoiceStudioUiState.Ready.of(french).withMix { it.copy(llm = it.llm.copy(location = "global")) })
+
+        composeRule.onNodeWithContentDescription(VOICE_STUDIO_METER_DESCRIPTION)
+            .assertTextEquals("Au moins 520 ms")
+        composeRule.onNodeWithText(french.labels.meterPartial).assertIsDisplayed()
+        composeRule.onNodeWithText("Basé sur Fastest, 1 modification.").assertIsDisplayed()
     }
 
     // ── The leg editors ──────────────────────────────────────────────────────

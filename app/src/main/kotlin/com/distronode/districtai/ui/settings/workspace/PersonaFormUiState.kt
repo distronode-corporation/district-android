@@ -27,11 +27,34 @@ sealed interface PersonaOptionsState {
     data class LoadFailed(val failure: FailureText) : PersonaOptionsState
 }
 
+/**
+ * Fitting a chain of the member's own to a new language, after the save that changed it (see
+ * [PersonaFormViewModel.save] and `studio/StudioRefit`).
+ */
+sealed interface PersonaRefit {
+
+    /** Reading the Studio for the new language, saving the moved chain, or reading it back. */
+    data object Running : PersonaRefit
+
+    /** Moved, and the read after the save shows the server accepting the chain. */
+    data object Refitted : PersonaRefit
+
+    /** No model this workspace may use speaks the new language for the ear or the voice. */
+    data object NoFit : PersonaRefit
+
+    /** Could not be moved: a read or the second save failed. */
+    data class Failed(val failure: FailureText) : PersonaRefit
+
+    /** Saved, and the read after it does not show it fitting, or could not be taken. */
+    data object NotSeen : PersonaRefit
+}
+
 data class PersonaFormUiState(
     val load: ConfigState = ConfigState.Loading,
     val edits: Map<PersonaField, String> = emptyMap(),
     val save: SaveState = SaveState.Idle,
     val options: PersonaOptionsState = PersonaOptionsState.Loading,
+    val refit: PersonaRefit? = null,
 ) {
 
     val persona: AiPersona? get() = (load as? ConfigState.Ready)?.config?.aiPersona
@@ -53,7 +76,8 @@ data class PersonaFormUiState(
     val hasUnsavedChanges: Boolean get() = dirtyFields.isNotEmpty() || draft?.isDirty == true
 
     val canSave: Boolean
-        get() = load is ConfigState.Ready && save != SaveState.Saving && hasUnsavedChanges
+        get() = load is ConfigState.Ready && save != SaveState.Saving && refit != PersonaRefit.Running &&
+            hasUnsavedChanges
 
     /**
      * ⛔ THE PREVIEW NEEDS THE CATALOGUE, NOT JUST A LOADED CONFIG. A `modelId` the registry does

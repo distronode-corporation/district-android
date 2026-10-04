@@ -8,11 +8,13 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [2.0] - 2026-10-04
+
 ### Added
 
 - Voice Studio, in workspace settings: pick a starting point, see the signal chain from Ear to
-  Voice with where each part is processed and how fast the agent starts to reply, and fine-tune
-  any part of the call. Its words follow your portal language.
+  Voice with where each part runs and how fast the agent replies, and fine-tune any part of the
+  call. Its words follow your portal language.
 
 ### Changed
 
@@ -55,6 +57,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v1.1...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v2.0...HEAD
+[2.0]: https://github.com/distronode-corporation/district-android/compare/v1.2...v2.0
+[1.2]: https://github.com/distronode-corporation/district-android/compare/v1.1...v1.2
 [1.1]: https://github.com/distronode-corporation/district-android/compare/v1.0...v1.1
 [1.0]: https://github.com/distronode-corporation/district-android/releases/tag/v1.0

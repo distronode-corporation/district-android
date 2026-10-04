@@ -1,6 +1,5 @@
 package com.distronode.districtai.ui.calls
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,11 +30,8 @@ import com.distronode.districtai.ui.resolve
 /**
  * One call in full.
  *
- * ⚠️ NO EMBEDDED AUDIO PLAYER. Playback is handed to whatever app the device already has, via the
- * resolved URL. An in-app player means a media dependency, playback-state handling, and a
- * foreground service to keep audio alive when the screen is backgrounded — real work that belongs
- * with the telephony surfaces rather than bolted onto a detail screen. Handing off is honest and
- * works today.
+ * ⚠️ NO RECORDING. No call is recorded, so there is nothing to play; the transcript is the record
+ * of what was said. The row's `recordingUrl` is always null and is not read.
  */
 @Composable
 fun CallDetailScreen(
@@ -45,7 +40,6 @@ fun CallDetailScreen(
     onRetry: () -> Unit,
     onSignIn: () -> Unit,
     onShowTranscript: () -> Unit,
-    onPlayRecording: () -> Unit,
 ) {
     DistrictScaffold(
         modifier = Modifier.semantics { contentDescription = CALL_DETAIL_ROOT_DESCRIPTION },
@@ -74,8 +68,7 @@ fun CallDetailScreen(
                     description = CALL_DETAIL_FAILURE_DESCRIPTION,
                 )
 
-                is CallDetailUiState.Content ->
-                    Content(state, onShowTranscript, onPlayRecording)
+                is CallDetailUiState.Content -> Content(state, onShowTranscript)
             }
         }
     }
@@ -85,7 +78,6 @@ fun CallDetailScreen(
 private fun Content(
     state: CallDetailUiState.Content,
     onShowTranscript: () -> Unit,
-    onPlayRecording: () -> Unit,
 ) {
     val call = state.call
     // ⛔ THE SAME MAPPER THE LOG USES. Deriving these inline is what let this screen and the log
@@ -165,62 +157,8 @@ private fun Content(
             ListCard(stringResource(R.string.call_detail_action_items), analysis.actionItems)
         }
 
-        RecordingSection(state, onPlayRecording)
         TranscriptSection(state, onShowTranscript)
     }
-}
-
-@Composable
-private fun RecordingSection(state: CallDetailUiState.Content, onPlayRecording: () -> Unit) {
-    when (val recording = state.recording) {
-        RecordingState.Idle ->
-            // ⚠️ Offered based on the row's recordingUrl, which is a hint rather than the whole
-            // truth: an archived copy lives under a key this shape does not expose, so the server
-            // can still produce a URL when this is absent. Offering is the friendlier mistake.
-            if (state.mayHaveRecording) PlayButton(onPlayRecording)
-
-        RecordingState.Resolving -> CircularProgressIndicator(color = DistrictTheme.colors.district)
-
-        // Ordinary for a missed call, so it reads as a fact rather than a failure.
-        RecordingState.Absent -> Text(
-            text = stringResource(R.string.call_detail_recording_absent),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.semantics {
-                contentDescription = CALL_DETAIL_NO_RECORDING_DESCRIPTION
-            },
-        )
-
-        is RecordingState.Failed -> Text(
-            text = recording.failure.message.resolve(),
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.destructive,
-        )
-
-        // ⚠️ A RESOLVED URL NO APP TOOK. Said here, in state that survives a rotation, rather than
-        // in the Activity's snackbar; see CallDetailViewModel.resolveRecording. Play stays offered.
-        RecordingState.NoPlayer -> NotPlayed(R.string.call_detail_recording_no_player, onPlayRecording)
-        RecordingState.LaunchFailed -> NotPlayed(R.string.call_detail_recording_launch_failed, onPlayRecording)
-    }
-}
-
-@Composable
-private fun PlayButton(onPlayRecording: () -> Unit) {
-    Button(
-        onClick = onPlayRecording,
-        modifier = Modifier.semantics { contentDescription = CALL_DETAIL_PLAY_DESCRIPTION },
-    ) {
-        Text(stringResource(R.string.call_detail_recording_play))
-    }
-}
-
-@Composable
-private fun NotPlayed(@StringRes message: Int, onPlayRecording: () -> Unit) {
-    Text(
-        text = stringResource(message),
-        style = MaterialTheme.typography.bodySmall,
-        color = DistrictTheme.colors.destructive,
-    )
-    PlayButton(onPlayRecording)
 }
 
 @Composable
@@ -297,5 +235,3 @@ const val CALL_DETAIL_FAILURE_DESCRIPTION: String = "district-call-detail-failur
 const val CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION: String = "district-call-detail-show-transcript"
 const val CALL_DETAIL_TRANSCRIPT_DESCRIPTION: String = "district-call-detail-transcript"
 const val CALL_DETAIL_NO_TRANSCRIPT_DESCRIPTION: String = "district-call-detail-no-transcript"
-const val CALL_DETAIL_PLAY_DESCRIPTION: String = "district-call-detail-play-recording"
-const val CALL_DETAIL_NO_RECORDING_DESCRIPTION: String = "district-call-detail-no-recording"

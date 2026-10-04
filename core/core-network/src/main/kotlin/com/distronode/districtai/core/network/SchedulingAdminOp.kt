@@ -28,7 +28,7 @@ enum class SchedulingAdminRole(val wire: String) {
  * ⚠️ [wire] IS THE SERVER'S KEY VERBATIM, DOTS AND ALL, and the entry names are its
  * SCREAMING_SNAKE transliteration. A key renamed on the server is a **400 `unknown_op`** here, not
  * a compile error, because the op crosses the wire as a string — so `SchedulingAdminOpTest`
- * embeds all 75 strings a second time rather than deriving them from [entries]. A test that
+ * embeds all 64 strings a second time rather than deriving them from [entries]. A test that
  * re-read this enum would assert that the code equals itself and would pass through any rename.
  *
  * ⛔ [minRole] AND [isWrite] ARE CONSTRUCTOR ARGUMENTS RATHER THAN TWO EXHAUSTIVE `when`
@@ -51,17 +51,17 @@ enum class SchedulingAdminRole(val wire: String) {
  *   their own calendar cannot be booked at all.
  *
  *   ⛔ IT IS THE WEAKER HALF OF THE GATE AND MUST NOT BE READ AS THE ANSWER. The scheduler
- *   enforces its own `requireAdmin` on the settings, recordings, notes, transcript and reassign
- *   routes, and its own host-ownership checks on the booking routes — against the MEMBER's key. A
- *   District `viewer` calling a read this property allows can still come back **403**. What it is
- *   for is deciding whether to draw a control and whether to spend a request.
+ *   enforces its own `requireAdmin` on the settings and reassign routes, and its own
+ *   host-ownership checks on the booking routes — against the MEMBER's key. A District `viewer`
+ *   calling a read this property allows can still come back **403**. What it is for is deciding
+ *   whether to draw a control and whether to spend a request.
  *
  * @property isWrite whether sending this op spends a write from the workspace's hourly budget.
  *
  *   ⛔ "NOT A GET", WHICH IS THE SERVER'S OWN TEST AND NOT A SEPARATE OPINION. The op route budgets
  *   `opSendsBody(op) || op.method === "DELETE"`, and `opSendsBody` is
  *   `method !== "GET" && method !== "DELETE"` — so the union is exactly "the method is not GET".
- *   Twenty-nine reads, forty-six writes.
+ *   Twenty-three reads, forty-one writes.
  *
  *   ⚠️ IT IS NOT `minRole == CLIENT`, AND THE TWO DISAGREE ON SIX OPS. The viewer-level writes
  *   above are billed to a SEPARATE 30-per-member-per-hour bucket rather than the workspace's 120,
@@ -155,13 +155,6 @@ enum class SchedulingAdminOp(
     BOOKINGS_CANCEL("bookings.cancel", SchedulingAdminRole.CLIENT, isWrite = true),
     BOOKINGS_RESCHEDULE("bookings.reschedule", SchedulingAdminRole.CLIENT, isWrite = true),
     BOOKINGS_REASSIGN("bookings.reassign", SchedulingAdminRole.CLIENT, isWrite = true),
-    BOOKINGS_NOTES("bookings.notes", SchedulingAdminRole.VIEWER, isWrite = false),
-    BOOKINGS_NOTES_REGENERATE(
-        "bookings.notes.regenerate",
-        SchedulingAdminRole.CLIENT,
-        isWrite = true,
-    ),
-    BOOKINGS_TRANSCRIPT("bookings.transcript", SchedulingAdminRole.VIEWER, isWrite = false),
 
     // ── The caller's own calendars: viewer-level throughout, writes included ─────────────────
     CALENDAR_STATUS("calendar.status", SchedulingAdminRole.VIEWER, isWrite = false),
@@ -203,12 +196,6 @@ enum class SchedulingAdminOp(
     TEAMS_MEMBERS_PATCH("teams.members.patch", SchedulingAdminRole.CLIENT, isWrite = true),
     TEAMS_MEMBERS_REMOVE("teams.members.remove", SchedulingAdminRole.CLIENT, isWrite = true),
 
-    // ── Recordings ──────────────────────────────────────────────────────────────────────────
-    RECORDINGS_LIST("recordings.list", SchedulingAdminRole.VIEWER, isWrite = false),
-    RECORDINGS_DELETE("recordings.delete", SchedulingAdminRole.CLIENT, isWrite = true),
-    RECORDINGS_DELETE_ALL("recordings.deleteAll", SchedulingAdminRole.CLIENT, isWrite = true),
-    RECORDINGS_CONSENT("recordings.consent", SchedulingAdminRole.VIEWER, isWrite = false),
-
     // ── Settings ────────────────────────────────────────────────────────────────────────────
     SETTINGS_BRANDING_GET("settings.branding.get", SchedulingAdminRole.VIEWER, isWrite = false),
     SETTINGS_BRANDING_PATCH("settings.branding.patch", SchedulingAdminRole.CLIENT, isWrite = true),
@@ -219,14 +206,6 @@ enum class SchedulingAdminOp(
     ),
     SETTINGS_BRANDING_BANNER_DELETE(
         "settings.branding.banner.delete",
-        SchedulingAdminRole.CLIENT,
-        isWrite = true,
-    ),
-    SETTINGS_STORAGE_GET("settings.storage.get", SchedulingAdminRole.VIEWER, isWrite = false),
-    SETTINGS_STORAGE_PATCH("settings.storage.patch", SchedulingAdminRole.CLIENT, isWrite = true),
-    SETTINGS_NOTETAKER_GET("settings.notetaker.get", SchedulingAdminRole.VIEWER, isWrite = false),
-    SETTINGS_NOTETAKER_PATCH(
-        "settings.notetaker.patch",
         SchedulingAdminRole.CLIENT,
         isWrite = true,
     ),

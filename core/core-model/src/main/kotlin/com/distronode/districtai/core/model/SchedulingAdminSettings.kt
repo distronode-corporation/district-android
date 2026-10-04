@@ -69,25 +69,6 @@ data class SchedulingBranding(
 )
 
 /**
- * Whether calls are recorded, and whether there is anywhere to put them.
- *
- * ⛔ [recordingsEnabled] IS THE TENANT'S SWITCH AND [recordingsStorageReady] IS THE INSTANCE'S
- * BUCKET, AND THE PAIR IS WHY THIS TYPE IS NOT ONE BOOLEAN. Enabled with no storage records
- * nothing and reports no error; a screen that showed only the switch would tell an operator their
- * calls are being recorded when nothing is written.
- */
-@Serializable
-data class SchedulingStorageSettings(
-    @SerialName("recordings_enabled") val recordingsEnabled: Boolean,
-    @SerialName("recordings_storage_ready") val recordingsStorageReady: Boolean? = null,
-    @SerialName("recordings_prefix") val recordingsPrefix: String? = null,
-)
-
-/** Whether the tenancy's meetings get automatic notes. */
-@Serializable
-data class SchedulingNotetakerSettings(val enabled: Boolean)
-
-/**
  * The tenancy's note-generation settings.
  *
  * ⚠️ [extraInstructions] IS REQUIRED AND EMPTY-WHEN-UNSET, the same spelling [SchedulingBranding]

@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The `bookings.*` family: the page, the answers, the notes and the transcript.
+ * The `bookings.*` family: the page and the answers.
  *
  * ⛔ THE CANCELLED ROW IN `district-scheduling-bookings.json` IS WHY THIS FAMILY'S DTO HAS FOUR
  * REQUIRED FIELDS AND NOT MORE. It carries an id, a start, an end and a status and NOTHING else —
@@ -107,78 +107,6 @@ class SchedulingAdminBookingsContractFixtureTest {
     }
 
     @Test
-    fun `notes distinguish written from pending, and both from absent`() {
-        val notes = SchedulingAdminFixtures.data(
-            "district-scheduling-booking-notes.json",
-            SchedulingBookingNotes.serializer(),
-        )
-        val regenerated = SchedulingAdminFixtures.data(
-            "district-scheduling-booking-notes-regenerated.json",
-            SchedulingBookingNotesRegenerated.serializer(),
-        )
-
-        assertTrue(notes.exists)
-        assertEquals("Dana wants a quote for twelve seats.", notes.content)
-        assertEquals("ready", notes.status)
-        assertEquals("2026-09-14T13:35:00Z", notes.updatedAt)
-
-        // ⛔ THE REGENERATE ANSWER IS A NEAR-TWIN WITH NO `updated_at`, WHICH IS THE CATALOG'S
-        // SHAPE. A shared type would model a key the route strips and the strict decoder would
-        // fail on it — which is the correct direction and worth knowing before merging the two.
-        assertTrue(regenerated.exists)
-        assertEquals("pending", regenerated.status)
-        assertEquals(
-            "Dana wants a quote for twelve seats, and a security review.",
-            regenerated.content,
-        )
-        assertTrue(
-            "the regenerate fixture really does omit updated_at",
-            !ContractFixtures.read("district-scheduling-booking-notes-regenerated.json")
-                .contains("updated_at"),
-        )
-    }
-
-    @Test
-    fun `a notes body with no exists flag is rejected rather than read as absent notes`() {
-        // ⛔ `exists` IS NOT `content != null`. A row can exist with status `pending` and no
-        // content yet, which a screen words as "being written" rather than "none" — and reading
-        // absence as "no notes" offers a Generate button that starts a second run of the one
-        // already in flight.
-        assertTrue(
-            runCatching {
-                ContractFixtures.json.decodeFromString(
-                    SchedulingBookingNotes.serializer(),
-                    """{"content":"something","status":"ready"}""",
-                )
-            }.isFailure,
-        )
-    }
-
-    @Test
-    fun `a transcript decodes its text and tolerates having none`() {
-        val transcript = SchedulingAdminFixtures.data(
-            "district-scheduling-booking-transcript.json",
-            SchedulingBookingTranscript.serializer(),
-        )
-
-        assertTrue(transcript.exists)
-        assertEquals(
-            "Host: Thanks for joining. Attendee: Happy to be here.",
-            transcript.text,
-        )
-
-        // ⚠️ THE ABSENT HALF OF THE PAIR, which no fixture covers because the route only ships a
-        // transcript when there is one. `exists: false` with no text is the shape the fork sends
-        // for a call that was never recorded.
-        val empty = ContractFixtures.json.decodeFromString(
-            SchedulingBookingTranscript.serializer(),
-            """{"exists":false}""",
-        )
-        assertEquals(false, empty.exists)
-        assertNull(empty.text)
-    }
-
-    @Test
     fun `every booking fixture survives a round trip in both encodings`() {
         SchedulingAdminFixtures.roundTrips(
             "district-scheduling-bookings.json",
@@ -191,18 +119,6 @@ class SchedulingAdminBookingsContractFixtureTest {
         SchedulingAdminFixtures.roundTrips(
             "district-scheduling-booking-answers.json",
             SchedulingItems.serializer(SchedulingBookingAnswer.serializer()),
-        )
-        SchedulingAdminFixtures.roundTrips(
-            "district-scheduling-booking-notes.json",
-            SchedulingBookingNotes.serializer(),
-        )
-        SchedulingAdminFixtures.roundTrips(
-            "district-scheduling-booking-notes-regenerated.json",
-            SchedulingBookingNotesRegenerated.serializer(),
-        )
-        SchedulingAdminFixtures.roundTrips(
-            "district-scheduling-booking-transcript.json",
-            SchedulingBookingTranscript.serializer(),
         )
     }
 }

@@ -34,7 +34,7 @@ import com.distronode.districtai.core.network.testing.FakeDistrictApi
  * ⛔ THE CONSOLE HAND-OFF'S GUARD IS IN THE NETWORK CLIENT, AND THE DIFFERENCE IS WHAT IS KNOWABLE.
  * It lands on a per-workspace scheduler host this client cannot predict, so the scheme is all
  * there is to check, and `DistrictApiClient.redirectTarget` checks it for every redirect route at
- * once (`RecordingRedirectTest`). The dashboard hand-off is built by the server from the request's
+ * once (`RedirectTargetTest`). The dashboard hand-off is built by the server from the request's
  * own host, so the expected answer is known exactly and anything else is drift or a redirection.
  */
 class SchedulingRepositoryTest {

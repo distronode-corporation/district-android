@@ -48,7 +48,7 @@ tasks.withType<Test>().configureEach {
 // the Kotlin TEST SOURCES of every module for quoted `*.json` literals. It needs two things from
 // here: where the tree is, and a declaration that the tree is an input.
 //
-// ⛔ EVERY MODULE, NOT JUST THIS ONE. Eleven of the 160 fixtures are decoded by :core:core-auth
+// ⛔ EVERY MODULE, NOT JUST THIS ONE. Eleven of the 152 fixtures are decoded by :core:core-auth
 // and :core:core-network, which run in their own test JVMs. A root-relative walk is the only way
 // one test can see all of them; that is also why the manifest cannot be built from a runtime
 // registry inside this module's ContractFixtures. The reasoning is written out in full in

@@ -1,14 +1,11 @@
 package com.distronode.districtai.ui
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.ApiEnvironment
 import com.distronode.districtai.R
 import com.distronode.districtai.core.model.BillingInvoice
-import com.distronode.districtai.core.model.CallDetailResponse
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactListResponse
 import com.distronode.districtai.core.model.DeviceListResponse
@@ -17,7 +14,6 @@ import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.billing.invoiceOpenDescription
-import com.distronode.districtai.ui.calls.CALL_DETAIL_PLAY_DESCRIPTION
 import com.distronode.districtai.ui.calls.CALL_DETAIL_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.contacts.CONTACT_DETAIL_ROOT_DESCRIPTION
 import com.distronode.districtai.ui.devices.DEVICES_CONFIRM_DEVICE_DESCRIPTION
@@ -165,57 +161,6 @@ class NavHostHandOffTest {
 
     private fun overviewRetry(): String =
         ApplicationProvider.getApplicationContext<android.content.Context>().getString(R.string.overview_retry)
-
-    // ── The recording hand-off ─────────────────────────────────────────────────────────────
-
-    private fun openCallWithRecording() {
-        harness.api.detailResult = ApiResult.Success(
-            CallDetailResponse(success = true, call = testCall(recordingUrl = "https://legacy.test/a.mp3")),
-        )
-        harness.render()
-        harness.navigate(Routes.callDetail("ws-1", "c1"))
-    }
-
-    @Test
-    fun `a recording is resolved and handed to a player as a new task`() {
-        openCallWithRecording()
-
-        harness.tap(CALL_DETAIL_PLAY_DESCRIPTION)
-
-        assertEquals(listOf("ws-1" to "c1"), harness.api.recordingRequests)
-        val intent = harness.started.single()
-        assertEquals(Intent.ACTION_VIEW, intent.action)
-        assertEquals("https://recordings.test/x.mp3", intent.dataString)
-        assertTrue(intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0)
-        assertTrue(harness.messages.isEmpty())
-    }
-
-    @Test
-    fun `a device with no player says so`() {
-        openCallWithRecording()
-        harness.startFailure = ActivityNotFoundException("no player")
-
-        harness.tap(CALL_DETAIL_PLAY_DESCRIPTION)
-
-        // ⛔ ON THE SCREEN, NOT THE HOST'S SNACKBAR: the resolve can outlive the Activity that pressed
-        // Play, so the outcome lives in the call detail's state (MainActivityRecordingHandOffTest).
-        harness.awaitText(string(R.string.call_detail_recording_no_player))
-        assertTrue(harness.messages.isEmpty())
-    }
-
-    @Test
-    fun `any other launch failure is reported too, not swallowed`() {
-        openCallWithRecording()
-        harness.startFailure = SecurityException("background start refused")
-
-        harness.tap(CALL_DETAIL_PLAY_DESCRIPTION)
-
-        harness.awaitText(string(R.string.call_detail_recording_launch_failed))
-        assertTrue(harness.messages.isEmpty())
-    }
-
-    private fun string(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     // ── Drill-downs that need data ─────────────────────────────────────────────────────────
 

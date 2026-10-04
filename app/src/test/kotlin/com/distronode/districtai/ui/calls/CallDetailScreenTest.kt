@@ -6,9 +6,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.CallAnalysis
@@ -50,7 +48,6 @@ class CallDetailScreenTest {
         onBack: () -> Unit = {},
         onRetry: () -> Unit = {},
         onShowTranscript: () -> Unit = {},
-        onPlayRecording: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -60,7 +57,6 @@ class CallDetailScreenTest {
                     onRetry = onRetry,
                     onSignIn = {},
                     onShowTranscript = onShowTranscript,
-                    onPlayRecording = onPlayRecording,
                 )
             }
         }
@@ -69,8 +65,7 @@ class CallDetailScreenTest {
     private fun content(
         call: CallSummary = testCall(),
         transcript: TranscriptState = TranscriptState.Idle,
-        recording: RecordingState = RecordingState.Idle,
-    ) = CallDetailUiState.Content(call = call, transcript = transcript, recording = recording)
+    ) = CallDetailUiState.Content(call = call, transcript = transcript)
 
     private fun failure(
         message: String = "We could not load that call.",
@@ -226,85 +221,13 @@ class CallDetailScreenTest {
     }
 
     @Test
-    fun `the play button is offered only when the row hints at a recording`() {
-        render(content(testCall(recordingUrl = "https://example.invalid/rec.mp3")))
+    fun `a row from an older server that still carries a recording url offers no playback`() {
+        // ⛔ NO CALL IS RECORDED AND THE ROUTE IS GONE. An older server could still send a URL in
+        // `recordingUrl`; the screen must not turn it back into a control that calls a 404.
+        render(content(testCall().copy(recordingUrl = "https://example.invalid/rec.mp3")))
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).performScrollTo()
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun `no play button when the row has no recording url`() {
-        render(content(testCall()))
-
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).assertDoesNotExist()
-    }
-
-    @Test
-    fun `playing a recording calls back`() {
-        var plays = 0
-        render(
-            content(testCall(recordingUrl = "https://example.invalid/rec.mp3")),
-            onPlayRecording = { plays++ },
-        )
-
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).performScrollTo()
-            .performClick()
-
-        assertEquals(1, plays)
-    }
-
-    @Test
-    fun `an absent recording reads as a fact, not a failure`() {
-        // Ordinary for a missed call.
-        render(content(recording = RecordingState.Absent))
-
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_NO_RECORDING_DESCRIPTION)
-            .performScrollTo().assertIsDisplayed()
-    }
-
-    @Test
-    fun `a failed recording resolution shows why`() {
-        render(content(recording = RecordingState.Failed(failure("That recording has expired."))))
-
-        composeRule.onNodeWithText("That recording has expired.").performScrollTo()
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun `a recording no app could play says so and offers play again`() {
-        var plays = 0
-        render(content(recording = RecordingState.NoPlayer), onPlayRecording = { plays++ })
-
-        composeRule.onNodeWithText(string(R.string.call_detail_recording_no_player)).performScrollTo()
-            .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).performScrollTo()
-            .performClick()
-        assertEquals(1, plays)
-    }
-
-    @Test
-    fun `a refused hand-off says so and offers play again`() {
-        render(content(recording = RecordingState.LaunchFailed))
-
-        composeRule.onNodeWithText(string(R.string.call_detail_recording_launch_failed)).performScrollTo()
-            .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).assertExists()
-    }
-
-    private fun string(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
-
-    @Test
-    fun `a resolving recording replaces the button with a spinner`() {
-        render(
-            content(
-                call = testCall(recordingUrl = "https://example.invalid/rec.mp3"),
-                recording = RecordingState.Resolving,
-            ),
-        )
-
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_PLAY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText("recording", substring = true, ignoreCase = true)
+            .assertDoesNotExist()
     }
 
     @Test

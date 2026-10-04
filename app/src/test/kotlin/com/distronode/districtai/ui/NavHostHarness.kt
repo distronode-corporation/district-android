@@ -70,7 +70,7 @@ import com.distronode.districtai.core.network.testing.FakeSupportApi
  *
  * ⛔ WHAT THIS ADDS TO [DistrictNavHostTest]. That class keeps the real network stack and holds every
  * credential read, so each destination is only ever seen LOADING. What the graph does with an
- * answer (a row tapped, a submitted ticket confirmed, a recording handed to a player, a room
+ * answer (a row tapped, a submitted ticket confirmed, a room
  * joined) needs the destination to have data, and that needs the network faked.
  *
  * ⚠️ DETERMINISTIC BECAUSE NOTHING HERE HOPS A THREAD. The fakes answer synchronously on the

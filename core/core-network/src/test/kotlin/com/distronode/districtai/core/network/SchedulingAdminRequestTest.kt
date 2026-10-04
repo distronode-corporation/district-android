@@ -79,7 +79,7 @@ class SchedulingAdminRequestTest {
             assertEquals("ws-1", (body["workspaceId"] as JsonPrimitive).content)
 
             // ⛔ THE WIRE NAME, DOTS AND ALL. A key renamed on the server is a 400 rather than a
-            // compile error, which is why `SchedulingAdminOpTest` re-types all 75.
+            // compile error, which is why `SchedulingAdminOpTest` re-types all 64.
             assertEquals("eventTypes.delete", (body["op"] as JsonPrimitive).content)
 
             // ⛔ THE PATH KEY STAYS IN THE BODY. `slug` is BOTH the address and a required member
@@ -101,7 +101,7 @@ class SchedulingAdminRequestTest {
 
             adminApi().performSchedulingOp(
                 workspaceId = "ws-1",
-                op = SchedulingAdminOp.RECORDINGS_DELETE_ALL,
+                op = SchedulingAdminOp.SETTINGS_BRANDING_LOGO_DELETE,
                 params = JsonObject(emptyMap()),
                 serializer = SchedulingNoContent.serializer(),
             )
@@ -285,8 +285,8 @@ class SchedulingAdminRequestTest {
 
         val result = adminApi().performSchedulingOp(
             workspaceId = "ws-1",
-            op = SchedulingAdminOp.RECORDINGS_DELETE,
-            params = buildJsonObject { put("id", "rec-1") },
+            op = SchedulingAdminOp.WEBHOOKS_DELETE,
+            params = buildJsonObject { put("id", "wh-1") },
             serializer = SchedulingNoContent.serializer(),
         )
 
@@ -310,8 +310,8 @@ class SchedulingAdminRequestTest {
 
         val result = strict.performSchedulingOp(
             workspaceId = "ws-1",
-            op = SchedulingAdminOp.RECORDINGS_DELETE,
-            params = buildJsonObject { put("id", "rec-1") },
+            op = SchedulingAdminOp.WEBHOOKS_DELETE,
+            params = buildJsonObject { put("id", "wh-1") },
             serializer = String.serializer(),
         )
 

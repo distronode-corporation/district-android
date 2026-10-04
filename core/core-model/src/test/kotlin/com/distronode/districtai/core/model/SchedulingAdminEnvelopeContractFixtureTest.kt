@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The envelope every one of the 75 scheduling-admin ops travels in, and the three refusal bodies.
+ * The envelope every one of the 64 scheduling-admin ops travels in, and the three refusal bodies.
  *
  * ⛔ THE FAILURE FIXTURE IS AN HTTP **200** AND THAT IS THE WHOLE REASON THIS CLASS EXISTS SEPARATE
  * FROM THE NINE FAMILY CLASSES. `district-scheduling-admin-failure.json` is what a working route

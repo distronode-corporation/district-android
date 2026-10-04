@@ -124,27 +124,24 @@ class DistrictApiClient(
     /**
      * GET [path] and return the URL it REDIRECTS to, without following it.
      *
-     * ⛔ THIS EXISTS BECAUSE `/api/district/calls/{id}/recording` ANSWERS 302, NOT JSON. It
-     * resolves a short-lived presigned URL (or the legacy carrier-hosted copy) and redirects, so
-     * that recording bytes never proxy through the app server. OkHttp follows redirects by
-     * default, which means the ordinary [get] would download the ENTIRE AUDIO FILE into this
-     * process just to discover where it lives — on a metered connection, for a file the media
-     * player is about to fetch again itself.
+     * ⛔ THIS EXISTS BECAUSE `/api/district/scheduling/sso` ANSWERS 302, NOT JSON. Its `Location`
+     * is a one-time sign-in URL, and OkHttp follows redirects by default, so the ordinary [get]
+     * would SPEND the single-use token on a transport nobody can see and leave the browser holding
+     * a credential the far end has already claimed.
      *
-     * ⚠️ THE RESULT IS PERISHABLE. A presigned URL expires, so it must be resolved at the moment
-     * of playback and never cached or persisted. Treat it as a one-shot handle.
+     * ⚠️ THE RESULT IS PERISHABLE. The token expires in 60 seconds, so it must be resolved at the
+     * moment of use and never cached or persisted. Treat it as a one-shot handle.
      *
-     * ⚠️ A call with no recording at all is a 404 with a JSON body, not a redirect, so the normal
+     * ⚠️ A refusal (a 409 for a tenancy that is not ready, a 404) is not a redirect, so the normal
      * error mapping still applies.
      *
-     * ⛔ HTTPS ONLY, CHECKED HERE ONCE FOR EVERY CALLER. Each route that answers through this (a
-     * call recording, a scheduler recording download, the scheduler sign-in) redirects to a URL
-     * that carries its own credential, a presigned signature or a 60-second single-use token, and
-     * every caller hands it straight to another app. A plaintext `Location` would put that
+     * ⛔ HTTPS ONLY, CHECKED HERE ONCE FOR EVERY CALLER. A route that answers through this
+     * redirects to a URL that carries its own credential, and every caller hands it straight to
+     * another app. A plaintext `Location` would put that
      * credential on the wire in clear, and an `intent:`, `content:` or relative one is not a
      * download at all. The routes only ever build absolute https URLs, so anything else is drift
      * (or a proxy rewriting the header) and is reported as [ApiResult.DecodeFailure]: noisy in
-     * debug, not retryable, never handed onwards. Pinned by `RecordingRedirectTest`.
+     * debug, not retryable, never handed onwards. Pinned by `RedirectTargetTest`.
      *
      * ⚠️ THE REFUSED VALUE IS NEVER RETURNED OR QUOTED, not even in the preview, for the same
      * reason: it is a credential. And the accepted value is returned VERBATIM rather than as the
@@ -165,12 +162,12 @@ class DistrictApiClient(
         ) { response ->
             val location = response.header("Location")
             when {
-                // Not a redirect (e.g. the 404 for a call with no recording): fall through to the
+                // Not a redirect (e.g. a 409 for a tenancy that is not ready): fall through to the
                 // ordinary error mapping by answering null.
                 !response.isRedirect -> null
                 location.isNullOrBlank() -> ApiResult.HttpFailure(
                     response.code,
-                    "The recording location was missing from the server's response.",
+                    "The redirect location was missing from the server's response.",
                 )
                 // A 3xx with an https Location IS the success path here, even though it is not a 2xx.
                 isHttpsAddress(location) -> ApiResult.Success(location)

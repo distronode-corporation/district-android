@@ -8,6 +8,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Removed
+
+- A call no longer offers to play a recording. Calls are not recorded; the transcript is the
+  record of what was said.
+
 ## [1.2] - 2026-10-02
 
 ### Fixed

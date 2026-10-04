@@ -56,8 +56,7 @@ echo
 echo "== warming routes =="
 warm_routes "/api/district/calls?workspaceId=$WS&limit=1" \
             "/api/district/calls/t9seed-001?workspaceId=$WS" \
-            "/api/district/calls/t9seed-001/transcript?workspaceId=$WS" \
-            "/api/district/calls/t9seed-001/recording?workspaceId=$WS"
+            "/api/district/calls/t9seed-001/transcript?workspaceId=$WS"
 mint_access_token "$DEVICE_ID" "T9"
 
 AUTH=(-H "Authorization: Bearer $ACCESS")
@@ -127,7 +126,7 @@ sys.exit(1)
 PY
 [ $? -eq 0 ] || FAILURES=$((FAILURES + 1))
 
-# ── Detail, transcript, recording ────────────────────────────────────────────
+# ── Detail and transcript ────────────────────────────────────────────────────
 echo
 echo "== per-call endpoints =="
 DETAIL_CODE=$(curl -sS -o /tmp/t9-detail.json -w '%{http_code}' --max-time 30 "${AUTH[@]}" \
@@ -140,16 +139,6 @@ TR_CODE=$(curl -sS -o /tmp/t9-transcript.json -w '%{http_code}' --max-time 30 "$
 
 # Odd-numbered rows were seeded with NULL transcript -> must be "" not null.
 TR_EMPTY=$(curl -sS --max-time 30 "${AUTH[@]}" "$BASE/api/district/calls/t9seed-001/transcript?workspaceId=$WS")
-
-# ⚠️ -o /dev/null and NO -L: the recording route REDIRECTS, and following it is exactly what the
-# client must not do. 404 is correct here since seeded rows have no recording.
-REC_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${AUTH[@]}" \
-  "$BASE/api/district/calls/t9seed-002/recording?workspaceId=$WS")
-case "$REC_CODE" in
-  404) pass "recording answers 404 for a call with no recording (an ordinary state)" ;;
-  302) pass "recording answers 302 with a Location (not followed)" ;;
-  *) fail "recording HTTP $REC_CODE — expected 302 or 404" ;;
-esac
 
 MISSING_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${AUTH[@]}" \
   "$BASE/api/district/calls/no-such-call?workspaceId=$WS")

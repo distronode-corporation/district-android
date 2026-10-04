@@ -111,8 +111,8 @@ class SchedulingRepository(
      * ⛔ HTTPS ONLY, AND THE CHECK LIVES IN `DistrictApiClient.redirectTarget`, NOT HERE. The route
      * builds `https://<publicHost>/v1/auth/sso`, so anything else is contract drift, and a hand-off
      * that is not TLS would put a live token on the wire in clear. The client refuses a non-https
-     * or unparseable `Location` as [ApiResult.DecodeFailure] for every redirect route at once (the
-     * call recording had no check of its own), so a second copy here could only drift from it.
+     * or unparseable `Location` as [ApiResult.DecodeFailure] for every redirect route at once, so
+     * a second copy here could only drift from it.
      *
      * ⚠️ A **409** REACHES THE CALLER UNCHANGED. It means the tenancy is not `ready`, which is the
      * honest state of a workspace mid-provision, and the screen words it as such rather than as a

@@ -177,17 +177,6 @@ interface CallsApi {
      * and they dominated its payload. An absent transcript is the empty string, not null.
      */
     suspend fun callTranscript(workspaceId: String, callId: String): ApiResult<CallTranscriptResponse>
-
-    /**
-     * Resolve a playable URL for a call's recording.
-     *
-     * ⛔ THE SERVER ANSWERS 302, NOT JSON, and the client deliberately does not follow it — following
-     * it would stream the whole audio file through this process to learn its address.
-     *
-     * ⚠️ The URL is SHORT-LIVED (a presigned object URL) so it must be resolved at playback time and
-     * never cached. A call with no recording answers [ApiResult.NotFound].
-     */
-    suspend fun callRecordingUrl(workspaceId: String, callId: String): ApiResult<String>
 }
 
 /**
@@ -1561,9 +1550,7 @@ interface SchedulingApi {
      * carries a 60-second single-use JWT in its query string, so following it would SPEND that
      * credential on a transport the user never sees and the browser would then be handed a token
      * that has already been claimed in `sso_nonces`. `DistrictApiClient.redirectTarget` clones the
-     * shared client with `followRedirects(false)` for exactly this shape — see its own ⛔, which
-     * was written for the recording endpoint where following merely wastes bandwidth. Here it
-     * would break the feature.
+     * shared client with `followRedirects(false)` for exactly this shape — see its own ⛔.
      *
      * ⛔ AND THE BROWSER CANNOT MAKE THIS REQUEST ITSELF. A Custom Tab carries neither this app's
      * bearer nor a session cookie (the native API path sets none at all, deliberately), so

@@ -183,27 +183,6 @@ class SchedulingRequiredKeysTest {
     }
 
     @Test
-    fun `recordings and their consents require their keys`() {
-        WireMirror.assertRequiredKeys(
-            SchedulingRecordingList.serializer(),
-            SchedulingRecordingList(recordings = listOf(SchedulingRecording(id = "rec-1", status = "ready"))),
-            """{"recordings":[{"id":"rec-1","status":"ready"}]}""",
-        )
-        WireMirror.assertRequiredKeys(
-            SchedulingRecordingConsents.serializer(),
-            SchedulingRecordingConsents(
-                consents = listOf(SchedulingRecordingConsent(identity = "guest-1", decision = "granted")),
-            ),
-            """{"consents":[{"identity":"guest-1","decision":"granted"}]}""",
-        )
-        WireMirror.assertRequiredKeys(
-            SchedulingRecordingsDeleted.serializer(),
-            SchedulingRecordingsDeleted(deleted = 3, failed = 1),
-            """{"deleted":3,"failed":1}""",
-        )
-    }
-
-    @Test
     fun `branding, locale options and the notes model require their keys`() {
         WireMirror.assertRequiredKeys(
             SchedulingBranding.serializer(),

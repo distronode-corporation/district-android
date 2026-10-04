@@ -173,15 +173,6 @@ internal class HttpCallsApi(private val client: DistrictApiClient) : CallsApi {
             serializer = CallTranscriptResponse.serializer(),
             query = mapOf("workspaceId" to workspaceId),
         )
-
-    override suspend fun callRecordingUrl(
-        workspaceId: String,
-        callId: String,
-    ): ApiResult<String> =
-        client.redirectTarget(
-            segments = DistrictPaths.CALLS + callId + "recording",
-            query = mapOf("workspaceId" to workspaceId),
-        )
 }
 
 internal class HttpContactsApi(private val client: DistrictApiClient) : ContactsApi {
@@ -1187,8 +1178,7 @@ internal class HttpWorkflowsApi(private val client: DistrictApiClient) : Workflo
  * ⛔ AND `schedulingSsoTarget` GOES THROUGH [DistrictApiClient.redirectTarget], NOT [DistrictApiClient.get].
  * The route answers a 302 whose `Location` is a one-time sign-in URL; `get` would let OkHttp follow
  * it, which SPENDS the single-use token on a transport nobody can see and leaves the browser with a
- * credential the far end has already claimed. It is the same helper the call-recording endpoint
- * uses and the opposite consequence: there, following merely wastes bandwidth.
+ * credential the far end has already claimed.
  */
 internal class HttpSchedulingApi(private val client: DistrictApiClient) : SchedulingApi {
     override suspend fun schedulingStatus(

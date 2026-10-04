@@ -102,12 +102,6 @@
     <string name="call_detail_transcript">Transcript</string>
     <string name="call_detail_transcript_show">Show transcript</string>
     <string name="call_detail_transcript_absent">No transcript for this call.</string>
-    <string name="call_detail_recording_play">Play recording</string>
-    <string name="call_detail_recording_absent">No recording for this call.</string>
-    <string name="call_detail_recording_no_player">No app on this device can play the recording.</string>
-    <!-- Anything OTHER than "no player installed" — a SecurityException from a restrictive player,
-         a background-activity-start refusal. Silently discarding these made the tap do nothing. -->
-    <string name="call_detail_recording_launch_failed">Could not open the recording.</string>
 
     <!-- Contacts -->
     <string name="contacts_title">Contacts</string>

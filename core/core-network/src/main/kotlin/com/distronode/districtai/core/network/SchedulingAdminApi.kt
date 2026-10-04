@@ -37,15 +37,14 @@ sealed interface SchedulingAdminEnvelope<out T> {
 }
 
 /**
- * The scheduling admin surface: one RPC, one image upload, one recording download.
+ * The scheduling admin surface: one RPC and one image upload.
  *
- * ⛔ THREE METHODS FOR SEVENTY-FIVE OPERATIONS, AND THE RATIO IS THE POINT. Every read and every
+ * ⛔ TWO METHODS FOR SIXTY-FOUR OPERATIONS, AND THE RATIO IS THE POINT. Every read and every
  * write goes through [performSchedulingOp] under an `op` NAME from [SchedulingAdminOp], so the set
  * of scheduler routes this client can address is exactly the server's catalog and cannot be
- * widened from here. The other two exist only because the RPC physically cannot carry their
- * payloads: an image cannot travel through a zod-validated params object without a base64
- * inflation on both sides of a hop that already has a 5 MiB ceiling, and a recording is a 302 to a
- * presigned object the server refuses to proxy.
+ * widened from here. The upload exists only because the RPC physically cannot carry its payload:
+ * an image cannot travel through a zod-validated params object without a base64 inflation on both
+ * sides of a hop that already has a 5 MiB ceiling.
  *
  * ⛔ A SEPARATE INTERFACE FROM [DistrictApi], NOT A SET OF METHODS ON IT. `DistrictApi` composes
  * twenty-odd per-family interfaces whose methods are all ordinary typed endpoints; this one is a
@@ -60,7 +59,7 @@ sealed interface SchedulingAdminEnvelope<out T> {
  * ⛔ NOTHING HERE RETRIES, AND THE SERVER'S OWN RETRY IS THE REASON IT MUST NOT START. The server's
  * op route already performs exactly ONE re-mint and ONE re-send on a 401, bounded because an unbounded one
  * rotates the member's scheduler key on every request and a rotation logs out everyone else
- * holding it. A retry loop on this side multiplies that, and 46 of the 75 ops are writes.
+ * holding it. A retry loop on this side multiplies that, and 41 of the 64 ops are writes.
  *
  * ⛔ AND NOTHING HERE VALIDATES `params`. The catalog's zod schema is the only validator and it
  * runs server-side; a second, laxer copy here would refuse bodies the server accepts (a
@@ -77,7 +76,7 @@ interface SchedulingAdminApi {
      * ⚠️ THE RESPONSE TYPE IS THE CALLER'S CHOICE AND IS NOT CHECKED AGAINST THE OP. Nothing on
      * this side knows that `eventTypes.list` answers a list of event types — the catalog does, and
      * it is not importable from Kotlin. Naming the wrong type is an [ApiResult.DecodeFailure] at
-     * runtime rather than a compile error, which is the cost of not duplicating 75 schemas. Close
+     * runtime rather than a compile error, which is the cost of not duplicating 64 schemas. Close
      * that gap with one typed wrapper per op in core-data rather than calling this from a screen.
      *
      * @param params sent EXACTLY as given, including path keys, and never trimmed. An op that
@@ -118,26 +117,4 @@ interface SchedulingAdminApi {
         mimeType: String,
         bytes: ByteArray,
     ): ApiResult<SchedulingAdminEnvelope<SchedulingUploadResult>>
-
-    /**
-     * Resolve a playable URL for a scheduler recording.
-     *
-     * ⛔ THE SERVER ANSWERS **302, NOT JSON**, AND THIS CLIENT MUST NOT FOLLOW IT — the same rule
-     * as the call-recording endpoint and for a sharper version of the same reason: these are
-     * video, and the fork has no 2xx path at all. It goes through
-     * [DistrictApiClient.redirectTarget], which turns redirects off.
-     *
-     * ⚠️ THE URL IS PRESIGNED AND EXPIRES IN 15 MINUTES. Resolve it at the moment of playback; a
-     * cached one fails inside whatever player received it, which looks like a broken recording
-     * rather than a stale link.
-     *
-     * ⛔ `agency` AND `client` ONLY, WHICH IS STRICTER THAN THE OP THAT LISTS THESE.
-     * [SchedulingAdminOp.RECORDINGS_LIST] is `viewer`: a viewer may see that a recording exists
-     * and may not take a copy of a customer conversation away. A UI that draws the row from the
-     * list must not assume the download beside it will answer.
-     */
-    suspend fun schedulingRecordingDownloadUrl(
-        workspaceId: String,
-        recordingId: String,
-    ): ApiResult<String>
 }

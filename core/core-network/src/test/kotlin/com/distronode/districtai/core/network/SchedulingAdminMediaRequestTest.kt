@@ -3,7 +3,6 @@ package com.distronode.districtai.core.network
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.Headers
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -11,7 +10,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * The two scheduling-admin routes that are not the RPC: a multipart upload and a 302.
+ * The scheduling-admin route that is not the RPC: a multipart upload.
  *
  * ⛔ THE WORKSPACE TRAVELS IN THE **QUERY** ON THE UPLOAD, WHICH IS THE OPPOSITE OF EVERY OTHER
  * MULTIPART ROUTE IN THIS CLIENT, AND IT IS THE SERVER'S RULE RATHER THAN A STYLE CHOICE: the
@@ -19,10 +18,6 @@ import org.junit.Test
  * multipart parse of a body up to Cloudflare's 100 MB. A field list copied from `uploadMedia`
  * leaves that guard with null while the URL looks perfectly correct — so this file asserts the
  * query AND the field set, not one of them.
- *
- * ⛔ AND THE DOWNLOAD MUST NOT BE FOLLOWED. The route answers a 302 whose `Location` is a
- * presigned object URL carrying its own credential; following it here spends bandwidth on video
- * and hands the player nothing.
  */
 class SchedulingAdminMediaRequestTest {
 
@@ -157,69 +152,4 @@ class SchedulingAdminMediaRequestTest {
             assertEquals(415, failure.status)
             assertEquals("unsupported_type", failure.message)
         }
-
-    @Test
-    fun `a recording download answers the Location without following it`() = runTest {
-        // ⛔ THE REDIRECT IS THE ANSWER. `redirectTarget` turns redirects off; an ordinary GET
-        // would follow this and stream a video nobody asked for, handing the caller a body instead
-        // of a URL.
-        server.enqueue(
-            MockResponse(
-                code = 302,
-                headers = Headers.headersOf("Location", "https://storage.test/rec.mp4?sig=abc"),
-            ),
-        )
-
-        val result = adminApi().schedulingRecordingDownloadUrl("ws-1", "rec-1")
-
-        val recorded = server.takeRequest()
-        assertEquals("GET", recorded.method)
-        assertEquals(
-            "/api/district/scheduling/admin/download/rec-1",
-            recorded.url.encodedPath,
-        )
-        assertEquals("ws-1", recorded.url.queryParameter("workspaceId"))
-        assertEquals("https://storage.test/rec.mp4?sig=abc", (result as ApiResult.Success).value)
-    }
-
-    @Test
-    fun `a recording id is one path segment and cannot traverse out of the route`() = runTest {
-        // ⛔ `addPathSegment` (SINGULAR) FOR EVERY ELEMENT. The plural form splits on "/", which is
-        // what let a value inject new segments and resolve `..` through — turning this route into
-        // an entirely different one. The id here is hostile on purpose.
-        server.enqueue(
-            MockResponse(
-                code = 302,
-                headers = Headers.headersOf("Location", "https://storage.test/x"),
-            ),
-        )
-
-        adminApi().schedulingRecordingDownloadUrl("ws-1", "a/../../admin")
-
-        assertEquals(
-            "/api/district/scheduling/admin/download/a%2F..%2F..%2Fadmin",
-            server.takeRequest().url.encodedPath,
-        )
-    }
-
-    @Test
-    fun `a 403 on the download is the stricter bar the listing op does not carry`() = runTest {
-        // ⚠️ `recordings.list` IS `viewer` AND THIS ROUTE IS NOT. A viewer may see that a recording
-        // exists and may not take a copy of a customer conversation away, so a play button drawn
-        // from a row in that list must not assume this will answer.
-        server.enqueue(MockResponse(code = 403, body = """{"error":"forbidden"}"""))
-
-        val result = adminApi().schedulingRecordingDownloadUrl("ws-1", "rec-1")
-
-        assertEquals("forbidden", (result as ApiResult.Forbidden).message)
-    }
-
-    @Test
-    fun `a redirect with no Location is reported rather than read as an empty url`() = runTest {
-        server.enqueue(MockResponse(code = 302))
-
-        val result = adminApi().schedulingRecordingDownloadUrl("ws-1", "rec-1")
-
-        assertEquals(302, (result as ApiResult.HttpFailure).status)
-    }
 }

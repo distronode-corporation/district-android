@@ -6,7 +6,7 @@ import org.junit.Test
 
 /**
  * The scheduling-admin answers whose rows [SchedulingRequiredKeysTest] does not build: the page,
- * the notes and transcript reads, the one-shot answers of a write, and the envelope's own halves.
+ * the one-shot answers of a write, and the envelope's own halves.
  *
  * Same method as there. Each answer is built from its required properties only, its production
  * encoding is pinned exactly (so an absent optional key is never written as a null), and each
@@ -34,26 +34,7 @@ class SchedulingOptionalKeysTest {
     }
 
     @Test
-    fun `notes, regenerated notes and the transcript require only whether they exist`() {
-        WireMirror.assertRequiredKeys(
-            SchedulingBookingNotes.serializer(),
-            SchedulingBookingNotes(exists = false),
-            """{"exists":false}""",
-        )
-        WireMirror.assertRequiredKeys(
-            SchedulingBookingNotesRegenerated.serializer(),
-            SchedulingBookingNotesRegenerated(exists = true),
-            """{"exists":true}""",
-        )
-        WireMirror.assertRequiredKeys(
-            SchedulingBookingTranscript.serializer(),
-            SchedulingBookingTranscript(exists = false),
-            """{"exists":false}""",
-        )
-    }
-
-    @Test
-    fun `an archive, a new api key and the storage settings require their keys`() {
+    fun `an archive and a new api key require their keys`() {
         WireMirror.assertRequiredKeys(
             SchedulingUserArchived.serializer(),
             SchedulingUserArchived(ok = true),
@@ -63,11 +44,6 @@ class SchedulingOptionalKeysTest {
             SchedulingApiKeyCreated.serializer(),
             SchedulingApiKeyCreated(id = "k-1", name = "CI", key = "sk_live_once"),
             """{"id":"k-1","name":"CI","key":"sk_live_once"}""",
-        )
-        WireMirror.assertRequiredKeys(
-            SchedulingStorageSettings.serializer(),
-            SchedulingStorageSettings(recordingsEnabled = false),
-            """{"recordings_enabled":false}""",
         )
     }
 

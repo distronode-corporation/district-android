@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The 75 op names, their role bars and their write flags, spelled a SECOND time.
+ * The 64 op names, their role bars and their write flags, spelled a SECOND time.
  *
  * ⛔ THE STRINGS ARE EMBEDDED HERE RATHER THAN DERIVED FROM [SchedulingAdminOp.entries], AND THAT
  * IS THE ONLY THING THAT MAKES THIS A TEST. The op crosses the wire as a string and a key renamed
@@ -14,16 +14,16 @@ import org.junit.Test
  * the server's op catalog (`admin-ops.ts`) and from the iOS client's `SchedulingAdminOpTests`, which
  * does the same thing for the same reason.
  *
- * ⛔ AND THE TWO SPLITS ARE ASSERTED AS COUNTS, WHICH NEITHER DERIVES FROM THE OTHER. 35 `viewer` /
- * 40 `client`, and 29 reads / 46 writes: the `me.*` and `calendar.*` namespaces are viewer-level
+ * ⛔ AND THE TWO SPLITS ARE ASSERTED AS COUNTS, WHICH NEITHER DERIVES FROM THE OTHER. 29 `viewer` /
+ * 35 `client`, and 23 reads / 41 writes: the `me.*` and `calendar.*` namespaces are viewer-level
  * even where they WRITE, so the two classifications disagree on exactly six ops.
  */
 class SchedulingAdminOpTest {
 
     @Test
-    fun `the catalog holds exactly seventy-five ops with unique wire names`() {
+    fun `the catalog holds exactly sixty-four ops with unique wire names`() {
         assertEquals(EXPECTED.size, SchedulingAdminOp.entries.size)
-        assertEquals(75, SchedulingAdminOp.entries.size)
+        assertEquals(64, SchedulingAdminOp.entries.size)
 
         val wire = SchedulingAdminOp.entries.map { it.wire }
         assertEquals("no op name may be spelled twice", wire.size, wire.toSet().size)
@@ -40,29 +40,29 @@ class SchedulingAdminOpTest {
     }
 
     @Test
-    fun `every op's role bar matches the catalog, and the split is 35 viewer to 40 client`() {
+    fun `every op's role bar matches the catalog, and the split is 29 viewer to 35 client`() {
         val actual = SchedulingAdminOp.entries.associate { it.name to it.minRole }
         val expected = EXPECTED.associate { it.name to it.minRole }
         assertEquals(expected, actual)
 
         assertEquals(
-            35,
+            29,
             SchedulingAdminOp.entries.count { it.minRole == SchedulingAdminRole.VIEWER },
         )
         assertEquals(
-            40,
+            35,
             SchedulingAdminOp.entries.count { it.minRole == SchedulingAdminRole.CLIENT },
         )
     }
 
     @Test
-    fun `every op's write flag matches the catalog, and the split is 29 reads to 46 writes`() {
+    fun `every op's write flag matches the catalog, and the split is 23 reads to 41 writes`() {
         val actual = SchedulingAdminOp.entries.associate { it.name to it.isWrite }
         val expected = EXPECTED.associate { it.name to it.isWrite }
         assertEquals(expected, actual)
 
-        assertEquals(29, SchedulingAdminOp.entries.count { !it.isWrite })
-        assertEquals(46, SchedulingAdminOp.entries.count { it.isWrite })
+        assertEquals(23, SchedulingAdminOp.entries.count { !it.isWrite })
+        assertEquals(41, SchedulingAdminOp.entries.count { it.isWrite })
     }
 
     @Test
@@ -194,9 +194,6 @@ class SchedulingAdminOpTest {
             clientWrite("BOOKINGS_CANCEL", "bookings.cancel"),
             clientWrite("BOOKINGS_RESCHEDULE", "bookings.reschedule"),
             clientWrite("BOOKINGS_REASSIGN", "bookings.reassign"),
-            viewerRead("BOOKINGS_NOTES", "bookings.notes"),
-            clientWrite("BOOKINGS_NOTES_REGENERATE", "bookings.notes.regenerate"),
-            viewerRead("BOOKINGS_TRANSCRIPT", "bookings.transcript"),
 
             viewerRead("CALENDAR_STATUS", "calendar.status"),
             viewerWrite("CALENDAR_CALDAV_CONNECT", "calendar.caldav.connect"),
@@ -219,19 +216,10 @@ class SchedulingAdminOpTest {
             clientWrite("TEAMS_MEMBERS_PATCH", "teams.members.patch"),
             clientWrite("TEAMS_MEMBERS_REMOVE", "teams.members.remove"),
 
-            viewerRead("RECORDINGS_LIST", "recordings.list"),
-            clientWrite("RECORDINGS_DELETE", "recordings.delete"),
-            clientWrite("RECORDINGS_DELETE_ALL", "recordings.deleteAll"),
-            viewerRead("RECORDINGS_CONSENT", "recordings.consent"),
-
             viewerRead("SETTINGS_BRANDING_GET", "settings.branding.get"),
             clientWrite("SETTINGS_BRANDING_PATCH", "settings.branding.patch"),
             clientWrite("SETTINGS_BRANDING_LOGO_DELETE", "settings.branding.logo.delete"),
             clientWrite("SETTINGS_BRANDING_BANNER_DELETE", "settings.branding.banner.delete"),
-            viewerRead("SETTINGS_STORAGE_GET", "settings.storage.get"),
-            clientWrite("SETTINGS_STORAGE_PATCH", "settings.storage.patch"),
-            viewerRead("SETTINGS_NOTETAKER_GET", "settings.notetaker.get"),
-            clientWrite("SETTINGS_NOTETAKER_PATCH", "settings.notetaker.patch"),
             viewerRead("SETTINGS_LLM_GET", "settings.llm.get"),
             clientWrite("SETTINGS_LLM_PATCH", "settings.llm.patch"),
 

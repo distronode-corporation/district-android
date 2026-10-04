@@ -11,7 +11,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 /**
- * The scheduling admin over HTTP: one RPC path, one upload path, one 302.
+ * The scheduling admin over HTTP: one RPC path and one upload path.
  *
  * ⛔ THE RPC IS FETCHED AS A [JsonElement] AND INTERPRETED HERE, NOT DECODED STRAIGHT INTO THE
  * CALLER'S TYPE, AND "TIDYING" THAT BREAKS IT IN THE QUIET DIRECTION. A failed op is a **200**
@@ -106,14 +106,6 @@ class HttpSchedulingAdminApi(
         }
     }
 
-    override suspend fun schedulingRecordingDownloadUrl(
-        workspaceId: String,
-        recordingId: String,
-    ): ApiResult<String> = client.redirectTarget(
-        segments = SchedulingAdminPaths.adminDownload(recordingId),
-        query = mapOf("workspaceId" to workspaceId),
-    )
-
     /**
      * Split a 200 into "the op answered" and "the scheduler refused".
      *
@@ -123,8 +115,8 @@ class HttpSchedulingAdminApi(
      * same type for the same reason.
      *
      * ⛔ NO BODY PREVIEW, WHICH BREAKS THIS MODULE'S HABIT DELIBERATELY. These bodies are customer
-     * bookings, transcripts and meeting notes, and an [ApiResult.DecodeFailure]'s preview reaches
-     * a diagnostic. The op name and the payload's size are enough to tell "sent nothing" from
+     * bookings, attendee answers and contact details, and an [ApiResult.DecodeFailure]'s preview
+     * reaches a diagnostic. The op name and the payload's size are enough to tell "sent nothing" from
      * "sent a shape we do not know".
      */
     private fun <T> interpret(
@@ -161,9 +153,9 @@ class HttpSchedulingAdminApi(
 }
 
 /**
- * The three paths this surface uses.
+ * The two paths this surface uses.
  *
- * ⛔ ONE PATH FOR SEVENTY-FIVE OPERATIONS, AND THAT IS THE SECURITY MODEL RATHER THAN AN ECONOMY.
+ * ⛔ ONE PATH FOR SIXTY-FOUR OPERATIONS, AND THAT IS THE SECURITY MODEL RATHER THAN AN ECONOMY.
  * The route takes an `op` NAME out of the body and resolves the scheduler path itself, so this
  * client cannot address a scheduler route the server's catalog does not name — including the ones
  * a tenant must never reach (instance credentials shared by every tenancy, the platform API that
@@ -180,15 +172,4 @@ internal object SchedulingAdminPaths {
 
     /** ⚠️ Multipart, and the workspace travels in the QUERY. See [SchedulingAdminApi]. */
     val ADMIN_UPLOAD: List<String> = ADMIN + "upload"
-
-    /**
-     * ⛔ A **302** TO A PRESIGNED OBJECT, like `calls/{id}/recording`, and the only other one in
-     * this client. The fork answers the download with a redirect and has no 2xx path at all; the
-     * route forwards it rather than streaming, so this must go through
-     * [DistrictApiClient.redirectTarget].
-     *
-     * ⚠️ A FUNCTION BECAUSE THE ID IS A SEGMENT. One `addPathSegment` per element is what stops a
-     * recording id of `a/../../admin` pointing the request at a different route entirely.
-     */
-    fun adminDownload(recordingId: String): List<String> = ADMIN + "download" + recordingId
 }

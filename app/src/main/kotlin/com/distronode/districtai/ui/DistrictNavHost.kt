@@ -1,7 +1,6 @@
 package com.distronode.districtai.ui
 
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -48,7 +47,6 @@ import com.distronode.districtai.ui.dialer.DialerViewModel
 import com.distronode.districtai.ui.calls.CallDetailViewModel
 import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
-import com.distronode.districtai.ui.calls.RecordingLaunch
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
 import com.distronode.districtai.ui.contacts.ContactDetailViewModel
 import com.distronode.districtai.ui.contacts.ContactsScreen
@@ -1261,14 +1259,6 @@ fun DistrictNavHost(
                         onRetry = viewModel::load,
                         onSignIn = onSignIn,
                         onShowTranscript = viewModel::loadTranscript,
-                        onPlayRecording = {
-                            // ⚠️ HANDED OFF, NOT PLAYED IN-APP. The URL is a short-lived presigned link
-                            // resolved moments ago, so it goes straight to whatever app can play it and
-                            // is never stored. ⛔ `context` is the APPLICATION context and the outcome
-                            // goes back into the ViewModel's state, never to `onShowMessage`: the
-                            // resolve can outlive this Activity (see resolveRecording).
-                            viewModel.resolveRecording { url -> playRecording(context, url) }
-                        },
                     )
                 }
 
@@ -1641,14 +1631,13 @@ const val NAV_ACCOUNT_DESCRIPTION: String = "district-nav-account"
  * attack, and neither is worth opening. Pinned by `OpenAttachmentTest`.
  *
  * ⛔ NEW_TASK IS REQUIRED WHENEVER `context` IS NOT AN ACTIVITY. The thread call site passes its
- * Activity, but [playRecording] documents the throw a non-activity context gets without it, and
+ * Activity, but starting an activity from a non-activity context without the flag throws, and
  * the flag is harmless on an Activity.
  *
- * ⚠️ NO FAILURE CHANNEL, UNLIKE [playRecording], AND THE ASYMMETRY IS DELIBERATE. That one opens
- * an audio URL, for which a device may genuinely have no handler; this opens an ordinary https
- * URL, which every device with a browser resolves. Threading an error state back into the thread
- * for a case that needs a device with no browser at all would cost a ViewModel entry point for a
- * failure nobody has seen. `runCatching` still keeps it from crashing the app.
+ * ⚠️ NO FAILURE CHANNEL, AND THAT IS DELIBERATE. This opens an ordinary https URL, which every
+ * device with a browser resolves. Threading an error state back into the thread for a case that
+ * needs a device with no browser at all would cost a ViewModel entry point for a failure nobody
+ * has seen. `runCatching` still keeps it from crashing the app.
  *
  * ⚠️ SO A REFUSED URL IS A SILENT NO-OP: the tap does nothing. It is not logged either, because
  * this app writes nothing to logcat anywhere and the only fact worth recording (the value) is
@@ -1973,35 +1962,6 @@ private fun shareInvite(context: Context, link: String) {
                 null,
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
-    }
-}
-
-/**
- * Hand a resolved recording URL to whatever app can play it.
- *
- * ⛔ A device with nothing able to play audio THROWS rather than doing nothing, and an unhandled
- * ActivityNotFoundException here crashes the app.
- *
- * ⛔ AND EVERY OTHER THROWABLE IS REPORTED TOO, NOT DISCARDED IN SILENCE. Inspecting only
- * `ActivityNotFoundException` would drop the rest of `runCatching`'s result on the floor, so a
- * SecurityException from a restrictive player, or a background-activity-start refusal, would make
- * the button do literally nothing: no message, no log, no way for the user to tell a broken
- * recording from a broken app. Both failures are answered, and the call detail says each.
- */
-private fun playRecording(context: Context, url: String): RecordingLaunch {
-    val launch = runCatching {
-        context.startActivity(
-            // ⚠️ NEW_TASK is required: `context` is the application context deliberately (see the
-            // ⛔ in DistrictNavHost) and starting an activity from a non-activity context without
-            // this flag throws.
-            Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
-    }
-    return when (launch.exceptionOrNull()) {
-        null -> RecordingLaunch.STARTED
-        is ActivityNotFoundException -> RecordingLaunch.NO_PLAYER
-        else -> RecordingLaunch.REFUSED
     }
 }
 

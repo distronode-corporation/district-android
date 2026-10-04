@@ -106,41 +106,12 @@ class SchedulingAdminSettingsContractFixtureTest {
     }
 
     @Test
-    fun `storage reports the tenant switch and the instance bucket separately`() {
-        val storage = SchedulingAdminFixtures.data(
-            "district-scheduling-storage.json",
-            SchedulingStorageSettings.serializer(),
-        )
-
-        // ⛔ THE PAIR IS WHY THIS IS NOT ONE BOOLEAN. Enabled with no storage records nothing and
-        // reports no error, so a screen that showed only the switch would tell an operator their
-        // calls are being recorded when nothing is written.
-        assertTrue(storage.recordingsEnabled)
-        assertEquals(true, storage.recordingsStorageReady)
-        assertEquals("tenants/contract/recordings", storage.recordingsPrefix)
-
-        // ⚠️ THE ABSENT HALF: an instance that has not wired storage sends neither optional key.
-        val bare = ContractFixtures.json.decodeFromString(
-            SchedulingStorageSettings.serializer(),
-            """{"recordings_enabled":true}""",
-        )
-        assertTrue(bare.recordingsEnabled)
-        assertNull(bare.recordingsStorageReady)
-        assertNull(bare.recordingsPrefix)
-    }
-
-    @Test
-    fun `the notetaker and llm settings decode their flags and their prompt text`() {
-        val notetaker = SchedulingAdminFixtures.data(
-            "district-scheduling-notetaker.json",
-            SchedulingNotetakerSettings.serializer(),
-        )
+    fun `the llm settings decode their flag and their prompt text`() {
         val llm = SchedulingAdminFixtures.data(
             "district-scheduling-llm.json",
             SchedulingLlmSettings.serializer(),
         )
 
-        assertTrue(notetaker.enabled)
         assertTrue(llm.enabled)
 
         // ⛔ OPERATOR-AUTHORED TEXT THAT REACHES A MODEL PROMPT, required rather than defaulted: a
@@ -167,14 +138,6 @@ class SchedulingAdminSettingsContractFixtureTest {
         SchedulingAdminFixtures.roundTrips(
             "district-scheduling-branding.json",
             SchedulingBranding.serializer(),
-        )
-        SchedulingAdminFixtures.roundTrips(
-            "district-scheduling-storage.json",
-            SchedulingStorageSettings.serializer(),
-        )
-        SchedulingAdminFixtures.roundTrips(
-            "district-scheduling-notetaker.json",
-            SchedulingNotetakerSettings.serializer(),
         )
         SchedulingAdminFixtures.roundTrips(
             "district-scheduling-llm.json",

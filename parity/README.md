@@ -17,6 +17,14 @@ compiles it; only its `case` lines are read.
 The file is copied byte for byte. Do not edit it here: a local edit makes the parity test
 compare this client against an iOS client that does not exist.
 
+## Cases the server has retired
+
+The snapshot still declares `callRecordingUrl` and `schedulingAdminDownload`. The server removed
+both routes (call recordings and the scheduler's recording download are gone), and this client
+has already dropped them; `EndpointParity.RETIRED_PENDING_IOS` records the two so the parity test
+passes until iOS drops them too. The refresh that follows that iOS change fails until the set is
+emptied, which is the intended reminder.
+
 ## Refreshing it
 
 From a checkout of district-ios at the commit you want:

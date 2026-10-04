@@ -88,9 +88,11 @@ class ContractFixtureTest {
             "fixture must cover a row WITHOUT a followUp (the null branch)",
             calls.any { it.followUp == null },
         )
+        // ⛔ EVERY ROW, NOT ANY ROW. The server dropped call recordings and now sends the key as
+        // null on every row; a URL here means the fixture predates that change.
         assertTrue(
-            "fixture must cover a null recordingUrl",
-            calls.any { it.recordingUrl == null },
+            "every row's recordingUrl must be null",
+            calls.all { it.recordingUrl == null },
         )
         assertTrue(
             "fixture must cover a 'missed' type, which the handler derives from status " +

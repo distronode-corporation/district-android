@@ -49,6 +49,12 @@ data class CallSummary(
     /** Pre-formatted in the user's timezone by the server. Not a parseable instant. */
     val time: String,
     val aiSummary: String,
+    /**
+     * ⛔ ALWAYS NULL, AND NEVER READ. No call is recorded, and the server removed the recording
+     * column and the `calls/{id}/recording` route; it keeps the key, set to null, so a strict
+     * decoder on an installed build still finds it. Kept nullable with a default so a payload that
+     * carries a URL (an old server) or omits the key (a future one) both still decode.
+     */
     val recordingUrl: String? = null,
     /**
      * ⛔ ALWAYS `""`, AND NEVER READ. The server keeps the key only because builds up to 3670

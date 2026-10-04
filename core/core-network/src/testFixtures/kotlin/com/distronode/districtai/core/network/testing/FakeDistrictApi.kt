@@ -169,7 +169,6 @@ open class FakeDistrictApi(
     var detailResult: ApiResult<CallDetailResponse> = ApiResult.Success(CallDetailResponse(success = true))
     var transcriptResult: ApiResult<CallTranscriptResponse> =
         ApiResult.Success(CallTranscriptResponse(success = true, transcript = "Agent: hello."))
-    var recordingResult: ApiResult<String> = ApiResult.Success("https://recordings.test/x.mp3")
     var contactsResult: ApiResult<ContactListResponse> =
         ApiResult.Success(ContactListResponse(success = true))
     var contactResult: ApiResult<ContactDetailResponse> =
@@ -179,7 +178,6 @@ open class FakeDistrictApi(
 
     /** Every per-call read, so "was it fetched once or on every recomposition" is assertable. */
     val transcriptRequests: MutableList<Pair<String, String>> = mutableListOf()
-    val recordingRequests: MutableList<Pair<String, String>> = mutableListOf()
     val detailRequests: MutableList<Pair<String, String>> = mutableListOf()
 
     /** Which workspace each overview request named. Omitting it is not an error, so assert on it. */
@@ -196,7 +194,7 @@ open class FakeDistrictApi(
     var requestedWorkspaceIds: MutableList<String?> = mutableListOf()
         private set
 
-    /** (workspaceId, callId) for detail, transcript and recording reads alike, in order. */
+    /** (workspaceId, callId) for detail and transcript reads alike, in order. */
     var callReads: MutableList<Pair<String, String>> = mutableListOf()
         private set
 
@@ -256,16 +254,6 @@ open class FakeDistrictApi(
         transcriptRequests += workspaceId to callId
         callReads += workspaceId to callId
         return transcriptResult
-    }
-
-    /** When set, [callRecordingUrl] waits for it: a resolve still in flight across a rotation. */
-    var recordingGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
-
-    override suspend fun callRecordingUrl(workspaceId: String, callId: String): ApiResult<String> {
-        recordingRequests += workspaceId to callId
-        callReads += workspaceId to callId
-        recordingGate?.await()
-        return recordingResult
     }
 
     // ── Inbox ────────────────────────────────────────────────────────────────
@@ -987,7 +975,6 @@ open class FakeDistrictApi(
 fun testCall(
     id: String = "c1",
     status: String = "completed",
-    recordingUrl: String? = null,
 ) = CallSummary(
     id = id,
     type = "inbound",
@@ -996,7 +983,6 @@ fun testCall(
     duration = "1m 5s",
     time = "Aug 15, 02:30 PM",
     aiSummary = "Booked an appointment.",
-    recordingUrl = recordingUrl,
     hasTranscript = false,
     callerName = "Ada",
     from = "+14165550142",

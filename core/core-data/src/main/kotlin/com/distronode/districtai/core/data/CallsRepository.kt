@@ -114,20 +114,6 @@ class CallsRepository(private val api: DistrictApi) {
             is ApiResult.Failure -> result
         }
 
-    /**
-     * A playable URL for a call's recording.
-     *
-     * ⛔ RESOLVE THIS AT THE MOMENT OF PLAYBACK AND DO NOT STORE IT. The server redirects to a
-     * short-lived presigned object URL; a cached one expires and fails silently in whatever player
-     * receives it, at which point the failure looks like a broken recording rather than a stale
-     * link.
-     *
-     * A call with no recording answers [ApiResult.NotFound], which is an ordinary state for a
-     * missed call — not an error worth an alarming message.
-     */
-    suspend fun recordingUrl(workspaceId: String, callId: String): ApiResult<String> =
-        api.callRecordingUrl(workspaceId, callId)
-
     private companion object {
         /**
          * 25 matches one of the page sizes the web console's own selector offers ([10, 25, 50,

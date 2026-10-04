@@ -268,7 +268,7 @@ class EndpointParityTest {
      */
     @Test
     fun `the endpoints iOS has and this client lacks are exactly the recorded list`() {
-        val onlyOnIos = (iosEndpoints() - androidEndpoints()).sorted()
+        val onlyOnIos = (iosEndpoints() - androidEndpoints() - EndpointParity.RETIRED_PENDING_IOS).sorted()
         assertEquals(
             "The iOS-only endpoint set has changed (iOS source: ${iosOrigin()}). If iOS ADDED " +
                 "one, implement it on an API interface or record it in " +
@@ -278,6 +278,34 @@ class EndpointParityTest {
                 "the same number in the same commit.",
             EndpointParity.MISSING_ON_ANDROID.sorted(),
             onlyOnIos,
+        )
+    }
+
+    /**
+     * ⛔ THE RETIRED SET MUST STAY TRUE IN BOTH HALVES, or it becomes a place to hide a real gap.
+     * An entry iOS no longer declares means the snapshot was refreshed past the removal and the
+     * entry is dead; an entry this client declares again means the route came back and the entry
+     * now hides nothing but a lie.
+     */
+    @Test
+    fun `every retired endpoint is still on iOS and already gone here`() {
+        val ios = iosEndpoints()
+        val android = androidEndpoints()
+
+        val goneFromIos = EndpointParity.RETIRED_PENDING_IOS.filterNot { it in ios }.sorted()
+        assertEquals(
+            "These RETIRED_PENDING_IOS entries are no longer cases in EndpointID.swift (source: " +
+                "${iosOrigin()}). iOS has dropped them too: delete the entries.",
+            emptyList<String>(),
+            goneFromIos,
+        )
+
+        val backOnAndroid = EndpointParity.RETIRED_PENDING_IOS.filter { it in android }.sorted()
+        assertEquals(
+            "These RETIRED_PENDING_IOS entries are declared on an API interface here again. A " +
+                "retired endpoint that is implemented is not retired: delete the entries.",
+            emptyList<String>(),
+            backOnAndroid,
         )
     }
 

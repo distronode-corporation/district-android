@@ -30,10 +30,8 @@ class CallDetailViewModelTest {
     private fun viewModel(api: FakeDistrictApi) =
         CallDetailViewModel(CallsRepository(api), workspaceId = "ws-1", callId = "c1")
 
-    private fun apiWithCall(recordingUrl: String? = null) = FakeDistrictApi().apply {
-        detailResult = ApiResult.Success(
-            CallDetailResponse(success = true, call = testCall(recordingUrl = recordingUrl)),
-        )
+    private fun apiWithCall() = FakeDistrictApi().apply {
+        detailResult = ApiResult.Success(CallDetailResponse(success = true, call = testCall()))
     }
 
     // ── Detail ───────────────────────────────────────────────────────────────
@@ -178,102 +176,6 @@ class CallDetailViewModelTest {
         assertTrue(state.transcript is TranscriptState.Failed)
     }
 
-    // ── Recording ────────────────────────────────────────────────────────────
-
-    @Test
-    fun `resolves a recording url and hands it to the caller`() = runTest(dispatcher) {
-        // ⛔ Resolved at playback and never stored: the URL is a short-lived presigned link, and a
-        // cached one expires and then fails inside the player as if the recording were corrupt.
-        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        var handed: String? = null
-        vm.resolveRecording {
-            handed = it
-            RecordingLaunch.STARTED
-        }
-        advanceUntilIdle()
-
-        assertEquals("https://recordings.test/x.mp3", handed)
-        assertEquals(listOf("ws-1" to "c1"), api.recordingRequests)
-        // Returns to Idle so the button is offerable again.
-        assertEquals(RecordingState.Idle, (vm.state.value as CallDetailUiState.Content).recording)
-    }
-
-    @Test
-    fun `a call with no recording reports Absent rather than an error`() = runTest(dispatcher) {
-        // Ordinary for a missed call, so it must not read as a failure.
-        val api = apiWithCall().apply { recordingResult = ApiResult.NotFound("Recording not found") }
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        var handed: String? = null
-        vm.resolveRecording {
-            handed = it
-            RecordingLaunch.STARTED
-        }
-        advanceUntilIdle()
-
-        assertEquals(null, handed)
-        assertEquals(RecordingState.Absent, (vm.state.value as CallDetailUiState.Content).recording)
-    }
-
-    @Test
-    fun `a recording failure is surfaced without losing the call`() = runTest(dispatcher) {
-        val api = apiWithCall().apply { recordingResult = ApiResult.HttpFailure(502, "Bad gateway") }
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        vm.resolveRecording { RecordingLaunch.STARTED }
-        advanceUntilIdle()
-
-        val state = vm.state.value as CallDetailUiState.Content
-        assertEquals("c1", state.call.id)
-        assertTrue(state.recording is RecordingState.Failed)
-    }
-
-    @Test
-    fun `a URL no app can play is said in the state, and play can be pressed again`() = runTest(dispatcher) {
-        // ⛔ IN THE STATE, NOT THROUGH THE CALLBACK. The callback outlives the Activity that pressed
-        // Play, so a message it showed went to a destroyed Activity after a rotation and was lost.
-        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
-        val vm = viewModel(api)
-        advanceUntilIdle()
-
-        vm.resolveRecording { RecordingLaunch.NO_PLAYER }
-        advanceUntilIdle()
-        assertEquals(RecordingState.NoPlayer, (vm.state.value as CallDetailUiState.Content).recording)
-
-        // A player was installed: the next press resolves a fresh URL and plays.
-        vm.resolveRecording { RecordingLaunch.STARTED }
-        advanceUntilIdle()
-        assertEquals(2, api.recordingRequests.size)
-        assertEquals(RecordingState.Idle, (vm.state.value as CallDetailUiState.Content).recording)
-    }
-
-    @Test
-    fun `a refused hand-off is said in the state too`() = runTest(dispatcher) {
-        val vm = viewModel(apiWithCall(recordingUrl = "https://legacy.test/a.mp3"))
-        advanceUntilIdle()
-
-        vm.resolveRecording { RecordingLaunch.REFUSED }
-        advanceUntilIdle()
-
-        assertEquals(RecordingState.LaunchFailed, (vm.state.value as CallDetailUiState.Content).recording)
-    }
-
-    @Test
-    fun `only offers playback when the row suggests a recording exists`() = runTest(dispatcher) {
-        val without = viewModel(apiWithCall(recordingUrl = null))
-        advanceUntilIdle()
-        assertFalse((without.state.value as CallDetailUiState.Content).mayHaveRecording)
-
-        val with = viewModel(apiWithCall(recordingUrl = "https://legacy.test/a.mp3"))
-        advanceUntilIdle()
-        assertTrue((with.state.value as CallDetailUiState.Content).mayHaveRecording)
-    }
-
     @Test
     fun `retrying reloads the call`() = runTest(dispatcher) {
         val api = apiWithCall()
@@ -286,46 +188,17 @@ class CallDetailViewModelTest {
         assertEquals(2, api.detailRequests.size)
     }
 
-    // ── Taps that land before the call, twice, or across a reload ────────────
+    // ── Taps that land before the call, or across a reload ─────────────────────
 
     @Test
-    fun `neither the transcript nor the recording is requested before the call has loaded`() = runTest(dispatcher) {
-        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
+    fun `the transcript is not requested before the call has loaded`() = runTest(dispatcher) {
+        val api = apiWithCall()
         val vm = viewModel(api)
-        var handed: String? = null
 
         vm.loadTranscript()
-        vm.resolveRecording {
-            handed = it
-            RecordingLaunch.STARTED
-        }
         advanceUntilIdle()
 
         assertTrue(api.transcriptRequests.isEmpty())
-        assertTrue(api.recordingRequests.isEmpty())
-        assertEquals(null, handed)
-    }
-
-    @Test
-    fun `a double tap on play resolves the recording once`() = runTest(dispatcher) {
-        // ⛔ Two resolves would open two players and mint two presigned URLs for one action.
-        val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
-        val vm = viewModel(api)
-        advanceUntilIdle()
-        val handed = mutableListOf<String>()
-
-        vm.resolveRecording {
-            handed += it
-            RecordingLaunch.STARTED
-        }
-        vm.resolveRecording {
-            handed += it
-            RecordingLaunch.STARTED
-        }
-        advanceUntilIdle()
-
-        assertEquals(1, api.recordingRequests.size)
-        assertEquals(listOf("https://recordings.test/x.mp3"), handed)
     }
 
     @Test
@@ -342,24 +215,5 @@ class CallDetailViewModelTest {
             advanceUntilIdle()
 
             assertEquals(TranscriptState.Idle, (vm.state.value as CallDetailUiState.Content).transcript)
-        }
-
-    @Test
-    fun `a recording resolved across a reload still plays, and leaves the fresh call's state alone`() =
-        runTest(dispatcher) {
-            val api = apiWithCall(recordingUrl = "https://legacy.test/a.mp3")
-            val vm = viewModel(api)
-            advanceUntilIdle()
-            var handed: String? = null
-
-            vm.resolveRecording {
-                handed = it
-                RecordingLaunch.STARTED
-            }
-            vm.load()
-            advanceUntilIdle()
-
-            assertEquals("https://recordings.test/x.mp3", handed)
-            assertEquals(RecordingState.Idle, (vm.state.value as CallDetailUiState.Content).recording)
         }
 }

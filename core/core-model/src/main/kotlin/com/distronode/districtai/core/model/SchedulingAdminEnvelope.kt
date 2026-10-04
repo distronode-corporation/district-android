@@ -3,7 +3,7 @@ package com.distronode.districtai.core.model
 import kotlinx.serialization.Serializable
 
 /**
- * The envelope `POST /api/district/scheduling/admin` wraps every one of its 75 operations in.
+ * The envelope `POST /api/district/scheduling/admin` wraps every one of its 64 operations in.
  *
  * ⛔ A FAILED OP IS A **200**, AND THAT IS WHY THE FLAG IS READ BEFORE THE PAYLOAD RATHER THAN
  * WITH IT. The server's op route answers `{ok:false, failure, status}` at HTTP 200 on
@@ -41,7 +41,7 @@ data class SchedulingAdminEnvelopeHead(
  * ⚠️ GENERIC OVER THE PAYLOAD, which kotlinx.serialization supports by generating a
  * `serializer(KSerializer<T>)` overload. There is no reflection here and no way to get the
  * payload type wrong silently — naming the wrong one is a decode failure, which is the price of
- * not duplicating 75 schemas on this side of the wire.
+ * not duplicating 64 schemas on this side of the wire.
  */
 @Serializable
 data class SchedulingAdminSuccess<T>(
@@ -96,12 +96,11 @@ data class SchedulingNoContent(val ok: Boolean)
  * ⛔ DECLARED ONCE AND NOT PER NAMESPACE. Twelve ops answer through it; a private copy beside any
  * one family would give that family an envelope that drifts from the one every other list uses.
  *
- * ⚠️ AND FOUR LISTS DO NOT USE IT, WHICH IS THE THING TO CHECK BEFORE REACHING FOR IT.
- * `recordings.list` declares `{recordings}`, `recordings.consent` declares `{consents}` and
- * `calendar.connections.calendars.get` declares `{calendars}` — all by hand, server-side. Reading
- * any of them through this type decodes nothing and reports an EMPTY LIST, which is a wrong
- * answer rather than an error. `users.list` is the fourth and a different case again: it answers
- * a BARE ARRAY with no wrapper at all.
+ * ⚠️ AND TWO LISTS DO NOT USE IT, WHICH IS THE THING TO CHECK BEFORE REACHING FOR IT.
+ * `calendar.connections.calendars.get` declares `{calendars}` by hand, server-side, and reading
+ * it through this type decodes nothing and reports an EMPTY LIST, which is a wrong answer rather
+ * than an error. `users.list` is the second and a different case again: it answers a BARE ARRAY
+ * with no wrapper at all.
  */
 @Serializable
 data class SchedulingItems<T>(val items: List<T>)

@@ -72,8 +72,8 @@ class ContactsDgiRepositoryTest {
         // opt-in is off, and the server's own message names the settings page that turns it on.
         // This layer must not translate it — a generic "you do not have permission" sends the
         // operator looking at their account for a switch that lives on the workspace.
-        val message = "Lead enrichment is off for this workspace. Turn it on in Settings → " +
-            "AI Agent → Skills & Integrations to enrich contacts with external business data."
+        val message = "Lead enrichment is off for this workspace. Turn it on in District Studio → " +
+            "Integrations to enrich contacts with external business data."
         val api = api().apply { enrichResult = ApiResult.Forbidden(message) }
 
         val result = ContactsRepository(api).enrich("ws-1", "c1")

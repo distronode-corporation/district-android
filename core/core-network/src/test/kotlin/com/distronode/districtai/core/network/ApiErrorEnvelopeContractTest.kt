@@ -114,7 +114,7 @@ class ApiErrorEnvelopeContractTest {
         assertTrue("must carry a message worth showing", !envelope.error.isNullOrBlank())
         assertTrue(
             "the message must name where the opt-in lives, or it is not worth pinning",
-            envelope.error!!.contains("Skills & Integrations"),
+            envelope.error!!.contains("District Studio → Integrations"),
         )
 
         // A route's own refusal has nothing machine-readable to branch on, so the client has no
@@ -136,7 +136,7 @@ class ApiErrorEnvelopeContractTest {
         )
 
         assertEquals(false, envelope.success)
-        assertTrue(envelope.error!!.contains("Skills & Integrations"))
+        assertTrue(envelope.error!!.contains("District Studio → Integrations"))
     }
 
     /**

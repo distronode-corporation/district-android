@@ -147,8 +147,8 @@ class ContactDetailDgiViewModelTest {
         // server's message is the only thing that names the settings page the operator has to
         // visit. Replacing it with "you do not have permission" leaves them holding a button that
         // fails and no route to the switch.
-        val message = "Lead enrichment is off for this workspace. Turn it on in Settings → " +
-            "AI Agent → Skills & Integrations to enrich contacts with external business data."
+        val message = "Lead enrichment is off for this workspace. Turn it on in District Studio → " +
+            "Integrations to enrich contacts with external business data."
         val api = api().apply { enrichResult = ApiResult.Forbidden(message) }
         val vm = viewModel(api)
         runCurrent()

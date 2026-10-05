@@ -583,7 +583,7 @@ interface DgiApi {
      *
      * ⛔ ANSWERS **403** WHEN THE WORKSPACE HAS NOT OPTED IN, and the body of that 403 is the
      * product rather than boilerplate: it names the exact settings page that turns the feature on
-     * ("Settings → AI Agent → Skills & Integrations"). Show it VERBATIM. A generic "you can't do
+     * ("District Studio → Integrations"). Show it VERBATIM. A generic "you can't do
      * that" leaves the operator with a button that fails and no route to the switch. The opt-in
      * check runs BEFORE the row is stamped, so a refused enrichment never leaves a contact
      * showing a dossier that will never arrive.

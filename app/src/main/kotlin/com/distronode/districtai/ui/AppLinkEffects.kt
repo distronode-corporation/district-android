@@ -90,7 +90,44 @@ internal fun workspaceRoute(
     // a viewer-in-B on a screen whose every request the server refuses.
     DistrictSection.DESK -> Routes.desk(workspaceId, role)
     DistrictSection.SUPPORT -> Routes.support(workspaceId, role)
+    // ⚠️ ONE ARM FOR ALL SIX STUDIO ENTRIES, AND detekt IS WHY. Six more arms here would put this
+    // `when` past the cyclomatic ceiling the KDoc on [appLinkRoute] describes; [studioRoute] holds
+    // the Studio half of the mapping.
+    DistrictSection.STUDIO,
+    DistrictSection.STUDIO_PERSONA,
+    DistrictSection.STUDIO_VOICE,
+    DistrictSection.STUDIO_CALL_HANDLING,
+    DistrictSection.STUDIO_CAPABILITIES,
+    DistrictSection.STUDIO_KNOWLEDGE,
+    -> studioRoute(section, workspaceId, role)
     DistrictSection.OVERVIEW -> Routes.OVERVIEW
+}
+
+/**
+ * A District Studio link's route: the workspace settings hub, or one of its sections.
+ *
+ * ⚠️ THE ROLE IS CARRIED AS ON EVERY SETTINGS ROUTE, and a viewer reaching a section the hub hides
+ * from them (persona, voice, capabilities) fails in the SAFE direction: those reads exclude
+ * `viewer`, so the screen shows the server's refusal rather than another tenant's configuration.
+ *
+ * ⚠️ TOTAL RATHER THAN PARTIAL, for the reason [workspaceRoute]'s overview arm is: a non-Studio
+ * section here is unreachable through [workspaceRoute], and it answers the hub rather than a wrong
+ * section. `AppLinkEffectsTest` calls this directly so that arm is asserted rather than assumed.
+ */
+internal fun studioRoute(
+    section: DistrictSection,
+    workspaceId: String,
+    role: WorkspaceRole?,
+): String {
+    val settingsSection = when (section) {
+        DistrictSection.STUDIO_PERSONA -> Routes.SECTION_PERSONA
+        DistrictSection.STUDIO_VOICE -> Routes.SECTION_VOICE_STUDIO
+        DistrictSection.STUDIO_CALL_HANDLING -> Routes.SECTION_CALLS
+        DistrictSection.STUDIO_CAPABILITIES -> Routes.SECTION_CAPABILITIES
+        DistrictSection.STUDIO_KNOWLEDGE -> Routes.SECTION_KNOWLEDGE
+        else -> null
+    }
+    return Routes.workspaceSettings(workspaceId, role, settingsSection)
 }
 
 /**

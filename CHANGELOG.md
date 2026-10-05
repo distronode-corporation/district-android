@@ -8,6 +8,16 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Added
+
+- Links to District Studio pages on distronode.com open the matching screen in the app: Persona,
+  Voice, Call handling, Skills, Integrations and Knowledge. Video opens in the browser.
+
+### Changed
+
+- Workspace settings groups the receptionist's settings under a District Studio heading, in the
+  same order and with the same names as the web: Persona, Voice, Call handling, Skills, Knowledge.
+
 ## [2.0] - 2026-10-04
 
 ### Added

@@ -575,6 +575,16 @@
          routes live callers through, or of the agent's tool allowlist. The wording below is written
          for that: nothing here ever implies a blank field will be ignored. -->
     <string name="workspace_settings_title">Workspace settings</string>
+    <!-- ⛔ A PRODUCT NAME, THE SAME IN EVERY LANGUAGE (the web's French dashboard says "District
+         Studio" too), so it is never translated. -->
+    <string name="district_studio_title" translatable="false">District Studio</string>
+    <!-- The District Studio rows use the web's own labels for the same pages (the web's French
+         labels are Persona, Voix, Gestion des appels, Compétences, Connaissances). "Call handling"
+         reuses call_handling_title, which already says it. -->
+    <string name="studio_row_persona">Persona</string>
+    <string name="studio_row_voice">Voice</string>
+    <string name="studio_row_skills">Skills</string>
+    <string name="studio_row_knowledge">Knowledge</string>
     <string name="workspace_settings_persona_subtitle">The agent\'s name, greeting and character.</string>
     <string name="workspace_settings_capabilities_subtitle">What the agent may do on a call, and
         external lead enrichment.</string>

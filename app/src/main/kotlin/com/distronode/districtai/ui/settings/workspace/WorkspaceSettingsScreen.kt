@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
@@ -20,6 +21,7 @@ import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.Eyebrow
 
 /**
  * The workspace settings hub: which section to open.
@@ -86,128 +88,22 @@ fun WorkspaceSettingsScreen(
             modifier = inset.fillMaxSize().verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
+            // ⛔ "District Studio" IS THE WEB'S NAME FOR THE RECEPTIONIST'S OWN SECTION, in the web's
+            // order, and the heading is a product name that is never translated.
             ContentContainer {
-                // ⛔ THE FOUR CONFIG-BACKED ROWS. Persona, capabilities, the transfer directory and
-                // the routing rules all hydrate from `workspace/config`, whose GET excludes
-                // `viewer` BY DESIGN — the payload carries staff phone numbers and the operator's
-                // own prompt. That design stands, so a viewer is not offered a row that leads to a
-                // read they cannot make. Everything inside this block is presence, not enablement:
-                // a disabled row that 403s on tap is worse than no row.
-                if (canMutate) {
-                    DistrictListRow(
-                        title = stringResource(R.string.persona_title),
-                        subtitle = stringResource(R.string.workspace_settings_persona_subtitle),
-                        onClick = onOpenPersona,
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION
-                        },
-                    )
-                    DistrictRowDivider()
-                    // ⛔ THE STUDIO READ AND THE PERSONA PATCH BOTH EXCLUDE `viewer`, so the row
-                    // sits with the persona's, inside the gate.
-                    DistrictListRow(
-                        title = stringResource(R.string.voice_studio_title),
-                        subtitle = stringResource(R.string.workspace_settings_voice_studio_subtitle),
-                        onClick = { onOpenSection(SECTION_VOICE_STUDIO) },
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION
-                        },
-                    )
-                    DistrictRowDivider()
-                    DistrictListRow(
-                        title = stringResource(R.string.capabilities_title),
-                        subtitle = stringResource(R.string.workspace_settings_capabilities_subtitle),
-                        onClick = onOpenCapabilities,
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION
-                        },
-                    )
-                    DistrictRowDivider()
-                    // ⛔ THE TWO DESTRUCTIVE-ARRAY EDITORS. Each opens its own configuration read
-                    // and each save REPLACES a stored array, which is why they are separate
-                    // destinations rather than tabs of one screen — see
-                    // Routes.WORKSPACE_SETTINGS_DIRECTORY.
-                    DistrictListRow(
-                        title = stringResource(R.string.directory_title),
-                        subtitle = stringResource(R.string.workspace_settings_directory_subtitle),
-                        onClick = { onOpenSection(SECTION_DIRECTORY) },
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION
-                        },
-                    )
-                    DistrictRowDivider()
-                    DistrictListRow(
-                        title = stringResource(R.string.routing_title),
-                        subtitle = stringResource(R.string.workspace_settings_routing_subtitle),
-                        onClick = { onOpenSection(SECTION_ROUTING) },
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION
-                        },
-                    )
-                    DistrictRowDivider()
-                }
-                // ⛔ THE TWO ROWS EVERY ROLE GETS, AND THE ONLY TWO A VIEWER GETS. Both back onto
-                // reads that admit `viewer` server-side: `workspace/knowledge`,
-                // `workspace/knowledge-mode` and `workspace/messaging`. The screens behind them
-                // gate their own write affordances on the role.
-                // ⛔ OUTSIDE THE `canMutate` BLOCK, DELIBERATELY, AND IT IS THE ONLY SECTION HERE
-                // THAT IS. Both routes behind it ADMIT `viewer` — the handling mode explains a call
-                // list a viewer can already see, and the availability read answers a viewer `false`
-                // with a reason rather than refusing — while both PATCHes exclude one. So the screen
-                // is offered to every role and withholds its own controls, the same shape knowledge
-                // and messaging use.
-                DistrictListRow(
-                    title = stringResource(R.string.call_handling_title),
-                    subtitle = stringResource(R.string.workspace_settings_calls_subtitle),
-                    onClick = { onOpenSection(SECTION_CALLS) },
-                    modifier = Modifier.semantics {
-                        contentDescription = WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION
-                    },
+                StudioRows(
+                    canMutate = canMutate,
+                    onOpenPersona = onOpenPersona,
+                    onOpenCapabilities = onOpenCapabilities,
+                    onOpenSection = onOpenSection,
                 )
-                DistrictRowDivider()
-                DistrictListRow(
-                    title = stringResource(R.string.knowledge_title),
-                    subtitle = stringResource(R.string.workspace_settings_knowledge_subtitle),
-                    onClick = { onOpenSection(SECTION_KNOWLEDGE) },
-                    modifier = Modifier.semantics {
-                        contentDescription = WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION
-                    },
+            }
+            ContentContainer {
+                WorkspaceRows(
+                    canMutate = canMutate,
+                    onOpenNumbers = onOpenNumbers,
+                    onOpenSection = onOpenSection,
                 )
-                DistrictRowDivider()
-                DistrictListRow(
-                    title = stringResource(R.string.messaging_title),
-                    subtitle = stringResource(R.string.workspace_settings_messaging_subtitle),
-                    onClick = { onOpenSection(SECTION_MESSAGING) },
-                    modifier = Modifier.semantics {
-                        contentDescription = WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION
-                    },
-                )
-                // ⛔ TWO ROWS WHOSE READS WOULD SERVE A VIEWER AND WHICH ARE STILL HIDDEN FROM ONE.
-                // The member LIST admits all three roles and so does the marketplace, so this is a
-                // deliberate stopping point rather than a rule: viewer access covers knowledge and
-                // messaging, and each of these screens needs its own affordance audit before it is
-                // widened. Recorded so the asymmetry is not read as
-                // an oversight and not quietly "fixed" either way.
-                if (canMutate) {
-                    DistrictRowDivider()
-                    DistrictListRow(
-                        title = stringResource(R.string.members_title),
-                        subtitle = stringResource(R.string.workspace_settings_members_subtitle),
-                        onClick = { onOpenSection(SECTION_MEMBERS) },
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION
-                        },
-                    )
-                    DistrictRowDivider()
-                    DistrictListRow(
-                        title = stringResource(R.string.marketplace_title),
-                        subtitle = stringResource(R.string.workspace_settings_numbers_subtitle),
-                        onClick = onOpenNumbers,
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION
-                        },
-                    )
-                }
             }
 
             // ⛔ SAYS WHY THE LIST STOPS WHERE IT DOES, AND IT SAYS TWO DIFFERENT THINGS. What
@@ -235,6 +131,154 @@ fun WorkspaceSettingsScreen(
                 )
             }
         }
+    }
+}
+
+/**
+ * District Studio: the rows the web lists under that heading, in the web's order (Persona, Voice,
+ * Call handling, Skills, Knowledge, Integrations, Video), with the web's labels.
+ *
+ * ⚠️ ONLY THE STUDIO PAGES THAT HAVE A NATIVE SCREEN. Integrations is the same screen as Skills
+ * (the capabilities screen), so it gets no second row, and Video has no screen in this app; the
+ * note under the list names what is not here.
+ *
+ * ⛔ THE ROLE GATE IS PER ROW, NOT PER SECTION, which is why the web order interleaves gated and
+ * open rows. Persona, Voice and Skills hydrate from reads that exclude `viewer` (`workspace/config`
+ * and the Studio read, which carry staff phone numbers and the operator's own prompt), so a viewer
+ * is not offered them: a row that 403s on tap is worse than no row. Call handling and Knowledge
+ * back onto reads that admit `viewer`, and their screens gate their own write affordances.
+ */
+@Composable
+private fun StudioRows(
+    canMutate: Boolean,
+    onOpenPersona: () -> Unit,
+    onOpenCapabilities: () -> Unit,
+    onOpenSection: (String) -> Unit,
+) {
+    Eyebrow(
+        text = stringResource(R.string.district_studio_title),
+        modifier = Modifier
+            .padding(horizontal = DistrictTheme.spacing.gutter, vertical = DistrictTheme.spacing.row)
+            .semantics { heading() },
+    )
+    if (canMutate) {
+        DistrictListRow(
+            title = stringResource(R.string.studio_row_persona),
+            subtitle = stringResource(R.string.workspace_settings_persona_subtitle),
+            onClick = onOpenPersona,
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION
+            },
+        )
+        DistrictRowDivider()
+        DistrictListRow(
+            title = stringResource(R.string.studio_row_voice),
+            subtitle = stringResource(R.string.workspace_settings_voice_studio_subtitle),
+            onClick = { onOpenSection(SECTION_VOICE_STUDIO) },
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION
+            },
+        )
+        DistrictRowDivider()
+    }
+    DistrictListRow(
+        title = stringResource(R.string.call_handling_title),
+        subtitle = stringResource(R.string.workspace_settings_calls_subtitle),
+        onClick = { onOpenSection(SECTION_CALLS) },
+        modifier = Modifier.semantics {
+            contentDescription = WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION
+        },
+    )
+    DistrictRowDivider()
+    if (canMutate) {
+        DistrictListRow(
+            title = stringResource(R.string.studio_row_skills),
+            subtitle = stringResource(R.string.workspace_settings_capabilities_subtitle),
+            onClick = onOpenCapabilities,
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION
+            },
+        )
+        DistrictRowDivider()
+    }
+    DistrictListRow(
+        title = stringResource(R.string.studio_row_knowledge),
+        subtitle = stringResource(R.string.workspace_settings_knowledge_subtitle),
+        onClick = { onOpenSection(SECTION_KNOWLEDGE) },
+        modifier = Modifier.semantics {
+            contentDescription = WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION
+        },
+    )
+}
+
+/**
+ * The workspace's own settings, outside District Studio: the transfer directory, the routing rules,
+ * messaging, members and numbers.
+ *
+ * ⛔ THE TWO DESTRUCTIVE-ARRAY EDITORS (directory, routing) are config-backed and gated like the
+ * Studio's persona; each opens its own configuration read and each save REPLACES a stored array,
+ * which is why they are separate destinations rather than tabs of one screen (see
+ * Routes.WORKSPACE_SETTINGS_DIRECTORY).
+ *
+ * ⛔ MESSAGING IS THE ONE ROW HERE EVERY ROLE GETS: `workspace/messaging` admits `viewer`.
+ *
+ * ⛔ MEMBERS AND NUMBERS: READS THAT WOULD SERVE A VIEWER AND ROWS STILL HIDDEN FROM ONE. The member
+ * LIST admits all three roles and so does the marketplace, so this is a deliberate stopping point
+ * rather than a rule: each screen needs its own affordance audit before it is widened.
+ */
+@Composable
+private fun WorkspaceRows(
+    canMutate: Boolean,
+    onOpenNumbers: () -> Unit,
+    onOpenSection: (String) -> Unit,
+) {
+    if (canMutate) {
+        DistrictListRow(
+            title = stringResource(R.string.directory_title),
+            subtitle = stringResource(R.string.workspace_settings_directory_subtitle),
+            onClick = { onOpenSection(SECTION_DIRECTORY) },
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION
+            },
+        )
+        DistrictRowDivider()
+        DistrictListRow(
+            title = stringResource(R.string.routing_title),
+            subtitle = stringResource(R.string.workspace_settings_routing_subtitle),
+            onClick = { onOpenSection(SECTION_ROUTING) },
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION
+            },
+        )
+        DistrictRowDivider()
+    }
+    DistrictListRow(
+        title = stringResource(R.string.messaging_title),
+        subtitle = stringResource(R.string.workspace_settings_messaging_subtitle),
+        onClick = { onOpenSection(SECTION_MESSAGING) },
+        modifier = Modifier.semantics {
+            contentDescription = WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION
+        },
+    )
+    if (canMutate) {
+        DistrictRowDivider()
+        DistrictListRow(
+            title = stringResource(R.string.members_title),
+            subtitle = stringResource(R.string.workspace_settings_members_subtitle),
+            onClick = { onOpenSection(SECTION_MEMBERS) },
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION
+            },
+        )
+        DistrictRowDivider()
+        DistrictListRow(
+            title = stringResource(R.string.marketplace_title),
+            subtitle = stringResource(R.string.workspace_settings_numbers_subtitle),
+            onClick = onOpenNumbers,
+            modifier = Modifier.semantics {
+                contentDescription = WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION
+            },
+        )
     }
 }
 

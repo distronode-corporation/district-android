@@ -1,6 +1,7 @@
 name: Submit to Google Play production
 description: >-
-  Writes the tag's CHANGELOG section as release notes, mints a Play publishing token through
+  Writes the tag's release notes for every language (CHANGELOG section for en-US,
+  release-notes/<language>/<version>.txt for the others), mints a Play publishing token through
   workload identity federation, and submits an already-uploaded build to production. The one copy
   of the submission sequence, used by release.yml's `submit` job and by submit.yml.
 
@@ -21,7 +22,7 @@ inputs:
     description: The versionCode already uploaded to the internal track.
     required: true
   version-name:
-    description: The versionName, which selects the CHANGELOG section used as release notes.
+    description: The versionName, which selects the release notes (CHANGELOG section and release-notes/ files).
     required: true
   workload-identity-provider:
     description: The workload identity provider the calling workflow trusts.
@@ -33,16 +34,23 @@ inputs:
 runs:
   using: composite
   steps:
-    # To a file first, then shown, so the file is what gets submitted and the log shows exactly
-    # that. (A composite `shell: bash` step runs with pipefail, unlike a workflow step without
-    # `shell:`, but the file is what play-publish.sh reads either way.)
+    # To files first (one per language), then shown, so the files are what gets submitted and the
+    # log shows exactly that. A language under release-notes/ without a file for this version
+    # fails here; play-publish.sh then refuses a listing language with no file.
+    #
+    # ⚠️ `--dir` needs the release scripts from v2.1 on. submit.yml runs this action from main
+    # against the tag's scripts, so it cannot submit an older tag; every older tag is already on
+    # production.
     - name: Release notes
       shell: bash
       env:
         VERSION_NAME: ${{ inputs.version-name }}
       run: |
-        scripts/release-notes.sh "$VERSION_NAME" > "$RUNNER_TEMP/release-notes.txt"
-        cat "$RUNNER_TEMP/release-notes.txt"
+        scripts/release-notes.sh "$VERSION_NAME" --dir "$RUNNER_TEMP/release-notes"
+        for f in "$RUNNER_TEMP"/release-notes/*.txt; do
+          echo "── $(basename "$f" .txt)"
+          cat "$f"
+        done
 
     # An access token only: no credentials file in the workspace and nothing exported to the
     # environment, so the token reaches only the step that names it.
@@ -61,4 +69,4 @@ runs:
         GCP_TOKEN: ${{ steps.gcp.outputs.access_token }}
         VERSION_CODE: ${{ inputs.version-code }}
         VERSION_NAME: ${{ inputs.version-name }}
-      run: scripts/play-publish.sh submit "$VERSION_CODE" "$VERSION_NAME" "$RUNNER_TEMP/release-notes.txt"
+      run: scripts/play-publish.sh submit "$VERSION_CODE" "$VERSION_NAME" "$RUNNER_TEMP/release-notes"

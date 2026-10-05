@@ -1,0 +1,4 @@
+• Les liens vers District Studio sur distronode.com ouvrent maintenant l'écran correspondant dans l'application. La page Vidéo s'ouvre dans le navigateur.
+
+• Dans les paramètres de l'espace de travail, les réglages de la réceptionniste sont regroupés sous District Studio, dans le même ordre et sous les mêmes noms que sur le Web.
+• Les libellés et les messages fournis par le service suivent les noms de District Studio, par exemple quand l'enrichissement des contacts est désactivé.

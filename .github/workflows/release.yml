@@ -80,9 +80,10 @@ jobs:
               ;;
             refs/tags/v*)
               scripts/release-version.sh --tag "$REF_NAME" >> "$GITHUB_OUTPUT"
-              # The release notes are submitted later; a missing or oversized CHANGELOG section
-              # fails here, before an hour of building, instead of at submission.
-              scripts/release-notes.sh "${REF_NAME#v}" > /dev/null
+              # The release notes are submitted later; a missing or oversized CHANGELOG section,
+              # or a language under release-notes/ without its file for this version, fails here,
+              # before an hour of building, instead of at submission.
+              scripts/release-notes.sh "${REF_NAME#v}" --dir "$RUNNER_TEMP/release-notes-check"
               ;;
             *)
               echo "::error::Releases are built from main or a v* tag, not $REF."

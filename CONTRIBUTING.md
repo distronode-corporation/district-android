@@ -21,6 +21,8 @@ core/core-media/         LiveKit behind the CallEngine interface.
 build-logic/             Convention plugins (district.android.*).
 contracts/               Server-generated API fixtures. Never edited by hand.
 parity/                  Snapshot of the iOS client's endpoint list.
+release-notes/           Google Play release notes for languages other than en-US,
+                         <language>/<version>.txt (en-US is the CHANGELOG section).
 scripts/                 verify-release-minification.sh (CI), the release scripts that
                          release.yml and submit.yml run (tested by
                          release-scripts.test.sh), smoke-emulator.sh (the local Maestro
@@ -112,8 +114,10 @@ runs the same CI job: it uses no secrets.
 ## Releases
 
 Maintainers release by pushing a `v*` tag that equals `versionName`, on a commit on `main`,
-with a `CHANGELOG.md` section for that version (Google Play takes at most 500 characters of
-release notes, and the workflow refuses a longer section rather than cut it).
+with a `CHANGELOG.md` section for that version and its French notes in
+`release-notes/fr-CA/<version>.txt` (Google Play takes at most 500 characters of release notes
+per language, and the workflow refuses a longer or missing one rather than cut it or fall back
+to English; `scripts/release-notes.sh <version> --dir <out>` checks them all).
 `.github/workflows/release.yml` builds, signs and uploads it to the internal testing track;
 submission for store review runs only with the maintainers' explicit approval, and publishes
 the tag's GitHub Release once it has succeeded. No signing key or store credential is stored

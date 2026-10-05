@@ -21,7 +21,8 @@ internal const val APP_LINK_PATH_PREFIX = "/dashboard/district"
  *
  * ⚠️ THIS IS NOT A COPY OF THE WEB'S ROUTE LIST AND MUST NOT BECOME ONE. The web dashboard has
  * 21 top-level pages under `/dashboard/district` (the root plus 20 first segments); this enum holds
- * the twelve whose mapping onto an Android destination is UNAMBIGUOUS. The other nine are listed
+ * the twelve whose mapping onto an Android destination is UNAMBIGUOUS, plus District Studio
+ * (`studio`, a first segment with pages of its own beneath it: the `STUDIO*` entries). The other nine are listed
  * in [appLinkDestination]'s KDoc with the reason each one is not here, because "no mapping yet"
  * and "no unambiguous mapping" are different states and the second one is a decision rather than
  * a gap.
@@ -81,6 +82,40 @@ enum class DistrictSection {
      * ⛔ NOT [DESK]. See the ⛔ there.
      */
     SUPPORT,
+
+    /**
+     * District Studio's home, `/dashboard/district/studio`: the workspace settings hub, which
+     * groups the receptionist's rows under the same "District Studio" heading the web uses.
+     *
+     * ⚠️ THE HUB, NOT THE OVERVIEW. The hub is open to every role (it gates its own rows), so a
+     * viewer following a Studio link lands on a screen they can read rather than on a refusal.
+     *
+     * ⛔ THE FIVE `STUDIO_*` ENTRIES BELOW ARE THE STUDIO PAGES WITH A NATIVE SCREEN, and the
+     * Studio's second segment decides between them (see [studioDestination]). `skills` and
+     * `integrations` share [STUDIO_CAPABILITIES]; `video` has no native screen and goes to the
+     * browser.
+     *
+     * ⚠️ PERSONA, VOICE AND CAPABILITIES ARE ROWS A VIEWER IS NOT OFFERED ON THE HUB, because their
+     * reads exclude `viewer`. A link still opens the screen for a viewer, which fails in the safe
+     * direction: the server refuses every request and the screen shows the refusal. Same shape as
+     * [DESK].
+     */
+    STUDIO,
+
+    /** `/dashboard/district/studio/persona`: the agent persona form. */
+    STUDIO_PERSONA,
+
+    /** `/dashboard/district/studio/voice`: Voice Studio. */
+    STUDIO_VOICE,
+
+    /** `/dashboard/district/studio/call-handling`: call handling. */
+    STUDIO_CALL_HANDLING,
+
+    /** `/dashboard/district/studio/skills` AND `/integrations`: the agent capabilities screen. */
+    STUDIO_CAPABILITIES,
+
+    /** `/dashboard/district/studio/knowledge`: the knowledge base. */
+    STUDIO_KNOWLEDGE,
 }
 
 /**
@@ -131,7 +166,7 @@ internal sealed interface AppLinkDestination {
  * described alongside them and is not a page.
  *
  * ⚠️ ALL SEVEN LAND ON THE OVERVIEW; THE DEEPER SEGMENT LANDS ON ITS PARENT SECTION. Only the
- * FIRST segment after the prefix decides (see [firstSegmentAfterPrefix]), so `calls/<id>` resolves
+ * FIRST segment after the prefix decides (see [segmentsAfterPrefix]; `studio` is the one segment whose SECOND segment decides, see [studioDestination]), so `calls/<id>` resolves
  * to [DistrictSection.CALLS], which is the better behaviour: the call log is one tap from the call
  * the link named and the overview is not. A deeper path under an unmapped page, such as
  * `meetings/<id>`, lands where its first segment does: on the overview. `AppLinkResolverTest`
@@ -162,7 +197,14 @@ internal sealed interface AppLinkDestination {
  *   **Lands on the call log**, not the overview.
  *
  * `support` and `desk` are NOT here: they have real destinations, [DistrictSection.DESK] and
- * [DistrictSection.SUPPORT].
+ * [DistrictSection.SUPPORT]. Nor is `studio`: District Studio's pages map to the `STUDIO*` entries,
+ * except `studio/video` (and any Studio page added later), which has no native screen and goes to
+ * the BROWSER rather than the overview. See [studioDestination].
+ *
+ * ⚠️ `settings` STAYS ON THE OVERVIEW, INCLUDING THE LEGACY `settings?tab=agent...` LINKS the web
+ * now redirects into District Studio. The query string never reaches this function (the Activity
+ * passes `Uri.getPath()` only), so it cannot tell an old agent-tab link from the account settings
+ * page, and the ambiguity below still stands.
  *
  * ⚠️ ADDING ONE MEANS ADDING ITS ROUTE TO [appLinkRoute] IN THE SAME CHANGE. The `when` there is
  * exhaustive over the enum, so a new entry is a compile error rather than a silent fall-through to
@@ -173,7 +215,37 @@ internal fun appLinkDestination(host: String?, path: String?): AppLinkDestinatio
     if (path == null) return AppLinkDestination.OpenInBrowser
     if (!isClaimedPath(path)) return AppLinkDestination.OpenInBrowser
 
-    return AppLinkDestination.Section(sectionFor(firstSegmentAfterPrefix(path)))
+    val segments = segmentsAfterPrefix(path)
+    val first = segments.firstOrNull().orEmpty().lowercase()
+    if (first == STUDIO_SEGMENT) return studioDestination(segments.getOrNull(1))
+    return AppLinkDestination.Section(sectionFor(first))
+}
+
+/** The web's District Studio segment, `/dashboard/district/studio`. */
+private const val STUDIO_SEGMENT = "studio"
+
+/**
+ * A District Studio page, decided by the segment after `studio` (null for the Studio home).
+ *
+ * ⛔ AN UNKNOWN STUDIO PAGE GOES TO THE BROWSER, NOT TO THE OVERVIEW, which is the opposite of
+ * [sectionFor]'s fallback and deliberately so. Every Studio page is a settings form; the overview
+ * shows none of what such a link names, and the web page does. `video` is the one Studio page
+ * today with no native screen, and a page the web adds later lands there too until it gets one.
+ *
+ * ⚠️ `skills` AND `integrations` ARE ONE ANDROID SCREEN. The capabilities screen holds both the
+ * agent's tools and its integration-backed actions; the web splits them into two pages.
+ *
+ * ⚠️ ONLY THE SECOND SEGMENT DECIDES, matching the first-segment rule: `studio/persona/x` is the
+ * persona screen. Case-folded for the same reason as [sectionFor].
+ */
+private fun studioDestination(page: String?): AppLinkDestination = when (page?.lowercase()) {
+    null -> AppLinkDestination.Section(DistrictSection.STUDIO)
+    "persona" -> AppLinkDestination.Section(DistrictSection.STUDIO_PERSONA)
+    "voice" -> AppLinkDestination.Section(DistrictSection.STUDIO_VOICE)
+    "call-handling" -> AppLinkDestination.Section(DistrictSection.STUDIO_CALL_HANDLING)
+    "skills", "integrations" -> AppLinkDestination.Section(DistrictSection.STUDIO_CAPABILITIES)
+    "knowledge" -> AppLinkDestination.Section(DistrictSection.STUDIO_KNOWLEDGE)
+    else -> AppLinkDestination.OpenInBrowser
 }
 
 /**
@@ -188,18 +260,18 @@ private fun isClaimedPath(path: String): Boolean =
         path.startsWith("$APP_LINK_PATH_PREFIX/")
 
 /**
- * The one path segment that decides the section, or `""` for the dashboard root.
+ * The non-empty path segments after the prefix; the first decides the section (empty list for the
+ * dashboard root), and under `studio` the second decides the Studio page.
  *
  * ⚠️ TRAILING SLASHES AND EMPTY SEGMENTS COLLAPSE TO THE ROOT. `/dashboard/district`,
  * `/dashboard/district/` and `/dashboard/district//` are the same page to the web server, so they
  * have to be the same destination here — otherwise a link copied with a trailing slash behaves
  * differently from the same link without one, which is indistinguishable from a bug.
  */
-private fun firstSegmentAfterPrefix(path: String): String =
+private fun segmentsAfterPrefix(path: String): List<String> =
     path.removePrefix(APP_LINK_PATH_PREFIX)
         .split('/')
-        .firstOrNull { it.isNotEmpty() }
-        .orEmpty()
+        .filter { it.isNotEmpty() }
 
 /**
  * ⚠️ AN UNRECOGNISED SEGMENT IS THE OVERVIEW, NOT THE BROWSER, AND THAT IS THE DELIBERATE CALL FOR
@@ -209,11 +281,11 @@ private fun firstSegmentAfterPrefix(path: String): String =
  * [appLinkDestination] land. The deeper segment listed there never reaches this fallback:
  * `calls/<id>` is matched by its FIRST segment, so it resolves to its parent section.
  *
- * ⚠️ CASE-FOLDED because a URL path is case-sensitive to a server but a shared link is retyped by
+ * ⚠️ CASE-FOLDED (by the caller, [appLinkDestination]) because a URL path is case-sensitive to a server but a shared link is retyped by
  * humans. `lowercase()` here can only ever widen what resolves to a real section; it cannot make a
  * claimed URL unreachable.
  */
-private fun sectionFor(segment: String): DistrictSection = when (segment.lowercase()) {
+private fun sectionFor(segment: String): DistrictSection = when (segment) {
     "inbox" -> DistrictSection.INBOX
     "calls" -> DistrictSection.CALLS
     "contacts" -> DistrictSection.CONTACTS

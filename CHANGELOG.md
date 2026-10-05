@@ -8,15 +8,19 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [2.1] - 2026-10-05
+
 ### Added
 
-- Links to District Studio pages on distronode.com open the matching screen in the app: Persona,
-  Voice, Call handling, Skills, Integrations and Knowledge. Video opens in the browser.
+- District Studio links on distronode.com open the matching screen in the app: Persona, Voice,
+  Call handling, Skills, Integrations and Knowledge. Video opens in the browser.
 
 ### Changed
 
-- Workspace settings groups the receptionist's settings under a District Studio heading, in the
-  same order and with the same names as the web: Persona, Voice, Call handling, Skills, Knowledge.
+- Workspace settings groups the receptionist's settings under District Studio, in the web's
+  order and names: Persona, Voice, Call handling, Skills, Knowledge.
+- Words from the service follow District Studio, such as the Voice heading, and District Studio
+  → Integrations when contact enrichment is off.
 
 ## [2.0] - 2026-10-04
 
@@ -67,7 +71,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v2.0...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v2.1...HEAD
+[2.1]: https://github.com/distronode-corporation/district-android/compare/v2.0...v2.1
 [2.0]: https://github.com/distronode-corporation/district-android/compare/v1.2...v2.0
 [1.2]: https://github.com/distronode-corporation/district-android/compare/v1.1...v1.2
 [1.1]: https://github.com/distronode-corporation/district-android/compare/v1.0...v1.1

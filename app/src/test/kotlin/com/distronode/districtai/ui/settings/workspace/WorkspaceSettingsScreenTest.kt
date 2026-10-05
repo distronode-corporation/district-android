@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -75,6 +76,53 @@ class WorkspaceSettingsScreenTest {
     }
 
     @Test
+    fun `the receptionist's rows sit under a District Studio heading in the web's order`() {
+        // ⛔ THE WEB'S ORDER AND THE WEB'S LABELS: Persona, Voice, Call handling, Skills, Knowledge
+        // (Integrations shares the Skills screen and Video has no native screen, so neither has a
+        // row). The heading is a product name and is never translated; Eyebrow uppercases it.
+        render()
+
+        composeRule.onNodeWithText("District Studio".uppercase()).assertIsDisplayed()
+        listOf("Persona", "Voice", "Call handling", "Skills", "Knowledge").forEach {
+            composeRule.onNodeWithText(it).assertIsDisplayed()
+        }
+
+        val studioOrder = listOf(
+            WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION,
+            WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION,
+            WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION,
+            WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION,
+            WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION,
+            // The workspace's own settings follow the Studio, never interleave with it.
+            WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION,
+        )
+        val headingTop = composeRule.onNodeWithText("District Studio".uppercase())
+            .fetchSemanticsNode().boundsInRoot.top
+        val tops = studioOrder.map {
+            composeRule.onNodeWithContentDescription(it).fetchSemanticsNode().boundsInRoot.top
+        }
+        assertTrue("the heading sits above the first Studio row", headingTop < tops.first())
+        assertEquals(tops.sorted(), tops)
+    }
+
+    @Test
+    fun `a viewer still sees the District Studio heading over the rows they may open`() {
+        render(canMutate = false)
+
+        composeRule.onNodeWithText("District Studio".uppercase()).assertIsDisplayed()
+        val callsTop = composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
+            .fetchSemanticsNode().boundsInRoot.top
+        val knowledgeTop = composeRule
+            .onNodeWithContentDescription(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
+            .fetchSemanticsNode().boundsInRoot.top
+        val messagingTop = composeRule
+            .onNodeWithContentDescription(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
+            .fetchSemanticsNode().boundsInRoot.top
+        assertTrue(callsTop < knowledgeTop)
+        assertTrue("messaging is outside the Studio, below it", knowledgeTop < messagingTop)
+    }
+
+    @Test
     fun `the four section rows navigate by their own section segment`() {
         // ⛔ THE SEGMENT IS WHAT DECIDES THE DESTINATION, and a wrong one is a silent no-op rather
         // than an exception — Navigation simply does not match, so the tap does nothing. Asserted
@@ -109,6 +157,10 @@ class WorkspaceSettingsScreenTest {
         composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION)
             .performClick()
         assertEquals("voice-studio", section)
+
+        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
+            .performClick()
+        assertEquals("calls", section)
     }
 
     @Test

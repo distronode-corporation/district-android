@@ -118,6 +118,44 @@ class AppLinkEffectsTest {
     }
 
     @Test
+    fun `each District Studio section maps to its workspace settings destination`() {
+        val role = WorkspaceRole.CLIENT
+
+        assertEquals(
+            "the Studio home is the settings hub, which carries the District Studio heading",
+            Routes.workspaceSettings("ws-1", role),
+            workspaceRoute(DistrictSection.STUDIO, "ws-1", role),
+        )
+        mapOf(
+            DistrictSection.STUDIO_PERSONA to Routes.SECTION_PERSONA,
+            DistrictSection.STUDIO_VOICE to Routes.SECTION_VOICE_STUDIO,
+            DistrictSection.STUDIO_CALL_HANDLING to Routes.SECTION_CALLS,
+            DistrictSection.STUDIO_CAPABILITIES to Routes.SECTION_CAPABILITIES,
+            DistrictSection.STUDIO_KNOWLEDGE to Routes.SECTION_KNOWLEDGE,
+        ).forEach { (section, settingsSection) ->
+            assertEquals(
+                section.name,
+                Routes.workspaceSettings("ws-1", role, settingsSection),
+                workspaceRoute(section, "ws-1", role),
+            )
+        }
+        assertEquals(
+            "workspace/ws-1/settings/client/persona",
+            workspaceRoute(DistrictSection.STUDIO_PERSONA, "ws-1", role),
+        )
+    }
+
+    @Test
+    fun `studioRoute answers the hub for a section that is not the Studio's`() {
+        // ⚠️ TOTAL RATHER THAN PARTIAL, AND ASSERTED: unreachable through `workspaceRoute`, but the
+        // "impossible" arm answers the hub rather than a wrong section.
+        assertEquals(
+            Routes.workspaceSettings("ws-1", WorkspaceRole.AGENCY),
+            studioRoute(DistrictSection.INBOX, "ws-1", WorkspaceRole.AGENCY),
+        )
+    }
+
+    @Test
     fun `the overview answers here too, ignoring the workspace`() {
         // ⚠️ TOTAL RATHER THAN PARTIAL, AND ASSERTED RATHER THAN ASSUMED. This arm is unreachable
         // through `appLinkRoute`, which short-circuits it before this is called, but a partial

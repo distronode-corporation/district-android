@@ -142,8 +142,78 @@ class AppLinkResolverTest {
         expected.forEach { (segment, districtSection) ->
             assertEquals(segment, districtSection, section("$APP_LINK_PATH_PREFIX/$segment").section)
         }
-        // Every enum entry except the overview, which has no segment of its own, is reachable.
-        assertEquals(DistrictSection.entries.size - 1, expected.values.toSet().size)
+        // Every enum entry except the overview (no segment of its own) and the District Studio
+        // entries (reached through `studio/...`, pinned below) is reachable by its first segment.
+        val studio = DistrictSection.entries.filter { it.name.startsWith("STUDIO") }
+        assertEquals(DistrictSection.entries.size - 1 - studio.size, expected.values.toSet().size)
+    }
+
+    // ── District Studio: the second segment decides ───────────────────────────────────────
+
+    @Test
+    fun `every District Studio page with a native screen resolves to it`() {
+        val expected = mapOf(
+            "studio" to DistrictSection.STUDIO,
+            "studio/" to DistrictSection.STUDIO,
+            "studio/persona" to DistrictSection.STUDIO_PERSONA,
+            "studio/voice" to DistrictSection.STUDIO_VOICE,
+            "studio/call-handling" to DistrictSection.STUDIO_CALL_HANDLING,
+            // ⚠️ TWO WEB PAGES, ONE ANDROID SCREEN: the capabilities screen holds both.
+            "studio/skills" to DistrictSection.STUDIO_CAPABILITIES,
+            "studio/integrations" to DistrictSection.STUDIO_CAPABILITIES,
+            "studio/knowledge" to DistrictSection.STUDIO_KNOWLEDGE,
+        )
+
+        expected.forEach { (path, districtSection) ->
+            assertEquals(path, districtSection, section("$APP_LINK_PATH_PREFIX/$path").section)
+        }
+        // Every STUDIO entry is reachable from some Studio URL.
+        assertEquals(
+            DistrictSection.entries.filter { it.name.startsWith("STUDIO") }.toSet(),
+            expected.values.toSet(),
+        )
+    }
+
+    @Test
+    fun `a Studio page with no native screen goes to the browser, not the overview`() {
+        // ⛔ THE OPPOSITE OF THE TOP-LEVEL FALLBACK, AND DELIBERATELY. Every Studio page is a
+        // settings form the overview shows nothing of; the web page is the honest answer. `video`
+        // is the one such page today; a page the web adds later lands here too.
+        listOf("studio/video", "studio/video/avatar", "studio/not-a-page").forEach {
+            assertEquals(
+                it,
+                AppLinkDestination.OpenInBrowser,
+                destination("distronode.com", "$APP_LINK_PATH_PREFIX/$it"),
+            )
+        }
+    }
+
+    @Test
+    fun `a deeper Studio path lands on its Studio page, case-folded`() {
+        assertEquals(
+            DistrictSection.STUDIO_PERSONA,
+            section("$APP_LINK_PATH_PREFIX/studio/persona/greeting").section,
+        )
+        assertEquals(DistrictSection.STUDIO_VOICE, section("$APP_LINK_PATH_PREFIX/Studio/VOICE").section)
+        assertEquals(
+            DistrictSection.STUDIO_KNOWLEDGE,
+            section("$APP_LINK_PATH_PREFIX//studio//knowledge/").section,
+        )
+    }
+
+    @Test
+    fun `studio only means District Studio as the first segment`() {
+        // A `studio` segment deeper in another section's path is that section's business.
+        assertEquals(DistrictSection.CALLS, section("$APP_LINK_PATH_PREFIX/calls/studio").section)
+        assertEquals(DistrictSection.OVERVIEW, section("$APP_LINK_PATH_PREFIX/studios").section)
+    }
+
+    @Test
+    fun `the legacy settings agent tab still lands on the overview`() {
+        // ⚠️ THE QUERY NEVER REACHES THE RESOLVER (the Activity passes `Uri.getPath()` only), so
+        // an old `settings?tab=agent` link is indistinguishable from the account settings page and
+        // keeps the `settings` decision: the overview.
+        assertEquals(DistrictSection.OVERVIEW, section("$APP_LINK_PATH_PREFIX/settings").section)
     }
 
     @Test

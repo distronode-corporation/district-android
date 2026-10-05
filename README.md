@@ -108,8 +108,12 @@ protected: they cannot be moved or deleted) or, for a test build, from a dispatc
 Every build goes to the internal testing track. Submission for store review is a separate
 step that runs only with the maintainers' explicit approval, either in the same run or later
 through [`.github/workflows/submit.yml`](.github/workflows/submit.yml); it releases the
-already uploaded build to production with the version's `CHANGELOG.md` section as its release
-notes. Once that submission has succeeded, the same workflow publishes the tag's
+already uploaded build to production with per-language release notes: the version's
+`CHANGELOG.md` section for en-US, and `release-notes/<language>/<version>.txt` (for example
+`release-notes/fr-CA/2.1.txt`, plain text exactly as the store shows it) for every other
+language. Every language under `release-notes/` needs a file for each version, and every
+language the store listing has needs notes: a missing one stops the release, and English is
+never sent in its place. Each language is held to Google Play's 500 characters. Once that submission has succeeded, the same workflow publishes the tag's
 [GitHub Release](https://github.com/distronode-corporation/district-android/releases), marked
 Latest, with that section and links to the runs that built and submitted it. Releases here are
 immutable, so it is published once, complete, and a re-run leaves an existing release alone.

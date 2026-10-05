@@ -4,9 +4,12 @@
 #
 #   scripts/play-publish.sh upload <aab> <mapping.txt> <versionCode> <versionName>
 #       Upload the bundle and its R8 mapping and release it to the INTERNAL track.
-#   scripts/play-publish.sh submit <versionCode> <versionName> <notes-file>
-#       Release an already uploaded bundle to PRODUCTION with the given release notes. For a
-#       published app, committing that edit sends the release for review.
+#   scripts/play-publish.sh submit <versionCode> <versionName> <notes-dir>
+#       Release an already uploaded bundle to PRODUCTION with per-language release notes,
+#       <notes-dir>/<language>.txt (scripts/release-notes.sh <version> --dir writes them). Every
+#       language the store listing has must have its own file: a missing one fails before
+#       anything is changed, and is never filled in from another language. For a published app,
+#       committing that edit sends the release for review.
 #   scripts/play-publish.sh status <versionCode>
 #       Print every track that holds the versionCode, read from a fresh edit.
 #
@@ -143,10 +146,10 @@ case "$cmd" in
         report "$vc"
         ;;
     submit)
-        [ $# -eq 4 ] || fail "usage: $0 submit <versionCode> <versionName> <notes-file>"
-        vc=$2 name=$3 notes_file=$4
+        [ $# -eq 4 ] || fail "usage: $0 submit <versionCode> <versionName> <notes-dir>"
+        vc=$2 name=$3 notes_dir=$4
         is_number "$vc" || fail "versionCode must be a number, got '$vc'."
-        [ -s "$notes_file" ] || fail "$notes_file is missing or empty."
+        [ -d "$notes_dir" ] || fail "$notes_dir is not a directory of <language>.txt release notes."
         open_edit
         has_bundle "$vc" ||
             fail "Play holds no bundle with versionCode $vc. Build and upload it first (release.yml on the tag)."
@@ -159,14 +162,31 @@ case "$cmd" in
             report "$vc"
             exit 0
         fi
-        # The same notes for every language the store listing has, so no listing is left without.
-        languages=$(call GET "$BASE/edits/${eid}/listings" | jq -c '[(.listings // [])[].language]')
-        [ "$languages" != "[]" ] || fail "the store listing has no languages."
-        body=$(jq -n --arg vc "$vc" --arg name "$vc ($name)" --rawfile notes "$notes_file" \
-            --argjson langs "$languages" '
+        # Each language the store listing has gets its own notes, so no listing is left without
+        # and none is shown another language's. Checked in full before the track is touched.
+        languages=$(call GET "$BASE/edits/${eid}/listings" | jq -r '(.listings // [])[].language')
+        [ -n "$languages" ] || fail "the store listing has no languages."
+        notes_json='[]'
+        missing=""
+        while IFS= read -r language; do
+            file="$notes_dir/$language.txt"
+            if [ ! -s "$file" ]; then
+                missing="$missing $language"
+                continue
+            fi
+            # The same limit as release-notes.sh, in characters (code points), not bytes.
+            chars=$(jq -nr --rawfile text "$file" '$text | sub("\n+$"; "") | length')
+            [ "$chars" -le 500 ] ||
+                fail "the $language release notes are $chars characters; Google Play accepts at most 500. Nothing was submitted."
+            notes_json=$(jq -c --arg language "$language" --rawfile text "$file" \
+                '. + [{language: $language, text: ($text | sub("\n+$"; ""))}]' <<< "$notes_json")
+        done <<< "$languages"
+        [ -z "$missing" ] ||
+            fail "no release notes for the listing's language(s)$missing in $notes_dir. Add release-notes/<language>/<version>.txt. Nothing was submitted."
+        body=$(jq -n --arg vc "$vc" --arg name "$vc ($name)" --argjson notes "$notes_json" '
             {track: "production", releases: [{
                 name: $name, versionCodes: [$vc], status: "completed",
-                releaseNotes: [$langs[] | {language: ., text: ($notes | sub("\n+$"; ""))}]
+                releaseNotes: $notes
             }]}')
         call PUT "$BASE/edits/${eid}/tracks/production" -H 'Content-Type: application/json' --data "$body" > /dev/null
         commit_edit

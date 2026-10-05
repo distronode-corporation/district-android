@@ -104,6 +104,35 @@ check "characters are counted, not bytes (482 characters, 963 bytes)" \
     bash -c "CHANGELOG='$work/UTF.md' '$root/scripts/release-notes.sh' 3.1 > /dev/null"
 check "the real CHANGELOG's 1.0 section fits" bash -c "'$root/scripts/release-notes.sh' 1.0 > /dev/null"
 
+# Other languages: release-notes/<language>/<version>.txt, never filled in from English.
+notes_root="$work/release-notes"
+mkdir -p "$notes_root/fr-CA"
+printf '• Les appels peuvent être transférés.\n\n\n' > "$notes_root/fr-CA/1.1.txt"
+rn() { CHANGELOG="$work/CHANGELOG.md" RELEASE_NOTES_DIR="$notes_root" "$root/scripts/release-notes.sh" "$@"; }
+out=$(rn 1.1 fr-CA)
+check "a language's own file, trailing blank lines dropped" test "$out" = "• Les appels peuvent être transférés."
+out=$(rn 1.1 en-US)
+check "en-US by name is the CHANGELOG section" test "$out" = "$expected"
+refuses "a language with no file for the version" rn 1.0 fr-CA
+check "  (refused, naming the missing file)" grep -q "release-notes/fr-CA/1.0.txt is missing" "$work/out"
+refuses "  (and no English is printed in its place)" grep -q "The first release" "$work/out"
+refuses "a language code that is not one" rn 1.1 '../x'
+rn 1.1 --dir "$work/notes-out" 2> /dev/null
+check "--dir writes en-US from the CHANGELOG" test "$(cat "$work/notes-out/en-US.txt")" = "$expected"
+check "--dir writes every language under release-notes/" \
+    test "$(cat "$work/notes-out/fr-CA.txt")" = "• Les appels peuvent être transférés."
+refuses "--dir with a language missing its file for the version" rn 1.0 --dir "$work/notes-out-1.0"
+check "  (and it does not write that language from English)" test ! -e "$work/notes-out-1.0/fr-CA.txt"
+: > "$notes_root/fr-CA/1.0.txt"
+refuses "an empty language file" rn 1.0 fr-CA
+printf -- '- %s\n' "$(printf 'é%.0s' $(seq 1 499))" > "$notes_root/fr-CA/1.1.txt"
+refuses "a language file over Play's 500 characters" rn 1.1 fr-CA
+refuses "  (and --dir refuses it too)" rn 1.1 --dir "$work/notes-out-long"
+printf -- '- %s\n' "$(printf 'é%.0s' $(seq 1 498))" > "$notes_root/fr-CA/1.1.txt"
+check "a language file of exactly 500 characters" bash -c "CHANGELOG='$work/CHANGELOG.md' RELEASE_NOTES_DIR='$notes_root' '$root/scripts/release-notes.sh' 1.1 fr-CA > /dev/null"
+check "the real 2.1 notes fit, in every language" \
+    bash -c "cd '$root' && scripts/release-notes.sh 2.1 --dir '$work/notes-2.1' 2> /dev/null && test -s '$work/notes-2.1/en-US.txt' && test -s '$work/notes-2.1/fr-CA.txt'"
+
 # ── the curl stub ─────────────────────────────────────────────────────────────
 stubbin="$work/bin"
 mkdir -p "$stubbin"
@@ -164,7 +193,9 @@ not_called() { ! grep -qF "$1" "$STUB_DIR/calls"; }
 play() { PATH="$stubbin:$PATH" GCP_TOKEN=gcp-token-ABC "$root/scripts/play-publish.sh" "$@"; }
 printf 'x' > "$work/app.aab"
 printf 'y' > "$work/mapping.txt"
-printf 'Line one.\n' > "$work/notes.txt"
+mkdir -p "$work/notes"
+printf 'Line one.\n' > "$work/notes/en-US.txt"
+printf 'Ligne un.\n\n' > "$work/notes/fr-CA.txt"
 P=/androidpublisher/v3/applications/com.distronode.districtai
 U=/upload/androidpublisher/v3/applications/com.distronode.districtai
 
@@ -213,28 +244,51 @@ check "is not read as 'no bundle', so nothing is uploaded" not_called "POST $U/e
 echo "play-publish.sh submit"
 reset_stub
 echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
-play submit 4185 1.0 "$work/notes.txt" > "$work/out"
+play submit 4185 1.0 "$work/notes" > "$work/out"
 check "releases to production" called "PUT $P/edits/E1/tracks/production"
 check "commits, which sends it for review" called "POST $P/edits/E1:commit"
-check "notes for every listing language, versionCode and status" \
+check "each listing language's own notes, versionCode and status" \
     test "$(jq -c '.releases' "$STUB_DIR/body-PUT-production")" = \
-    '[{"name":"4185 (1.0)","versionCodes":["4185"],"status":"completed","releaseNotes":[{"language":"en-US","text":"Line one."},{"language":"fr-CA","text":"Line one."}]}]'
+    '[{"name":"4185 (1.0)","versionCodes":["4185"],"status":"completed","releaseNotes":[{"language":"en-US","text":"Line one."},{"language":"fr-CA","text":"Ligne un."}]}]'
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+mkdir -p "$work/notes-en"
+cp "$work/notes/en-US.txt" "$work/notes-en/"
+refuses "a listing language with no notes file" play submit 4185 1.0 "$work/notes-en"
+check "  (refused, naming the language)" grep -q "language(s) fr-CA" "$work/out"
+check "  (and production is not touched: no English in its place)" not_called "PUT $P/edits/E1/tracks/production"
+check "  (and nothing is committed)" not_called ":commit"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+mkdir -p "$work/notes-long"
+cp "$work/notes/en-US.txt" "$work/notes-long/"
+printf '%s\n' "$(printf 'é%.0s' $(seq 1 501))" > "$work/notes-long/fr-CA.txt"
+refuses "notes over 500 characters in any language" play submit 4185 1.0 "$work/notes-long"
+check "  (and production is not touched)" not_called "PUT $P/edits/E1/tracks/production"
+check "  (and nothing is committed)" not_called ":commit"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+refuses "a notes file instead of a directory" play submit 4185 1.0 "$work/notes/en-US.txt"
+check "  (and nothing is committed)" not_called ":commit"
 
 reset_stub
 echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
 echo '{"track":"production","releases":[{"versionCodes":["4185"],"status":"completed"}]}' > "$STUB_DIR/production"
-play submit 4185 1.0 "$work/notes.txt" > "$work/out"
+play submit 4185 1.0 "$work/notes" > "$work/out"
 check "a build already on production is not submitted again" not_called "PUT $P/edits/E1/tracks/production"
 check "and nothing is committed" not_called ":commit"
 
 reset_stub
 echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
 echo '{"track":"production","releases":[{"versionCodes":["4185"],"status":"draft"}]}' > "$STUB_DIR/production"
-play submit 4185 1.0 "$work/notes.txt" > "$work/out"
+play submit 4185 1.0 "$work/notes" > "$work/out"
 check "a draft on production is completed and submitted" called "POST $P/edits/E1:commit"
 
 reset_stub
-refuses "a versionCode Play does not hold" play submit 4185 1.0 "$work/notes.txt"
+refuses "a versionCode Play does not hold" play submit 4185 1.0 "$work/notes"
 check "and nothing is committed" not_called ":commit"
 
 # ── github-release.sh ─────────────────────────────────────────────────────────

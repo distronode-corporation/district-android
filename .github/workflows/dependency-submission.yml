@@ -27,17 +27,25 @@ name: Dependency submission
 # rather than the one described here. Keep that setting OFF: two submitters mean two graphs for one
 # commit, and duplicated or disagreeing alerts.
 #
+# ⚠️ IT ALSO RUNS ON PULL REQUESTS FROM THIS REPOSITORY, for dependency-review.yml. That review
+# compares the graph of the pull request's head commit with its base, and for Gradle the head
+# commit has a graph only if this workflow submitted one (the action files it under the pull
+# request's head SHA, not the merge commit). A pull request from a fork is skipped: its token
+# cannot get `contents: write`, so the submission would fail. Its review has no Gradle graph for
+# the head commit, so it can judge only what GitHub reads by itself (the workflows' actions).
+#
 # Action pins follow ci.yml: allowlisted, full commit SHA, `# vX.Y.Z` naming that SHA's version.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 # Nothing at the top level; the one job below asks for the one scope it needs.
 permissions: {}
 
 # Only the newest commit's graph matters, so a newer push cancels an older submission that is
-# still in flight.
+# still in flight (per ref: main, or one pull request).
 concurrency:
   group: dependency-submission-${{ github.ref }}
   cancel-in-progress: true
@@ -47,8 +55,12 @@ jobs:
     name: Submit Gradle dependencies
     # ⛔ SKIPPED WHILE THE REPOSITORY IS PRIVATE, like the analysis in codeql.yml: the graph it
     # feeds drives Dependabot alerts on the public repository, and there is nothing to gain from
-    # running it before then. Once the repository is public it runs on every push to main.
-    if: ${{ !github.event.repository.private }}
+    # running it before then. Once the repository is public it runs on every push to main, and on
+    # every pull request whose branch is in this repository (never a fork's, see the top).
+    if: >-
+      ${{ !github.event.repository.private &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     # Nothing else here writes.

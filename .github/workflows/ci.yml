@@ -1,8 +1,8 @@
 name: CI
 
-# One Linux job, because that is the whole of what this repository's CI is for: prove that a
-# commit builds, lints, passes its unit tests, holds its coverage floors and survives R8. It
-# builds nothing that ships: releases are release.yml's job, in the `release` environment, which
+# Two Linux jobs. `verify` is the whole of what this repository's CI is for: prove that a commit
+# builds, lints, passes its unit tests, holds its coverage floors and survives R8. `zizmor` runs
+# static analysis on the workflows themselves. CI builds nothing that ships: releases are release.yml's job, in the `release` environment, which
 # a pull request can never reach. This workflow holds no signing key, store credential or Sentry
 # token and references no secret at all, which is what lets a pull request from a fork run the
 # same job unchanged.
@@ -159,3 +159,25 @@ jobs:
             **/build/reports/detekt/
           if-no-files-found: warn
           retention-days: 14
+
+  # Static analysis of these workflows and of .github/actions/: template injection, over-broad
+  # token permissions, credential persistence, cache poisoning, unpinned actions. The same job,
+  # pins and zizmor version as district-ios and district-linux. A suppression, if one is ever
+  # unavoidable, is an inline `# zizmor: ignore[...]` comment with the reason beside it.
+  #
+  # Annotations mode, not SARIF: zizmor reports a finding as an annotation and FAILS the job,
+  # rather than only filing a code scanning alert.
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        with:
+          version: 1.30.1
+          advanced-security: false
+          annotations: true

@@ -27,17 +27,34 @@ name: Dependency submission
 # rather than the one described here. Keep that setting OFF: two submitters mean two graphs for one
 # commit, and duplicated or disagreeing alerts.
 #
+# ⚠️ ON A PULL REQUEST IT ALSO REVIEWS THE DEPENDENCY CHANGES (job `review`). The review compares
+# the graph of the pull request's head commit with its base, and for Gradle the head commit has a
+# graph only if `submit` filed one (the action files it under the pull request's head SHA, not the
+# merge commit). `submit` runs for pull requests from this repository only: a fork's token cannot
+# get `contents: write`. A fork's review has no Gradle graph for its head commit, so it can judge
+# only what GitHub reads by itself (the workflows' actions).
+#
+# ⛔ THE REVIEW IS A JOB HERE WITH `needs: submit`, NOT A SEPARATE WORKFLOW. In its own workflow
+# it starts beside the submission, and its first query finds no snapshot. Its retries
+# (`retry-on-snapshot-warnings`) then never see the snapshot that lands while it waits, a known
+# bug (actions/dependency-review-action#632); a re-run sees it at once. Measured on pull request
+# #36: two runs waited out 10 and 25 minutes and passed WITHOUT the Gradle graph, which is a gate
+# that looks green without having looked. Ordered after the submission, its first query has the
+# snapshot. A run whose log still ends in "Retry timeout exceeded" has NOT reviewed Gradle:
+# re-run that job.
+#
 # Action pins follow ci.yml: allowlisted, full commit SHA, `# vX.Y.Z` naming that SHA's version.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
-# Nothing at the top level; the one job below asks for the one scope it needs.
+# Nothing at the top level; each job below asks for the one scope it needs.
 permissions: {}
 
 # Only the newest commit's graph matters, so a newer push cancels an older submission that is
-# still in flight.
+# still in flight (per ref: main, or one pull request).
 concurrency:
   group: dependency-submission-${{ github.ref }}
   cancel-in-progress: true
@@ -47,8 +64,12 @@ jobs:
     name: Submit Gradle dependencies
     # ⛔ SKIPPED WHILE THE REPOSITORY IS PRIVATE, like the analysis in codeql.yml: the graph it
     # feeds drives Dependabot alerts on the public repository, and there is nothing to gain from
-    # running it before then. Once the repository is public it runs on every push to main.
-    if: ${{ !github.event.repository.private }}
+    # running it before then. Once the repository is public it runs on every push to main, and on
+    # every pull request whose branch is in this repository (never a fork's, see the top).
+    if: >-
+      ${{ !github.event.repository.private &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     # Nothing else here writes.
@@ -91,3 +112,33 @@ jobs:
           cache-provider: basic
           validate-wrappers: true
           dependency-graph: generate-and-submit
+
+  # Pull requests only: fails a pull request that ADDS a dependency with a known moderate-or-worse
+  # vulnerability, or under a licence this Apache-2.0 project cannot ship. Mostly a guard on
+  # Dependabot's own pull requests. The same action, pin and deny-list as district-macos's
+  # dependency-review.yml and the `dependency-review` jobs of bridgewatch and district-linux. It
+  # compares the two sides through the dependency graph API, so it checks nothing out.
+  review:
+    name: dependency-review
+    needs: submit
+    # After `submit` on a pull request from this repository, and with `submit` skipped on a fork's.
+    # Not after a failed or cancelled submission: that review would pass without the Gradle graph.
+    # Skipped while the repository is private, where dependency review needs GitHub Code Security.
+    if: >-
+      ${{ !cancelled() && github.event_name == 'pull_request' &&
+      !github.event.repository.private &&
+      (needs.submit.result == 'success' || needs.submit.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      # The retry is a backstop for a snapshot GitHub has not finished storing, not the way the
+      # two jobs are ordered (see the top). On a fork's pull request no snapshot is coming, so it
+      # does not wait.
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later, LGPL-2.1-only, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, SSPL-1.0, BUSL-1.1
+          retry-on-snapshot-warnings: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          retry-on-snapshot-warnings-timeout: 300

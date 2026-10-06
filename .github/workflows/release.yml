@@ -196,9 +196,11 @@ jobs:
           persist-credentials: false
 
       # Release notes, a fresh Play token and the production submit: one copy, shared with
-      # submit.yml. Local, read from the checkout above, which is this workflow's own commit.
+      # submit.yml. Self-repository syntax (`$/`): the action at this workflow's own commit,
+      # whatever the workspace holds. The checkout above, the same commit, is for the scripts the
+      # action runs.
       - name: Submit to production
-        uses: ./.github/actions/play-submit
+        uses: $/.github/actions/play-submit
         with:
           version-code: ${{ needs.build.outputs.version_code }}
           version-name: ${{ needs.build.outputs.version_name }}

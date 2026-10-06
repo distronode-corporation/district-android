@@ -84,22 +84,16 @@ jobs:
           scripts/release-version.sh --tag "$TAG" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
-      # ⛔ THE SUBMIT ACTION COMES FROM THIS WORKFLOW'S COMMIT, NOT FROM THE TAG. A local action is
-      # read from the workspace, and the workspace above is the tag, which may predate
-      # .github/actions/play-submit (v1.0 and v1.1 do). So the action is checked out separately,
-      # at the commit this workflow runs from, beside the tag; the scripts it runs still come
-      # from the tag, exactly as they did when these steps were inline.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          ref: ${{ github.sha }}
-          path: .submit-workflow
-          sparse-checkout: .github/actions
-
       # Release notes, a fresh Play token and the production submit: one copy, shared with
       # release.yml's `submit` job.
+      #
+      # ⛔ THE SUBMIT ACTION COMES FROM THIS WORKFLOW'S COMMIT, NOT FROM THE TAG. The workspace
+      # above is the tag, which may predate .github/actions/play-submit (v1.0 and v1.1 do), so a
+      # workspace-relative `./` reference cannot be used here. GitHub's self-repository syntax,
+      # `$/...`, resolves to this repository at the commit this workflow runs from, with no
+      # checkout; the scripts the action runs still come from the workspace, which is the tag.
       - name: Submit to production
-        uses: ./.submit-workflow/.github/actions/play-submit
+        uses: $/.github/actions/play-submit
         with:
           version-code: ${{ steps.version.outputs.version_code }}
           version-name: ${{ steps.version.outputs.version_name }}

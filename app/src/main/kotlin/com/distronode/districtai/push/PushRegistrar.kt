@@ -38,10 +38,14 @@ fun interface PushTokenSource {
  *      idempotent and one request per launch is far under the 20/min per-account ceiling. ⛔ NOT
  *      on a device with no stored session: before a login there is no bearer, so the register would
  *      spend a 401 against that ceiling and record nothing.
- *   3. **On every token rotation.** FCM rotates a registration token on its own schedule (app data
- *      cleared, a restore to a new device, a periodic refresh), and `onNewToken` is the only
- *      notification of it. A missed rotation is silent: the old token keeps being accepted by our
- *      server and rejected by FCM, so push stops with nothing anywhere reporting a problem.
+ *   3. **On every token rotation, but only with a stored session.** FCM rotates a registration
+ *      token on its own schedule (app data cleared, a restore to a new device, a periodic refresh),
+ *      and `onNewToken` is the only notification of it. A missed rotation is silent: the old token
+ *      keeps being accepted by our server and rejected by FCM, so push stops with nothing anywhere
+ *      reporting a problem. ⛔ Gated exactly like (2): a rotation on a signed-out device has no
+ *      bearer, so the register was a guaranteed 401 reported as a failure (Sentry
+ *      DISTRICT-ANDROID-2). Nothing is lost by skipping it: (1) registers the current token at the
+ *      next sign-in, and that token is the rotated one.
  *   4. **Before the sign-out revoke, never after.** `unregisterPushToken` authenticates with the
  *      access token; once `revoke` has ended the session and `forget()` has wiped the store there
  *      is no credential left to make the call with.
@@ -76,6 +80,14 @@ class PushRegistrar(
     private val scope: CoroutineScope,
     private val reportFailure: (String) -> Unit,
     /**
+     * Whether a session is stored on this device: the gate for moments (2) and (3).
+     *
+     * ⚠️ A FUNCTION, CALLED INSIDE THE LAUNCH, because the answer is a Keystore read plus a decrypt
+     * and the callers are the graph's constructor and the FCM service callback, neither of which
+     * may do disk I/O on the thread it was handed.
+     */
+    private val hasSession: suspend () -> Boolean,
+    /**
      * ⚠️ INJECTABLE SO THE SIGN-OUT ORDERING IS TESTABLE WITHOUT WAITING FIVE SECONDS. The
      * production value is a bound on how long a sign-out may pause for a courtesy call, not a
      * network timeout — OkHttp's own is 30s, which is far too long to hold a button press.
@@ -97,11 +109,9 @@ class PushRegistrar(
     /**
      * The application graph was just built: re-register if a session was restored from disk.
      *
-     * ⚠️ [hasSession] IS A FUNCTION, CALLED INSIDE THE LAUNCH, because the answer is a Keystore read
-     * plus a decrypt and the caller is the graph's constructor, which must not do disk I/O. See
-     * moment (2) in the class doc for why this exists and why it is gated.
+     * See moment (2) in the class doc for why this exists and why it is gated on [hasSession].
      */
-    fun onProcessStart(hasSession: suspend () -> Boolean) {
+    fun onProcessStart() {
         scope.launch {
             if (hasSession()) registerCurrentToken(REGISTER_NOT_AFFIRMED_PROCESS_START)
         }
@@ -117,9 +127,15 @@ class PushRegistrar(
      * ⛔ FIRE AND FORGET INTO [scope], NOT INTO THE SERVICE'S LIFETIME. `FirebaseMessagingService`
      * is torn down as soon as its callback returns, so a coroutine scoped to it would be cancelled
      * mid-request; the application scope is what outlives the delivery.
+     *
+     * ⛔ GATED ON [hasSession], LIKE [onProcessStart]. With no session there is no bearer, so the
+     * register can only be refused and reported. The sign-in path ([onSignedIn]) registers the
+     * current token, which is this one, so nothing is lost by leaving it there. See moment (3).
      */
     fun onNewToken(token: String) {
-        scope.launch { register(token, REGISTER_NOT_AFFIRMED_ROTATION) }
+        scope.launch {
+            if (hasSession()) register(token, REGISTER_NOT_AFFIRMED_ROTATION)
+        }
     }
 
     /**

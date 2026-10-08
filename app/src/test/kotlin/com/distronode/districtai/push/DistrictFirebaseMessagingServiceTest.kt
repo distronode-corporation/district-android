@@ -145,11 +145,35 @@ class DistrictFirebaseMessagingServiceTest {
 
     private fun posted() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
 
+    /**
+     * Hand [service] a rotated token and wait for the registration it launched.
+     *
+     * ⚠️ THE REGISTER NOW FOLLOWS A SESSION READ ON IO, so it no longer runs inline on the unconfined
+     * scope. The graph is built first, so the jobs its constructor launches are not mistaken for the
+     * rotation's; only the job the callback added is joined.
+     */
+    private fun rotate(service: DistrictFirebaseMessagingService, token: String) {
+        app.container
+        val before = app.appJob.children.toSet()
+        service.onNewToken(token)
+        val rotation = app.appJob.children.toSet() - before
+        runBlocking { rotation.joinAll() }
+    }
+
     @Test
     fun `a rotated token is registered with the server`() {
-        service().onNewToken("fcm-rotated")
+        rotate(service(), "fcm-rotated")
 
         assertEquals(listOf("fcm-rotated"), app.api.pushApi.pushRegisterRequests.map { it.token })
+    }
+
+    @Test
+    fun `a rotated token on a signed-out device registers nothing`() {
+        // ⛔ SENTRY DISTRICT-ANDROID-2: with no session the register can only be refused, and the
+        // refusal was reported. The next sign-in registers the current token instead.
+        rotate(service(signedIn = false), "fcm-rotated")
+
+        assertTrue(app.api.pushApi.pushRegisterRequests.isEmpty())
     }
 
     @Test

@@ -9,7 +9,7 @@ import org.junit.Test
  * Turns [ContractManifest] from a comment into a gate.
  *
  * ⛔ WHAT THIS PREVENTS, CONCRETELY. `ContractFixtureTest.contracts directory contains fixtures`
- * asserts the directory is NOT EMPTY. That is a floor of one: 163 of the 164 committed fixtures
+ * asserts the directory is NOT EMPTY. That is a floor of one: 165 of the 166 committed fixtures
  * could stop being decoded by anything and the suite would still be green, and a fixture the
  * website's generator adds for a brand-new endpoint arrives silently. These four tests make both
  * events a named, one-line failure.

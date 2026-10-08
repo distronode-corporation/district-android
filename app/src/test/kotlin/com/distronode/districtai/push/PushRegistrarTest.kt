@@ -68,11 +68,13 @@ class PushRegistrarTest {
         scope: CoroutineScope,
         token: String? = "fcm-token-1",
         timeoutMillis: Long = 5_000L,
+        hasSession: Boolean = true,
     ) = PushRegistrar(
         repository = PushTokenRepository(api),
         tokens = { token },
         scope = scope,
         reportFailure = { reports += it },
+        hasSession = { hasSession },
         unregisterTimeoutMillis = timeoutMillis,
     )
 
@@ -99,6 +101,22 @@ class PushRegistrarTest {
         advanceUntilIdle()
 
         assertEquals(listOf("register:rotated-token"), api.calls)
+        assertEquals(emptyList<String>(), reports)
+    }
+
+    @Test
+    fun `a token rotation with no session registers nothing and reports nothing`() = runTest {
+        // ⛔ SENTRY DISTRICT-ANDROID-2. FCM rotates on its own schedule, signed in or not; with no
+        // session there is no bearer, so the register was a guaranteed 401 reported as "not
+        // affirmed". Nothing is lost by skipping it: the next sign-in registers the current token,
+        // which is this one. The api here would refuse, so a call would also show up as a report.
+        val api = RecordingPushApi(result = ApiResult.HttpFailure(status = 401, message = "no session"))
+
+        registrar(api, this, hasSession = false).onNewToken("rotated-token")
+        advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), api.calls)
+        assertEquals(emptyList<String>(), reports)
     }
 
     @Test
@@ -135,7 +153,7 @@ class PushRegistrarTest {
         // token until the user signed out and back in.
         val api = RecordingPushApi()
 
-        registrar(api, this).onProcessStart { true }
+        registrar(api, this).onProcessStart()
         advanceUntilIdle()
 
         assertEquals(listOf("register:fcm-token-1"), api.calls)
@@ -148,7 +166,7 @@ class PushRegistrarTest {
         // per-account ceiling and record nothing.
         val api = RecordingPushApi()
 
-        registrar(api, this).onProcessStart { false }
+        registrar(api, this, hasSession = false).onProcessStart()
         advanceUntilIdle()
 
         assertEquals(emptyList<String>(), api.calls)
@@ -162,7 +180,7 @@ class PushRegistrarTest {
         val api = RecordingPushApi(result = ApiResult.HttpFailure(status = 503, message = "down"))
         val subject = registrar(api, this, token = "fcm-secret-token")
 
-        subject.onProcessStart { true }
+        subject.onProcessStart()
         subject.onNewToken("fcm-rotated-secret")
         advanceUntilIdle()
 
@@ -180,7 +198,7 @@ class PushRegistrarTest {
     fun `a missing token is not reported, because it is the ordinary answer without Play Services`() = runTest {
         val api = RecordingPushApi()
 
-        registrar(api, this, token = null).onProcessStart { true }
+        registrar(api, this, token = null).onProcessStart()
         advanceUntilIdle()
 
         assertEquals(emptyList<String>(), api.calls)

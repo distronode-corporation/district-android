@@ -103,11 +103,11 @@ class MarketplaceViewModelTest {
 
     @Test
     fun `the opening search country follows the workspace region`() {
-        // ⚠️ Mirrors the web dashboard: Canada opens on CA, everything else on the US. `eu` is
-        // pinned to the US on purpose, see the note on defaultSearchCountryFor.
+        // ⚠️ Mirrors the web dashboard: Canada opens on CA, the EU on EE, everything else on the
+        // US. See the note on defaultSearchCountryFor for why EU is Estonia.
         assertEquals("US", defaultSearchCountryFor("us"))
         assertEquals("CA", defaultSearchCountryFor("ca"))
-        assertEquals("US", defaultSearchCountryFor("eu"))
+        assertEquals("EE", defaultSearchCountryFor("eu"))
         assertEquals("US", defaultSearchCountryFor("apac"))
     }
 
@@ -129,6 +129,14 @@ class MarketplaceViewModelTest {
         advanceUntilIdle()
 
         assertEquals("CA", api.searchRequests.single()[2])
+    }
+
+    @Test
+    fun `a European workspace's search form opens on Estonia`() = runTest {
+        val vm = MarketplaceViewModel(NumbersRepository(api()), workspaceId = "ws-1", region = "eu")
+        advanceUntilIdle()
+
+        assertEquals("EE", vm.state.value.form.country)
     }
 
     @Test

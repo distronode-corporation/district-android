@@ -30,9 +30,14 @@ import kotlinx.coroutines.launch
 class MarketplaceViewModel(
     private val repository: NumbersRepository,
     private val workspaceId: String,
+    region: String? = null,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(MarketplaceUiState())
+    // ⚠️ The region decides only the country the search form OPENS on. See
+    // [defaultSearchCountryFor]; null (a workspace list not loaded yet) opens on the US.
+    private val _state = MutableStateFlow(
+        MarketplaceUiState(form = NumberSearchForm(country = defaultSearchCountryFor(region))),
+    )
     val state: StateFlow<MarketplaceUiState> = _state.asStateFlow()
 
     init {
@@ -129,8 +134,9 @@ class MarketplaceViewModel(
         fun factory(
             repository: NumbersRepository,
             workspaceId: String,
+            region: String?,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { MarketplaceViewModel(repository, workspaceId) }
+            initializer { MarketplaceViewModel(repository, workspaceId, region) }
         }
     }
 }

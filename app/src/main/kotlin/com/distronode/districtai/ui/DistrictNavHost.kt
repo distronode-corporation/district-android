@@ -711,6 +711,10 @@ fun DistrictNavHost(
                         factory = MarketplaceViewModel.factory(
                             container.numbersRepository,
                             workspaceId,
+                            // ⚠️ From the overview's workspace list, not the route: it decides
+                            // only the search form's opening country, so a list not loaded yet
+                            // (null) costs nothing worse than the US default.
+                            content?.workspaces?.firstOrNull { it.id == workspaceId }?.region,
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()

@@ -42,7 +42,8 @@ enum class MarketplaceTab { OWNED, SEARCH }
  * absence: the operator would believe they had narrowed something.
  *
  * ⚠️ [country] DEFAULTS TO "US" TO MATCH THE SERVER'S OWN DEFAULT, so an untouched form sends
- * exactly what an omitted parameter would.
+ * exactly what an omitted parameter would. The screen itself opens on the workspace region's
+ * country instead: see [defaultSearchCountryFor].
  */
 data class NumberSearchForm(
     val areaCode: String = "",
@@ -55,6 +56,26 @@ const val NUMBER_TYPE_LOCAL: String = "local"
 const val NUMBER_TYPE_TOLL_FREE: String = "tollFree"
 const val NUMBER_TYPE_MOBILE: String = "mobile"
 const val DEFAULT_COUNTRY: String = "US"
+const val CANADA_COUNTRY: String = "CA"
+const val ESTONIA_COUNTRY: String = "EE"
+
+/**
+ * The country the search form opens on for a workspace in [region].
+ *
+ * ⚠️ MIRRORS THE WEB DASHBOARD'S OWN CHOICE, so the same workspace opens on the same country in
+ * both clients. Only the OPENING value is decided here; the operator can still type any country.
+ * `apac`, an unrecognised region and a missing one all open on [DEFAULT_COUNTRY], which is also
+ * what the server assumes when no country is sent.
+ */
+internal fun defaultSearchCountryFor(region: String?): String = when (region) {
+    "ca" -> CANADA_COUNTRY
+    // ⚠️ Matches the web dashboard's `defaultSearchCountryFor` in distronode-website
+    // `src/lib/providers/number-countries.ts`, which opens a European workspace on the first EU
+    // country in its PLATFORM_REGISTRATIONS table. Estonia is the only EU entry there today, so
+    // this is EE. The two must change together: a new entry in that table means updating this.
+    "eu" -> ESTONIA_COUNTRY
+    else -> DEFAULT_COUNTRY
+}
 
 sealed interface SearchState {
 

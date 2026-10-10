@@ -234,7 +234,7 @@ firebaseMessaging = "25.1.3"
 # directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
 # reporter is a worse outcome than the coordinate. With no native code here it parses
 # nothing.
-sentry = "8.58.0"
+sentry = "8.59.0"
 
 # ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
 # renames every class in the release build, so a crash report without the mapping is a

@@ -171,7 +171,7 @@ okhttp = "5.5.0"
 # changes how the tests execute. That is the documented cost of on-the-fly coverage
 # and the reason a coverage run is not free — see the CI note about it sharing one
 # Gradle invocation with the plain test task.
-kover = "0.9.9"
+kover = "0.9.11"
 
 # ── Static analysis ──────────────────────────────────────────────────────────
 # detekt 1.23.8 is the latest stable (2.x is alpha). ⚠️ detekt 1.23.x embeds its own

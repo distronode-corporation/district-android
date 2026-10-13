@@ -56,6 +56,7 @@ object SchedulingAdminRoutes {
  * @property openUrl hand a URL to a browser; answers whether one took it.
  * @property sessionEpoch changes when the session does; a section re-reads on a change.
  */
+@Suppress("LongParameterList") // A parameter object: its fields ARE the parameters.
 class SchedulingAdminDeps(
     val admin: SchedulingAdminRepository,
     val scheduling: SchedulingRepository,

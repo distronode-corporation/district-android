@@ -4,6 +4,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
@@ -195,7 +198,7 @@ class SchedulingAdminChromeTest {
         assertEquals("Ana", text)
         composeRule.onNodeWithText("Who").assertIsDisplayed()
         composeRule.onNodeWithText("Too long").assertIsDisplayed()
-        composeRule.onNodeWithText("abc").assertDoesNotExist()
+        composeRule.onNodeWithTag("secret").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
         composeRule.onNodeWithTag("toggle").performClick()
         assertEquals(true, on)
         composeRule.onNodeWithTag("choice-b").performClick()

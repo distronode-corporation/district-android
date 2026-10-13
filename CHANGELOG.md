@@ -8,10 +8,20 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [2.2] - 2026-10-13
+
+### Changed
+
+- The Phone numbers search opens on your workspace region's country, as on the web.
+- The app reads the service's new authenticator step at sign-in. How you sign in does not
+  change.
+
 ### Fixed
 
 - Fixes the plan name on the Billing page, which showed the plan's internal key (for example
   "VoicePro") instead of its name.
+- When your device's notification token changes while you are signed out, the app registers it
+  when you sign in instead of reporting an error.
 
 ## [2.1] - 2026-10-05
 
@@ -76,7 +86,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v2.1...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v2.2...HEAD
+[2.2]: https://github.com/distronode-corporation/district-android/compare/v2.1...v2.2
 [2.1]: https://github.com/distronode-corporation/district-android/compare/v2.0...v2.1
 [2.0]: https://github.com/distronode-corporation/district-android/compare/v1.2...v2.0
 [1.2]: https://github.com/distronode-corporation/district-android/compare/v1.1...v1.2

@@ -1,9 +1,11 @@
 package com.distronode.districtai.ui.scheduling.admin.bookings
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SchedulingBookingFilter
 import com.distronode.districtai.core.model.SchedulingSlot
 import com.distronode.districtai.core.model.SchedulingSlots
+import com.distronode.districtai.core.model.SchedulingUser
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.SchedulingAdminOp
 import com.distronode.districtai.ui.resourceIdOrNull
@@ -31,6 +33,7 @@ import org.junit.Test
  * sent, a reschedule needs a picked time, a slot taken in the meantime re-reads the day, and a
  * reassign offers only active users other than the current host.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class SchedulingBookingWritesTest {
 
     private val rig = SchedulingAdminTestRig()
@@ -47,6 +50,16 @@ class SchedulingBookingWritesTest {
     )
 
     private val booking = schedulingBooking()
+
+    private fun user(id: String, name: String, archived: Boolean) = SchedulingUser(
+        id = id,
+        email = "$id@example.com",
+        name = name,
+        isAdmin = false,
+        isOwner = false,
+        role = "member",
+        archived = archived,
+    )
 
     @Test
     fun `cancel trims its reason, refuses one too long, sends once, and closes only when idle`() {
@@ -196,18 +209,9 @@ class SchedulingBookingWritesTest {
     @Test
     fun `reassign offers only active users other than the current host, and needs one picked`() {
         val users = listOf(
-            com.distronode.districtai.core.model.SchedulingUser(
-                id = "sched-user-1", email = "ana@example.com", name = "Ana", isAdmin = true, isOwner = true,
-                role = "owner", archived = false,
-            ),
-            com.distronode.districtai.core.model.SchedulingUser(
-                id = "u2", email = "cy@example.com", name = "", isAdmin = false, isOwner = false,
-                role = "member", archived = false,
-            ),
-            com.distronode.districtai.core.model.SchedulingUser(
-                id = "u3", email = "old@example.com", name = "Old", isAdmin = false, isOwner = false,
-                role = "member", archived = true,
-            ),
+            user("sched-user-1", "Ana", archived = false),
+            user("u2", "", archived = false),
+            user("u3", "Old", archived = true),
         )
         rig.admin.value(SchedulingAdminOp.USERS_LIST, users)
         rig.admin.value(SchedulingAdminOp.BOOKINGS_REASSIGN, booking.copy(hostId = "u2"))

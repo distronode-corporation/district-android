@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -26,18 +25,6 @@ import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.districtFieldColors
-
-/** How a [SchedulingTextField] takes its input. */
-enum class SchedulingFieldKind(val keyboard: KeyboardType, val singleLine: Boolean, val secret: Boolean) {
-    TEXT(KeyboardType.Text, singleLine = true, secret = false),
-    MULTILINE(KeyboardType.Text, singleLine = false, secret = false),
-    NUMBER(KeyboardType.Number, singleLine = true, secret = false),
-    EMAIL(KeyboardType.Email, singleLine = true, secret = false),
-    URL(KeyboardType.Uri, singleLine = true, secret = false),
-
-    /** ⛔ A credential: masked, and never offered to the keyboard's suggestions. */
-    PASSWORD(KeyboardType.Password, singleLine = true, secret = true),
-}
 
 /**
  * A labelled text field with its hint and the reason it was refused, the shape of district-ios's

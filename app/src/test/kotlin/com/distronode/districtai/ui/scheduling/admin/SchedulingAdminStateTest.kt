@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.scheduling.admin
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.distronode.districtai.ApiEnvironment
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SchedulingAdminError
@@ -27,6 +28,7 @@ import org.junit.Test
  * The shared state of every scheduling section: the failure sentences, the access read, and the
  * confirm-then-remove flow.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class SchedulingAdminStateTest {
 
     @Test

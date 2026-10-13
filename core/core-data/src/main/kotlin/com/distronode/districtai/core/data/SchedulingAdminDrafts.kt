@@ -151,3 +151,23 @@ data class SchedulingBrandingUpdate(
         )
     }
 }
+
+/**
+ * The filters `bookings.list` takes. Blank and null are both "no filter".
+ *
+ * @property allHosts sends `scope: all`, the whole tenancy rather than the caller's own bookings.
+ *   ⚠️ The scheduler still checks the member's own admin bit; this only asks.
+ */
+data class SchedulingBookingFilter(
+    val status: String? = null,
+    val whenFilter: String? = null,
+    val from: String? = null,
+    val to: String? = null,
+    val eventTypeSlug: String? = null,
+    val host: String? = null,
+    val team: String? = null,
+    val limit: Int? = null,
+    val offset: Int? = null,
+    val allHosts: Boolean = false,
+    val order: String? = null,
+)

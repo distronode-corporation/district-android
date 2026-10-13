@@ -69,6 +69,7 @@ fun schedulingEventType(
     isPublic = isPublic,
 )
 
+@Suppress("LongParameterList")
 fun schedulingBooking(
     id: String = "b1",
     startAt: String = "2026-10-02T13:00:00Z",

@@ -1492,10 +1492,9 @@ data class WorkflowToggleRequest(
  * checking a key the server never sends. The required fields on the DTOs are what reject `{}` in
  * its place — see [SchedulingStatusResponse].
  *
- * ⛔ THERE IS NO BOOKING EDITOR HERE AND THERE MUST NOT BE ONE. Event types, availability,
- * questions and branding are edited in the scheduler's own admin, served from the workspace's
- * public host, which is why [schedulingSsoTarget] exists at all. Rebuilding any of that in this
- * client would be a second editor over the same rows with no server surface of its own to talk to.
+ * ⚠️ THE BOOKING EDITOR IS NOT HERE: event types, availability, questions, branding and the rest
+ * go through the scheduling admin RPC, [SchedulingAdminApi], which is a separate interface because
+ * it is a generic op call rather than a family of typed endpoints.
  */
 interface SchedulingApi {
     /**

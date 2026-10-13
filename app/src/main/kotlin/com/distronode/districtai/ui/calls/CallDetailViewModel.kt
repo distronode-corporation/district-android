@@ -10,20 +10,40 @@ import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.toFailureText
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** One call and its transcript on demand. */
+/**
+ * One call, its transcript on demand, and its live transcript while it is in progress.
+ *
+ * @param liveTranscript makes the live transcript's controller in the scope it is given; null
+ *   where there is no socket to open (a test about the rest of the screen).
+ */
 class CallDetailViewModel(
     private val repository: CallsRepository,
     private val workspaceId: String,
     private val callId: String,
+    private val liveTranscript: ((CoroutineScope) -> LiveTranscriptController)? = null,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<CallDetailUiState>(CallDetailUiState.Loading)
     val state: StateFlow<CallDetailUiState> = _state.asStateFlow()
+
+    /**
+     * The live transcript, for a call that was in progress when it loaded; null otherwise.
+     *
+     * ⚠️ MADE ONCE AND KEPT ACROSS A RELOAD of the same call, so a retry does not drop the lines
+     * already on screen or open a second socket.
+     */
+    private var live: LiveTranscriptController? = null
+    private val _liveState = MutableStateFlow<LiveTranscriptController.State?>(null)
+    val liveState: StateFlow<LiveTranscriptController.State?> = _liveState.asStateFlow()
+
+    /** The destination is started (see [onScreenStarted]). */
+    private var started = false
 
     init {
         load()
@@ -33,10 +53,43 @@ class CallDetailViewModel(
         _state.value = CallDetailUiState.Loading
         viewModelScope.launch {
             _state.value = when (val result = repository.detail(workspaceId, callId)) {
-                is ApiResult.Success -> CallDetailUiState.Content(result.value)
+                is ApiResult.Success -> {
+                    followLive(result.value)
+                    CallDetailUiState.Content(result.value)
+                }
                 is ApiResult.Failure -> CallDetailUiState.Failed(result.toFailureText())
             }
         }
+    }
+
+    /**
+     * ⚠️ EVERY LOAD IS A CALL-STATUS SIGNAL FOR THE LIVE TRANSCRIPT, the only one this screen gets
+     * (contract §4.12 Q10): in progress, it may subscribe again after `not_live`; no longer live,
+     * the call has ended. Ringing says nothing yet: nothing has been said.
+     */
+    private fun followLive(call: CallSummary) {
+        val display = call.toDisplay()
+        val factory = liveTranscript
+        if (live == null && display.transcribesLive && factory != null) {
+            val made = factory(viewModelScope)
+            live = made
+            viewModelScope.launch { made.state.collect { _liveState.value = it } }
+            if (started) made.activate()
+        }
+        when {
+            display.transcribesLive -> live?.callShownInProgress()
+            !display.live -> live?.callEnded()
+        }
+    }
+
+    /**
+     * The destination started or stopped (a `LifecycleStartEffect` in `DistrictNavHost`).
+     *
+     * ⛔ THE LIVE SOCKET FOLLOWS THIS, so none is held for a screen nobody can see.
+     */
+    fun onScreenStarted(started: Boolean) {
+        this.started = started
+        if (started) live?.activate() else live?.deactivate()
     }
 
     /**
@@ -77,8 +130,9 @@ class CallDetailViewModel(
             repository: CallsRepository,
             workspaceId: String,
             callId: String,
+            liveTranscript: ((CoroutineScope) -> LiveTranscriptController)?,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { CallDetailViewModel(repository, workspaceId, callId) }
+            initializer { CallDetailViewModel(repository, workspaceId, callId, liveTranscript) }
         }
     }
 }

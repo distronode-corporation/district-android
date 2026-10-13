@@ -49,6 +49,7 @@ import com.distronode.districtai.ui.contacts.BlockedContactsScreen
 import com.distronode.districtai.ui.contacts.BlockedContactsViewModel
 import com.distronode.districtai.ui.report.ReportTarget
 import com.distronode.districtai.core.data.BlockSubject
+import com.distronode.districtai.ui.calls.LiveTranscriptController
 import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
@@ -1337,11 +1338,28 @@ fun DistrictNavHost(
                             repository = container.callsRepository,
                             workspaceId = workspaceId,
                             callId = callId,
+                            liveTranscript = { scope ->
+                                LiveTranscriptController(
+                                    workspaceId = workspaceId,
+                                    callId = callId,
+                                    dependencies = container.liveDependencies,
+                                    fetchTranscript = { container.callsRepository.transcript(workspaceId, callId) },
+                                    scope = scope,
+                                )
+                            },
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
+                    val live by viewModel.liveState.collectAsStateWithLifecycle()
 
                     OnSessionChanged(sessionEpoch, viewModel::load)
+
+                    // ⛔ THE LIVE TRANSCRIPT'S SOCKET FOLLOWS THIS ENTRY'S LIFECYCLE: it stops when the
+                    // app goes to the background or another destination is pushed on top.
+                    LifecycleStartEffect(viewModel) {
+                        viewModel.onScreenStarted(true)
+                        onStopOrDispose { viewModel.onScreenStarted(false) }
+                    }
 
                     CallDetailScreen(
                         state = state,
@@ -1355,6 +1373,7 @@ fun DistrictNavHost(
                             workspaceId = workspaceId,
                             support = container.supportRepository,
                         ),
+                        live = live,
                     )
                 }
 

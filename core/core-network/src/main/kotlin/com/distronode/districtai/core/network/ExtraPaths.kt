@@ -82,4 +82,7 @@ internal object ExtraPaths {
 
     /** `api/district/contacts/blocked`: GET, everyone blocked. */
     val CONTACTS_BLOCKED: List<String> = DistrictPaths.CONTACTS + "blocked"
+
+    /** `api/district/telemetry/token`, the live socket's credential. */
+    val TELEMETRY_TOKEN: List<String> = ApiRoots.DISTRICT + "telemetry" + "token"
 }

@@ -131,5 +131,9 @@ internal object EndpointParity {
         // snapshot is refreshed from an iOS build that has it (under this name, or recorded in
         // SPELLING_DELTAS if iOS spells it differently).
         "personaVoiceStudio",
+        // ⚠️ THE LIVE TRANSCRIPT'S SOCKET CREDENTIAL (`POST telemetry/token`). iOS has it as
+        // `EndpointID.telemetryToken` in district-core-swift; the vendored snapshot predates it,
+        // so this entry leaves when the snapshot is refreshed.
+        "telemetryToken",
     )
 }

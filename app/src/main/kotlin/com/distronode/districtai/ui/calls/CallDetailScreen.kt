@@ -48,6 +48,7 @@ fun CallDetailScreen(
     onShowTranscript: () -> Unit,
     /** Report the call's AI content; null for a role that may not (the support routes exclude `viewer`). */
     onReport: (() -> Unit)? = null,
+    live: LiveTranscriptController.State? = null,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(CALL_DETAIL_ROOT_DESCRIPTION),
@@ -91,7 +92,7 @@ fun CallDetailScreen(
                     description = CALL_DETAIL_FAILURE_DESCRIPTION,
                 )
 
-                is CallDetailUiState.Content -> Content(state, onShowTranscript)
+                is CallDetailUiState.Content -> Content(state, live, onShowTranscript)
             }
         }
     }
@@ -100,6 +101,7 @@ fun CallDetailScreen(
 @Composable
 private fun Content(
     state: CallDetailUiState.Content,
+    live: LiveTranscriptController.State?,
     onShowTranscript: () -> Unit,
 ) {
     val call = state.call
@@ -187,7 +189,13 @@ private fun Content(
             ListCard(stringResource(R.string.call_detail_action_items), analysis.actionItems)
         }
 
-        TranscriptSection(state, onShowTranscript)
+        // ⚠️ THE LIVE TRANSCRIPT REPLACES THE ON-DEMAND ONE while the call is followed live, and
+        // gives the place back when the server has none for this call or the socket cannot be had.
+        if (live != null && !live.fallsBack) {
+            LiveTranscriptSection(live)
+        } else {
+            TranscriptSection(state, onShowTranscript)
+        }
     }
 }
 

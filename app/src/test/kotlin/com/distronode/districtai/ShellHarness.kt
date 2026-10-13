@@ -31,6 +31,10 @@ import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
 import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeTelemetryApi
+import com.distronode.districtai.core.network.live.LiveDependencies
+import com.distronode.districtai.core.network.live.TelemetrySocketTransport
+import java.io.IOException
 
 /**
  * The application every [MainActivity] test runs under.
@@ -60,6 +64,14 @@ internal class ShellTestApplication : Application(), AppContainerOwner {
                 districtApi = api,
                 telecomBridge = telecom,
                 callEngineFactory = CallEngineFactory { FakeCallEngine() },
+                // ⚠️ A transport that never opens: no shell test follows a live transcript.
+                liveDependencies = LiveDependencies(
+                    minter = FakeTelemetryApi(),
+                    transport = object : TelemetrySocketTransport {
+                        override suspend fun connect(url: String, subprotocols: List<String>) =
+                            throw IOException("no live socket in the shell tests")
+                    },
+                ),
             ),
         )
     }

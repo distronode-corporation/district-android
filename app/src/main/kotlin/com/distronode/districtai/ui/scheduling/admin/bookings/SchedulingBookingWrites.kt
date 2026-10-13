@@ -88,15 +88,24 @@ class SchedulingBookingWrites(
     onChanged: () -> Unit,
 ) {
     private val host = BookingDialogHost()
+    private val context = BookingWriteContext(scope, admin, workspaceId, onChanged)
     val dialog: StateFlow<BookingDialog?> = host.dialog
 
-    val cancel = BookingCancelFlow(host, scope, admin, workspaceId, onChanged)
-    val reschedule = BookingRescheduleFlow(host, scope, admin, workspaceId, timezone, today, onChanged)
-    val reassign = BookingReassignFlow(host, scope, admin, workspaceId, onChanged)
+    val cancel = BookingCancelFlow(host, context)
+    val reschedule = BookingRescheduleFlow(host, context, timezone, today)
+    val reassign = BookingReassignFlow(host, context)
 
     /** Close whatever is open. Ignored while a write is on its way. */
     fun close() = host.close()
 }
+
+/** What every booking write needs: where to run, what to call, and whom to tell after a success. */
+class BookingWriteContext(
+    val scope: CoroutineScope,
+    val admin: SchedulingAdminRepository,
+    val workspaceId: String,
+    val onChanged: () -> Unit,
+)
 
 /** The one open dialog, shared by the three flows. */
 class BookingDialogHost {
@@ -126,13 +135,7 @@ class BookingDialogHost {
 }
 
 /** Cancel one booking. */
-class BookingCancelFlow(
-    private val host: BookingDialogHost,
-    private val scope: CoroutineScope,
-    private val admin: SchedulingAdminRepository,
-    private val workspaceId: String,
-    private val onChanged: () -> Unit,
-) {
+class BookingCancelFlow(private val host: BookingDialogHost, private val context: BookingWriteContext) {
     fun open(booking: SchedulingBooking) = host.show(BookingDialog.Cancel(booking.id))
 
     fun editReason(value: String) {
@@ -150,12 +153,12 @@ class BookingCancelFlow(
             return
         }
         host.show(dialog.copy(state = WriteState.Working))
-        scope.launch {
-            val result = admin.cancelBooking(workspaceId, dialog.bookingId, reason)
+        context.scope.launch {
+            val result = context.admin.cancelBooking(context.workspaceId, dialog.bookingId, reason)
             host.update<BookingDialog.Cancel>(dialog.bookingId) {
                 it.copy(state = outcome(result, R.string.scheduling_admin_bookings_cancel_done))
             }
-            if (result is SchedulingAdminResult.Ok) onChanged()
+            if (result is SchedulingAdminResult.Ok) context.onChanged()
         }
     }
 
@@ -173,12 +176,9 @@ class BookingCancelFlow(
  */
 class BookingRescheduleFlow(
     private val host: BookingDialogHost,
-    private val scope: CoroutineScope,
-    private val admin: SchedulingAdminRepository,
-    private val workspaceId: String,
+    private val context: BookingWriteContext,
     private val timezone: () -> String,
     private val today: () -> LocalDate,
-    private val onChanged: () -> Unit,
 ) {
     /** Open on the member's today. ⚠️ Only a booking with an event type can move: slots belong to one. */
     fun open(booking: SchedulingBooking) {
@@ -210,8 +210,14 @@ class BookingRescheduleFlow(
         val dialog = host.current as? BookingDialog.Reschedule ?: return
         host.show(dialog.copy(slots = SectionState.Loading, selectedStart = null))
         val day = dialog.day.toString()
-        scope.launch {
-            val slots = admin.eventTypeSlots(workspaceId, dialog.eventTypeSlug, from = day, to = day, tz = timezone())
+        context.scope.launch {
+            val slots = context.admin.eventTypeSlots(
+                context.workspaceId,
+                dialog.eventTypeSlug,
+                from = day,
+                to = day,
+                tz = timezone(),
+            )
             host.update<BookingDialog.Reschedule>(dialog.bookingId) { current ->
                 // ⚠️ A day the member has already left behind does not overwrite the one on screen.
                 if (current.day != dialog.day) return@update current
@@ -229,28 +235,22 @@ class BookingRescheduleFlow(
             return
         }
         host.show(dialog.copy(state = WriteState.Working))
-        scope.launch {
-            val result = admin.rescheduleBooking(workspaceId, dialog.bookingId, start)
+        context.scope.launch {
+            val result = context.admin.rescheduleBooking(context.workspaceId, dialog.bookingId, start)
             host.update<BookingDialog.Reschedule>(dialog.bookingId) {
                 it.copy(
                     state = outcome(result, R.string.scheduling_admin_bookings_reschedule_done),
                     movedTo = (result as? SchedulingAdminResult.Ok)?.value?.startAt,
                 )
             }
-            if (result is SchedulingAdminResult.Ok) onChanged()
+            if (result is SchedulingAdminResult.Ok) context.onChanged()
             if (result.isSlotTaken()) loadSlots()
         }
     }
 }
 
 /** Give one booking to another host. Offered only to a scheduler admin (`me.is_admin`). */
-class BookingReassignFlow(
-    private val host: BookingDialogHost,
-    private val scope: CoroutineScope,
-    private val admin: SchedulingAdminRepository,
-    private val workspaceId: String,
-    private val onChanged: () -> Unit,
-) {
+class BookingReassignFlow(private val host: BookingDialogHost, private val context: BookingWriteContext) {
     fun open(booking: SchedulingBooking) {
         host.show(BookingDialog.Reassign(booking.id, booking.hostId))
         loadHosts()
@@ -260,8 +260,8 @@ class BookingReassignFlow(
     fun loadHosts() {
         val dialog = host.current as? BookingDialog.Reassign ?: return
         host.show(dialog.copy(hosts = SectionState.Loading))
-        scope.launch {
-            val users = admin.schedulerUsers(workspaceId)
+        context.scope.launch {
+            val users = context.admin.schedulerUsers(context.workspaceId)
                 .map { rows -> rows.filter { !it.archived && it.id != dialog.currentHostId } }
             host.update<BookingDialog.Reassign>(dialog.bookingId) { it.copy(hosts = users.toSectionState()) }
         }
@@ -277,12 +277,12 @@ class BookingReassignFlow(
         val hostId = dialog.selectedHostId ?: return
         if (dialog.state.isWorking) return
         host.show(dialog.copy(state = WriteState.Working))
-        scope.launch {
-            val result = admin.reassignBooking(workspaceId, dialog.bookingId, hostId)
+        context.scope.launch {
+            val result = context.admin.reassignBooking(context.workspaceId, dialog.bookingId, hostId)
             host.update<BookingDialog.Reassign>(dialog.bookingId) {
                 it.copy(state = outcome(result, R.string.scheduling_admin_bookings_reassign_done))
             }
-            if (result is SchedulingAdminResult.Ok) onChanged()
+            if (result is SchedulingAdminResult.Ok) context.onChanged()
         }
     }
 }

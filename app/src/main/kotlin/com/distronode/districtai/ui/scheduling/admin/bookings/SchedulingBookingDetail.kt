@@ -64,7 +64,7 @@ class SchedulingBookingDetailViewModel(
     /** The open cancel dialog, if any. */
     val dialog: StateFlow<BookingDialog?> = dialogs.dialog
 
-    val cancelFlow = BookingCancelFlow(dialogs, viewModelScope, admin, workspaceId, onChanged = ::load)
+    val cancelFlow = BookingCancelFlow(dialogs, BookingWriteContext(viewModelScope, admin, workspaceId, ::load))
 
     init {
         load()

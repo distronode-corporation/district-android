@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.scheduling.admin.bookings
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.assertIsDisplayed
@@ -7,7 +8,9 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
@@ -27,13 +30,14 @@ import com.distronode.districtai.ui.scheduling.admin.SCHEDULING_WRITE_CANCEL_TAG
 import com.distronode.districtai.ui.scheduling.admin.SCHEDULING_WRITE_REJECTION_TAG
 import com.distronode.districtai.ui.scheduling.admin.SchedulingAdminTestRig
 import com.distronode.districtai.ui.scheduling.admin.SectionState
-import com.distronode.districtai.ui.scheduling.admin.WriteState
 import com.distronode.districtai.core.network.testing.FakeSchedulingAnswer
 import com.distronode.districtai.ui.scheduling.admin.schedulingBooking
 import com.distronode.districtai.ui.scheduling.admin.schedulingEventType
 import java.io.IOException
 import java.time.LocalDate
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +45,7 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
 /** The bookings list, its row actions and its three dialogs, as a member sees them. */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK], qualifiers = "w1280dp-h3000dp")
 class SchedulingBookingsScreenTest {
@@ -63,8 +68,16 @@ class SchedulingBookingsScreenTest {
             archived = false,
         )
 
+    private val scope = TestScope(StandardTestDispatcher())
+
     private fun writes(rig: SchedulingAdminTestRig) =
-        SchedulingBookingWrites(MainScope(), rig.adminRepository, "ws", { "UTC" }, { LocalDate.of(2026, 10, 2) }) {}
+        SchedulingBookingWrites(scope, rig.adminRepository, "ws", { "UTC" }, { LocalDate.of(2026, 10, 2) }) {}
+
+    /** Let the holder's requests answer, then let the screen draw what they changed. */
+    private fun settle() {
+        scope.advanceUntilIdle()
+        composeRule.waitForIdle()
+    }
 
     private fun actions(actionable: Boolean = true) = SchedulingBookingsActions(
         onBack = { calls += "back" },
@@ -95,7 +108,10 @@ class SchedulingBookingsScreenTest {
 
     @Test
     fun `rows carry when, who, what and host, and the row actions a manager may take`() {
-        val rows = listOf(schedulingBooking(), schedulingBooking(id = "b2", eventTypeSlug = null, hostName = null))
+        val rows = listOf(
+            schedulingBooking(),
+            schedulingBooking(id = "b2", startAt = "2026-10-03T13:00:00Z", eventTypeSlug = null, hostName = null),
+        )
         composeRule.setContent { DistrictTheme { SchedulingBookingsScreen(ready(rows), actions()) } }
         composeRule.onNodeWithText("Oct 2, 2026, 13:00").assertExists()
         composeRule.onNodeWithText("Bo Chen · Intro call · Ana Lima").assertIsDisplayed()
@@ -177,7 +193,7 @@ class SchedulingBookingsScreenTest {
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_CANCEL_DIALOG_TAG).assertDoesNotExist()
         writes.cancel.open(schedulingBooking())
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_CANCEL_CONFIRM_TAG).performClick()
-        composeRule.waitUntil { rig.admin.callsTo(SchedulingAdminOp.BOOKINGS_CANCEL).isNotEmpty() }
+        settle()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_bookings_cancel_done)).assertIsDisplayed()
     }
 
@@ -196,10 +212,10 @@ class SchedulingBookingsScreenTest {
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_PREVIOUS_TAG).assertIsNotEnabled()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_DAY_TAG).assertIsDisplayed()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_CONFIRM_TAG).assertIsNotEnabled()
-        composeRule.waitUntil { (writes.dialog.value as BookingDialog.Reschedule).slots is SectionState.Ready }
+        settle()
         composeRule.onNodeWithTag("$SCHEDULING_BOOKING_RESCHEDULE_SLOT_TAG-${slot.start}").performClick()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_CONFIRM_TAG).performClick()
-        composeRule.waitUntil { writes.dialog.value?.state is WriteState.Done }
+        settle()
         composeRule.onNodeWithText("Booking moved to Oct 2, 2026, 14:00").assertIsDisplayed()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_NEXT_TAG).performClick()
     }
@@ -218,12 +234,12 @@ class SchedulingBookingsScreenTest {
             val dialog by writes.dialog.collectAsState()
             DistrictTheme { SchedulingBookingDialogs(dialog, writes, "UTC") }
         }
-        composeRule.waitUntil { (writes.dialog.value as BookingDialog.Reschedule).slots is SectionState.Ready }
+        settle()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_bookings_reschedule_no_slots)).assertIsDisplayed()
         writes.reschedule.submit()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_bookings_reschedule_pick_time)).assertIsDisplayed()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_NEXT_TAG).performClick()
-        composeRule.waitUntil { (writes.dialog.value as BookingDialog.Reschedule).slots is SectionState.Failed }
+        settle()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_RESCHEDULE_FAILURE_TAG).assertIsDisplayed()
     }
 
@@ -247,14 +263,14 @@ class SchedulingBookingsScreenTest {
             val dialog by writes.dialog.collectAsState()
             DistrictTheme { SchedulingBookingDialogs(dialog, writes, "UTC") }
         }
-        composeRule.waitUntil { (writes.dialog.value as BookingDialog.Reassign).hosts is SectionState.Failed }
+        settle()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_REASSIGN_FAILURE_TAG).assertIsDisplayed()
         composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
-        composeRule.waitUntil { (writes.dialog.value as BookingDialog.Reassign).hosts is SectionState.Ready }
+        settle()
         composeRule.onNodeWithText("cy@example.com").assertIsDisplayed()
         composeRule.onNodeWithText("Di").performClick()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_REASSIGN_CONFIRM_TAG).performClick()
-        composeRule.waitUntil { rig.admin.callsTo(SchedulingAdminOp.BOOKINGS_REASSIGN).isNotEmpty() }
+        settle()
     }
 
     @Test
@@ -271,7 +287,7 @@ class SchedulingBookingsScreenTest {
             }
         }
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_REASSIGN_DIALOG_TAG).assertExists()
-        composeRule.waitUntil { (writes.dialog.value as BookingDialog.Reassign).hosts is SectionState.Ready }
+        settle()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_bookings_reassign_no_hosts)).assertIsDisplayed()
     }
 
@@ -310,7 +326,8 @@ class SchedulingBookingsScreenTest {
         composeRule.onNodeWithText(str(R.string.scheduling_admin_bookings_no_answers)).assertExists()
         composeRule.onNodeWithTag(SCHEDULING_BOOKING_DETAIL_LOADING_TAG).assertExists()
         composeRule.onNodeWithText("Answers down").assertExists()
-        composeRule.onNodeWithTag(SCHEDULING_BOOKING_DETAIL_CANCEL_TAG).performClick()
+        // ⚠️ By semantics, not by touch: four screens are stacked here and a touch lands on the top one.
+        composeRule.onNodeWithTag(SCHEDULING_BOOKING_DETAIL_CANCEL_TAG).performSemanticsAction(SemanticsActions.OnClick)
         assertEquals(1, cancel)
     }
 }

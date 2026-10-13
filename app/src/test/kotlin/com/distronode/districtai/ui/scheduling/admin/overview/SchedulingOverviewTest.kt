@@ -1,6 +1,8 @@
 package com.distronode.districtai.ui.scheduling.admin.overview
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -159,7 +161,7 @@ class SchedulingOverviewTest {
             read["email"] = bookingWho(schedulingBooking(attendee = emailOnly))
             read["someone"] = bookingWho(schedulingBooking(attendee = SchedulingBookingAttendee()))
             read["nobody"] = bookingWho(schedulingBooking(attendee = null))
-            read["what"] = bookingEventTypeName(schedulingBooking(), items)
+            read["what"] = bookingEventTypeName(schedulingBooking(), listOf(schedulingEventType()))
             read["slug"] = bookingEventTypeName(schedulingBooking(eventTypeSlug = "zzz"), items)
             read["none"] = bookingEventTypeName(schedulingBooking(eventTypeSlug = ""), items)
             read["null"] = bookingEventTypeName(schedulingBooking(eventTypeSlug = null), items)
@@ -217,7 +219,7 @@ class SchedulingOverviewTest {
         composeRule.onNodeWithText("2 event types, 1 active").assertIsDisplayed()
         composeRule.onNodeWithText("Today 13:00, Bo Chen, Intro call").assertIsDisplayed()
         composeRule.onNodeWithTag("$SCHEDULING_OVERVIEW_ROW_TAG-b2").assertIsDisplayed()
-        composeRule.onNodeWithText("Bo Chen · Intro call").assertExists()
+        composeRule.onAllNodesWithText("Bo Chen · Intro call").assertCountEquals(2)
         composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         composeRule.onNodeWithTag(SCHEDULING_ADMIN_REFRESH_TAG).performClick()
         assertEquals(1, back)

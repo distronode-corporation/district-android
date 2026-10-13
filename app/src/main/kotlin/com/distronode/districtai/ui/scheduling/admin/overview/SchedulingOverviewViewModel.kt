@@ -1,6 +1,10 @@
 package com.distronode.districtai.ui.scheduling.admin.overview
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -19,6 +23,8 @@ import com.distronode.districtai.core.model.SchedulingAvailabilityRule
 import com.distronode.districtai.core.model.SchedulingBooking
 import com.distronode.districtai.core.model.SchedulingCalendarStatus
 import com.distronode.districtai.core.model.SchedulingEventType
+import com.distronode.districtai.ui.OnSessionChanged
+import com.distronode.districtai.ui.scheduling.admin.SchedulingAdminDeps
 import com.distronode.districtai.ui.scheduling.admin.SectionState
 import com.distronode.districtai.ui.scheduling.admin.UTC
 import com.distronode.districtai.ui.scheduling.admin.access
@@ -111,4 +117,16 @@ class SchedulingOverviewViewModel(
             initializer { SchedulingOverviewViewModel(admin, scheduling, workspaceId) }
         }
     }
+}
+
+/** The overview section, wired to its ViewModel. */
+@Composable
+fun SchedulingOverviewRoute(deps: SchedulingAdminDeps) {
+    val viewModel: SchedulingOverviewViewModel = viewModel(
+        key = "scheduling-overview-${deps.workspaceId}",
+        factory = SchedulingOverviewViewModel.factory(deps.admin, deps.scheduling, deps.workspaceId),
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    OnSessionChanged(deps.sessionEpoch) { viewModel.load() }
+    SchedulingOverviewScreen(state = state, onBack = deps.onBack, onRefresh = viewModel::load)
 }

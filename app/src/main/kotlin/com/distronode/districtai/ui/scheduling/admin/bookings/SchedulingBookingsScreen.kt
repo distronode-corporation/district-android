@@ -68,6 +68,7 @@ fun SchedulingBookingsRoute(deps: SchedulingAdminDeps) {
 }
 
 /** Everything the bookings screen can ask for. */
+@Suppress("LongParameterList") // A parameter object: its fields ARE the parameters.
 class SchedulingBookingsActions(
     val onBack: () -> Unit,
     val onRefresh: () -> Unit,

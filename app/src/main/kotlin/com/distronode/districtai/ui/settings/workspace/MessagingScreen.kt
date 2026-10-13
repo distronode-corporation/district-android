@@ -17,9 +17,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -117,7 +116,7 @@ fun MessagingScreen(
     }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = MESSAGING_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(MESSAGING_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.messaging_title), onBack = onBack)
         },
@@ -179,7 +178,7 @@ private fun MessagingContent(
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(DistrictTheme.spacing.gutter)
-                    .semantics { contentDescription = MESSAGING_READ_ONLY_DESCRIPTION },
+                    .testTag(MESSAGING_READ_ONLY_DESCRIPTION),
             )
         }
     }
@@ -223,9 +222,7 @@ private fun AccountsSection(
                     EmptyState(
                         title = stringResource(R.string.messaging_empty_title),
                         body = stringResource(R.string.messaging_empty_body),
-                        modifier = Modifier.semantics {
-                            contentDescription = MESSAGING_EMPTY_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(MESSAGING_EMPTY_DESCRIPTION),
                     )
                 } else {
                     load.messaging.accounts.forEachIndexed { index, account ->
@@ -280,9 +277,7 @@ private fun AccountRow(
                                 variant = ButtonVariant.Ghost,
                                 size = ButtonSize.Sm,
                                 enabled = !state.busy,
-                                modifier = Modifier.semantics {
-                                    contentDescription = messagingDefaultDescription(account.id)
-                                },
+                                modifier = Modifier.testTag(messagingDefaultDescription(account.id)),
                             )
                         }
                         DistrictButton(
@@ -291,9 +286,7 @@ private fun AccountRow(
                             variant = ButtonVariant.Ghost,
                             size = ButtonSize.Sm,
                             enabled = !state.busy,
-                            modifier = Modifier.semantics {
-                                contentDescription = messagingEditDescription(account.id)
-                            },
+                            modifier = Modifier.testTag(messagingEditDescription(account.id)),
                         )
                         DistrictButton(
                             text = stringResource(R.string.messaging_delete),
@@ -301,17 +294,13 @@ private fun AccountRow(
                             variant = ButtonVariant.Ghost,
                             size = ButtonSize.Sm,
                             enabled = !state.busy,
-                            modifier = Modifier.semantics {
-                                contentDescription = messagingRemoveDescription(account.id)
-                            },
+                            modifier = Modifier.testTag(messagingRemoveDescription(account.id)),
                         )
                     }
                 }
             }
         },
-        modifier = Modifier.semantics {
-            contentDescription = messagingAccountDescription(account.id)
-        },
+        modifier = Modifier.testTag(messagingAccountDescription(account.id)),
     )
 }
 
@@ -335,7 +324,7 @@ private fun AddAccountSection(state: MessagingUiState, onStartCreate: () -> Unit
             enabled = state.canEditNow,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = MESSAGING_ADD_DESCRIPTION },
+                .testTag(MESSAGING_ADD_DESCRIPTION),
         )
     }
 }
@@ -363,9 +352,7 @@ private fun ManagedSection(managed: ManagedAccount) {
                 R.string.messaging_managed_subtitle,
                 managed.phoneNumbers.size,
             ),
-            modifier = Modifier.semantics {
-                contentDescription = MESSAGING_MANAGED_DESCRIPTION
-            },
+            modifier = Modifier.testTag(MESSAGING_MANAGED_DESCRIPTION),
         )
     }
 }
@@ -402,9 +389,7 @@ private fun ChannelDefaultsSection(state: MessagingUiState, onRequestChannel: (S
                 // legitimately name an account that was deleted, and hiding that would make a
                 // broken override look like no override.
                 subtitle = state.accounts.firstOrNull { it.id == accountId }?.label ?: accountId,
-                modifier = Modifier.semantics {
-                    contentDescription = messagingChannelDescription(channel)
-                },
+                modifier = Modifier.testTag(messagingChannelDescription(channel)),
             )
         }
         if (state.canEdit) {

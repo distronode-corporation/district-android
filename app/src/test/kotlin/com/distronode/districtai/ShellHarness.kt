@@ -8,7 +8,7 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
-import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onRoot
@@ -164,7 +164,7 @@ internal class ShellHarness(private val compose: ComposeTestRule) {
     }
 
     fun awaitDescription(description: String) = await("description '$description'") {
-        compose.onAllNodes(hasContentDescription(description)).fetchSemanticsNodes().isNotEmpty()
+        compose.onAllNodes(hasTestTag(description)).fetchSemanticsNodes().isNotEmpty()
     }
 
     /**

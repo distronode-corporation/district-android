@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -75,7 +75,7 @@ class NavHostDeskSupportTest {
         ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
 
     private fun type(description: String, text: String) {
-        composeRule.onNodeWithContentDescription(description).performTextInput(text)
+        composeRule.onNodeWithTag(description).performTextInput(text)
         composeRule.waitForIdle()
     }
 
@@ -114,7 +114,7 @@ class NavHostDeskSupportTest {
 
         assertEquals(listOf(string(R.string.desk_created, "T-7")), harness.messages)
         assertEquals(listOf("Printer on fire"), harness.desk.createDrafts.map { it.subject })
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_COMPOSE_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -135,11 +135,11 @@ class NavHostDeskSupportTest {
 
         harness.tap(DESK_COMPOSE_CANCEL_DESCRIPTION)
 
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_COMPOSE_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertTrue(harness.desk.createDrafts.isEmpty())
         // ⚠️ Reopened, the sheet starts empty: the draft went with the dismissal.
         harness.tapText(string(R.string.desk_compose_title))
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_SUBJECT_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(DESK_COMPOSE_SUBJECT_DESCRIPTION).assertExists()
         assertTrue(
             composeRule.onAllNodesWithTextCount("Half a thought") == 0,
         )
@@ -208,7 +208,7 @@ class NavHostDeskSupportTest {
         raiseSupportRequest()
 
         assertEquals(listOf(string(R.string.support_filed, "DA-42")), harness.messages)
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -239,7 +239,7 @@ class NavHostDeskSupportTest {
 
         harness.tap(SUPPORT_COMPOSE_CANCEL_DESCRIPTION)
 
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertTrue(harness.support.createDrafts.isEmpty())
     }
 

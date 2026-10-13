@@ -5,13 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -20,6 +20,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.SupportMessage
 import com.distronode.districtai.core.model.SupportRequestDetail
 import com.distronode.districtai.core.model.SupportRequestSummary
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ThemeFlip
@@ -86,8 +88,8 @@ class SupportScreenTest {
     fun `an empty list shows the empty state rather than a failure`() {
         renderList(SupportUiState.Content(requests = emptyList()))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SUPPORT_FAILURE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -96,15 +98,15 @@ class SupportScreenTest {
             SupportUiState.Failed(FailureText(message = UiText.Literal("Offline"))),
         )
 
-        composeRule.onNodeWithContentDescription(SUPPORT_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SUPPORT_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a viewer sees why rather than an empty list`() {
         renderList(SupportUiState.Content(requests = listOf(open)), canUse = false)
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REFUSED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REFUSED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -114,7 +116,7 @@ class SupportScreenTest {
         renderList(SupportUiState.Content(requests = listOf(unfiled)))
 
         composeRule.onNodeWithText("Billing question").assertIsDisplayed()
-        composeRule.onNodeWithText("Being opened").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_unfiled)).assertIsDisplayed()
     }
 
     @Test
@@ -217,7 +219,7 @@ class SupportScreenTest {
         renderDetail(SupportRequestUiState.Content(detail), onClose = { closed = true })
 
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
             .performClick()
 
         assertEquals(true, closed)
@@ -229,10 +231,10 @@ class SupportScreenTest {
         renderDetail(SupportRequestUiState.Content(detail.copy(closeable = false)))
 
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -243,10 +245,10 @@ class SupportScreenTest {
         renderDetail(SupportRequestUiState.Content(detail.copy(statusCategory = "DONE")))
 
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -260,7 +262,7 @@ class SupportScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_REPLY_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_REPLY_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -269,7 +271,7 @@ class SupportScreenTest {
         renderDetail(SupportRequestUiState.Content(detail), canUse = false)
 
         composeRule
-            .onNodeWithContentDescription(SUPPORT_REQUEST_REFUSED_DESCRIPTION)
+            .onNodeWithTag(SUPPORT_REQUEST_REFUSED_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -289,22 +291,22 @@ class SupportScreenTest {
         renderList(SupportUiState.Content(requests = many))
 
         composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasContentDescription(SUPPORT_CAPPED_DESCRIPTION))
-        composeRule.onNodeWithContentDescription(SUPPORT_CAPPED_DESCRIPTION).assertIsDisplayed()
+            .performScrollToNode(hasTestTag(SUPPORT_CAPPED_DESCRIPTION))
+        composeRule.onNodeWithTag(SUPPORT_CAPPED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `a list under the cap says nothing about older requests`() {
         renderList(SupportUiState.Content(requests = listOf(open)))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_CAPPED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_CAPPED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a failed read offers a retry that reaches the host, and only when it could work`() {
         var retries = 0
         renderList(SupportUiState.Failed(FailureText(message = UiText.Literal("Offline"))), onRetry = { retries += 1 })
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retries)
     }
 
@@ -313,7 +315,7 @@ class SupportScreenTest {
         renderList(SupportUiState.Failed(FailureText(message = UiText.Literal("Forbidden"), retryable = false)))
 
         composeRule.onNodeWithText("Forbidden").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -321,8 +323,8 @@ class SupportScreenTest {
         var backs = 0
         renderList(SupportUiState.Loading, onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(SUPPORT_LOADING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SUPPORT_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -346,7 +348,7 @@ class SupportScreenTest {
         theme.flip()
 
         composeRule.onNodeWithText("Calls drop").performClick()
-        composeRule.onNodeWithContentDescription(SUPPORT_NEW_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SUPPORT_NEW_DESCRIPTION).performClick()
         assertEquals(listOf(open), opened)
         assertEquals(1, composes)
     }
@@ -378,7 +380,7 @@ class SupportScreenTest {
         composeRule.onNodeWithText("Calls drop").performClick()
         onCompose = { second += "compose" }
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(SUPPORT_NEW_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SUPPORT_NEW_DESCRIPTION).performClick()
 
         assertEquals(emptyList<String>(), first)
         assertEquals(listOf("open", "compose"), second)

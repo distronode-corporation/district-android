@@ -2,7 +2,7 @@ package com.distronode.districtai.ui.calls
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -12,6 +12,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.CallAnalysis
 import com.distronode.districtai.core.model.CallFollowUp
 import com.distronode.districtai.core.model.CallSummary
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -76,8 +78,8 @@ class CallDetailScreenTest {
     fun `loading shows a spinner under the app bar`() {
         render(CallDetailUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_DETAIL_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_DETAIL_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -85,9 +87,9 @@ class CallDetailScreenTest {
         var retried = 0
         render(CallDetailUiState.Failed(failure()), onRetry = { retried++ })
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_DETAIL_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("We could not load that call.").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         assertEquals(1, retried)
     }
@@ -98,8 +100,8 @@ class CallDetailScreenTest {
         // attempt, so a retry button there is a control that cannot succeed.
         render(CallDetailUiState.Failed(failure(retryable = false)))
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_DETAIL_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -109,7 +111,7 @@ class CallDetailScreenTest {
         var backs = 0
         render(content(), onBack = { backs++ })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
     }
@@ -137,14 +139,14 @@ class CallDetailScreenTest {
         // ⚠️ Through the same mapper the log uses, so the two screens cannot disagree.
         render(content(testCall(status = "in-progress")))
 
-        composeRule.onNodeWithText("Live").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_status_live)).assertIsDisplayed()
     }
 
     @Test
     fun `a call with no caller id says so instead of printing an empty name`() {
         render(content(testCall().copy(number = "", callerName = "", from = null)))
 
-        composeRule.onNodeWithText("No caller ID").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_no_caller_id)).assertIsDisplayed()
     }
 
     @Test
@@ -183,10 +185,10 @@ class CallDetailScreenTest {
         // JSON. An empty list must produce no card rather than a labelled blank.
         render(content(testCall().copy(analysis = CallAnalysis())))
 
-        composeRule.onNodeWithText("Key points").assertDoesNotExist()
-        composeRule.onNodeWithText("Objections").assertDoesNotExist()
-        composeRule.onNodeWithText("Topics").assertDoesNotExist()
-        composeRule.onNodeWithText("Action items").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.call_detail_key_points)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.call_detail_objections)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.call_detail_topics)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.call_detail_action_items)).assertDoesNotExist()
     }
 
     @Test
@@ -195,7 +197,7 @@ class CallDetailScreenTest {
         // get a card with a heading and nothing under it.
         render(content(testCall().copy(aiSummary = "")))
 
-        composeRule.onNodeWithText("AI summary").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.call_detail_summary)).assertDoesNotExist()
     }
 
     @Test
@@ -217,7 +219,7 @@ class CallDetailScreenTest {
         // and a follow-up row that exists on the wire but shows nothing reads as data loss.
         render(content(testCall().copy(followUp = CallFollowUp())))
 
-        composeRule.onNodeWithText("—").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_history_absent)).performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -237,7 +239,7 @@ class CallDetailScreenTest {
         var shows = 0
         render(content(), onShowTranscript = { shows++ })
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION)
             .performScrollTo().performClick()
 
         assertEquals(1, shows)
@@ -247,7 +249,7 @@ class CallDetailScreenTest {
     fun `a loaded transcript is rendered`() {
         render(content(transcript = TranscriptState.Loaded("Agent: Hello.")))
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_TRANSCRIPT_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_DETAIL_TRANSCRIPT_DESCRIPTION)
             .performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Agent: Hello.").performScrollTo().assertIsDisplayed()
     }
@@ -257,7 +259,7 @@ class CallDetailScreenTest {
         // ⚠️ The server sends "" for a call with no transcript.
         render(content(transcript = TranscriptState.Absent))
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_NO_TRANSCRIPT_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_DETAIL_NO_TRANSCRIPT_DESCRIPTION)
             .performScrollTo().assertIsDisplayed()
     }
 
@@ -272,9 +274,9 @@ class CallDetailScreenTest {
     fun `a loading transcript shows neither the control nor stale content`() {
         render(content(transcript = TranscriptState.Loading))
 
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CALL_DETAIL_TRANSCRIPT_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_DETAIL_TRANSCRIPT_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 

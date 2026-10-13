@@ -16,9 +16,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -75,7 +74,7 @@ fun DevicesScreen(
     var confirmingAll by remember { mutableStateOf(false) }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = DEVICES_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(DEVICES_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.devices_title), onBack = onBack)
         },
@@ -153,7 +152,7 @@ fun DevicesScreen(
 @Composable
 private fun LoadingRows() {
     Column(
-        modifier = Modifier.semantics { contentDescription = DEVICES_LOADING_DESCRIPTION },
+        modifier = Modifier.testTag(DEVICES_LOADING_DESCRIPTION),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
@@ -177,7 +176,7 @@ private fun DeviceList(
         EmptyState(
             title = stringResource(R.string.devices_empty_title),
             body = stringResource(R.string.devices_empty_body),
-            modifier = Modifier.semantics { contentDescription = DEVICES_EMPTY_DESCRIPTION },
+            modifier = Modifier.testTag(DEVICES_EMPTY_DESCRIPTION),
         )
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row)) {
@@ -202,7 +201,7 @@ private fun DeviceList(
         enabled = !busy,
         modifier = Modifier
             .padding(top = DistrictTheme.spacing.row)
-            .semantics { contentDescription = DEVICES_REVOKE_ALL_DESCRIPTION },
+            .testTag(DEVICES_REVOKE_ALL_DESCRIPTION),
     )
 }
 
@@ -214,9 +213,7 @@ private fun DeviceCard(
     onRequestRevoke: () -> Unit,
 ) {
     DistrictCard(
-        modifier = Modifier.semantics {
-            contentDescription = deviceRowDescription(device.deviceId)
-        },
+        modifier = Modifier.testTag(deviceRowDescription(device.deviceId)),
     ) {
         // ⚠️ The eyebrow is the marker, and it is the ONLY place "this device" is asserted —
         // derived from the installation id, never from the name. See the ⛔ on the screen.
@@ -224,7 +221,7 @@ private fun DeviceCard(
             Eyebrow(
                 text = stringResource(R.string.devices_this_device),
                 color = DistrictTheme.colors.district,
-                modifier = Modifier.semantics { contentDescription = DEVICES_THIS_DEVICE_DESCRIPTION },
+                modifier = Modifier.testTag(DEVICES_THIS_DEVICE_DESCRIPTION),
             )
         }
         Text(
@@ -259,7 +256,7 @@ private fun DeviceCard(
             enabled = !busy,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.tight)
-                .semantics { contentDescription = revokeRowDescription(device.deviceId) },
+                .testTag(revokeRowDescription(device.deviceId)),
         )
     }
 }
@@ -272,10 +269,7 @@ private fun DeviceCard(
 @Composable
 private fun DeviceNotice(message: String, destructive: Boolean, onDismiss: () -> Unit) {
     DistrictCard(
-        modifier = Modifier.semantics {
-            contentDescription =
-                if (destructive) DEVICES_FAILURE_DESCRIPTION else DEVICES_NOTICE_DESCRIPTION
-        },
+        modifier = Modifier.testTag(if (destructive) DEVICES_FAILURE_DESCRIPTION else DEVICES_NOTICE_DESCRIPTION),
     ) {
         Text(
             text = message,
@@ -310,7 +304,7 @@ private fun ConfirmDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics { contentDescription = description },
+                modifier = Modifier.testTag(description),
             ) {
                 Text(confirmLabel)
             }

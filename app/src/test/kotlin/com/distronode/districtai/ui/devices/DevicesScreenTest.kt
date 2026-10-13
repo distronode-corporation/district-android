@@ -6,8 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -15,6 +15,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.NativeDevice
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.SignedOutCause
@@ -89,9 +90,9 @@ class DevicesScreenTest {
     fun `renders a row per device`() {
         render(ready(thisDevice, otherDevice))
 
-        composeRule.onNodeWithContentDescription(DEVICES_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(deviceRowDescription(THIS_DEVICE_ID)).assertExists()
-        composeRule.onNodeWithContentDescription(deviceRowDescription(OTHER_DEVICE_ID)).assertExists()
+        composeRule.onNodeWithTag(DEVICES_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(deviceRowDescription(THIS_DEVICE_ID)).assertExists()
+        composeRule.onNodeWithTag(deviceRowDescription(OTHER_DEVICE_ID)).assertExists()
     }
 
     @Test
@@ -120,7 +121,7 @@ class DevicesScreenTest {
         // to treat it as an identifier they should recognise.
         render(ready(otherDevice))
 
-        composeRule.onNodeWithText("Unnamed device").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.devices_unnamed)).assertIsDisplayed()
         composeRule.onNodeWithText(OTHER_DEVICE_ID).assertDoesNotExist()
     }
 
@@ -131,7 +132,7 @@ class DevicesScreenTest {
         // as missing data.
         render(ready(otherDevice))
 
-        composeRule.onNodeWithText("Signed in recently").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.devices_last_active_never)).assertIsDisplayed()
     }
 
     @Test
@@ -140,8 +141,8 @@ class DevicesScreenTest {
         // sees zero rows while perfectly signed in.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(DEVICES_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DEVICES_LIST_FAILURE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DEVICES_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_LIST_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -151,15 +152,15 @@ class DevicesScreenTest {
         // list is not showing.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(DEVICES_REVOKE_ALL_DESCRIPTION).assertExists()
     }
 
     @Test
     fun `a loading list shows placeholders rather than an empty state`() {
         render(DevicesUiState(devices = DevicesListState.Loading))
 
-        composeRule.onNodeWithContentDescription(DEVICES_LOADING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DEVICES_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DEVICES_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── Confirmation ─────────────────────────────────────────────────────────
@@ -169,10 +170,10 @@ class DevicesScreenTest {
         var revoked: String? = null
         render(ready(thisDevice, otherDevice), onRevokeDevice = { revoked = it })
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
 
         assertEquals("the tap must only open a dialog", null, revoked)
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_DEVICE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -180,8 +181,8 @@ class DevicesScreenTest {
         var revoked: String? = null
         render(ready(thisDevice, otherDevice), onRevokeDevice = { revoked = it })
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
 
         assertEquals(OTHER_DEVICE_ID, revoked)
     }
@@ -191,8 +192,8 @@ class DevicesScreenTest {
         var revoked: String? = null
         render(ready(thisDevice, otherDevice), onRevokeDevice = { revoked = it })
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
-        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).performClick()
 
         assertEquals(null, revoked)
     }
@@ -203,7 +204,7 @@ class DevicesScreenTest {
         // to be returned to the sign-in screen mid-tap.
         render(ready(thisDevice, otherDevice))
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(THIS_DEVICE_ID)).performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(THIS_DEVICE_ID)).performClick()
 
         composeRule
             .onNodeWithText(
@@ -218,16 +219,16 @@ class DevicesScreenTest {
         var revokedAll = 0
         render(ready(thisDevice, otherDevice), onRevokeAll = { revokedAll += 1 })
 
-        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION)
+        composeRule.onNodeWithTag(DEVICES_REVOKE_ALL_DESCRIPTION)
             .performScrollTo()
             .performClick()
 
         assertEquals(0, revokedAll)
         composeRule
-            .onNodeWithText("Sign out of District AI on every device, including this one?")
+            .onNodeWithText(str(R.string.devices_confirm_all))
             .assertExists()
 
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
         assertEquals(1, revokedAll)
     }
 
@@ -239,8 +240,8 @@ class DevicesScreenTest {
         // refreshed list no longer shows, or race the local sign-out the first is about to fire.
         render(ready(thisDevice, otherDevice, busy = true))
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DEVICES_REVOKE_ALL_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -249,9 +250,9 @@ class DevicesScreenTest {
         // that did not happen.
         render(ready(thisDevice, otherDevice).copy(nothingRevoked = true))
 
-        composeRule.onNodeWithContentDescription(DEVICES_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DEVICES_FAILURE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(deviceRowDescription(OTHER_DEVICE_ID)).assertExists()
+        composeRule.onNodeWithTag(DEVICES_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(deviceRowDescription(OTHER_DEVICE_ID)).assertExists()
     }
 
     @Test
@@ -262,7 +263,7 @@ class DevicesScreenTest {
             onDismissNotices = { dismissals += 1 },
         )
 
-        composeRule.onNodeWithText("Dismiss").performClick()
+        composeRule.onNodeWithText(str(R.string.devices_dismiss)).performClick()
 
         assertEquals(1, dismissals)
     }
@@ -276,8 +277,8 @@ class DevicesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(deviceRowDescription(OTHER_DEVICE_ID)).assertExists()
+        composeRule.onNodeWithTag(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(deviceRowDescription(OTHER_DEVICE_ID)).assertExists()
     }
 
     @Test
@@ -290,8 +291,8 @@ class DevicesScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(DEVICES_LIST_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithTag(DEVICES_LIST_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         assertEquals(1, retries)
     }
@@ -311,8 +312,8 @@ class DevicesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DEVICES_LIST_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithTag(DEVICES_LIST_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     // ── Rows the client cannot describe, and a screen that moves under a dialog ─
@@ -321,8 +322,8 @@ class DevicesScreenTest {
     fun `a blank name and a blank platform get placeholders, not empty lines`() {
         render(ready(otherDevice.copy(deviceName = "  ", platform = "")))
 
-        composeRule.onNodeWithText("Unnamed device").assertIsDisplayed()
-        composeRule.onNodeWithText("Unknown platform").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.devices_unnamed)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.devices_unknown_platform)).assertIsDisplayed()
     }
 
     @Test
@@ -333,10 +334,10 @@ class DevicesScreenTest {
         var state by mutableStateOf(ready(thisDevice, otherDevice))
         renderLive({ state }, onRevokeDevice = { revoked = it })
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
         state = ready(thisDevice, otherDevice).copy(nothingRevoked = true)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
 
         assertEquals(OTHER_DEVICE_ID, revoked)
     }
@@ -347,10 +348,10 @@ class DevicesScreenTest {
         var state by mutableStateOf(ready(thisDevice, otherDevice))
         renderLive({ state }, onRevokeAll = { revokedAll += 1 })
 
-        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(DEVICES_REVOKE_ALL_DESCRIPTION).performScrollTo().performClick()
         state = ready(thisDevice, otherDevice).copy(nothingRevoked = true)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
 
         assertEquals(1, revokedAll)
     }
@@ -366,7 +367,7 @@ class DevicesScreenTest {
         state = ready(thisDevice).copy(mutationFailure = FailureText(message = UiText.Literal("Second refusal")))
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Second refusal").assertIsDisplayed()
         composeRule.onNodeWithText("First refusal").assertDoesNotExist()
     }
@@ -400,10 +401,10 @@ class DevicesScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).performClick()
         handler = { second += it }
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
 
         assertEquals(emptyList<String>(), first)
         assertEquals(listOf(OTHER_DEVICE_ID), second)
@@ -428,10 +429,10 @@ class DevicesScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(DEVICES_REVOKE_ALL_DESCRIPTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(DEVICES_REVOKE_ALL_DESCRIPTION).performScrollTo().performClick()
         handler = { secondCalls += 1 }
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_ALL_DESCRIPTION).performClick()
 
         assertEquals(0, firstCalls)
         assertEquals(1, secondCalls)
@@ -458,11 +459,11 @@ class DevicesScreenTest {
 
         theme.flip()
 
-        composeRule.onNodeWithContentDescription(DEVICES_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DEVICES_FAILURE_DESCRIPTION).assertIsDisplayed()
         assertEquals(1, markedRowCount())
-        composeRule.onNodeWithContentDescription(revokeRowDescription(OTHER_DEVICE_ID)).performScrollTo().performClick()
-        composeRule.onNodeWithContentDescription(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(revokeRowDescription(OTHER_DEVICE_ID)).performScrollTo().performClick()
+        composeRule.onNodeWithTag(DEVICES_CONFIRM_DEVICE_DESCRIPTION).performClick()
         assertEquals(OTHER_DEVICE_ID, revoked)
     }
 
@@ -496,7 +497,7 @@ class DevicesScreenTest {
      * product bug it is.
      */
     private fun markedRowCount(): Int =
-        composeRule.onAllNodesWithContentDescription(DEVICES_THIS_DEVICE_DESCRIPTION)
+        composeRule.onAllNodesWithTag(DEVICES_THIS_DEVICE_DESCRIPTION, useUnmergedTree = true)
             .fetchSemanticsNodes()
             .size
 

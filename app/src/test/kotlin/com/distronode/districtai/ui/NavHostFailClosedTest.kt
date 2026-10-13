@@ -1,7 +1,7 @@
 package com.distronode.districtai.ui
 
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -56,12 +56,12 @@ class NavHostFailClosedTest {
         harness.overviewState = NavHostHarness.content(role = null)
         harness.render()
 
-        composeRule.onNodeWithContentDescription(NAV_INBOX_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_INBOX_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.INBOX, harness.route())
         assertEquals("none", harness.argument(ARG_ROLE))
 
-        composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_CONTACTS_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals("none", harness.argument(ARG_ROLE))
     }
@@ -128,7 +128,9 @@ class NavHostFailClosedTest {
         harness.render()
         harness.navigate(Routes.workspaceSettings("ws-1", null))
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION).assertDoesNotExist()
+        composeRule
+            .onNodeWithTag(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION, useUnmergedTree = true)
+            .assertDoesNotExist()
         harness.tap(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
 
         assertEquals(Routes.WORKSPACE_SETTINGS_KNOWLEDGE, harness.route())
@@ -154,7 +156,7 @@ class NavHostFailClosedTest {
         harness.render()
         harness.navigate(Routes.rooms("ws-1", null))
 
-        composeRule.onNodeWithContentDescription(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("standup")
+        composeRule.onNodeWithTag(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("standup")
         harness.tap(ROOMS_JOIN_DESCRIPTION)
 
         assertEquals(Routes.ACTIVE_ROOM, harness.route())

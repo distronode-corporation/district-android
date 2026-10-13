@@ -16,9 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -66,7 +65,7 @@ fun InboxScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = INBOX_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(INBOX_ROOT_DESCRIPTION),
         topBar = { DistrictTopBar(title = stringResource(R.string.inbox_title), onBack = onBack) },
     ) { inset ->
         Column(modifier = inset.fillMaxSize()) {
@@ -115,7 +114,7 @@ private fun SearchField(state: InboxSearchState, onQueryChanged: (String) -> Uni
         modifier = Modifier
             .fillMaxWidth()
             .padding(DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = INBOX_SEARCH_FIELD_DESCRIPTION },
+            .testTag(INBOX_SEARCH_FIELD_DESCRIPTION),
     )
 }
 
@@ -137,7 +136,7 @@ private fun SearchResults(state: InboxSearchState, onOpenHit: (MessageSearchHit)
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(DistrictTheme.spacing.section)
-                    .semantics { contentDescription = INBOX_SEARCH_FAILURE_DESCRIPTION },
+                    .testTag(INBOX_SEARCH_FAILURE_DESCRIPTION),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -157,7 +156,7 @@ private fun SearchResults(state: InboxSearchState, onOpenHit: (MessageSearchHit)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .semantics { contentDescription = INBOX_SEARCH_EMPTY_DESCRIPTION },
+                    .testTag(INBOX_SEARCH_EMPTY_DESCRIPTION),
                 verticalArrangement = Arrangement.Center,
             ) {
                 EmptyState(
@@ -189,7 +188,7 @@ private fun SearchResults(state: InboxSearchState, onOpenHit: (MessageSearchHit)
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(DistrictTheme.spacing.section)
-                            .semantics { contentDescription = INBOX_SEARCH_CAPPED_DESCRIPTION },
+                            .testTag(INBOX_SEARCH_CAPPED_DESCRIPTION),
                     )
                 }
             }
@@ -238,7 +237,7 @@ private fun Loaded(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(DistrictTheme.spacing.section)
-                            .semantics { contentDescription = INBOX_PARTIAL_DESCRIPTION },
+                            .testTag(INBOX_PARTIAL_DESCRIPTION),
                     )
                 }
             }
@@ -283,18 +282,14 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
                     DistrictBadge(
                         text = stringResource(R.string.inbox_draft_badge),
                         tone = Tone.Info,
-                        modifier = Modifier.semantics {
-                            contentDescription = INBOX_DRAFT_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(INBOX_DRAFT_DESCRIPTION),
                     )
                 }
                 if (thread.hasUnread) {
                     DistrictBadge(
                         text = thread.unreadCount.toString(),
                         tone = Tone.District,
-                        modifier = Modifier.semantics {
-                            contentDescription = INBOX_UNREAD_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(INBOX_UNREAD_DESCRIPTION),
                     )
                 }
             }
@@ -308,7 +303,7 @@ private fun InboxLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = INBOX_LOADING_DESCRIPTION },
+                .testTag(INBOX_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_ROW_HEIGHT) }
@@ -322,7 +317,7 @@ private fun InboxEmpty() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .semantics { contentDescription = INBOX_EMPTY_DESCRIPTION },
+                .testTag(INBOX_EMPTY_DESCRIPTION),
             verticalArrangement = Arrangement.Center,
         ) {
             EmptyState(

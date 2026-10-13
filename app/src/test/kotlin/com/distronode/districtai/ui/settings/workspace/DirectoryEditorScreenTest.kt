@@ -5,7 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -15,6 +15,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DirectoryEntry
 import com.distronode.districtai.core.model.DirectoryField
 import com.distronode.districtai.core.model.WorkspaceConfig
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -101,15 +103,15 @@ class DirectoryEditorScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
             .assertIsDisplayed()
 
         DIRECTORY_MUTATING_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
-        composeRule.onNodeWithContentDescription(directoryFieldDescription(0, DirectoryField.NAME))
+        composeRule.onNodeWithTag(directoryFieldDescription(0, DirectoryField.NAME), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -120,12 +122,12 @@ class DirectoryEditorScreenTest {
         // value and an editor would delete whatever was not modelled.
         render(ready(Json.parseToJsonElement("""["not-an-object"]""")))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_UNMODELLABLE_DESCRIPTION)
+        composeRule.onNodeWithTag(DIRECTORY_UNMODELLABLE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         DIRECTORY_MUTATING_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
     }
 
@@ -133,9 +135,9 @@ class DirectoryEditorScreenTest {
     fun `loading draws skeletons and no fields`() {
         render(DirectoryEditorUiState())
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DIRECTORY_ADD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DIRECTORY_ADD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -148,7 +150,7 @@ class DirectoryEditorScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
 
         assertEquals(1, retries)
     }
@@ -159,12 +161,12 @@ class DirectoryEditorScreenTest {
     fun `every stored entry gets its own editable row`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(directoryFieldDescription(0, DirectoryField.NAME))
+        composeRule.onNodeWithTag(directoryFieldDescription(0, DirectoryField.NAME))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithTag(
             directoryFieldDescription(1, DirectoryField.PHONE_NUMBER),
         ).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(directoryRemoveDescription(1)).assertIsDisplayed()
+        composeRule.onNodeWithTag(directoryRemoveDescription(1)).assertIsDisplayed()
     }
 
     @Test
@@ -172,7 +174,7 @@ class DirectoryEditorScreenTest {
         var removed = -1
         render(ready(), onRemove = { removed = it })
 
-        composeRule.onNodeWithContentDescription(directoryRemoveDescription(1)).performClick()
+        composeRule.onNodeWithTag(directoryRemoveDescription(1)).performClick()
 
         assertEquals(1, removed)
     }
@@ -181,7 +183,7 @@ class DirectoryEditorScreenTest {
     fun `an empty directory says the agent has nobody to transfer to`() {
         render(ready(Json.parseToJsonElement("[]")))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIRECTORY_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -191,9 +193,9 @@ class DirectoryEditorScreenTest {
         )
         render(state)
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_INCOMPLETE_DESCRIPTION)
+        composeRule.onNodeWithTag(DIRECTORY_INCOMPLETE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).assertIsEnabled()
     }
 
     // ── The add row ──────────────────────────────────────────────────────────
@@ -202,7 +204,7 @@ class DirectoryEditorScreenTest {
     fun `the add button is disabled while only one box is filled`() {
         render(ready().copy(newName = "Night desk"))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_ADD_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_ADD_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -211,14 +213,14 @@ class DirectoryEditorScreenTest {
         // exactly once per test, and a second call throws in a way that reads as a Compose bug.
         render(ready().copy(newName = "Night desk", newPhoneNumber = "+14165550100"))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_ADD_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_ADD_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
     fun `a rejected add says which boxes are needed`() {
         render(ready().copy(addRejected = true))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_ADD_REJECTED_DESCRIPTION)
+        composeRule.onNodeWithTag(DIRECTORY_ADD_REJECTED_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -234,13 +236,13 @@ class DirectoryEditorScreenTest {
             onSave = { saves += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).performClick()
 
         assertEquals("the tap must open a confirmation, not save", 0, saves)
         composeRule.onNodeWithText("Replace the transfer directory with 1 entry?", substring = true)
             .assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_CONFIRM_DESCRIPTION).performClick()
         assertEquals(1, saves)
     }
 
@@ -256,7 +258,7 @@ class DirectoryEditorScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).performClick()
 
         composeRule.onNodeWithText("Replace the transfer directory with 3 entries?", substring = true)
             .assertIsDisplayed()
@@ -268,9 +270,9 @@ class DirectoryEditorScreenTest {
         // separate string so neither can be softened into the other.
         render(ready().copy(draft = emptyList()))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithText("Remove every transfer target?", substring = true)
+        composeRule.onNodeWithText(str(R.string.directory_confirm_empty_title), substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText(
             "The agent will have nobody to put a caller through to",
@@ -289,18 +291,18 @@ class DirectoryEditorScreenTest {
             onSave = { saves += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(DIRECTORY_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_CANCEL_DESCRIPTION).performClick()
 
         assertEquals(0, saves)
-        composeRule.onNodeWithContentDescription(DIRECTORY_CONFIRM_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DIRECTORY_CONFIRM_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `the save is disabled when nothing changed`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     // ── The banners ──────────────────────────────────────────────────────────
@@ -315,7 +317,7 @@ class DirectoryEditorScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIRECTORY_NOTICE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Saved, but we could not re-read", substring = true)
             .assertIsDisplayed()
     }
@@ -324,8 +326,8 @@ class DirectoryEditorScreenTest {
     fun `a save in flight disables the controls so a second submit cannot race the first`() {
         render(ready().copy(draft = emptyList(), save = SaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(DIRECTORY_ADD_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_ADD_DESCRIPTION).assertIsNotEnabled()
     }
 
     // ── Leaving with pending edits ───────────────────────────────────────────
@@ -338,15 +340,15 @@ class DirectoryEditorScreenTest {
         var backs = 0
         render(edited(), onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
             .performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals("the screen must not have left", 0, backs)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -355,9 +357,9 @@ class DirectoryEditorScreenTest {
         var backs = 0
         render(ready(), onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals(1, backs)
     }
@@ -368,13 +370,13 @@ class DirectoryEditorScreenTest {
     fun `a save in flight locks every row and says it is saving`() {
         render(edited().copy(save = SaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(directoryFieldDescription(0, DirectoryField.NAME))
+        composeRule.onNodeWithTag(directoryFieldDescription(0, DirectoryField.NAME))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithTag(
             directoryFieldDescription(0, DirectoryField.PHONE_NUMBER),
         ).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(directoryRemoveDescription(0)).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(DIRECTORY_NEW_NAME_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(directoryRemoveDescription(0)).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIRECTORY_NEW_NAME_DESCRIPTION).assertIsNotEnabled()
         composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
     }
 
@@ -421,22 +423,22 @@ class DirectoryEditorScreenTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Ops (day)").assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(DIRECTORY_NEW_NAME_DESCRIPTION)
+        composeRule.onNodeWithTag(DIRECTORY_NEW_NAME_DESCRIPTION)
             .performTextReplacement("Front desk")
-        composeRule.onNodeWithContentDescription(DIRECTORY_NEW_PHONE_DESCRIPTION)
+        composeRule.onNodeWithTag(DIRECTORY_NEW_PHONE_DESCRIPTION)
             .performTextReplacement("+14165550100")
-        composeRule.onNodeWithContentDescription(directoryFieldDescription(1, DirectoryField.NAME))
+        composeRule.onNodeWithTag(directoryFieldDescription(1, DirectoryField.NAME))
             .performTextReplacement("Night desk")
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithTag(
             directoryFieldDescription(1, DirectoryField.PHONE_NUMBER),
         ).performTextReplacement("+14165550199")
-        composeRule.onNodeWithContentDescription(directoryRemoveDescription(1)).performClick()
+        composeRule.onNodeWithTag(directoryRemoveDescription(1)).performClick()
 
         // The confirmation, opened and then carried across another redraw before it is accepted.
-        composeRule.onNodeWithContentDescription(DIRECTORY_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_SAVE_DESCRIPTION).performClick()
         current.value = current.value.copy(newName = "Front desk, again")
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(DIRECTORY_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIRECTORY_CONFIRM_DESCRIPTION).performClick()
 
         assertEquals(
             listOf(

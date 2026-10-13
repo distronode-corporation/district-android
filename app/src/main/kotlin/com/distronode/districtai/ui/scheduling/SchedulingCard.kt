@@ -11,9 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -54,7 +53,7 @@ internal fun SchedulingCard(
 ) {
     val presentation = SchedulingPresentation.from(status)
     DistrictCard(
-        modifier = Modifier.semantics { contentDescription = SCHEDULING_CARD_DESCRIPTION },
+        modifier = Modifier.testTag(SCHEDULING_CARD_DESCRIPTION),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -121,7 +120,7 @@ private fun PresentationBadge(presentation: SchedulingPresentation) {
     DistrictBadge(
         text = stringResource(badge.first),
         tone = badge.second,
-        modifier = Modifier.semantics { contentDescription = SCHEDULING_BADGE_DESCRIPTION },
+        modifier = Modifier.testTag(SCHEDULING_BADGE_DESCRIPTION),
     )
 }
 
@@ -156,7 +155,7 @@ private fun PresentationDetail(presentation: SchedulingPresentation) {
                 color = DistrictTheme.colors.destructive,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = SCHEDULING_REASON_DESCRIPTION },
+                    .testTag(SCHEDULING_REASON_DESCRIPTION),
             )
             HostLine(presentation.tenant.publicHost)
         }
@@ -191,9 +190,7 @@ private fun LiveDetail(tenant: SchedulingTenant) {
                 text = stringResource(R.string.scheduling_live_without_link),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = SCHEDULING_NO_LINK_DESCRIPTION
-                },
+                modifier = Modifier.testTag(SCHEDULING_NO_LINK_DESCRIPTION),
             )
         } else {
             SelectionContainer {
@@ -201,9 +198,7 @@ private fun LiveDetail(tenant: SchedulingTenant) {
                     text = link,
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.foreground,
-                    modifier = Modifier.semantics {
-                        contentDescription = SCHEDULING_LINK_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(SCHEDULING_LINK_DESCRIPTION),
                 )
             }
         }
@@ -229,7 +224,7 @@ private fun HostLine(host: String) {
         color = DistrictTheme.colors.mutedForeground,
         modifier = Modifier
             .padding(top = DistrictTheme.spacing.hairline)
-            .semantics { contentDescription = SCHEDULING_HOST_DESCRIPTION },
+            .testTag(SCHEDULING_HOST_DESCRIPTION),
     )
 }
 
@@ -271,9 +266,7 @@ private fun SchedulingActions(
                 // hand-off mints its own credential at a different server, and enabling is a
                 // separate budget again; none may disable another.
                 enabled = !openingDashboard,
-                modifier = Modifier.semantics {
-                    contentDescription = SCHEDULING_DASHBOARD_DESCRIPTION
-                },
+                modifier = Modifier.testTag(SCHEDULING_DASHBOARD_DESCRIPTION),
             )
         }
         // ⛔ WITHDRAWN ONCE THIS REGION HAS ANSWERED 410. The refusal is a property of the region
@@ -293,7 +286,7 @@ private fun SchedulingActions(
                 variant = ButtonVariant.Secondary,
                 size = ButtonSize.Sm,
                 enabled = !openingConsole,
-                modifier = Modifier.semantics { contentDescription = SCHEDULING_OPEN_DESCRIPTION },
+                modifier = Modifier.testTag(SCHEDULING_OPEN_DESCRIPTION),
             )
         }
         if (presentation.offersEnable(status.eligible, status.canManage)) {
@@ -304,9 +297,7 @@ private fun SchedulingActions(
                 onClick = onEnable,
                 size = ButtonSize.Sm,
                 enabled = !busy,
-                modifier = Modifier.semantics {
-                    contentDescription = SCHEDULING_ENABLE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(SCHEDULING_ENABLE_DESCRIPTION),
             )
         }
         if (presentation.offersRefresh) {
@@ -316,9 +307,7 @@ private fun SchedulingActions(
                 variant = ButtonVariant.Secondary,
                 size = ButtonSize.Sm,
                 enabled = !busy,
-                modifier = Modifier.semantics {
-                    contentDescription = SCHEDULING_REFRESH_DESCRIPTION
-                },
+                modifier = Modifier.testTag(SCHEDULING_REFRESH_DESCRIPTION),
             )
         }
     }

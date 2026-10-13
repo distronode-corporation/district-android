@@ -10,9 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -56,7 +55,7 @@ internal fun SubscriptionsCard(detail: StripeBilling) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_SUBSCRIPTIONS_DESCRIPTION },
+            .testTag(BILLING_SUBSCRIPTIONS_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.billing_subscriptions_title))
         if (detail.subscriptions.isEmpty()) {
@@ -66,7 +65,7 @@ internal fun SubscriptionsCard(detail: StripeBilling) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = BILLING_SUBSCRIPTIONS_EMPTY_DESCRIPTION },
+                    .testTag(BILLING_SUBSCRIPTIONS_EMPTY_DESCRIPTION),
             )
             return@DistrictCard
         }
@@ -106,7 +105,7 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.hairline)
-                    .semantics { contentDescription = renewalDescription(subscription.id) },
+                    .testTag(renewalDescription(subscription.id)),
             )
         }
         // ⚠️ EXACTLY ONE OF percentOff/amountOff arrives, and the server sends neither key when
@@ -126,7 +125,7 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
                 color = DistrictTheme.colors.success,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.hairline)
-                    .semantics { contentDescription = BILLING_DISCOUNT_DESCRIPTION },
+                    .testTag(BILLING_DISCOUNT_DESCRIPTION),
             )
         }
     }
@@ -153,7 +152,7 @@ internal fun InvoicesCard(detail: StripeBilling, onOpenInvoice: (String) -> Unit
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_INVOICES_DESCRIPTION },
+            .testTag(BILLING_INVOICES_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.billing_invoices_title))
         if (detail.invoices.isEmpty()) {
@@ -163,7 +162,7 @@ internal fun InvoicesCard(detail: StripeBilling, onOpenInvoice: (String) -> Unit
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = BILLING_INVOICES_EMPTY_DESCRIPTION },
+                    .testTag(BILLING_INVOICES_EMPTY_DESCRIPTION),
             )
             return@DistrictCard
         }
@@ -178,7 +177,7 @@ internal fun InvoicesCard(detail: StripeBilling, onOpenInvoice: (String) -> Unit
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = BILLING_INVOICES_TRUNCATED_DESCRIPTION },
+                    .testTag(BILLING_INVOICES_TRUNCATED_DESCRIPTION),
             )
         }
     }
@@ -194,7 +193,7 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
             // nothing is worse than a plain one, and an unfinalised invoice has no page yet.
             .then(if (url == null) Modifier else Modifier.clickable { onOpenInvoice(url) })
             .padding(vertical = DistrictTheme.spacing.tight)
-            .semantics { contentDescription = invoiceDescription(invoice.id) },
+            .testTag(invoiceDescription(invoice.id)),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -245,9 +244,7 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
                     onClick = { onOpenInvoice(url) },
                     variant = ButtonVariant.Ghost,
                     size = ButtonSize.Sm,
-                    modifier = Modifier.semantics {
-                        contentDescription = invoiceOpenDescription(invoice.id)
-                    },
+                    modifier = Modifier.testTag(invoiceOpenDescription(invoice.id)),
                 )
             }
         }
@@ -277,7 +274,7 @@ internal fun StripeUnavailableCard() {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_UNAVAILABLE_DESCRIPTION },
+            .testTag(BILLING_UNAVAILABLE_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.billing_unavailable_title))
         Text(

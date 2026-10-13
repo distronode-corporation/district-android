@@ -8,9 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.ui.resolve
@@ -47,16 +46,14 @@ internal fun PersonaPreviewDialog(
         containerColor = DistrictTheme.colors.card,
         titleContentColor = DistrictTheme.colors.foreground,
         textContentColor = DistrictTheme.colors.foreground,
-        modifier = Modifier.semantics { contentDescription = PERSONA_PREVIEW_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(PERSONA_PREVIEW_ROOT_DESCRIPTION),
         title = { Text(stringResource(R.string.persona_preview_title)) },
         text = { PreviewBody(state) },
         confirmButton = {
             if (state.phase.isRunning) {
                 TextButton(
                     onClick = onStop,
-                    modifier = Modifier.semantics {
-                        contentDescription = PERSONA_PREVIEW_STOP_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(PERSONA_PREVIEW_STOP_DESCRIPTION),
                 ) {
                     Text(stringResource(R.string.persona_preview_stop))
                 }
@@ -64,9 +61,7 @@ internal fun PersonaPreviewDialog(
                 TextButton(
                     onClick = onStart,
                     enabled = state.canStart,
-                    modifier = Modifier.semantics {
-                        contentDescription = PERSONA_PREVIEW_START_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(PERSONA_PREVIEW_START_DESCRIPTION),
                 ) {
                     Text(stringResource(R.string.persona_preview_start))
                 }
@@ -75,9 +70,7 @@ internal fun PersonaPreviewDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = PERSONA_PREVIEW_CLOSE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(PERSONA_PREVIEW_CLOSE_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.persona_preview_close))
             }
@@ -92,7 +85,7 @@ private fun PreviewBody(state: PersonaPreviewUiState) {
             text = stringResource(phaseCopy(state.phase)),
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
-            modifier = Modifier.semantics { contentDescription = PERSONA_PREVIEW_PHASE_DESCRIPTION },
+            modifier = Modifier.testTag(PERSONA_PREVIEW_PHASE_DESCRIPTION),
         )
         // ⛔ THE COST IS STATED BEFORE THE FIRST TAP, NOT AFTER. See the ⛔ on the dialog.
         Text(
@@ -105,9 +98,7 @@ private fun PreviewBody(state: PersonaPreviewUiState) {
                 text = stringResource(R.string.persona_preview_speaking),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = PERSONA_PREVIEW_SPEAKING_DESCRIPTION
-                },
+                modifier = Modifier.testTag(PERSONA_PREVIEW_SPEAKING_DESCRIPTION),
             )
         }
         // ⚠️ SAID OUT LOUD RATHER THAN LEFT AS SILENCE. A denied microphone still leaves a usable
@@ -117,9 +108,7 @@ private fun PreviewBody(state: PersonaPreviewUiState) {
                 text = stringResource(R.string.persona_preview_no_microphone),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = PERSONA_PREVIEW_NO_MIC_DESCRIPTION
-                },
+                modifier = Modifier.testTag(PERSONA_PREVIEW_NO_MIC_DESCRIPTION),
             )
         }
         state.failure?.let { failure ->
@@ -127,9 +116,7 @@ private fun PreviewBody(state: PersonaPreviewUiState) {
                 text = failure.message.resolve(),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.destructive,
-                modifier = Modifier.semantics {
-                    contentDescription = PERSONA_PREVIEW_FAILURE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(PERSONA_PREVIEW_FAILURE_DESCRIPTION),
             )
         }
     }

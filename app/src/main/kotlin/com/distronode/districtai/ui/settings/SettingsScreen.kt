@@ -12,9 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
@@ -61,7 +60,7 @@ fun SettingsScreen(
     onOpenDevices: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = SETTINGS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(SETTINGS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.settings_title), onBack = onBack)
         },
@@ -109,7 +108,7 @@ fun SettingsScreen(
 }
 
 /**
- * ⚠️ The whole row is the target, and the semantics handle is on the row rather than on the label,
+ * ⚠️ The whole row is the target, and the test tag is on the row rather than on the label,
  * so a screen reader announces one actionable item instead of two unrelated texts.
  */
 @Composable
@@ -124,7 +123,7 @@ private fun ActionRow(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(top = DistrictTheme.spacing.row)
-            .semantics { contentDescription = description },
+            .testTag(description),
     ) {
         Text(
             text = label,

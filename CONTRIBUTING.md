@@ -20,6 +20,8 @@ core/core-designsystem/  Design tokens and primitive composables. No project dep
 core/core-media/         LiveKit behind the CallEngine interface.
 build-logic/             Convention plugins (district.android.*).
 contracts/               Server-generated API fixtures. Never edited by hand.
+l10n/                    android.toml, the one catalog every user-visible string comes from.
+tools/l10n/              The catalog tools, vendored from the maintainers' monorepo.
 parity/                  Snapshot of the iOS client's endpoint list.
 release-notes/           Google Play release notes for languages other than en-US,
                          <language>/<version>.txt (en-US is the CHANGELOG section).
@@ -55,6 +57,8 @@ exercised against MockWebServer, and response shapes come from `contracts/`.
 This is exactly what CI's one job runs:
 
 ```sh
+python3 tools/l10n/l10n.py vendor --check --dest tools/l10n
+python3 tools/l10n/l10n.py check l10n/android.toml --gen android:l10n/res --opt name=strings
 ./gradlew detekt lintDebug testDebugUnitTest assembleDebug
 # then: at least one test result must exist (CI sums every module's result XMLs)
 ./gradlew :koverLogUnit :koverVerifyUnit
@@ -92,6 +96,29 @@ same change as AGP. See `.github/dependabot.yml`.
 
 New dependencies are a supply-chain decision. `settings.gradle.kts` restricts where
 dependencies may resolve from, and JitPack is admitted for one module only; do not widen that.
+
+## Strings
+
+Every user-visible string lives in `l10n/android.toml`, English and (later) Canadian French
+side by side, with a context (`ctx`), the screen it appears on, a review tier and, where the
+meaning is not obvious, a translator note. Placeholders are named (`{count}`) and declared in
+`args` in the order of their `%1$`, `%2$` positions; `l10n.py check` explains any rule a change
+breaks. `app/src/main/res/values/strings.xml` is
+GENERATED from it and committed; do not edit it by hand. After changing the catalog:
+
+```sh
+python3 tools/l10n/l10n.py fmt l10n/android.toml
+python3 tools/l10n/l10n.py gen l10n/android.toml --backend android --out l10n/res --opt name=strings
+```
+
+`l10n/res/values` and `l10n/res/values-fr-rCA` are symlinks to the main resource directory and to
+the French source set (`app/src/l10n-fr/res`, built only with `-Pdistrict.l10n.fr`), so the one
+`gen` writes both. CI runs `l10n.py check` with the same `--gen` arguments and fails when the
+generated file differs from what the catalog produces. Keys are the resource names (`sign_in.action`
+generates `sign_in_action`), so a key never changes once code uses it. A test that looks up our
+own copy reads it with `str(R.string.x)` (`app/src/test/.../TestStrings.kt`) rather than spelling
+the English out, and a stable handle for a test is a `Modifier.testTag`, never a
+`contentDescription`, which TalkBack reads aloud.
 
 ## API contract fixtures
 

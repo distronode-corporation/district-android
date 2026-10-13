@@ -10,7 +10,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -19,6 +19,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.SupportMessage
 import com.distronode.districtai.core.model.SupportRequestDetail
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -93,9 +95,9 @@ class SupportRequestScreenTest {
         keyed[0].assertIsDisplayed()
         keyed[1].assertIsDisplayed()
         composeRule.onNodeWithText("Calls drop after ten seconds").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_STATUS_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Distronode Support").assertIsDisplayed()
-        composeRule.onNodeWithText("You").assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_STATUS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_author_agent)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_author_you)).assertIsDisplayed()
         composeRule.onNodeWithText("Looking now.").assertIsDisplayed()
     }
 
@@ -103,7 +105,7 @@ class SupportRequestScreenTest {
     fun `an open, closeable request can be closed from the phone`() {
         render(SupportRequestUiState.Content(request))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
             .assertIsEnabled()
             .performClick()
 
@@ -114,8 +116,8 @@ class SupportRequestScreenTest {
     fun `a request the desk will not close says so instead of offering the button`() {
         render(SupportRequestUiState.Content(request.copy(closeable = false)))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -124,9 +126,11 @@ class SupportRequestScreenTest {
         val resolved = request.copy(statusName = "Done", statusCategory = "DONE")
         render(SupportRequestUiState.Content(resolved), draft = "One more thing")
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_DESCRIPTION)
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule
+            .onNodeWithTag(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION, useUnmergedTree = true)
+            .assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_SEND_DESCRIPTION)
             .assertIsEnabled()
             .performClick()
 
@@ -137,7 +141,7 @@ class SupportRequestScreenTest {
     fun `an unfiled request is titled generically and its header says it is being opened`() {
         render(SupportRequestUiState.Content(request.copy(issueKey = null)))
 
-        composeRule.onNodeWithText("Request").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_request_title)).assertIsDisplayed()
         composeRule.onNodeWithText("BEING OPENED").assertIsDisplayed()
     }
 
@@ -145,8 +149,8 @@ class SupportRequestScreenTest {
     fun `typing reaches the host, and an empty draft cannot be sent`() {
         render(SupportRequestUiState.Content(request))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_REPLY_DESCRIPTION).performTextInput("Thanks")
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_REPLY_DESCRIPTION).performTextInput("Thanks")
 
         assertEquals(listOf("Thanks"), drafts)
     }
@@ -155,8 +159,8 @@ class SupportRequestScreenTest {
     fun `while a reply is sending the box and the button are both held`() {
         render(SupportRequestUiState.Content(request, sending = true), draft = "Thanks")
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithText("Sending…").assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.support_reply_sending)).assertIsDisplayed()
     }
 
     @Test
@@ -165,11 +169,13 @@ class SupportRequestScreenTest {
         // a request the desk will not close, and this one is being closed.
         render(SupportRequestUiState.Content(request, closing = true))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
             .assertIsDisplayed()
             .assertIsNotEnabled()
-        composeRule.onNodeWithText("Closing…").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.support_closing)).assertIsDisplayed()
+        composeRule
+            .onNodeWithTag(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION, useUnmergedTree = true)
+            .assertDoesNotExist()
     }
 
     @Test
@@ -183,9 +189,9 @@ class SupportRequestScreenTest {
             draft = "Thanks",
         )
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_SEND_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("The reply did not send.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_CLOSE_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_CLOSE_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("The request could not be closed.").assertIsDisplayed()
     }
 
@@ -193,8 +199,8 @@ class SupportRequestScreenTest {
     fun `a retryable failure offers a retry that reaches the host`() {
         render(SupportRequestUiState.Failed(FailureText(UiText.Literal("Could not load."))))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retries)
     }
 
@@ -203,13 +209,13 @@ class SupportRequestScreenTest {
         render(SupportRequestUiState.Failed(FailureText(UiText.Literal("Not found."), retryable = false)))
 
         composeRule.onNodeWithText("Not found.").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
     fun `a viewer is refused the thread, whatever loaded`() {
         render(SupportRequestUiState.Content(request), canUse = false)
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_REFUSED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_REFUSED_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Calls drop after ten seconds").assertDoesNotExist()
     }
 
@@ -217,15 +223,15 @@ class SupportRequestScreenTest {
     fun `a loading request draws its skeleton and no thread`() {
         render(SupportRequestUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_LOADING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_REPLY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_REPLY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `the thread's back action reaches the host`() {
         render(SupportRequestUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -254,7 +260,7 @@ class SupportRequestScreenTest {
         state = SupportRequestUiState.Content(request, sendFailure = FailureText(UiText.Literal("Second failure.")))
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription(SUPPORT_REQUEST_SEND_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(SUPPORT_REQUEST_SEND_FAILURE_DESCRIPTION)
             .assertTextEquals("Second failure.")
         composeRule.onNodeWithText("First failure.").assertDoesNotExist()
     }

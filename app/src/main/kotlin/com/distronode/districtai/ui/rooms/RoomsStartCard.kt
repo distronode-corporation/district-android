@@ -7,9 +7,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
@@ -32,7 +31,7 @@ internal fun StartRoomCard(
     onRoomNameChange: (String) -> Unit,
     onJoin: () -> Unit,
 ) {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = ROOMS_START_DESCRIPTION }) {
+    DistrictCard(modifier = Modifier.testTag(ROOMS_START_DESCRIPTION)) {
         Eyebrow(stringResource(R.string.rooms_start_label))
         OutlinedTextField(
             value = state.roomName,
@@ -43,7 +42,7 @@ internal fun StartRoomCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = DistrictTheme.spacing.tight)
-                .semantics { contentDescription = ROOMS_NAME_FIELD_DESCRIPTION },
+                .testTag(ROOMS_NAME_FIELD_DESCRIPTION),
         )
         // ⛔ SHOWN WHILE TYPING, NOT APPLIED TO THE FIELD. The name is lower-cased and hyphenated
         // before it reaches the server, and a field that rewrote itself would move the cursor and
@@ -59,7 +58,7 @@ internal fun StartRoomCard(
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.hairline)
-                .semantics { contentDescription = ROOMS_NAME_PREVIEW_DESCRIPTION },
+                .testTag(ROOMS_NAME_PREVIEW_DESCRIPTION),
         )
         DistrictButton(
             text = stringResource(R.string.rooms_join),
@@ -67,7 +66,7 @@ internal fun StartRoomCard(
             enabled = state.canJoin,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.row)
-                .semantics { contentDescription = ROOMS_JOIN_DESCRIPTION },
+                .testTag(ROOMS_JOIN_DESCRIPTION),
         )
         // ⚠️ SAYS THE COMPANION WILL BE THERE, BEFORE ANYONE JOINS. The transcription agent is
         // dispatched into every meet_ room automatically; being told about it after the fact is
@@ -78,7 +77,7 @@ internal fun StartRoomCard(
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.tight)
-                .semantics { contentDescription = ROOMS_COMPANION_NOTICE_DESCRIPTION },
+                .testTag(ROOMS_COMPANION_NOTICE_DESCRIPTION),
         )
     }
 }

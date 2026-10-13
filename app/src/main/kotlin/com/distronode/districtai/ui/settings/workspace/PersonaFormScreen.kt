@@ -13,9 +13,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -60,7 +59,7 @@ fun PersonaFormScreen(
     val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = PERSONA_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(PERSONA_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.persona_title),
@@ -160,7 +159,7 @@ private fun PersonaFields(
             enabled = state.canSave,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = PERSONA_SAVE_DESCRIPTION },
+                .testTag(PERSONA_SAVE_DESCRIPTION),
         )
     }
 }
@@ -190,7 +189,7 @@ private fun PersonaTextField(
         enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = description },
+            .testTag(description),
     )
 }
 
@@ -242,7 +241,7 @@ private fun IdentityArea(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = DistrictTheme.spacing.gutter)
-                    .semantics { contentDescription = PERSONA_PREVIEW_OPEN_DESCRIPTION },
+                    .testTag(PERSONA_PREVIEW_OPEN_DESCRIPTION),
             )
         } else if (options is PersonaOptionsState.LoadFailed) {
             ConfigLoadFailure(failure = options.failure, onRetry = onRetry)
@@ -255,7 +254,7 @@ private fun IdentityArea(
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier
                 .padding(horizontal = DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION },
+                .testTag(PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION),
         )
     }
 }
@@ -306,6 +305,6 @@ private fun RefitNotice(refit: PersonaRefit) {
         } else {
             DistrictTheme.colors.foreground
         },
-        modifier = Modifier.semantics { contentDescription = PERSONA_REFIT_DESCRIPTION },
+        modifier = Modifier.testTag(PERSONA_REFIT_DESCRIPTION),
     )
 }

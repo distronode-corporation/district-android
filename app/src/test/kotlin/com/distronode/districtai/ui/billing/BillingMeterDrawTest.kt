@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictColors
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -40,7 +40,7 @@ class BillingMeterDrawTest {
 
     private fun colorsInMeter(usage: UsageData, included: Int): Set<Color> {
         composeRule.setContent { DistrictTheme(darkTheme = false) { UsageMeterCard(usage, included) } }
-        val pixels = composeRule.onNodeWithContentDescription(BILLING_METER_DESCRIPTION)
+        val pixels = composeRule.onNodeWithTag(BILLING_METER_DESCRIPTION)
             .captureToImage()
             .toPixelMap()
         val seen = mutableSetOf<Color>()

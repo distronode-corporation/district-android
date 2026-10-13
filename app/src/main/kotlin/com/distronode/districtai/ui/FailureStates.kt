@@ -11,9 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -56,7 +55,7 @@ fun CenteredState(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(DistrictTheme.spacing.section)
-                .described(description),
+                .testTag(description),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             content = content,
@@ -122,7 +121,7 @@ fun InlineFailure(
     onSignIn: (() -> Unit)? = null,
     retryDescription: String? = null,
 ) {
-    DistrictCard(modifier = modifier.described(description)) {
+    DistrictCard(modifier = modifier.testTag(description)) {
         title?.let { Eyebrow(it) }
         Text(
             text = failure.message.resolve(),
@@ -159,7 +158,7 @@ fun PagedAppendFailure(
         modifier = Modifier
             .fillMaxWidth()
             .padding(DistrictTheme.spacing.gutter)
-            .described(description),
+            .testTag(description),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -220,20 +219,11 @@ private fun FailureAction(
             text = stringResource(R.string.overview_retry),
             onClick = onRetry,
             compact = compact,
-            modifier = if (retryDescription == null) modifier else modifier.described(retryDescription),
+            modifier = if (retryDescription == null) modifier else modifier.testTag(retryDescription),
         )
         else -> Unit
     }
 }
-
-/**
- * The test handle, as a plain extension rather than an inline `semantics { }` in each composable.
- *
- * ⚠️ NOT A COMPOSABLE, ON PURPOSE. Inside a composable, a lambda that captures a parameter is
- * memoised against that parameter, which emits change-tracking branches no caller exercises (a
- * handle is a constant). Building the modifier here allocates the same lambda without them.
- */
-private fun Modifier.described(description: String): Modifier = semantics { contentDescription = description }
 
 /** ⚠️ Compact is the card family's quiet ghost button; the full-screen family keeps the primary. */
 @Composable

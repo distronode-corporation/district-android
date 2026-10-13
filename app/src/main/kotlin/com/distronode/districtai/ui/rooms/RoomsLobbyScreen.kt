@@ -13,9 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -63,7 +62,7 @@ fun RoomsLobbyScreen(
     modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = ROOMS_ROOT_DESCRIPTION },
+        modifier = modifier.testTag(ROOMS_ROOT_DESCRIPTION),
         topBar = { DistrictTopBar(title = stringResource(R.string.rooms_title), onBack = onBack) },
     ) { inset ->
         ContentContainer(modifier = inset.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -96,7 +95,7 @@ fun RoomsLobbyScreen(
 @Composable
 private fun LoadingRows() {
     Column(
-        modifier = Modifier.semantics { contentDescription = ROOMS_LOADING_DESCRIPTION },
+        modifier = Modifier.testTag(ROOMS_LOADING_DESCRIPTION),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
@@ -113,7 +112,7 @@ private fun MeetingList(
         EmptyState(
             title = stringResource(R.string.rooms_empty_title),
             body = stringResource(R.string.rooms_empty_body),
-            modifier = Modifier.semantics { contentDescription = ROOMS_EMPTY_DESCRIPTION },
+            modifier = Modifier.testTag(ROOMS_EMPTY_DESCRIPTION),
         )
         return
     }
@@ -130,7 +129,7 @@ private fun MeetingCard(
 ) {
     val live = meeting.status == STATUS_IN_PROGRESS
     DistrictCard(
-        modifier = Modifier.semantics { contentDescription = meetingRowDescription(meeting.id) },
+        modifier = Modifier.testTag(meetingRowDescription(meeting.id)),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -169,9 +168,7 @@ private fun MeetingCard(
                 onClick = { onOpenMeeting(meeting.id) },
                 variant = ButtonVariant.Ghost,
                 size = ButtonSize.Sm,
-                modifier = Modifier.semantics {
-                    contentDescription = meetingOpenDescription(meeting.id)
-                },
+                modifier = Modifier.testTag(meetingOpenDescription(meeting.id)),
             )
             // ⛔ REJOIN IS OFFERED ONLY FOR A MEETING STILL RUNNING. Joining the room of a finished
             // meeting is not an error server-side — the name is still valid — so nothing would
@@ -183,9 +180,7 @@ private fun MeetingCard(
                     onClick = { onRejoin(meeting.roomName) },
                     variant = ButtonVariant.Secondary,
                     size = ButtonSize.Sm,
-                    modifier = Modifier.semantics {
-                        contentDescription = meetingRejoinDescription(meeting.id)
-                    },
+                    modifier = Modifier.testTag(meetingRejoinDescription(meeting.id)),
                 )
             }
         }

@@ -9,8 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -37,7 +36,7 @@ fun PagedListLoading(description: String) {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = description },
+                .testTag(description),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_ROW_HEIGHT) }
@@ -61,7 +60,7 @@ fun PagedListEmpty(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .semantics { contentDescription = description },
+                .testTag(description),
             verticalArrangement = Arrangement.Center,
         ) {
             EmptyState(title = title, body = body, action = action)
@@ -81,7 +80,7 @@ fun PagedAppendLoading(description: String) {
     ) {
         CircularProgressIndicator(
             color = DistrictTheme.colors.district,
-            modifier = Modifier.semantics { contentDescription = description },
+            modifier = Modifier.testTag(description),
         )
     }
 }

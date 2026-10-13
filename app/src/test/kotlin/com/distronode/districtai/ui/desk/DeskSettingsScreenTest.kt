@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -12,6 +12,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DeskSettings
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -90,14 +92,14 @@ class DeskSettingsScreenTest {
         }
     }
 
-    private fun save() = composeRule.onNodeWithContentDescription(DESK_SETTINGS_SAVE_DESCRIPTION)
+    private fun save() = composeRule.onNodeWithTag(DESK_SETTINGS_SAVE_DESCRIPTION)
 
     @Test
     fun `loading shows skeletons rather than an empty form an operator could save`() {
         render(DeskSettingsUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_SETTINGS_LOADING_DESCRIPTION).assertIsDisplayed()
         save().assertDoesNotExist()
     }
 
@@ -108,9 +110,9 @@ class DeskSettingsScreenTest {
         // the form at all rather than being walked into a 403 on save.
         render(loaded, canUse = false)
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_REFUSED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_SETTINGS_REFUSED_DESCRIPTION).assertIsDisplayed()
         save().assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_ENABLED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_SETTINGS_ENABLED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -123,8 +125,8 @@ class DeskSettingsScreenTest {
             recorder = recorder,
         )
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithTag(DESK_SETTINGS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         assertEquals(1, recorder.retries)
     }
@@ -138,7 +140,7 @@ class DeskSettingsScreenTest {
         )
 
         composeRule.onNodeWithText("Forbidden").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -180,8 +182,8 @@ class DeskSettingsScreenTest {
     fun `saving relabels the button and disables it even though the form is still dirty`() {
         render(loaded.copy(enabled = false, saving = true))
 
-        composeRule.onNodeWithText("Saving…").assertIsDisplayed()
-        composeRule.onNodeWithText("Save").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_settings_saving)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_settings_save)).assertDoesNotExist()
         save().assertIsNotEnabled()
     }
 
@@ -189,9 +191,9 @@ class DeskSettingsScreenTest {
     fun `saving disables both switches and the name box, so the form cannot drift under the write`() {
         render(loaded.copy(enabled = false, saving = true))
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_ENABLED_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_NOTIFY_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_BRAND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DESK_SETTINGS_ENABLED_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DESK_SETTINGS_NOTIFY_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DESK_SETTINGS_BRAND_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -199,8 +201,8 @@ class DeskSettingsScreenTest {
         val recorder = Recorder()
         render(loaded, recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_ENABLED_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_NOTIFY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DESK_SETTINGS_ENABLED_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DESK_SETTINGS_NOTIFY_DESCRIPTION).performClick()
 
         assertEquals(listOf(false), recorder.enabled)
         assertEquals(listOf(true), recorder.notify)
@@ -211,7 +213,7 @@ class DeskSettingsScreenTest {
         val recorder = Recorder()
         render(loaded, recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_BRAND_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_SETTINGS_BRAND_DESCRIPTION)
             .performTextInput("Barker Plumbing")
 
         assertEquals("Barker Plumbing", recorder.brand.firstOrNull())
@@ -238,7 +240,7 @@ class DeskSettingsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("That name is too long.").assertIsDisplayed()
         // ⚠️ The form survives the failure, so the operator can correct the value and try again.
         save().assertIsEnabled()
@@ -248,10 +250,10 @@ class DeskSettingsScreenTest {
     fun `with no logo published the card says so and offers nothing to remove`() {
         render(loaded)
 
-        composeRule.onNodeWithContentDescription(DESK_LOGO_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("No logo published.").assertIsDisplayed()
-        composeRule.onNodeWithText("Choose an image").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_LOGO_REMOVE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_LOGO_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_logo_none)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_logo_choose)).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_LOGO_REMOVE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -262,8 +264,8 @@ class DeskSettingsScreenTest {
         render(loaded.copy(stored = DeskSettings(enabled = true, publicLogoUrl = url)))
 
         composeRule.onNodeWithText(url).assertIsDisplayed()
-        composeRule.onNodeWithText("Replace").assertIsDisplayed()
-        composeRule.onNodeWithText("No logo published.").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_logo_replace)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_logo_none)).assertDoesNotExist()
     }
 
     @Test
@@ -276,8 +278,8 @@ class DeskSettingsScreenTest {
             recorder = recorder,
         )
 
-        composeRule.onNodeWithContentDescription(DESK_LOGO_CHOOSE_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(DESK_LOGO_REMOVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DESK_LOGO_CHOOSE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DESK_LOGO_REMOVE_DESCRIPTION).performClick()
 
         assertEquals(1, recorder.picks)
         assertEquals(1, recorder.removes)
@@ -292,9 +294,9 @@ class DeskSettingsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Working…").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_LOGO_CHOOSE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(DESK_LOGO_REMOVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.desk_logo_busy)).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_LOGO_CHOOSE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DESK_LOGO_REMOVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -304,7 +306,7 @@ class DeskSettingsScreenTest {
         // the file survived and may still answer its old link. Nothing else here would say it.
         render(loaded.copy(logoObjectRetained = true))
 
-        composeRule.onNodeWithContentDescription(DESK_LOGO_RETAINED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_LOGO_RETAINED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -313,7 +315,7 @@ class DeskSettingsScreenTest {
         // otherwise would warn about a file that was never there.
         render(loaded)
 
-        composeRule.onNodeWithContentDescription(DESK_LOGO_RETAINED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_LOGO_RETAINED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -324,8 +326,8 @@ class DeskSettingsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DESK_LOGO_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_LOGO_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -333,7 +335,7 @@ class DeskSettingsScreenTest {
         val recorder = Recorder()
         render(loaded, recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, recorder.backs)
     }
@@ -344,13 +346,13 @@ class DeskSettingsScreenTest {
         val recorder = Recorder()
         render(loaded.copy(brandName = "Acme", brandNameEdited = true), recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertEquals(0, recorder.backs)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
         assertEquals(1, recorder.backs)
     }
 
@@ -359,7 +361,7 @@ class DeskSettingsScreenTest {
         val recorder = Recorder()
         render(DeskSettingsUiState.Failed(FailureText(message = UiText.Literal("Offline"))), recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, recorder.backs)
     }

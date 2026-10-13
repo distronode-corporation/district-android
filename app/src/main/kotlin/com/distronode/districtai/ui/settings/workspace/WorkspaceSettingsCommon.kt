@@ -17,9 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
@@ -87,7 +86,7 @@ internal fun SaveNotice(state: SaveState, description: String) {
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = tone,
-        modifier = Modifier.semantics { contentDescription = description },
+        modifier = Modifier.testTag(description),
     )
 }
 
@@ -147,9 +146,7 @@ internal fun UnsavedChangesDialog(onDiscard: () -> Unit, onDismiss: () -> Unit) 
         confirmButton = {
             TextButton(
                 onClick = onDiscard,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKSPACE_SETTINGS_DISCARD_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.workspace_settings_discard))
             }
@@ -157,9 +154,7 @@ internal fun UnsavedChangesDialog(onDiscard: () -> Unit, onDismiss: () -> Unit) 
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.workspace_settings_keep_editing))
             }
@@ -183,7 +178,7 @@ internal fun NotEditableNotice(title: String, body: String, description: String)
     Column(
         modifier = Modifier
             .padding(DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = description },
+            .testTag(description),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         Eyebrow(title)
@@ -201,7 +196,7 @@ internal fun ConfigSkeleton() {
     Column(
         modifier = Modifier
             .padding(DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = WORKSPACE_SETTINGS_LOADING_DESCRIPTION },
+            .testTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
@@ -233,7 +228,7 @@ internal fun SettingsTextField(
         enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = description },
+            .testTag(description),
     )
 }
 

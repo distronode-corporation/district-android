@@ -15,9 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -58,7 +57,7 @@ internal fun MetricTiles(report: AnalyticsResponse) {
     Column(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_METRICS_DESCRIPTION },
+            .testTag(ANALYTICS_METRICS_DESCRIPTION),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
@@ -120,7 +119,7 @@ internal fun DeltaCard(report: AnalyticsResponse) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_DELTA_DESCRIPTION },
+            .testTag(ANALYTICS_DELTA_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.analytics_delta_title))
         Text(
@@ -173,7 +172,7 @@ internal fun TrendCard(points: List<EngagementPoint>) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_TREND_DESCRIPTION },
+            .testTag(ANALYTICS_TREND_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.analytics_trend_title))
 
@@ -223,7 +222,7 @@ internal fun TrendCard(points: List<EngagementPoint>) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = ANALYTICS_TREND_EMPTY_DESCRIPTION },
+                    .testTag(ANALYTICS_TREND_EMPTY_DESCRIPTION),
             )
         }
     }
@@ -239,7 +238,7 @@ internal fun FunnelCard(stages: List<FunnelStage>) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_FUNNEL_DESCRIPTION },
+            .testTag(ANALYTICS_FUNNEL_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.analytics_funnel_title))
         stages.forEachIndexed { index, stage ->
@@ -289,7 +288,7 @@ internal fun SentimentCard(slices: List<SentimentSlice>) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_SENTIMENT_DESCRIPTION },
+            .testTag(ANALYTICS_SENTIMENT_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.analytics_sentiment_title))
         Canvas(
@@ -352,7 +351,7 @@ internal fun UsageCard(usage: UsageData?) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_USAGE_DESCRIPTION },
+            .testTag(ANALYTICS_USAGE_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.analytics_usage_title))
         if (usage == null) {
@@ -362,7 +361,7 @@ internal fun UsageCard(usage: UsageData?) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = ANALYTICS_USAGE_EMPTY_DESCRIPTION },
+                    .testTag(ANALYTICS_USAGE_EMPTY_DESCRIPTION),
             )
             return@DistrictCard
         }

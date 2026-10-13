@@ -9,7 +9,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onChild
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -17,6 +17,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.HqPendingWrite
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ThemeFlip
@@ -98,11 +100,11 @@ class HqScreenTest {
     fun `an empty console invites a question rather than looking broken`() {
         render(HqUiState.Idle, messages = emptyList())
 
-        composeRule.onNodeWithContentDescription(HQ_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(HQ_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_EMPTY_DESCRIPTION).assertIsDisplayed()
         // ⚠️ Names what the tools can actually answer from. A vaguer invitation sets up questions
         // the model is instructed to refuse.
-        composeRule.onNodeWithText("Ask about your calls, contacts, the AI receptionist, or your knowledge base.")
+        composeRule.onNodeWithText(str(R.string.hq_empty))
             .assertIsDisplayed()
     }
 
@@ -122,7 +124,7 @@ class HqScreenTest {
 
         composeRule.onNodeWithText("How did we do this week?").assertIsDisplayed()
         composeRule.onNodeWithText("You had 19 calls this week.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(HQ_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("We could not reach District HQ.").assertIsDisplayed()
     }
 
@@ -131,7 +133,7 @@ class HqScreenTest {
         var retried = 0
         render(HqUiState.Failed(failure(), "How did we do?"), callbacks = Callbacks(onRetry = { retried++ }))
 
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         assertEquals(1, retried)
     }
@@ -142,8 +144,8 @@ class HqScreenTest {
         // retry button there is a control that cannot succeed.
         render(HqUiState.Failed(failure(retryable = false), "How did we do?"))
 
-        composeRule.onNodeWithContentDescription(HQ_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithTag(HQ_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     // ── Thinking ─────────────────────────────────────────────────────────────
@@ -153,15 +155,15 @@ class HqScreenTest {
         // ⚠️ The send control is disabled while a turn runs, so something has to explain why.
         render(HqUiState.Thinking)
 
-        composeRule.onNodeWithContentDescription(HQ_THINKING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(HQ_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(HQ_THINKING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_SEND_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
     fun `an idle console shows no thinking indicator`() {
         render(HqUiState.Idle)
 
-        composeRule.onNodeWithContentDescription(HQ_THINKING_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(HQ_THINKING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── The confirm gate ─────────────────────────────────────────────────────
@@ -173,9 +175,9 @@ class HqScreenTest {
         // without the "nothing has changed" line a proposal reads as a completed action.
         render(HqUiState.Confirming(pending))
 
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_CONFIRM_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Permanently DELETE the CRM contact \"Ada\".").assertIsDisplayed()
-        composeRule.onNodeWithText("Nothing has been changed yet.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.hq_confirm_note)).assertIsDisplayed()
         composeRule.onNodeWithText("delete_contact").assertDoesNotExist()
     }
 
@@ -188,8 +190,8 @@ class HqScreenTest {
             callbacks = Callbacks(onConfirm = { confirmed++ }, onDismiss = { dismissed++ }),
         )
 
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_ACCEPT_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_DISMISS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(HQ_CONFIRM_ACCEPT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(HQ_CONFIRM_DISMISS_DESCRIPTION).performClick()
 
         assertEquals(1, confirmed)
         assertEquals(1, dismissed)
@@ -201,8 +203,8 @@ class HqScreenTest {
         // control that can only 403 is worse than an absent one.
         render(HqUiState.Confirming(pending), canConfirm = false)
 
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_ACCEPT_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_DISMISS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_CONFIRM_ACCEPT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(HQ_CONFIRM_DISMISS_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -211,9 +213,9 @@ class HqScreenTest {
         // disabled state is the only thing between a double tap and a repeated write.
         render(HqUiState.Applying(pending))
 
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_ACCEPT_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_DISMISS_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithText("Applying…").assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_CONFIRM_ACCEPT_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(HQ_CONFIRM_DISMISS_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.hq_applying)).assertIsDisplayed()
     }
 
     @Test
@@ -222,17 +224,17 @@ class HqScreenTest {
         // operator's — and they can only make it if they can still see what it was.
         render(HqUiState.ConfirmFailed(pending, failure("The connection dropped.")))
 
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_CONFIRM_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Permanently DELETE the CRM contact \"Ada\".").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_ACCEPT_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(HQ_CONFIRM_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_CONFIRM_ACCEPT_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
     fun `an idle console shows no confirm card`() {
         render(HqUiState.Idle)
 
-        composeRule.onNodeWithContentDescription(HQ_CONFIRM_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(HQ_CONFIRM_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── The composer ─────────────────────────────────────────────────────────
@@ -242,9 +244,9 @@ class HqScreenTest {
         var sent: String? = null
         render(HqUiState.Idle, callbacks = Callbacks(onSend = { sent = it }))
 
-        composeRule.onNodeWithContentDescription(HQ_PROMPT_FIELD_DESCRIPTION)
+        composeRule.onNodeWithTag(HQ_PROMPT_FIELD_DESCRIPTION)
             .performTextInput("What did Ada want?")
-        composeRule.onNodeWithContentDescription(HQ_SEND_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(HQ_SEND_DESCRIPTION).performClick()
 
         assertEquals("What did Ada want?", sent)
     }
@@ -253,7 +255,7 @@ class HqScreenTest {
     fun `send is disabled until something is typed`() {
         render(HqUiState.Idle)
 
-        composeRule.onNodeWithContentDescription(HQ_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(HQ_SEND_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -262,7 +264,7 @@ class HqScreenTest {
         // entitled to.
         render(HqUiState.Idle, canConfirm = false)
 
-        composeRule.onNodeWithContentDescription(HQ_PROMPT_FIELD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(HQ_PROMPT_FIELD_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -270,7 +272,7 @@ class HqScreenTest {
         var backs = 0
         render(HqUiState.Idle, callbacks = Callbacks(onBack = { backs++ }))
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
     }
@@ -294,13 +296,13 @@ class HqScreenTest {
                 )
             }
         }
-        composeRule.onNodeWithContentDescription(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
+        composeRule.onNodeWithTag(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
             .assertTextEquals("How did we do this week?")
 
         lines = transcript
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
+        composeRule.onNodeWithTag(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
             .assertTextEquals("You had 19 calls this week.")
     }
 
@@ -322,7 +324,7 @@ class HqScreenTest {
 
         theme.flip()
 
-        composeRule.onNodeWithContentDescription(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
+        composeRule.onNodeWithTag(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
             .assertTextEquals("You had 19 calls this week.")
     }
 }

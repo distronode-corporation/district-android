@@ -11,9 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -44,7 +43,7 @@ fun SignInScreen(
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .semantics { contentDescription = SIGN_IN_ROOT_DESCRIPTION },
+            .testTag(SIGN_IN_ROOT_DESCRIPTION),
         color = DistrictTheme.colors.background,
     ) {
         ContentContainer(maxWidth = CARD_MAX_WIDTH) {
@@ -83,7 +82,7 @@ fun SignInScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = DistrictTheme.spacing.section)
-                            .semantics { contentDescription = SIGN_IN_ACTION_DESCRIPTION },
+                            .testTag(SIGN_IN_ACTION_DESCRIPTION),
                     )
                     // ⚠️ The browser hand-off is stated up front. Sign-in leaves the app, and a user
                     // who is not expecting that reads the browser opening as a crash or a redirect
@@ -127,7 +126,7 @@ private fun StatusPanel(status: LoginStatus, modifier: Modifier) {
         textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = SIGN_IN_STATUS_DESCRIPTION },
+            .testTag(SIGN_IN_STATUS_DESCRIPTION),
     )
 }
 

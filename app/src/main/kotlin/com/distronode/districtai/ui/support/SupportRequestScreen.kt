@@ -13,9 +13,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -64,7 +63,7 @@ fun SupportRequestScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = SUPPORT_REQUEST_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(SUPPORT_REQUEST_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 // ⚠️ The key when there is one; an unfiled request genuinely has none yet.
@@ -142,7 +141,7 @@ private fun RequestHeader(state: SupportRequestUiState.Content, onClose: () -> U
                 tone = if (request.isResolved) Tone.Success else Tone.District,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.hairline)
-                    .semantics { contentDescription = SUPPORT_REQUEST_STATUS_DESCRIPTION },
+                    .testTag(SUPPORT_REQUEST_STATUS_DESCRIPTION),
             )
 
             when {
@@ -155,7 +154,7 @@ private fun RequestHeader(state: SupportRequestUiState.Content, onClose: () -> U
                     enabled = !state.closing,
                     modifier = Modifier
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics { contentDescription = SUPPORT_REQUEST_CLOSE_DESCRIPTION },
+                        .testTag(SUPPORT_REQUEST_CLOSE_DESCRIPTION),
                 )
                 // ⛔ SAYS WHY THE BUTTON IS ABSENT, for a request that is still open. Silence would
                 // read as a missing feature rather than as the desk's own answer.
@@ -165,9 +164,7 @@ private fun RequestHeader(state: SupportRequestUiState.Content, onClose: () -> U
                     color = DistrictTheme.colors.mutedForeground,
                     modifier = Modifier
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics {
-                            contentDescription = SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION
-                        },
+                        .testTag(SUPPORT_REQUEST_NOT_CLOSEABLE_DESCRIPTION),
                 )
                 else -> Unit
             }
@@ -236,7 +233,7 @@ private fun ReplyBox(
                 colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = SUPPORT_REQUEST_REPLY_DESCRIPTION },
+                    .testTag(SUPPORT_REQUEST_REPLY_DESCRIPTION),
             )
             DistrictButton(
                 text = stringResource(
@@ -250,7 +247,7 @@ private fun ReplyBox(
                 enabled = !state.sending && draft.isNotBlank(),
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = SUPPORT_REQUEST_SEND_DESCRIPTION },
+                    .testTag(SUPPORT_REQUEST_SEND_DESCRIPTION),
             )
         }
     }
@@ -265,7 +262,7 @@ private fun InlineError(failure: FailureText, description: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = DistrictTheme.spacing.hairline)
-            .semantics { contentDescription = description },
+            .testTag(description),
     )
 }
 
@@ -275,7 +272,7 @@ private fun RequestLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = SUPPORT_REQUEST_LOADING_DESCRIPTION },
+                .testTag(SUPPORT_REQUEST_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_HEIGHT) }

@@ -15,9 +15,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -76,9 +75,7 @@ internal fun DeleteAccountDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_DELETE_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_DELETE_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.messaging_delete_confirm_action))
             }
@@ -86,9 +83,7 @@ internal fun DeleteAccountDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_DELETE_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_DELETE_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.messaging_cancel))
             }
@@ -132,9 +127,7 @@ internal fun ChannelDefaultDialog(
                             RadioButton(
                                 selected = account.id == selected,
                                 onClick = { selected = account.id },
-                                modifier = Modifier.semantics {
-                                    contentDescription = messagingChannelOptionDescription(account.id)
-                                },
+                                modifier = Modifier.testTag(messagingChannelOptionDescription(account.id)),
                             )
                         },
                     )
@@ -145,9 +138,7 @@ internal fun ChannelDefaultDialog(
             TextButton(
                 onClick = { selected?.let(onConfirm) },
                 enabled = selected != null,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_CHANNEL_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.messaging_save))
             }
@@ -155,9 +146,7 @@ internal fun ChannelDefaultDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_CHANNEL_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_CHANNEL_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.messaging_cancel))
             }
@@ -191,7 +180,7 @@ internal fun ChannelPickerLauncher(state: MessagingUiState, onRequestChannel: (S
                 enabled = state.canEditNow,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = messagingChannelSetDescription(channel) },
+                    .testTag(messagingChannelSetDescription(channel)),
             )
         }
     }
@@ -223,9 +212,7 @@ internal fun CreatorCellSection(
             text = stringResource(R.string.messaging_creator_cell_help),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier.semantics {
-                contentDescription = MESSAGING_CREATOR_CELL_HELP_DESCRIPTION
-            },
+            modifier = Modifier.testTag(MESSAGING_CREATOR_CELL_HELP_DESCRIPTION),
         )
         SettingsTextField(
             value = state.creatorCellDraft,
@@ -242,7 +229,7 @@ internal fun CreatorCellSection(
             enabled = state.canSaveCreatorCell,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = MESSAGING_CREATOR_CELL_SAVE_DESCRIPTION },
+                .testTag(MESSAGING_CREATOR_CELL_SAVE_DESCRIPTION),
         )
     }
 }

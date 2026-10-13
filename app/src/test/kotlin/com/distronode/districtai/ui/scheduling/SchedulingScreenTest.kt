@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import android.content.Context
@@ -132,8 +132,8 @@ class SchedulingScreenTest {
     fun `the loading state draws skeletons and no card`() {
         render(SchedulingUiState())
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_LOADING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_CARD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_CARD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -149,9 +149,9 @@ class SchedulingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("the region did not answer").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_CARD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_CARD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -166,7 +166,7 @@ class SchedulingScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_RETRY_DESCRIPTION).performClick()
         assertEquals(1, retries)
     }
 
@@ -180,7 +180,7 @@ class SchedulingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_RETRY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_RETRY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── The two "no tenancy row" states ──────────────────────────────────────
@@ -193,11 +193,11 @@ class SchedulingScreenTest {
         render(ready(eligible = false))
 
         composeRule.onNodeWithText(text(R.string.scheduling_not_eligible)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_BADGE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_HOST_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_BADGE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_HOST_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -206,10 +206,10 @@ class SchedulingScreenTest {
         render(ready(), onEnable = { enables += 1 })
 
         composeRule.onNodeWithText(text(R.string.scheduling_legacy)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION).performClick()
         assertEquals(1, enables)
         // ⚠️ And there is no tenancy row, so nothing to badge and no host to name.
-        composeRule.onNodeWithContentDescription(SCHEDULING_BADGE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_BADGE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -220,7 +220,7 @@ class SchedulingScreenTest {
         render(ready(canManage = false))
 
         composeRule.onNodeWithText(text(R.string.scheduling_legacy)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── The four tenancy states ──────────────────────────────────────────────
@@ -231,12 +231,12 @@ class SchedulingScreenTest {
         render(ready(tenant = tenant("provisioning")), onRetry = { refreshes += 1 })
 
         composeRule.onNodeWithText(text(R.string.scheduling_badge_setting_up)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
         // ⛔ NO ENABLE WHILE ONE IS RUNNING, and no Open: the SSO route answers 409 until the
         // tenancy is ready.
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION).performClick()
         assertEquals(1, refreshes)
     }
 
@@ -257,8 +257,8 @@ class SchedulingScreenTest {
         composeRule.onNodeWithText(text(R.string.scheduling_open_dashboard)).assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.scheduling_open_scheduler)).assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_DASHBOARD_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_DASHBOARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION).performClick()
         assertEquals(1, dashboards)
         assertEquals(1, consoles)
     }
@@ -278,16 +278,16 @@ class SchedulingScreenTest {
             ) { it.copy(consoleRetired = true) },
         )
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_DASHBOARD_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_DASHBOARD_DESCRIPTION).assertIsEnabled()
         // ⛔ THE SERVER'S SENTENCE, VERBATIM AND WITH NO RETRY BESIDE IT. The notice carries a
         // Dismiss and nothing else; a Retry here would offer to repeat a refusal that is permanent
         // for this region.
         composeRule
             .onNodeWithText("Scheduling for this workspace is managed on the web dashboard.")
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_RETRY_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_CARD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_RETRY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_CARD_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -308,16 +308,16 @@ class SchedulingScreenTest {
         composeRule
             .onNodeWithText("https://acme-book.distronode.com/book/phone-consultation")
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
         composeRule
             .onNodeWithText(text(R.string.scheduling_last_checked, "2026-09-06T11:20:00.000Z"))
             .assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION).performClick()
         assertEquals(1, opens)
         // ⚠️ A live tenancy is settled, so no Refresh — and nothing to Enable.
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -327,11 +327,11 @@ class SchedulingScreenTest {
         // publish a booking address for a page that may not be serving.
         render(ready(tenant = tenant(status = "ready", bookingUrl = null)))
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_NO_LINK_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_LINK_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_NO_LINK_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_LINK_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         // ⚠️ And the Open button is still there: the tenancy IS ready, so the hand-off works even
         // when the public link did not arrive.
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -356,8 +356,8 @@ class SchedulingScreenTest {
             .assertIsDisplayed()
         // ⚠️ NOT TERMINAL: re-running Enable is the documented manual recovery, and Refresh is here
         // because the hourly reconciler may have fixed it already.
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -380,11 +380,11 @@ class SchedulingScreenTest {
         composeRule
             .onNodeWithText(text(R.string.scheduling_badge_switched_off))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         // ⚠️ The host is still named — the page exists, it is just off.
-        composeRule.onNodeWithContentDescription(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -396,10 +396,10 @@ class SchedulingScreenTest {
 
         composeRule.onNodeWithText(text(R.string.scheduling_unrecognised)).assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.scheduling_badge_unknown)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── In-flight labels and the notice ──────────────────────────────────────
@@ -411,8 +411,8 @@ class SchedulingScreenTest {
         render(ready(tenant = tenant("error"), busy = true))
 
         composeRule.onNodeWithText(text(R.string.scheduling_enabling)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -425,8 +425,8 @@ class SchedulingScreenTest {
 
         // ⚠️ A failed provision offers Enable and Refresh but not Open, so this asserts the mirror
         // of the previous test: `opening` leaves the two write-side controls alone.
-        composeRule.onNodeWithContentDescription(SCHEDULING_ENABLE_DESCRIPTION).assertIsEnabled()
-        composeRule.onNodeWithContentDescription(SCHEDULING_REFRESH_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_ENABLE_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_REFRESH_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
@@ -438,10 +438,10 @@ class SchedulingScreenTest {
         )
 
         composeRule.onNodeWithText(text(R.string.scheduling_opening)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION).assertIsNotEnabled()
         // ⚠️ AND THE PRIMARY IS UNTOUCHED. Each hand-off mints its own credential at a different
         // server, so one in flight must not gate the other.
-        composeRule.onNodeWithContentDescription(SCHEDULING_DASHBOARD_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_DASHBOARD_DESCRIPTION).assertIsEnabled()
         composeRule.onNodeWithText(text(R.string.scheduling_open_dashboard)).assertIsDisplayed()
     }
 
@@ -453,9 +453,9 @@ class SchedulingScreenTest {
             },
         )
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_DASHBOARD_DESCRIPTION)
+        composeRule.onNodeWithTag(SCHEDULING_DASHBOARD_DESCRIPTION)
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(SCHEDULING_OPEN_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION).assertIsEnabled()
         composeRule.onNodeWithText(text(R.string.scheduling_open_scheduler)).assertIsDisplayed()
     }
 
@@ -470,11 +470,11 @@ class SchedulingScreenTest {
             onDismissNotice = { dismissed += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_NOTICE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("that did not work").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_CARD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_CARD_DESCRIPTION).assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_DISMISS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SCHEDULING_DISMISS_DESCRIPTION).performClick()
         assertEquals(1, dismissed)
     }
 
@@ -491,7 +491,7 @@ class SchedulingScreenTest {
         )
 
         composeRule.onNodeWithText("the provision was refused").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_FAILURE_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── Blank values from the server, and the preview ────────────────────────
@@ -509,14 +509,14 @@ class SchedulingScreenTest {
     fun `a blank bookingUrl is no link, and is never shown as one`() {
         render(ready(tenant = tenant(status = "ready", bookingUrl = " ")))
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_NO_LINK_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SCHEDULING_LINK_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(SCHEDULING_NO_LINK_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_LINK_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `the preview renders a live booking page with its link`() {
         composeRule.setContent { SchedulingScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(SCHEDULING_LINK_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SCHEDULING_LINK_DESCRIPTION).assertIsDisplayed()
     }
 }

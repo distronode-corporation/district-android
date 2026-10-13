@@ -9,7 +9,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -19,6 +19,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DeskMessage
 import com.distronode.districtai.core.model.DeskTicketDetail
 import com.distronode.districtai.core.model.DeskTicketStatus
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -100,15 +102,15 @@ class DeskTicketScreenTest {
     }
 
     private fun statusButton(status: DeskTicketStatus) =
-        composeRule.onNodeWithContentDescription("$DESK_TICKET_SET_STATUS_DESCRIPTION-${status.wire}")
+        composeRule.onNodeWithTag("$DESK_TICKET_SET_STATUS_DESCRIPTION-${status.wire}")
 
     @Test
     fun `loading shows skeletons under the generic title, because there is no reference yet`() {
         render(DeskTicketUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_TICKET_LOADING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Ticket").assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_ticket_title)).assertIsDisplayed()
     }
 
     @Test
@@ -118,8 +120,8 @@ class DeskTicketScreenTest {
         // captioned thread, and must not be given a control that can write into it.
         render(loaded, canUse = false)
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_REFUSED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_TICKET_REPLY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_TICKET_REFUSED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_REPLY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         statusButton(DeskTicketStatus.RESOLVED).assertDoesNotExist()
     }
 
@@ -133,8 +135,8 @@ class DeskTicketScreenTest {
             recorder = recorder,
         )
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithTag(DESK_TICKET_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         assertEquals(1, recorder.retries)
     }
@@ -148,7 +150,7 @@ class DeskTicketScreenTest {
         )
 
         composeRule.onNodeWithText("Forbidden").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -158,7 +160,7 @@ class DeskTicketScreenTest {
         render(loaded)
 
         composeRule.onAllNodesWithText("T-42").onFirst().assertIsDisplayed()
-        composeRule.onNodeWithText("Ticket").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_ticket_title)).assertDoesNotExist()
     }
 
     @Test
@@ -222,7 +224,7 @@ class DeskTicketScreenTest {
         render(loaded.copy(sending = true), draft = "On our way")
 
         statusButton(DeskTicketStatus.RESOLVED).assertIsEnabled()
-        composeRule.onNodeWithContentDescription(DESK_TICKET_REPLY_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DESK_TICKET_REPLY_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -233,7 +235,7 @@ class DeskTicketScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_STATUS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_STATUS_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Could not move that ticket.").assertIsDisplayed()
     }
 
@@ -245,9 +247,9 @@ class DeskTicketScreenTest {
         render(loaded)
 
         composeRule.onNodeWithText("The tap drips.").assertIsDisplayed()
-        composeRule.onNodeWithText("Customer").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_author_customer)).assertIsDisplayed()
         composeRule.onNodeWithText("We will come Thursday.").assertIsDisplayed()
-        composeRule.onNodeWithText("Your team").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_author_team)).assertIsDisplayed()
     }
 
     @Test
@@ -262,7 +264,7 @@ class DeskTicketScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Receptionist").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_author_assistant)).assertIsDisplayed()
         composeRule.onNodeWithText("Booked for Thursday.").assertIsDisplayed()
     }
 
@@ -282,24 +284,24 @@ class DeskTicketScreenTest {
         )
 
         composeRule.onNodeWithText("Hello.").assertIsDisplayed()
-        composeRule.onNodeWithText("Customer").assertIsDisplayed()
-        composeRule.onNodeWithText("Your team").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_author_customer)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_author_team)).assertDoesNotExist()
     }
 
     @Test
     fun `a reply the server confirmed was emailed says so`() {
         render(loaded.copy(lastNotified = true))
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_NOTIFIED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_TICKET_NOTIFIED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a reply the server said was not emailed says that instead`() {
         render(loaded.copy(lastNotified = false))
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DESK_TICKET_NOTIFIED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_NOTIFIED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -309,22 +311,22 @@ class DeskTicketScreenTest {
         // that nothing supports.
         render(loaded.copy(lastNotified = null))
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_NOTIFIED_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_TICKET_NOTIFIED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `send is refused on an empty draft`() {
         render(loaded, draft = "")
 
-        composeRule.onNodeWithText("Send").assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.desk_reply_send)).assertIsNotEnabled()
     }
 
     @Test
     fun `whitespace is not a reply`() {
         render(loaded, draft = "   ")
 
-        composeRule.onNodeWithText("Send").assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.desk_reply_send)).assertIsNotEnabled()
     }
 
     @Test
@@ -332,7 +334,7 @@ class DeskTicketScreenTest {
         val recorder = Recorder()
         render(loaded, draft = "We will come Thursday.", recorder = recorder)
 
-        composeRule.onNodeWithText("Send").assertIsEnabled().performClick()
+        composeRule.onNodeWithText(str(R.string.desk_reply_send)).assertIsEnabled().performClick()
 
         assertEquals(1, recorder.sends)
     }
@@ -342,7 +344,7 @@ class DeskTicketScreenTest {
         val recorder = Recorder()
         render(loaded, recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_REPLY_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_TICKET_REPLY_DESCRIPTION)
             .performTextInput("On our way")
 
         assertEquals("On our way", recorder.drafts.firstOrNull())
@@ -352,8 +354,8 @@ class DeskTicketScreenTest {
     fun `sending relabels the button and disables it, so a double tap cannot email twice`() {
         render(loaded.copy(sending = true), draft = "We will come Thursday.")
 
-        composeRule.onNodeWithText("Sending…").assertIsNotEnabled()
-        composeRule.onNodeWithText("Send").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_reply_sending)).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.desk_reply_send)).assertDoesNotExist()
     }
 
     @Test
@@ -367,10 +369,10 @@ class DeskTicketScreenTest {
             recorder = recorder,
         )
 
-        composeRule.onNodeWithContentDescription(DESK_TICKET_SEND_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_TICKET_SEND_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("That reply was not sent.").assertIsDisplayed()
         // ⚠️ Still sendable: the operator's words survive the failure and one tap retries them.
-        composeRule.onNodeWithText("Send").assertIsEnabled().performClick()
+        composeRule.onNodeWithText(str(R.string.desk_reply_send)).assertIsEnabled().performClick()
 
         assertEquals(1, recorder.sends)
     }
@@ -380,7 +382,7 @@ class DeskTicketScreenTest {
         val recorder = Recorder()
         render(loaded, recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, recorder.backs)
     }

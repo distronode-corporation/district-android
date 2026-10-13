@@ -19,9 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -95,7 +94,7 @@ fun KnowledgeScreen(
     }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = KNOWLEDGE_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(KNOWLEDGE_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.knowledge_title), onBack = onBack)
         },
@@ -145,9 +144,7 @@ private fun KnowledgeModeSection(state: KnowledgeUiState, onSelectMode: (String)
             DistrictListRow(
                 title = stringResource(label),
                 subtitle = stringResource(help),
-                modifier = Modifier.semantics {
-                    contentDescription = KNOWLEDGE_MODE_READ_ONLY_DESCRIPTION
-                },
+                modifier = Modifier.testTag(KNOWLEDGE_MODE_READ_ONLY_DESCRIPTION),
             )
             return
         }
@@ -158,7 +155,7 @@ private fun KnowledgeModeSection(state: KnowledgeUiState, onSelectMode: (String)
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(horizontal = DistrictTheme.spacing.gutter)
-                    .semantics { contentDescription = KNOWLEDGE_MODE_UNAVAILABLE_DESCRIPTION },
+                    .testTag(KNOWLEDGE_MODE_UNAVAILABLE_DESCRIPTION),
             )
             return
         }
@@ -172,9 +169,7 @@ private fun KnowledgeModeSection(state: KnowledgeUiState, onSelectMode: (String)
                         selected = state.mode == option,
                         onClick = { onSelectMode(option) },
                         enabled = state.canChangeMode,
-                        modifier = Modifier.semantics {
-                            contentDescription = knowledgeModeDescription(option)
-                        },
+                        modifier = Modifier.testTag(knowledgeModeDescription(option)),
                     )
                 },
             )
@@ -224,9 +219,7 @@ private fun KnowledgeAddSection(
                 text = stringResource(R.string.knowledge_add_rejected),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.destructive,
-                modifier = Modifier.semantics {
-                    contentDescription = KNOWLEDGE_ADD_REJECTED_DESCRIPTION
-                },
+                modifier = Modifier.testTag(KNOWLEDGE_ADD_REJECTED_DESCRIPTION),
             )
         }
         SaveNotice(state = state.addSave, description = KNOWLEDGE_ADD_NOTICE_DESCRIPTION)
@@ -238,7 +231,7 @@ private fun KnowledgeAddSection(
             enabled = state.canAdd,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = KNOWLEDGE_ADD_DESCRIPTION },
+                .testTag(KNOWLEDGE_ADD_DESCRIPTION),
         )
     }
 }
@@ -272,9 +265,7 @@ private fun KnowledgeDocuments(
                     EmptyState(
                         title = stringResource(R.string.knowledge_empty_title),
                         body = stringResource(R.string.knowledge_empty_body),
-                        modifier = Modifier.semantics {
-                            contentDescription = KNOWLEDGE_EMPTY_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(KNOWLEDGE_EMPTY_DESCRIPTION),
                     )
                 } else {
                     list.documents.forEachIndexed { index, document ->
@@ -322,9 +313,7 @@ private fun DocumentRow(
                     variant = ButtonVariant.Ghost,
                     size = ButtonSize.Sm,
                     enabled = enabled,
-                    modifier = Modifier.semantics {
-                        contentDescription = knowledgeDeleteDescription(document.id)
-                    },
+                    modifier = Modifier.testTag(knowledgeDeleteDescription(document.id)),
                 )
             }
         },
@@ -344,9 +333,7 @@ private fun DeleteDocumentDialog(title: String, onConfirm: () -> Unit, onDismiss
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics {
-                    contentDescription = KNOWLEDGE_DELETE_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(KNOWLEDGE_DELETE_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.knowledge_delete_confirm_action))
             }
@@ -354,9 +341,7 @@ private fun DeleteDocumentDialog(title: String, onConfirm: () -> Unit, onDismiss
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = KNOWLEDGE_DELETE_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(KNOWLEDGE_DELETE_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.workspace_settings_keep_editing))
             }
@@ -377,9 +362,7 @@ private fun LinkedModeDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics {
-                    contentDescription = KNOWLEDGE_LINKED_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(KNOWLEDGE_LINKED_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.knowledge_linked_confirm_action))
             }
@@ -387,9 +370,7 @@ private fun LinkedModeDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = KNOWLEDGE_LINKED_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(KNOWLEDGE_LINKED_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.workspace_settings_keep_editing))
             }

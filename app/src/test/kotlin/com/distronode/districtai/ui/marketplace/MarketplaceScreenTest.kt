@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
@@ -17,6 +17,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.AvailableNumber
 import com.distronode.districtai.core.model.ListedNumber
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ThemeFlip
@@ -105,7 +107,7 @@ class MarketplaceScreenTest {
         // SCREEN. The caption is what turns an absence of controls into a deliberate boundary.
         render(MarketplaceUiState(owned = OwnedState.Ready(listOf(ownNumber))))
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_READ_ONLY_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_READ_ONLY_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -145,7 +147,7 @@ class MarketplaceScreenTest {
         assertEquals(
             "exactly the managed row is badged",
             1,
-            composeRule.onAllNodes(hasContentDescription(MARKETPLACE_MANAGED_DESCRIPTION))
+            composeRule.onAllNodes(hasTestTag(MARKETPLACE_MANAGED_DESCRIPTION))
                 .fetchSemanticsNodes().size,
         )
     }
@@ -164,7 +166,7 @@ class MarketplaceScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_PARTIAL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MARKETPLACE_PARTIAL_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("+14165550100").assertIsDisplayed()
         composeRule.onNodeWithText("+14165550199").assertIsDisplayed()
     }
@@ -173,7 +175,7 @@ class MarketplaceScreenTest {
     fun `a clean list shows no banner`() {
         render(MarketplaceUiState(owned = OwnedState.Ready(listOf(ownNumber))))
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_PARTIAL_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_PARTIAL_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -181,7 +183,7 @@ class MarketplaceScreenTest {
     fun `an empty owned list says so rather than showing nothing`() {
         render(MarketplaceUiState(owned = OwnedState.Ready(emptyList())))
 
-        composeRule.onNodeWithText("This workspace has no active phone numbers.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.marketplace_owned_empty)).assertIsDisplayed()
     }
 
     @Test
@@ -192,7 +194,7 @@ class MarketplaceScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_OWNED_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_OWNED_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Could not reach telnyx.").assertIsDisplayed()
     }
@@ -205,10 +207,10 @@ class MarketplaceScreenTest {
         // operator has not asked.
         render(MarketplaceUiState(tab = MarketplaceTab.SEARCH))
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_ACTION_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCH_ACTION_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_RESULTS_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithText("No matches").assertDoesNotExist()
+        composeRule.onNodeWithTag(MARKETPLACE_RESULTS_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.marketplace_search_empty_title)).assertDoesNotExist()
     }
 
     @Test
@@ -248,11 +250,11 @@ class MarketplaceScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_NOT_CONFIGURED_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_NOT_CONFIGURED_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Messaging provider not configured for workspace")
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCH_FAILURE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -265,7 +267,7 @@ class MarketplaceScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("No matches").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.marketplace_search_empty_title)).assertIsDisplayed()
     }
 
     @Test
@@ -273,7 +275,7 @@ class MarketplaceScreenTest {
         var form: NumberSearchForm? = null
         render(MarketplaceUiState(tab = MarketplaceTab.SEARCH), onUpdateForm = { form = it })
 
-        composeRule.onNodeWithContentDescription(typeDescription(NUMBER_TYPE_TOLL_FREE)).performClick()
+        composeRule.onNodeWithTag(typeDescription(NUMBER_TYPE_TOLL_FREE)).performClick()
 
         // ⚠️ "tollFree", the server's own spelling. An unrecognised value is silently ignored
         // server-side, so a wrong one would serve LOCAL numbers under a "toll-free" heading with
@@ -286,7 +288,7 @@ class MarketplaceScreenTest {
         var searches = 0
         render(MarketplaceUiState(tab = MarketplaceTab.SEARCH), onSearch = { searches += 1 })
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).performClick()
 
         assertEquals(1, searches)
     }
@@ -296,7 +298,7 @@ class MarketplaceScreenTest {
         var selected: MarketplaceTab? = null
         render(MarketplaceUiState(), onSelectTab = { selected = it })
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_SEARCH_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_TAB_SEARCH_DESCRIPTION).performClick()
 
         assertEquals(MarketplaceTab.SEARCH, selected)
     }
@@ -305,14 +307,14 @@ class MarketplaceScreenTest {
     fun `the owned list is the landing tab`() {
         render(MarketplaceUiState(owned = OwnedState.Ready(listOf(ownNumber))))
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_OWNED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MARKETPLACE_OWNED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `loading draws skeletons rather than an empty screen`() {
         render(MarketplaceUiState(owned = OwnedState.Loading))
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MARKETPLACE_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── The web hand-off ─────────────────────────────────────────────────────
@@ -328,7 +330,7 @@ class MarketplaceScreenTest {
             onOpenWeb = { opened++ },
         )
 
-        composeRule.onNodeWithText("Open the number marketplace on the web").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.marketplace_buy_web)).assertIsDisplayed()
         composeRule
             .onNodeWithText(
                 "Numbers are bought on the District AI website, not in the app. This opens it " +
@@ -336,7 +338,7 @@ class MarketplaceScreenTest {
             )
             .assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_BUY_WEB_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_BUY_WEB_DESCRIPTION).performClick()
 
         assertEquals(1, opened)
     }
@@ -353,7 +355,7 @@ class MarketplaceScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(MARKETPLACE_BUY_WEB_DESCRIPTION)
+            .onNodeWithTag(MARKETPLACE_BUY_WEB_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -367,9 +369,9 @@ class MarketplaceScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(MARKETPLACE_BUY_WEB_DESCRIPTION)
+            .onNodeWithTag(MARKETPLACE_BUY_WEB_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_READ_ONLY_DESCRIPTION)
+        composeRule.onNodeWithTag(MARKETPLACE_READ_ONLY_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -379,10 +381,10 @@ class MarketplaceScreenTest {
     fun `a search in flight holds the form and draws a placeholder for the results`() {
         render(MarketplaceUiState(tab = MarketplaceTab.SEARCH, search = SearchState.Loading))
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCHING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_AREA_CODE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_COUNTRY_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCHING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MARKETPLACE_AREA_CODE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MARKETPLACE_COUNTRY_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -396,9 +398,9 @@ class MarketplaceScreenTest {
             onSearch = { searches += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCH_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Carrier timed out").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, searches)
     }
 
@@ -414,7 +416,7 @@ class MarketplaceScreenTest {
         )
 
         composeRule.onNodeWithText("Unexpected response").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -455,9 +457,9 @@ class MarketplaceScreenTest {
             },
         )
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_SEARCH_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_OWNED_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_TAB_SEARCH_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_SEARCH_ACTION_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MARKETPLACE_TAB_OWNED_DESCRIPTION).performClick()
         composeRule.onNodeWithText("+14165550100").assertIsDisplayed()
 
         assertEquals(listOf(MarketplaceTab.SEARCH, MarketplaceTab.OWNED), selections)
@@ -470,8 +472,8 @@ class MarketplaceScreenTest {
         var state by mutableStateOf(MarketplaceUiState(tab = MarketplaceTab.SEARCH))
         renderLive({ state }, onUpdateForm = { state = state.copy(form = it) })
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_AREA_CODE_DESCRIPTION).performTextInput("416")
-        composeRule.onNodeWithContentDescription(typeDescription(NUMBER_TYPE_MOBILE)).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_AREA_CODE_DESCRIPTION).performTextInput("416")
+        composeRule.onNodeWithTag(typeDescription(NUMBER_TYPE_MOBILE)).performClick()
 
         assertEquals(NumberSearchForm(areaCode = "416", type = NUMBER_TYPE_MOBILE), state.form)
     }
@@ -481,8 +483,8 @@ class MarketplaceScreenTest {
         var state by mutableStateOf(MarketplaceUiState(tab = MarketplaceTab.SEARCH))
         renderLive({ state }, onUpdateForm = { state = state.copy(form = it) })
 
-        composeRule.onNodeWithContentDescription(MARKETPLACE_COUNTRY_DESCRIPTION).performTextClearance()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_COUNTRY_DESCRIPTION).performTextInput("CA")
+        composeRule.onNodeWithTag(MARKETPLACE_COUNTRY_DESCRIPTION).performTextClearance()
+        composeRule.onNodeWithTag(MARKETPLACE_COUNTRY_DESCRIPTION).performTextInput("CA")
 
         assertEquals("CA", state.form.country)
     }
@@ -507,8 +509,8 @@ class MarketplaceScreenTest {
 
         theme.flip()
 
-        composeRule.onNodeWithContentDescription(typeDescription(NUMBER_TYPE_TOLL_FREE)).performClick()
-        composeRule.onNodeWithContentDescription(MARKETPLACE_TAB_OWNED_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(typeDescription(NUMBER_TYPE_TOLL_FREE)).performClick()
+        composeRule.onNodeWithTag(MARKETPLACE_TAB_OWNED_DESCRIPTION).performClick()
         assertEquals(listOf(NUMBER_TYPE_TOLL_FREE), forms.map { it.type })
         assertEquals(listOf(MarketplaceTab.OWNED), tabs)
     }

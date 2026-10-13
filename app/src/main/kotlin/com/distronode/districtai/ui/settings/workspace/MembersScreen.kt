@@ -17,9 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -116,7 +115,7 @@ fun MembersScreen(
     }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = MEMBERS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(MEMBERS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.members_title), onBack = onBack)
         },
@@ -184,9 +183,7 @@ private fun MembersRoster(
                     EmptyState(
                         title = stringResource(R.string.members_empty_title),
                         body = stringResource(R.string.members_empty_body),
-                        modifier = Modifier.semantics {
-                            contentDescription = MEMBERS_EMPTY_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(MEMBERS_EMPTY_DESCRIPTION),
                     )
                 } else {
                     list.members.forEachIndexed { index, member ->
@@ -236,9 +233,7 @@ private fun MemberRow(
                         variant = ButtonVariant.Ghost,
                         size = ButtonSize.Sm,
                         enabled = !state.busy,
-                        modifier = Modifier.semantics {
-                            contentDescription = memberRoleDescription(member.email)
-                        },
+                        modifier = Modifier.testTag(memberRoleDescription(member.email)),
                     )
                     DistrictButton(
                         text = stringResource(R.string.members_remove),
@@ -246,14 +241,12 @@ private fun MemberRow(
                         variant = ButtonVariant.Ghost,
                         size = ButtonSize.Sm,
                         enabled = !state.busy,
-                        modifier = Modifier.semantics {
-                            contentDescription = memberRemoveDescription(member.email)
-                        },
+                        modifier = Modifier.testTag(memberRemoveDescription(member.email)),
                     )
                 }
             }
         },
-        modifier = Modifier.semantics { contentDescription = memberRowDescription(member.email) },
+        modifier = Modifier.testTag(memberRowDescription(member.email)),
     )
 }
 
@@ -275,7 +268,7 @@ private fun MembersAddSection(state: MembersUiState, onOpen: () -> Unit) {
             text = stringResource(R.string.members_add_no_invite),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier.semantics { contentDescription = MEMBERS_NO_INVITE_DESCRIPTION },
+            modifier = Modifier.testTag(MEMBERS_NO_INVITE_DESCRIPTION),
         )
         SaveNotice(state = state.addSave, description = MEMBERS_ADD_NOTICE_DESCRIPTION)
         DistrictButton(
@@ -284,7 +277,7 @@ private fun MembersAddSection(state: MembersUiState, onOpen: () -> Unit) {
             enabled = !state.busy,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = MEMBERS_ADD_OPEN_DESCRIPTION },
+                .testTag(MEMBERS_ADD_OPEN_DESCRIPTION),
         )
     }
 }
@@ -316,9 +309,7 @@ private fun MembersRenameSection(
                 text = stringResource(R.string.members_rename_current, name),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_RENAME_CURRENT_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_RENAME_CURRENT_DESCRIPTION),
             )
         }
         SettingsTextField(
@@ -336,7 +327,7 @@ private fun MembersRenameSection(
             enabled = state.canRenameNow,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = MEMBERS_RENAME_DESCRIPTION },
+                .testTag(MEMBERS_RENAME_DESCRIPTION),
         )
     }
 }

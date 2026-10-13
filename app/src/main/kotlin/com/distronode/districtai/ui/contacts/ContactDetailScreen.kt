@@ -22,9 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictCard
@@ -68,7 +67,7 @@ fun ContactDetailScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(CONTACT_DETAIL_ROOT_DESCRIPTION),
         topBar = {
             // ⚠️ The back affordance moves INTO the app bar. It used to exist only inside the
             // FAILURE state, so a contact that loaded successfully offered no visible way back.
@@ -161,9 +160,7 @@ private fun Content(
             Text(
                 text = stringResource(R.string.contacts_read_only),
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.semantics {
-                    contentDescription = CONTACT_DETAIL_READ_ONLY_DESCRIPTION
-                },
+                modifier = Modifier.testTag(CONTACT_DETAIL_READ_ONLY_DESCRIPTION),
             )
         }
     }
@@ -179,9 +176,7 @@ private fun Content(
                         confirmingDelete = false
                         onDelete()
                     },
-                    modifier = Modifier.semantics {
-                        contentDescription = CONTACT_DETAIL_DELETE_CONFIRM_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(CONTACT_DETAIL_DELETE_CONFIRM_DESCRIPTION),
                 ) {
                     Text(stringResource(R.string.contact_detail_delete_confirmed))
                 }
@@ -250,9 +245,7 @@ private fun MutationFailure(failure: FailureText, onDismiss: () -> Unit) {
                 text = failure.message.resolve(),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.destructive,
-                modifier = Modifier.semantics {
-                    contentDescription = CONTACT_DETAIL_MUTATION_FAILURE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(CONTACT_DETAIL_MUTATION_FAILURE_DESCRIPTION),
             )
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.contact_detail_cancel))
@@ -274,9 +267,7 @@ private fun PollFailure(failure: FailureText, onCheckAgain: () -> Unit) {
                 text = stringResource(R.string.contact_detail_dossier_poll_failed, failure.message.resolve()),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.destructive,
-                modifier = Modifier.semantics {
-                    contentDescription = CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION),
             )
             if (failure.retryable) {
                 TextButton(onClick = onCheckAgain) {
@@ -310,7 +301,7 @@ private fun MutationControls(
             onClick = onStartRename,
             // Disabled while a mutation is in flight, so a double tap cannot race two edits.
             enabled = !saving,
-            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_RENAME_DESCRIPTION },
+            modifier = Modifier.testTag(CONTACT_DETAIL_RENAME_DESCRIPTION),
         ) {
             Text(stringResource(R.string.contact_detail_rename))
         }
@@ -319,7 +310,7 @@ private fun MutationControls(
     TextButton(
         onClick = onRequestDelete,
         enabled = !saving,
-        modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DELETE_DESCRIPTION },
+        modifier = Modifier.testTag(CONTACT_DETAIL_DELETE_DESCRIPTION),
     ) {
         Text(stringResource(R.string.contact_detail_delete))
     }
@@ -344,7 +335,7 @@ private fun RenameField(
             colors = districtFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION },
+                .testTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION),
         )
         Column(modifier = Modifier.padding(top = DistrictTheme.spacing.tight)) {
             Button(
@@ -352,9 +343,7 @@ private fun RenameField(
                 // reject a blank name as a validation error.
                 enabled = !saving && value.isNotBlank() && value.trim() != initial,
                 onClick = { onSave(value) },
-                modifier = Modifier.semantics {
-                    contentDescription = CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.contact_detail_save))
             }

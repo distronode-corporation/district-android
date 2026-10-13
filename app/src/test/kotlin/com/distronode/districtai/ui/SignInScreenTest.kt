@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -15,6 +15,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.auth.LoginStatus
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.str
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -55,9 +56,9 @@ class SignInScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(SIGN_IN_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("District AI").assertIsDisplayed()
-        composeRule.onNodeWithText("Sign in").assertIsDisplayed()
+        composeRule.onNodeWithTag(SIGN_IN_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.app_name)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.sign_in_action)).assertIsDisplayed()
     }
 
     @Test
@@ -69,7 +70,7 @@ class SignInScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Sign in").performClick()
+        composeRule.onNodeWithText(str(R.string.sign_in_action)).performClick()
 
         // Exactly once matters: a double-fired sign-in would start two PKCE attempts, and the
         // second would overwrite the first's verifier — so the callback for attempt one would
@@ -85,8 +86,8 @@ class SignInScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(SIGN_IN_STATUS_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Waiting for sign-in to complete in the browser…")
+        composeRule.onNodeWithTag(SIGN_IN_STATUS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.login_status_waiting))
             .assertIsDisplayed()
     }
 
@@ -116,7 +117,7 @@ class SignInScreenTest {
 
         expected.forEach { (shown, sentence) ->
             composeRule.runOnIdle { status = shown }
-            composeRule.onNodeWithContentDescription(SIGN_IN_STATUS_DESCRIPTION).assertTextEquals(sentence)
+            composeRule.onNodeWithTag(SIGN_IN_STATUS_DESCRIPTION).assertTextEquals(sentence)
         }
         assertEquals("no two statuses share a sentence", expected.size, expected.map { it.second }.toSet().size)
         assertTrue(expected.last().second.contains("access_denied"))

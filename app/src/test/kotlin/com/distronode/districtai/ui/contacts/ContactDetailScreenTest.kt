@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -15,6 +15,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactCompany
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -105,7 +107,7 @@ class ContactDetailScreenTest {
      * something.
      */
     private fun scrollTo(description: String) =
-        composeRule.onNodeWithContentDescription(description).performScrollTo()
+        composeRule.onNodeWithTag(description).performScrollTo()
 
     // ── Role gating ──────────────────────────────────────────────────────────
 
@@ -122,8 +124,8 @@ class ContactDetailScreenTest {
         // ⛔ The whole point. A viewer tapping either control would earn a 403 with no recourse.
         render(ContactDetailUiState.Content(contact()), canMutate = false)
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DELETE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_DELETE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         // Stated up front rather than discovered by tapping.
         scrollTo(CONTACT_DETAIL_READ_ONLY_DESCRIPTION).assertIsDisplayed()
     }
@@ -142,7 +144,7 @@ class ContactDetailScreenTest {
         // ⚠️ NOT `scrollTo`. This button lives in an `AlertDialog`, which is not inside the screen's
         // scrollable column — `performScrollTo` on it throws "Semantic Node has no parent layout with
         // a Scroll SemanticsAction". A dialog is always fully visible, so there is nothing to reveal.
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DELETE_CONFIRM_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_DELETE_CONFIRM_DESCRIPTION)
             .performClick()
         assertEquals(1, deletes)
     }
@@ -159,15 +161,15 @@ class ContactDetailScreenTest {
 
         // ⚠️ The unchanged name and a blank box are not edits, so neither can be saved.
         scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextClearance()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextClearance()
         scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).assertIsNotEnabled()
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
         scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).performClick()
 
         assertEquals("Grace", renamed)
         // Saving closes the field and puts the rename control back.
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).assertIsDisplayed()
     }
 
@@ -177,11 +179,11 @@ class ContactDetailScreenTest {
         render(ContactDetailUiState.Content(contact(name = "Ada")), onRename = { renamed = it })
 
         scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("x")
-        composeRule.onNodeWithText("Cancel").performScrollTo().performClick()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("x")
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).performScrollTo().performClick()
 
         assertNull(renamed)
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -216,14 +218,14 @@ class ContactDetailScreenTest {
             }
         }
         scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
 
         state = ContactDetailUiState.Content(contact(name = "Ada"), saving = true)
         composeRule.waitForIdle()
 
         scrollTo(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).assertIsNotEnabled()
         scrollTo(CONTACT_DETAIL_RENAME_SAVE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithText("Cancel").performScrollTo().assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).performScrollTo().assertIsNotEnabled()
     }
 
     @Test
@@ -249,7 +251,7 @@ class ContactDetailScreenTest {
             }
         }
         scrollTo(CONTACT_DETAIL_RENAME_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
+        composeRule.onNodeWithTag(CONTACT_DETAIL_RENAME_FIELD_DESCRIPTION).performTextInput("Grace")
 
         onRename = { second += it }
         composeRule.waitForIdle()
@@ -275,7 +277,7 @@ class ContactDetailScreenTest {
         composeRule.onNodeWithText("Called about a leak.").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Under 500").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("This week").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Website").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_detail_website)).assertDoesNotExist()
     }
 
     // ── The dossier states ───────────────────────────────────────────────────
@@ -286,22 +288,22 @@ class ContactDetailScreenTest {
         // queued". Showing a spinner here would promise something that never arrives.
         render(ContactDetailUiState.Content(contact(dgiStatus = null)))
 
-        composeRule.onNodeWithText("No dossier for this contact.").assertIsDisplayed()
-        composeRule.onNodeWithText("Building dossier…").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_detail_dossier_none)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_detail_dossier_pending)).assertDoesNotExist()
     }
 
     @Test
     fun `a pending dossier reads as in progress`() {
         render(ContactDetailUiState.Content(contact(dgiStatus = "pending")))
 
-        composeRule.onNodeWithText("Building dossier…").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_detail_dossier_pending)).assertIsDisplayed()
     }
 
     @Test
     fun `a failed dossier surfaces the error`() {
         render(ContactDetailUiState.Content(contact(dgiStatus = "failed", dgiError = "rate limited")))
 
-        composeRule.onNodeWithText("Dossier failed: rate limited").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_detail_dossier_failed, "rate limited")).assertIsDisplayed()
     }
 
     @Test
@@ -315,7 +317,7 @@ class ContactDetailScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DOSSIER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_DOSSIER_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── Email-first contacts ─────────────────────────────────────────────────
@@ -330,14 +332,14 @@ class ContactDetailScreenTest {
         )
 
         composeRule.onNodeWithText("ada@engines.test").assertIsDisplayed()
-        composeRule.onNodeWithText("No phone or email").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contacts_no_contact_details)).assertDoesNotExist()
     }
 
     @Test
     fun `says so when a contact has neither a phone nor an email`() {
         render(ContactDetailUiState.Content(contact(phoneNumber = null, email = null)))
 
-        composeRule.onNodeWithText("No phone or email").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contacts_no_contact_details)).assertIsDisplayed()
     }
 
     @Test
@@ -345,7 +347,7 @@ class ContactDetailScreenTest {
         // The voice agent writes "Unknown" for an unidentified caller; printing it reads as a name.
         render(ContactDetailUiState.Content(contact(name = "Unknown")))
 
-        composeRule.onNodeWithText("Unnamed contact").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contacts_unnamed)).assertIsDisplayed()
         composeRule.onNodeWithText("Unknown").assertDoesNotExist()
     }
 
@@ -376,8 +378,8 @@ class ContactDetailScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retries)
     }
 
@@ -392,13 +394,13 @@ class ContactDetailScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
     fun `loading is announced`() {
         render(ContactDetailUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 }

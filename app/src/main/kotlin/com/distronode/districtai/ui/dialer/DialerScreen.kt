@@ -13,9 +13,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,7 +60,7 @@ fun DialerScreen(
         return
     }
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = DIALER_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(DIALER_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.dialer_title), onBack = handlers.onBack)
         },
@@ -90,7 +89,7 @@ fun DialerScreen(
  */
 @Composable
 private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = DIALER_ENTRY_CARD_DESCRIPTION }) {
+    DistrictCard(modifier = Modifier.testTag(DIALER_ENTRY_CARD_DESCRIPTION)) {
         Eyebrow(stringResource(R.string.dialer_number_label))
         OutlinedTextField(
             value = state.entry,
@@ -104,7 +103,7 @@ private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = DistrictTheme.spacing.tight)
-                .semantics { contentDescription = DIALER_FIELD_DESCRIPTION },
+                .testTag(DIALER_FIELD_DESCRIPTION),
         )
         // ⛔ BESIDE THE FIELD, NEVER IN IT. See `formatDialEntry`: rewriting the text as someone
         // types moves their cursor, and the value that travels must stay exactly what they typed
@@ -119,7 +118,7 @@ private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.hairline)
-                .semantics { contentDescription = DIALER_PREVIEW_DESCRIPTION },
+                .testTag(DIALER_PREVIEW_DESCRIPTION),
         )
         if (state.canDial) {
             DistrictButton(
@@ -128,7 +127,7 @@ private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
                 enabled = state.canPlaceCall,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.row)
-                    .semantics { contentDescription = DIALER_CALL_DESCRIPTION },
+                    .testTag(DIALER_CALL_DESCRIPTION),
             )
             // ⚠️ SAID BEFORE THE PERMISSION DIALOG, so the dialog has a visible reason. A request
             // with no explanation is the one users deny permanently.
@@ -145,7 +144,7 @@ private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
                 color = DistrictTheme.colors.destructive,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = DIALER_REFUSAL_DESCRIPTION },
+                    .testTag(DIALER_REFUSAL_DESCRIPTION),
             )
         }
     }
@@ -159,7 +158,7 @@ private fun Notice(textId: Int, description: String) {
         color = DistrictTheme.colors.mutedForeground,
         modifier = Modifier
             .padding(top = DistrictTheme.spacing.tight)
-            .semantics { contentDescription = description },
+            .testTag(description),
     )
 }
 
@@ -194,7 +193,7 @@ private fun LazyListScope.callbacks(
                     color = DistrictTheme.colors.mutedForeground,
                     modifier = Modifier
                         .padding(DistrictTheme.spacing.gutter)
-                        .semantics { contentDescription = DIALER_CALLBACKS_LOADING_DESCRIPTION },
+                        .testTag(DIALER_CALLBACKS_LOADING_DESCRIPTION),
                 )
             }
         }
@@ -204,9 +203,7 @@ private fun LazyListScope.callbacks(
                 EmptyState(
                     title = stringResource(R.string.dialer_callbacks_failed),
                     body = state.failure.message.resolve(),
-                    modifier = Modifier.semantics {
-                        contentDescription = DIALER_CALLBACKS_FAILED_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(DIALER_CALLBACKS_FAILED_DESCRIPTION),
                 )
             }
         }
@@ -217,9 +214,7 @@ private fun LazyListScope.callbacks(
                     EmptyState(
                         title = stringResource(R.string.dialer_callbacks_empty_title),
                         body = stringResource(R.string.dialer_callbacks_empty),
-                        modifier = Modifier.semantics {
-                            contentDescription = DIALER_CALLBACKS_EMPTY_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(DIALER_CALLBACKS_EMPTY_DESCRIPTION),
                     )
                 }
             }
@@ -244,7 +239,7 @@ private fun CallbackRow(call: CallSummary, handlers: DialerHandlers) {
         title = call.number,
         subtitle = "${formatDialEntry(number)} · ${call.time}",
         onClick = { handlers.onCallBack(number) },
-        modifier = Modifier.semantics { contentDescription = callbackRowDescription(call.id) },
+        modifier = Modifier.testTag(callbackRowDescription(call.id)),
         trailing = {
             DistrictButton(
                 text = stringResource(R.string.dialer_call),

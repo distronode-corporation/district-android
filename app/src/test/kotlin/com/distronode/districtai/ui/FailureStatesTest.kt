@@ -9,7 +9,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -71,7 +71,7 @@ class FailureStatesTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("handle").assertIsDisplayed()
+        composeRule.onNodeWithTag("handle").assertIsDisplayed()
         composeRule.onNodeWithText(signInAgain()).performClick()
 
         assertEquals(1, signIns)
@@ -110,7 +110,7 @@ class FailureStatesTest {
 
         composeRule.onNodeWithText("INBOX").assertIsDisplayed()
         composeRule.onNodeWithText(regions()).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("retry-handle").performClick()
+        composeRule.onNodeWithTag("retry-handle").performClick()
 
         assertEquals(1, retries)
     }
@@ -148,7 +148,7 @@ class FailureStatesTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("card").assertIsDisplayed()
+        composeRule.onNodeWithTag("card").assertIsDisplayed()
         composeRule.onNodeWithText(signInAgain()).performClick()
 
         assertEquals(1, signIns)
@@ -171,7 +171,7 @@ class FailureStatesTest {
 
         composeRule.onNodeWithText("HISTORY").assertIsDisplayed()
         composeRule.onNodeWithText(regions()).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("retry-handle").performClick()
+        composeRule.onNodeWithTag("retry-handle").performClick()
 
         assertEquals(1, retries)
     }
@@ -188,13 +188,13 @@ class FailureStatesTest {
 
         failure = FailureText(message = UiText.Literal("Second"))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("first-handle").assertIsDisplayed()
+        composeRule.onNodeWithTag("first-handle").assertIsDisplayed()
         composeRule.onNodeWithText("Second").assertIsDisplayed()
 
         description = "second-handle"
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("second-handle").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("first-handle").assertDoesNotExist()
+        composeRule.onNodeWithTag("second-handle").assertIsDisplayed()
+        composeRule.onNodeWithTag("first-handle", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -220,15 +220,15 @@ class FailureStatesTest {
                 }
             }
         }
-        composeRule.onNodeWithContentDescription("first-footer").assertExists()
+        composeRule.onNodeWithTag("first-footer").assertExists()
 
         handle = "second"
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription("second-loading").assertExists()
-        composeRule.onNodeWithContentDescription("second-footer").assertExists()
-        composeRule.onNodeWithContentDescription("second-retry").assertExists()
-        composeRule.onNodeWithContentDescription("first-footer").assertDoesNotExist()
+        composeRule.onNodeWithTag("second-loading").assertExists()
+        composeRule.onNodeWithTag("second-footer").assertExists()
+        composeRule.onNodeWithTag("second-retry").assertExists()
+        composeRule.onNodeWithTag("first-footer", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -245,7 +245,7 @@ class FailureStatesTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("footer").assertIsDisplayed()
+        composeRule.onNodeWithTag("footer").assertIsDisplayed()
         composeRule.onNodeWithText(regions()).assertIsDisplayed()
         composeRule.onNodeWithText(signInAgain()).performClick()
 

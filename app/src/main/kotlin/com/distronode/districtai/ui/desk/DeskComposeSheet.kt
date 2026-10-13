@@ -12,9 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.districtFieldColors
@@ -60,7 +59,7 @@ fun DeskComposeSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .semantics { contentDescription = DESK_COMPOSE_ROOT_DESCRIPTION },
+                    .testTag(DESK_COMPOSE_ROOT_DESCRIPTION),
                 verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
                 Text(
@@ -74,9 +73,7 @@ fun DeskComposeSheet(
                         text = failure.message.resolve(),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.destructive,
-                        modifier = Modifier.semantics {
-                            contentDescription = DESK_COMPOSE_FAILURE_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(DESK_COMPOSE_FAILURE_DESCRIPTION),
                     )
                 }
 
@@ -85,35 +82,35 @@ fun DeskComposeSheet(
                     onChange = onSubject,
                     labelId = R.string.desk_compose_subject,
                     enabled = !state.submitting,
-                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_SUBJECT_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_COMPOSE_SUBJECT_DESCRIPTION),
                 )
                 Field(
                     value = state.message,
                     onChange = onMessage,
                     labelId = R.string.desk_compose_message,
                     enabled = !state.submitting,
-                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_MESSAGE_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_COMPOSE_MESSAGE_DESCRIPTION),
                 )
                 Field(
                     value = state.requesterName,
                     onChange = onRequesterName,
                     labelId = R.string.desk_compose_requester_name,
                     enabled = !state.submitting,
-                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_NAME_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_COMPOSE_NAME_DESCRIPTION),
                 )
                 Field(
                     value = state.requesterEmail,
                     onChange = onRequesterEmail,
                     labelId = R.string.desk_compose_requester_email,
                     enabled = !state.submitting,
-                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_EMAIL_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_COMPOSE_EMAIL_DESCRIPTION),
                 )
                 Field(
                     value = state.requesterPhone,
                     onChange = onRequesterPhone,
                     labelId = R.string.desk_compose_requester_phone,
                     enabled = !state.submitting,
-                    modifier = Modifier.semantics { contentDescription = DESK_COMPOSE_PHONE_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_COMPOSE_PHONE_DESCRIPTION),
                 )
             }
         },
@@ -123,9 +120,7 @@ fun DeskComposeSheet(
                 // ⚠️ Disabled WHILE SUBMITTING as well as when incomplete. The idempotency key makes
                 // a double tap harmless server-side; this makes it invisible.
                 enabled = state.submittable,
-                modifier = Modifier.semantics {
-                    contentDescription = DESK_COMPOSE_SUBMIT_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DESK_COMPOSE_SUBMIT_DESCRIPTION),
             ) {
                 Text(
                     stringResource(
@@ -142,9 +137,7 @@ fun DeskComposeSheet(
             TextButton(
                 onClick = onDismiss,
                 enabled = !state.submitting,
-                modifier = Modifier.semantics {
-                    contentDescription = DESK_COMPOSE_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DESK_COMPOSE_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.desk_compose_cancel))
             }

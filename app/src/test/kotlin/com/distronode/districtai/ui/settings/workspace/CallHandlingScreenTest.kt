@@ -9,8 +9,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -21,6 +21,8 @@ import com.distronode.districtai.core.model.AvailabilityReason
 import com.distronode.districtai.core.model.AvailabilityResponse
 import com.distronode.districtai.core.model.CallHandling
 import com.distronode.districtai.core.model.CallHandlingResponse
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -88,12 +90,12 @@ class CallHandlingScreenTest {
         render(state(), onSelectMode = { chosen = it })
 
         CallHandling.MODES.forEach { mode ->
-            composeRule.onNodeWithContentDescription(callHandlingModeDescription(mode))
+            composeRule.onNodeWithTag(callHandlingModeDescription(mode))
                 .assertIsDisplayed()
         }
 
         // ⛔ THE VALUE IS THE SERVER'S WIRE STRING. A display label sent in its place is a 400.
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithTag(
             callHandlingModeDescription(CallHandling.APP_FIRST),
         ).performClick()
         assertEquals(CallHandling.APP_FIRST, chosen)
@@ -103,7 +105,7 @@ class CallHandlingScreenTest {
     fun `the ring window is shown in seconds`() {
         render(state(ring = 25))
 
-        composeRule.onNodeWithText("25 seconds").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.call_handling_ring_value, 25)).assertIsDisplayed()
     }
 
     @Test
@@ -122,12 +124,12 @@ class CallHandlingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_VIEWER_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_HANDLING_SAVE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_HANDLING_VIEWER_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
             .assertIsNotEnabled()
-        composeRule.onNodeWithText("Viewers cannot take calls.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.call_handling_availability_role)).assertIsDisplayed()
     }
 
     @Test
@@ -145,7 +147,7 @@ class CallHandlingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
             .assertIsNotEnabled()
         composeRule.onNodeWithText(
             "You have no membership record in this workspace, so calls cannot ring you.",
@@ -157,7 +159,7 @@ class CallHandlingScreenTest {
         var toggled: Boolean? = null
         render(state(), onSetAvailability = { toggled = it })
 
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
             .assertIsEnabled()
             .performClick()
 
@@ -170,7 +172,7 @@ class CallHandlingScreenTest {
     fun `save is offered but disabled until something changes`() {
         render(state())
 
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(CALL_HANDLING_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     // ── Every state, with every callback wired ───────────────────────────────
@@ -206,10 +208,10 @@ class CallHandlingScreenTest {
     fun `before either read lands both sections draw skeletons and no control`() {
         renderHoisted(CallHandlingUiState(canMutate = true))
 
-        composeRule.onAllNodesWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onAllNodesWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION, useUnmergedTree = true)
             .assertCountEquals(2)
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_HANDLING_SAVE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -224,27 +226,27 @@ class CallHandlingScreenTest {
             ),
         )
 
-        composeRule.onAllNodesWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onAllNodesWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION, useUnmergedTree = true)
             .assertCountEquals(2)
-        composeRule.onAllNodesWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)[1]
+        composeRule.onAllNodesWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION, useUnmergedTree = true)[1]
             .performClick()
         assertEquals(listOf("retry"), calls)
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_SAVE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_HANDLING_SAVE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `back with an unsaved mode asks first, and keeping editing stays`() {
         renderHoisted(state().copy(modeDraft = CallHandling.APP_FIRST))
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
             .performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals(emptyList<String>(), calls)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
         assertEquals(listOf("back"), calls)
     }
 
@@ -252,7 +254,7 @@ class CallHandlingScreenTest {
     fun `back with nothing pending leaves at once`() {
         renderHoisted(state())
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(listOf("back"), calls)
     }
@@ -261,9 +263,9 @@ class CallHandlingScreenTest {
     fun `a save in flight locks the mode and the slider and says it is saving`() {
         renderHoisted(state().copy(modeDraft = CallHandling.APP_FIRST, save = SaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(callHandlingModeDescription(CallHandling.AI_FIRST))
+        composeRule.onNodeWithTag(callHandlingModeDescription(CallHandling.AI_FIRST))
             .assertHasNoClickAction()
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_RING_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(CALL_HANDLING_RING_DESCRIPTION).assertIsNotEnabled()
         composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
     }
 
@@ -273,8 +275,8 @@ class CallHandlingScreenTest {
             state(availability = AvailabilityResponse(success = true, availableForCalls = false)),
         )
 
-        composeRule.onNodeWithText("Your phones do not ring for this workspace.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
+        composeRule.onNodeWithText(str(R.string.call_handling_availability_off)).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION)
             .assertIsEnabled()
     }
 
@@ -284,11 +286,11 @@ class CallHandlingScreenTest {
         val current = renderHoisted(state())
         current.value = state().copy(ringDraft = 25)
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("25 seconds").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.call_handling_ring_value, 25)).assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(callHandlingModeDescription(CallHandling.APP_FIRST))
+        composeRule.onNodeWithTag(callHandlingModeDescription(CallHandling.APP_FIRST))
             .performClick()
-        composeRule.onNodeWithContentDescription(CALL_HANDLING_RING_DESCRIPTION)
+        composeRule.onNodeWithTag(CALL_HANDLING_RING_DESCRIPTION)
             .performSemanticsAction(SemanticsActions.SetProgress) { it(12f) }
 
         assertEquals(listOf("mode:${CallHandling.APP_FIRST}", "ring:12"), calls)

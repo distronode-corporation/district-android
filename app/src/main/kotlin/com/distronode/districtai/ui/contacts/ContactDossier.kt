@@ -10,9 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictBadge
@@ -77,9 +76,7 @@ private fun DossierStatus(contact: Contact) {
         contact.dgiInProgress -> DistrictBadge(
             text = stringResource(R.string.contact_detail_dossier_pending),
             tone = Tone.Warning,
-            modifier = Modifier.semantics {
-                contentDescription = CONTACT_DETAIL_DOSSIER_PENDING_DESCRIPTION
-            },
+            modifier = Modifier.testTag(CONTACT_DETAIL_DOSSIER_PENDING_DESCRIPTION),
         )
         // ⚠️ The server's own message, shown verbatim. It names what the crawl could not do, and
         // a generic "enrichment failed" would throw that away — this is the only diagnostic an
@@ -87,17 +84,17 @@ private fun DossierStatus(contact: Contact) {
         contact.dgiError != null -> LabelledCard(
             label = stringResource(R.string.contact_detail_dossier),
             value = stringResource(R.string.contact_detail_dossier_failed, contact.dgiError!!),
-            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_FAILED_DESCRIPTION },
+            modifier = Modifier.testTag(CONTACT_DETAIL_DOSSIER_FAILED_DESCRIPTION),
         )
         contact.intelligence == null -> LabelledCard(
             label = stringResource(R.string.contact_detail_dossier),
             value = stringResource(R.string.contact_detail_dossier_none),
-            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_DESCRIPTION },
+            modifier = Modifier.testTag(CONTACT_DETAIL_DOSSIER_DESCRIPTION),
         )
         else -> LabelledCard(
             label = stringResource(R.string.contact_detail_dossier),
             value = stringResource(R.string.contact_detail_dossier_ready),
-            modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_DESCRIPTION },
+            modifier = Modifier.testTag(CONTACT_DETAIL_DOSSIER_DESCRIPTION),
         )
     }
 }
@@ -130,7 +127,7 @@ private fun CompanyCard(contact: Contact) {
             label = stringResource(R.string.contact_detail_company),
             children = children,
         ),
-        modifier = Modifier.semantics { contentDescription = CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION },
+        modifier = Modifier.testTag(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION),
     )
 }
 
@@ -160,9 +157,7 @@ private fun DossierFieldCard(field: DossierField, modifier: Modifier = Modifier)
                         .padding(top = DistrictTheme.spacing.hairline)
                         .then(
                             if (field.raw) {
-                                Modifier.semantics {
-                                    contentDescription = CONTACT_DETAIL_DOSSIER_RAW_DESCRIPTION
-                                }
+                                Modifier.testTag(CONTACT_DETAIL_DOSSIER_RAW_DESCRIPTION)
                             } else {
                                 Modifier
                             },
@@ -216,7 +211,7 @@ private fun DossierActions(
             enabled = !busy,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = CONTACT_DETAIL_ENRICH_DESCRIPTION },
+                .testTag(CONTACT_DETAIL_ENRICH_DESCRIPTION),
         )
     }
 
@@ -226,9 +221,7 @@ private fun DossierActions(
         TextButton(
             onClick = onClearIntel,
             enabled = !busy,
-            modifier = Modifier.semantics {
-                contentDescription = CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION
-            },
+            modifier = Modifier.testTag(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION),
         ) {
             Text(stringResource(R.string.contact_detail_dossier_clear))
         }
@@ -248,9 +241,7 @@ internal fun ClearIntelDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics {
-                    contentDescription = CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.contact_detail_clear_intel_confirmed))
             }

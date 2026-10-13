@@ -2,7 +2,7 @@ package com.distronode.districtai.ui.inbox
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -84,7 +84,7 @@ class InboxSearchScreenTest {
     fun `the field is offered before anything is typed, and the list is untouched`() {
         render(InboxSearchState())
 
-        composeRule.onNodeWithContentDescription(INBOX_SEARCH_FIELD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_SEARCH_FIELD_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Someone Else").assertIsDisplayed()
     }
 
@@ -103,15 +103,15 @@ class InboxSearchScreenTest {
         // There is no offset to page on, so this is a note rather than a control.
         render(InboxSearchState(query = "refund", hits = listOf(hit("m1")), truncated = true))
 
-        composeRule.onNodeWithContentDescription(INBOX_SEARCH_CAPPED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_SEARCH_CAPPED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `no matches is worded as a search result, not as an empty inbox`() {
         render(InboxSearchState(query = "refund"))
 
-        composeRule.onNodeWithContentDescription(INBOX_SEARCH_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INBOX_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INBOX_SEARCH_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -125,7 +125,7 @@ class InboxSearchScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(INBOX_SEARCH_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(INBOX_SEARCH_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("The search did not run.").assertIsDisplayed()
     }

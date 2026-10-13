@@ -2,10 +2,10 @@ package com.distronode.districtai.ui.overview
 
 import android.content.Context
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
@@ -80,7 +80,7 @@ class OverviewDeskSupportTest {
         // ⚠️ REQUIRED: the content is a LazyColumn and these rows sit below the fold.
         composeRule
             .onNode(hasScrollToNodeAction())
-            .performScrollToNode(hasContentDescription(description))
+            .performScrollToNode(hasTestTag(description))
     }
 
     @Test
@@ -88,7 +88,7 @@ class OverviewDeskSupportTest {
         render(WorkspaceRole.CLIENT)
 
         scrollTo(OVERVIEW_OPEN_DESK_DESCRIPTION)
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_DESK_DESCRIPTION)
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_DESK_DESCRIPTION)
             .assertTextEquals(context.getString(R.string.desk_open))
             .performClick()
 
@@ -101,7 +101,7 @@ class OverviewDeskSupportTest {
         render(WorkspaceRole.AGENCY)
 
         scrollTo(OVERVIEW_OPEN_SUPPORT_DESCRIPTION)
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_SUPPORT_DESCRIPTION)
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_SUPPORT_DESCRIPTION)
             .assertTextEquals(context.getString(R.string.support_open))
             .performClick()
 
@@ -115,8 +115,8 @@ class OverviewDeskSupportTest {
         // ⚠️ Scrolled to the LAST entry first, so an absence below is a gate and not a row that was
         // simply never composed by the LazyColumn.
         scrollTo(OVERVIEW_OPEN_WORKSPACE_SETTINGS_DESCRIPTION)
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_DESK_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_SUPPORT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_DESK_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_SUPPORT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -125,7 +125,7 @@ class OverviewDeskSupportTest {
         render(null)
 
         scrollTo(OVERVIEW_OPEN_WORKSPACE_SETTINGS_DESCRIPTION)
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_DESK_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_SUPPORT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_DESK_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_SUPPORT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 }

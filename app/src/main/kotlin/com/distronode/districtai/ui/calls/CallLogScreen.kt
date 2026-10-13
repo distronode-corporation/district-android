@@ -8,9 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.distronode.districtai.R
@@ -54,7 +53,7 @@ fun CallLogScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = CALL_LOG_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(CALL_LOG_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.call_log_title),

@@ -1,9 +1,9 @@
 package com.distronode.districtai
 
-import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.applinks.DistrictSection
@@ -124,7 +124,7 @@ class MainActivityAppLinkTest {
         harness.launch()
 
         harness.awaitText(ShellHarness.WORKSPACE.name)
-        assertTrue(compose.onAllNodes(hasContentDescription(SIGN_IN_ROOT_DESCRIPTION)).fetchSemanticsNodes().isEmpty())
+        assertTrue(compose.onAllNodes(hasTestTag(SIGN_IN_ROOT_DESCRIPTION)).fetchSemanticsNodes().isEmpty())
     }
 
     @Test
@@ -135,7 +135,7 @@ class MainActivityAppLinkTest {
 
         harness.launch(harness.viewIntent("https://www.distronode.com/dashboard/district/marketplace"))
         harness.awaitDescription(MARKETPLACE_BUY_WEB_DESCRIPTION)
-        compose.onNodeWithContentDescription(MARKETPLACE_BUY_WEB_DESCRIPTION).scrolledIntoView().performClick()
+        compose.onNodeWithTag(MARKETPLACE_BUY_WEB_DESCRIPTION).scrolledIntoView().performClick()
 
         val missing = harness.string(R.string.settings_browser_missing)
         harness.awaitText(missing)

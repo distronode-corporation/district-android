@@ -22,7 +22,7 @@ appId: com.distronode.districtai.debug
 ---
 # ── Console home ────────────────────────────────────────────────────────────────
 - assertVisible:
-    text: "district-overview-root"
+    id: "district-overview-root"
 - takeScreenshot: 04-console-home
 
 # ── Contacts ────────────────────────────────────────────────────────────────────
@@ -31,14 +31,14 @@ appId: com.distronode.districtai.debug
 # waits out the loading skeleton). Same for billing below.
 - scrollUntilVisible:
     element:
-      text: "district-overview-open-contacts"
+      id: "district-overview-open-contacts"
     direction: DOWN
     timeout: 30000
 - tapOn:
-    text: "district-overview-open-contacts"
+    id: "district-overview-open-contacts"
 - extendedWaitUntil:
     visible:
-      text: "district-contacts-root"
+      id: "district-contacts-root"
     timeout: 30000
 - takeScreenshot: 05-contacts
 
@@ -50,35 +50,35 @@ appId: com.distronode.districtai.debug
     text: ${DISTRICT_SMOKE_CONTACT}
 - extendedWaitUntil:
     visible:
-      text: "district-contact-detail-root"
+      id: "district-contact-detail-root"
     timeout: 30000
 # ⛔ THE DOSSIER SECTION, NOT THE SCREEN. `district-contact-detail-root` renders for any
 # contact; the dossier is the DGI payload and is the thing this leg exists to prove.
 - assertVisible:
-    text: "district-contact-detail-dossier"
+    id: "district-contact-detail-dossier"
 - takeScreenshot: 06-contact-dossier
 
 - back
 - assertVisible:
-    text: "district-contacts-root"
+    id: "district-contacts-root"
 - back
 - assertVisible:
-    text: "district-overview-root"
+    id: "district-overview-root"
 
 # ── Billing ─────────────────────────────────────────────────────────────────────
 - scrollUntilVisible:
     element:
-      text: "district-overview-open-billing"
+      id: "district-overview-open-billing"
     direction: DOWN
     timeout: 30000
 - tapOn:
-    text: "district-overview-open-billing"
+    id: "district-overview-open-billing"
 - extendedWaitUntil:
     visible:
-      text: "district-billing-root"
+      id: "district-billing-root"
     timeout: 30000
 - assertVisible:
-    text: "district-billing-plan"
+    id: "district-billing-plan"
 # ⚠️ The tier is the RAW WIRE VALUE (BillingPlanCards.kt:73 prints
 # `billing.subscriptionTier` untouched, and a null tier renders "no plan" rather than an
 # invented "Free"). So this asserts the string the row actually holds.
@@ -88,28 +88,28 @@ appId: com.distronode.districtai.debug
 
 - back
 - assertVisible:
-    text: "district-overview-root"
+    id: "district-overview-root"
 
 # ── Settings, and out ───────────────────────────────────────────────────────────
 - tapOn:
-    text: "district-overview-open-settings"
+    id: "district-overview-open-settings"
 - extendedWaitUntil:
     visible:
-      text: "district-settings-root"
+      id: "district-settings-root"
     timeout: 30000
 - assertVisible:
-    text: "district-settings-sign-out"
+    id: "district-settings-sign-out"
 - takeScreenshot: 08-settings
 
 # ⚠️ NO CONFIRMATION STEP, AND THAT IS THE APP'S BEHAVIOUR RATHER THAN AN OMISSION.
 # `SettingsScreen.kt:96-101` wires the row straight to `onSignOut`; there is no dialog to
 # dismiss. A flow that waited for one would hang until its timeout.
 - tapOn:
-    text: "district-settings-sign-out"
+    id: "district-settings-sign-out"
 # The sign-out is server-side (it revokes the refresh-token family through the revoke
 # outbox), so the budget covers a round trip, not just a navigation.
 - extendedWaitUntil:
     visible:
-      text: "district-sign-in-root"
+      id: "district-sign-in-root"
     timeout: 45000
 - takeScreenshot: 09-signed-out

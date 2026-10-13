@@ -8,7 +8,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -16,6 +16,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.WorkspaceMember
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -104,17 +105,17 @@ class MembersScreenTest {
     fun `an agency operator gets every control`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_ROOT_DESCRIPTION).assertIsDisplayed()
         roster.forEach { member ->
-            composeRule.onNodeWithContentDescription(memberRowDescription(member.email))
+            composeRule.onNodeWithTag(memberRowDescription(member.email))
                 .assertIsDisplayed()
-            composeRule.onNodeWithContentDescription(memberRoleDescription(member.email))
+            composeRule.onNodeWithTag(memberRoleDescription(member.email))
                 .assertIsDisplayed()
-            composeRule.onNodeWithContentDescription(memberRemoveDescription(member.email))
+            composeRule.onNodeWithTag(memberRemoveDescription(member.email))
                 .assertIsDisplayed()
         }
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -123,14 +124,14 @@ class MembersScreenTest {
         // membership writes admit agency alone. A single read-only flag would be wrong either way.
         render(ready(canManage = false, canRename = true))
 
-        composeRule.onNodeWithContentDescription(memberRowDescription("founder@example.com"))
+        composeRule.onNodeWithTag(memberRowDescription("founder@example.com"))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         roster.forEach { member ->
-            composeRule.onNodeWithContentDescription(memberRoleDescription(member.email))
+            composeRule.onNodeWithTag(memberRoleDescription(member.email), useUnmergedTree = true)
                 .assertDoesNotExist()
-            composeRule.onNodeWithContentDescription(memberRemoveDescription(member.email))
+            composeRule.onNodeWithTag(memberRemoveDescription(member.email), useUnmergedTree = true)
                 .assertDoesNotExist()
         }
     }
@@ -141,11 +142,11 @@ class MembersScreenTest {
         // see who else is in the workspace cannot tell who to ask for help.
         render(ready(canManage = false, canRename = false))
 
-        composeRule.onNodeWithContentDescription(memberRowDescription("auditor@example.com"))
+        composeRule.onNodeWithTag(memberRowDescription("auditor@example.com"))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_FIELD_DESCRIPTION)
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_FIELD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -159,12 +160,12 @@ class MembersScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         // ⛔ THE RENAME FIELD IS PRESENT BUT NOT USABLE. "We could not read who is in this
         // workspace" is not a state in which to accept a rename — the load-first rule applied to
         // the one control whose value cannot be prefilled.
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -173,9 +174,9 @@ class MembersScreenTest {
         // is the one answer this screen must never give by accident.
         render(MembersUiState(canManage = true, canRename = true))
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MEMBERS_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(MEMBERS_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -185,7 +186,7 @@ class MembersScreenTest {
         // something went wrong.
         render(ready(members = emptyList()))
 
-        composeRule.onNodeWithContentDescription(MEMBERS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -193,10 +194,10 @@ class MembersScreenTest {
         // ⚠️ So a second press cannot race the first through a rate limit all three writes share.
         render(ready().copy(removeSave = SaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(memberRemoveDescription("founder@example.com"))
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(memberRemoveDescription("founder@example.com"))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(memberRoleDescription("founder@example.com"))
+        composeRule.onNodeWithTag(memberRoleDescription("founder@example.com"))
             .assertIsNotEnabled()
     }
 
@@ -217,18 +218,18 @@ class MembersScreenTest {
         var added = false
         render(ready(), onEditRole = { role = it }, onAdd = { added = true })
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_EMAIL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ADD_EMAIL_DESCRIPTION).assertIsDisplayed()
         // ⚠️ `client` IS PRESELECTED, which is the SERVER's default rather than the cautious one —
         // an operator who never touches the picker grants the ordinary tenant role.
-        composeRule.onNodeWithContentDescription(memberAddRoleDescription(WorkspaceRole.CLIENT))
+        composeRule.onNodeWithTag(memberAddRoleDescription(WorkspaceRole.CLIENT))
             .assertIsSelected()
 
-        composeRule.onNodeWithContentDescription(memberAddRoleDescription(WorkspaceRole.VIEWER))
+        composeRule.onNodeWithTag(memberAddRoleDescription(WorkspaceRole.VIEWER))
             .performClick()
         assertEquals(WorkspaceRole.VIEWER, role)
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ADD_CONFIRM_DESCRIPTION).performClick()
         assertEquals(true, added)
     }
 
@@ -238,7 +239,7 @@ class MembersScreenTest {
         // COMING. The route sends none and provisions no account.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(MEMBERS_NO_INVITE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_NO_INVITE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -248,10 +249,10 @@ class MembersScreenTest {
         // button that refuses to work would tell the operator nothing about why.
         render(ready().copy(draftEmail = "not-an-address", addRejected = true))
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_REJECTED_DESCRIPTION)
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ADD_REJECTED_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CONFIRM_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_ADD_CONFIRM_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -263,7 +264,7 @@ class MembersScreenTest {
         // ⚠️ Opened from a state that is already busy, so the entry button is disabled — the dialog
         // is reached here by rendering it directly is not possible, so the assertion is that the
         // whole section is inert.
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -273,8 +274,8 @@ class MembersScreenTest {
         // would have sent anyway.
         render(ready(members = listOf(WorkspaceMember("odd@example.com", "superuser"))))
 
-        composeRule.onNodeWithContentDescription(memberRoleDescription("odd@example.com")).performClick()
-        composeRule.onNodeWithContentDescription(memberRoleOptionDescription(WorkspaceRole.CLIENT))
+        composeRule.onNodeWithTag(memberRoleDescription("odd@example.com")).performClick()
+        composeRule.onNodeWithTag(memberRoleOptionDescription(WorkspaceRole.CLIENT))
             .assertIsSelected()
     }
 
@@ -283,9 +284,9 @@ class MembersScreenTest {
         var change: Pair<String, WorkspaceRole>? = null
         render(ready(), onChangeRole = { email, role -> change = email to role })
 
-        composeRule.onNodeWithContentDescription(memberRoleDescription("auditor@example.com"))
+        composeRule.onNodeWithTag(memberRoleDescription("auditor@example.com"))
             .performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_ROLE_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ROLE_CANCEL_DESCRIPTION).performClick()
 
         assertNull(change)
     }
@@ -295,10 +296,10 @@ class MembersScreenTest {
         var added = false
         render(ready(), onAdd = { added = true })
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ADD_CANCEL_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_EMAIL_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(MEMBERS_ADD_EMAIL_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertEquals(false, added)
     }
 
@@ -311,7 +312,7 @@ class MembersScreenTest {
         var removed: String? = null
         render(ready(), onRemove = { removed = it })
 
-        composeRule.onNodeWithContentDescription(memberRemoveDescription("operator@example.com"))
+        composeRule.onNodeWithTag(memberRemoveDescription("operator@example.com"))
             .performClick()
         assertNull("nothing may happen before the confirmation", removed)
         // ⚠️ TWO NODES, AND THAT IS THE ASSERTION: the row behind the dialog, plus the dialog body
@@ -319,7 +320,7 @@ class MembersScreenTest {
         // over a list of similar addresses is the dialog people dismiss without reading.
         composeRule.onAllNodesWithText("operator@example.com", substring = true).assertCountEquals(2)
 
-        composeRule.onNodeWithContentDescription(MEMBERS_REMOVE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_REMOVE_CONFIRM_DESCRIPTION).performClick()
         assertEquals("operator@example.com", removed)
     }
 
@@ -328,9 +329,9 @@ class MembersScreenTest {
         var removed: String? = null
         render(ready(), onRemove = { removed = it })
 
-        composeRule.onNodeWithContentDescription(memberRemoveDescription("founder@example.com"))
+        composeRule.onNodeWithTag(memberRemoveDescription("founder@example.com"))
             .performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_REMOVE_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_REMOVE_CANCEL_DESCRIPTION).performClick()
 
         assertNull(removed)
     }
@@ -340,15 +341,15 @@ class MembersScreenTest {
         var change: Pair<String, WorkspaceRole>? = null
         render(ready(), onChangeRole = { email, role -> change = email to role })
 
-        composeRule.onNodeWithContentDescription(memberRoleDescription("founder@example.com"))
+        composeRule.onNodeWithTag(memberRoleDescription("founder@example.com"))
             .performClick()
         // ⚠️ Seeded from the row: this member holds `agency`.
-        composeRule.onNodeWithContentDescription(memberRoleOptionDescription(WorkspaceRole.AGENCY))
+        composeRule.onNodeWithTag(memberRoleOptionDescription(WorkspaceRole.AGENCY))
             .assertIsSelected()
 
-        composeRule.onNodeWithContentDescription(memberRoleOptionDescription(WorkspaceRole.VIEWER))
+        composeRule.onNodeWithTag(memberRoleOptionDescription(WorkspaceRole.VIEWER))
             .performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_ROLE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ROLE_CONFIRM_DESCRIPTION).performClick()
 
         assertEquals("founder@example.com" to WorkspaceRole.VIEWER, change)
     }
@@ -365,8 +366,8 @@ class MembersScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Already a member.").assertIsDisplayed()
+        composeRule.onNodeWithTag(MEMBERS_ADD_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.members_error_duplicate)).assertIsDisplayed()
     }
 
     @Test
@@ -384,8 +385,8 @@ class MembersScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ROLE_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Every workspace needs at least one agency member.")
+        composeRule.onNodeWithTag(MEMBERS_ROLE_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.members_error_last_agency))
             .assertIsDisplayed()
     }
 
@@ -397,9 +398,9 @@ class MembersScreenTest {
         // from nothing is how a form saves a blank over a real value.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_CURRENT_DESCRIPTION)
+        composeRule.onNodeWithTag(MEMBERS_RENAME_CURRENT_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -408,7 +409,7 @@ class MembersScreenTest {
         // the spacebar.
         render(ready().copy(renameDraft = "   "))
 
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -419,11 +420,11 @@ class MembersScreenTest {
             onRename = { renamed = true },
         )
 
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_CURRENT_DESCRIPTION)
+        composeRule.onNodeWithTag(MEMBERS_RENAME_CURRENT_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Trimmed Name", substring = true).assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(MEMBERS_RENAME_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_RENAME_DESCRIPTION).performClick()
         assertEquals(true, renamed)
     }
 
@@ -467,28 +468,28 @@ class MembersScreenTest {
             composeRule.waitForIdle()
         }
 
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ADD_OPEN_DESCRIPTION).performClick()
         redraw(ready().copy(draftEmail = "new@example.com", addSave = SaveState.Saving))
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_EMAIL_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(memberAddRoleDescription(WorkspaceRole.VIEWER))
+        composeRule.onNodeWithTag(MEMBERS_ADD_EMAIL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(memberAddRoleDescription(WorkspaceRole.VIEWER))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CONFIRM_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MEMBERS_ADD_CONFIRM_DESCRIPTION).assertIsNotEnabled()
         redraw(ready().copy(draftEmail = "new@example.com"))
-        composeRule.onNodeWithContentDescription(MEMBERS_ADD_CONFIRM_DESCRIPTION)
+        composeRule.onNodeWithTag(MEMBERS_ADD_CONFIRM_DESCRIPTION)
             .assertIsEnabled()
             .performClick()
 
-        composeRule.onNodeWithContentDescription(memberRemoveDescription("auditor@example.com"))
+        composeRule.onNodeWithTag(memberRemoveDescription("auditor@example.com"))
             .performClick()
         redraw(ready().copy(renameDraft = "A"))
-        composeRule.onNodeWithContentDescription(MEMBERS_REMOVE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_REMOVE_CONFIRM_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(memberRoleDescription("operator@example.com"))
+        composeRule.onNodeWithTag(memberRoleDescription("operator@example.com"))
             .performClick()
         redraw(ready().copy(renameDraft = "Ac"))
-        composeRule.onNodeWithContentDescription(memberRoleOptionDescription(WorkspaceRole.VIEWER))
+        composeRule.onNodeWithTag(memberRoleOptionDescription(WorkspaceRole.VIEWER))
             .performClick()
-        composeRule.onNodeWithContentDescription(MEMBERS_ROLE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MEMBERS_ROLE_CONFIRM_DESCRIPTION).performClick()
 
         assertEquals(
             listOf("add", "remove:auditor@example.com", "role:operator@example.com:VIEWER"),

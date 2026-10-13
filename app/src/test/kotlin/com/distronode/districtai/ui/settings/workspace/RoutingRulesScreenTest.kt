@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -14,6 +14,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.RoutingRule
 import com.distronode.districtai.core.model.RoutingRuleField
 import com.distronode.districtai.core.model.WorkspaceConfig
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -80,12 +82,12 @@ class RoutingRulesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         ROUTING_MUTATING_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
-        composeRule.onNodeWithContentDescription(routingFieldDescription(0, RoutingRuleField.VALUE))
+        composeRule.onNodeWithTag(routingFieldDescription(0, RoutingRuleField.VALUE), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -93,12 +95,12 @@ class RoutingRulesScreenTest {
     fun `an unmodellable rules array explains itself with no retry and no editor`() {
         render(ready(Json.parseToJsonElement("""[42]""")))
 
-        composeRule.onNodeWithContentDescription(ROUTING_UNMODELLABLE_DESCRIPTION)
+        composeRule.onNodeWithTag(ROUTING_UNMODELLABLE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         ROUTING_MUTATING_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
     }
 
@@ -111,10 +113,10 @@ class RoutingRulesScreenTest {
         // list would delete it on the next save.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(routingFieldDescription(0, RoutingRuleField.VALUE))
+        composeRule.onNodeWithTag(routingFieldDescription(0, RoutingRuleField.VALUE))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(routingRemoveDescription(0)).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(routingFieldDescription(1, RoutingRuleField.VOICE))
+        composeRule.onNodeWithTag(routingRemoveDescription(0)).assertIsDisplayed()
+        composeRule.onNodeWithTag(routingFieldDescription(1, RoutingRuleField.VOICE))
             .assertIsDisplayed()
     }
 
@@ -134,9 +136,9 @@ class RoutingRulesScreenTest {
         var edited: Pair<RoutingRuleField, String>? = null
         render(ready(), onEdit = { _, field, value -> edited = field to value })
 
-        composeRule.onNodeWithContentDescription(routingFieldDescription(1, RoutingRuleField.VOICE))
+        composeRule.onNodeWithTag(routingFieldDescription(1, RoutingRuleField.VOICE))
             .performClick()
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithTag(
             routingOptionDescription(routingFieldDescription(1, RoutingRuleField.VOICE), "Kore"),
         ).performClick()
 
@@ -148,7 +150,7 @@ class RoutingRulesScreenTest {
         var removed = -1
         render(ready(), onRemove = { removed = it })
 
-        composeRule.onNodeWithContentDescription(routingRemoveDescription(1)).performClick()
+        composeRule.onNodeWithTag(routingRemoveDescription(1)).performClick()
 
         assertEquals(1, removed)
     }
@@ -157,7 +159,7 @@ class RoutingRulesScreenTest {
     fun `no rules says every caller gets the workspace persona`() {
         render(ready(Json.parseToJsonElement("[]")))
 
-        composeRule.onNodeWithContentDescription(ROUTING_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROUTING_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── The confirmation ─────────────────────────────────────────────────────
@@ -170,13 +172,13 @@ class RoutingRulesScreenTest {
             onSave = { saves += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(ROUTING_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_SAVE_DESCRIPTION).performClick()
 
         assertEquals(0, saves)
         composeRule.onNodeWithText("Replace the routing rules with 2 rules?", substring = true)
             .assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(ROUTING_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_CONFIRM_DESCRIPTION).performClick()
         assertEquals(1, saves)
     }
 
@@ -184,9 +186,9 @@ class RoutingRulesScreenTest {
     fun `an EMPTY save gets DIFFERENT wording naming what stops happening`() {
         render(ready().copy(draft = emptyList()))
 
-        composeRule.onNodeWithContentDescription(ROUTING_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_SAVE_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithText("Remove every routing rule?", substring = true)
+        composeRule.onNodeWithText(str(R.string.routing_confirm_empty_title), substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Every caller will get the workspace persona", substring = true)
             .assertIsDisplayed()
@@ -199,8 +201,8 @@ class RoutingRulesScreenTest {
         var saves = 0
         render(ready().copy(draft = emptyList()), onSave = { saves += 1 })
 
-        composeRule.onNodeWithContentDescription(ROUTING_SAVE_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(ROUTING_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_CANCEL_DESCRIPTION).performClick()
 
         assertEquals(0, saves)
     }
@@ -209,7 +211,7 @@ class RoutingRulesScreenTest {
     fun `the save is disabled when nothing changed`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(ROUTING_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROUTING_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -232,10 +234,10 @@ class RoutingRulesScreenTest {
     fun `loading draws skeletons and no controls`() {
         render(RoutingRulesUiState())
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
             .assertIsDisplayed()
         ROUTING_MUTATING_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
     }
 
@@ -244,15 +246,15 @@ class RoutingRulesScreenTest {
         var backs = 0
         render(ready().copy(draft = emptyList()), onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
             .performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals(0, backs)
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -261,7 +263,7 @@ class RoutingRulesScreenTest {
         var backs = 0
         render(ready(), onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
     }
@@ -270,12 +272,12 @@ class RoutingRulesScreenTest {
     fun `a save in flight locks every rule and says it is saving`() {
         render(ready().copy(draft = ready().rules.take(1), save = SaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(routingFieldDescription(0, RoutingRuleField.VOICE))
+        composeRule.onNodeWithTag(routingFieldDescription(0, RoutingRuleField.VOICE))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(routingFieldDescription(0, RoutingRuleField.VALUE))
+        composeRule.onNodeWithTag(routingFieldDescription(0, RoutingRuleField.VALUE))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(routingRemoveDescription(0)).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(ROUTING_ADD_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(routingRemoveDescription(0)).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROUTING_ADD_DESCRIPTION).assertIsNotEnabled()
         composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
     }
 
@@ -291,8 +293,8 @@ class RoutingRulesScreenTest {
         )
         val picker = routingFieldDescription(0, RoutingRuleField.VOICE)
 
-        composeRule.onNodeWithContentDescription(picker).performClick()
-        composeRule.onNodeWithContentDescription(routingOptionDescription(picker, "Nova")).performClick()
+        composeRule.onNodeWithTag(picker).performClick()
+        composeRule.onNodeWithTag(routingOptionDescription(picker, "Nova")).performClick()
 
         assertEquals(RoutingRuleField.VOICE to "Nova", edited)
     }
@@ -331,26 +333,26 @@ class RoutingRulesScreenTest {
 
         fun pick(field: RoutingRuleField, option: String) {
             val picker = routingFieldDescription(1, field)
-            composeRule.onNodeWithContentDescription(picker).performClick()
-            composeRule.onNodeWithContentDescription(routingOptionDescription(picker, option))
+            composeRule.onNodeWithTag(picker).performClick()
+            composeRule.onNodeWithTag(routingOptionDescription(picker, option))
                 .performClick()
         }
         pick(RoutingRuleField.FIELD, "industry")
         pick(RoutingRuleField.OPERATOR, "equals")
         pick(RoutingRuleField.VOICE, "Kore")
-        composeRule.onNodeWithContentDescription(routingFieldDescription(1, RoutingRuleField.VALUE))
+        composeRule.onNodeWithTag(routingFieldDescription(1, RoutingRuleField.VALUE))
             .performTextReplacement("retail")
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithTag(
             routingFieldDescription(1, RoutingRuleField.INSTRUCTION),
         ).performTextReplacement("Be kind.")
-        composeRule.onNodeWithContentDescription(routingRemoveDescription(1)).performClick()
-        composeRule.onNodeWithContentDescription(ROUTING_ADD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(routingRemoveDescription(1)).performClick()
+        composeRule.onNodeWithTag(ROUTING_ADD_DESCRIPTION).performClick()
 
         // The confirmation, carried across another redraw before it is accepted.
-        composeRule.onNodeWithContentDescription(ROUTING_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_SAVE_DESCRIPTION).performClick()
         current.value = current.value.copy(draft = current.value.rules.take(1))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(ROUTING_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROUTING_CONFIRM_DESCRIPTION).performClick()
 
         assertEquals(
             listOf(

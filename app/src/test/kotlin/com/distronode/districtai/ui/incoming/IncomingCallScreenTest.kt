@@ -5,7 +5,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -82,18 +81,18 @@ class IncomingCallScreenTest {
     fun `a ringing call offers Answer and Decline`() {
         render(ringing())
 
-        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_PHASE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_DECLINE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_PHASE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `Answer and Decline reach their handlers`() {
         render(ringing())
 
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_DECLINE_DESCRIPTION).performClick()
 
         assertEquals(1, answers)
         assertEquals(1, declines)
@@ -106,7 +105,7 @@ class IncomingCallScreenTest {
         // rather than after it.
         render(ringing())
 
-        composeRule.onNodeWithContentDescription(INCOMING_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_NOTICE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -117,9 +116,9 @@ class IncomingCallScreenTest {
         // absent one is a state change the user can read.
         render(ringing(IncomingCallPhase.ANSWERING))
 
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(INCOMING_PHASE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_DECLINE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_PHASE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -135,8 +134,8 @@ class IncomingCallScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -147,8 +146,8 @@ class IncomingCallScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(INCOMING_MESSAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_DISMISS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_MESSAGE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_DISMISS_DESCRIPTION).performClick()
 
         assertEquals(1, dismisses)
     }
@@ -169,9 +168,9 @@ class IncomingCallScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(IN_CALL_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -185,7 +184,7 @@ class IncomingCallScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(IN_CALL_NUMBER_DESCRIPTION)
+        composeRule.onNodeWithTag(IN_CALL_NUMBER_DESCRIPTION)
             .assertTextEquals("Caller")
     }
 
@@ -199,7 +198,7 @@ class IncomingCallScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(IN_CALL_HANG_UP_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(IN_CALL_HANG_UP_DESCRIPTION).performClick()
 
         assertEquals(1, hangUps)
         assertEquals("a hang-up is not a decline", 0, declines)
@@ -227,17 +226,17 @@ class IncomingCallScreenTest {
         // must not flash back in that gap.
         render(ringing(IncomingCallPhase.IN_CALL))
 
-        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(INCOMING_DISMISS_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_DECLINE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_DISMISS_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `the design preview draws a ringing call`() {
         composeRule.setContent { IncomingCallScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INCOMING_DECLINE_DESCRIPTION).assertIsDisplayed()
     }
 }

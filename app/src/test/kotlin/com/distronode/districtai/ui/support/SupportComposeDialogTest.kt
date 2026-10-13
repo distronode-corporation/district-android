@@ -4,13 +4,15 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.SupportRequestKind
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -72,17 +74,17 @@ class SupportComposeDialogTest {
     }
 
     private fun kind(kind: SupportRequestKind) =
-        composeRule.onNodeWithContentDescription("$SUPPORT_COMPOSE_KIND_DESCRIPTION-${kind.wire}")
+        composeRule.onNodeWithTag("$SUPPORT_COMPOSE_KIND_DESCRIPTION-${kind.wire}")
 
-    private fun submit() = composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_SUBMIT_DESCRIPTION)
+    private fun submit() = composeRule.onNodeWithTag(SUPPORT_COMPOSE_SUBMIT_DESCRIPTION)
 
-    private fun cancel() = composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_CANCEL_DESCRIPTION)
+    private fun cancel() = composeRule.onNodeWithTag(SUPPORT_COMPOSE_CANCEL_DESCRIPTION)
 
     @Test
     fun `all three kinds are offered, and only those three`() {
         render()
 
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_ROOT_DESCRIPTION).assertIsDisplayed()
         kind(SupportRequestKind.PROBLEM).assertIsDisplayed()
         kind(SupportRequestKind.QUESTION).assertIsDisplayed()
         kind(SupportRequestKind.SUGGESTION).assertIsDisplayed()
@@ -92,10 +94,10 @@ class SupportComposeDialogTest {
     fun `the kinds are labelled in the words a customer would use`() {
         render()
 
-        composeRule.onNodeWithText("What is this about?").assertIsDisplayed()
-        composeRule.onNodeWithText("Something is broken").assertIsDisplayed()
-        composeRule.onNodeWithText("A question").assertIsDisplayed()
-        composeRule.onNodeWithText("A suggestion").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_kind)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_kind_problem)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_kind_question)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_kind_suggestion)).assertIsDisplayed()
     }
 
     @Test
@@ -150,9 +152,9 @@ class SupportComposeDialogTest {
         val recorder = Recorder()
         render(recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_SUBJECT_DESCRIPTION)
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_SUBJECT_DESCRIPTION)
             .performTextInput("Calls drop")
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_MESSAGE_DESCRIPTION)
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_MESSAGE_DESCRIPTION)
             .performTextInput("Every call drops at 30s.")
 
         // ⚠️ THE FIRST REPORT, NOT THE WHOLE LIST. The dialog is stateless and this test holds
@@ -166,8 +168,8 @@ class SupportComposeDialogTest {
     fun `submitting relabels the button and disables it`() {
         render(filled.copy(submitting = true))
 
-        composeRule.onNodeWithText("Sending…").assertIsDisplayed()
-        composeRule.onNodeWithText("Send to Distronode").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.support_compose_submitting)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_compose_submit)).assertDoesNotExist()
         submit().assertIsNotEnabled()
     }
 
@@ -180,8 +182,8 @@ class SupportComposeDialogTest {
         kind(SupportRequestKind.PROBLEM).assertIsNotEnabled()
         kind(SupportRequestKind.QUESTION).assertIsNotEnabled()
         kind(SupportRequestKind.SUGGESTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_SUBJECT_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_MESSAGE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_SUBJECT_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_MESSAGE_DESCRIPTION).assertIsNotEnabled()
         cancel().assertIsNotEnabled()
     }
 
@@ -203,7 +205,7 @@ class SupportComposeDialogTest {
         val sentence = "You have raised several requests recently. Reply on an existing one instead."
         render(filled.copy(failure = FailureText(message = UiText.Literal(sentence))))
 
-        composeRule.onNodeWithContentDescription(SUPPORT_COMPOSE_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SUPPORT_COMPOSE_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText(sentence).assertIsDisplayed()
         // ⚠️ The draft survives it, so the operator can act on what it says.
         submit().assertIsEnabled()

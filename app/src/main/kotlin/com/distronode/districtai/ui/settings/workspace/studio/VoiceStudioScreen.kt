@@ -14,9 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -45,7 +44,7 @@ fun VoiceStudioScreen(state: VoiceStudioUiState, actions: VoiceStudioActions, on
     val ready = state as? VoiceStudioUiState.Ready
     val guardedBack = rememberUnsavedChangesGuard(ready?.dirty == true, onBack)
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(VOICE_STUDIO_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = ready?.studio?.labels?.heading ?: stringResource(R.string.voice_studio_title),
@@ -102,7 +101,7 @@ private fun SaveBar(state: VoiceStudioUiState.Ready, onSave: () -> Unit) {
         text = if (state.dirty) labels.unsaved else labels.allSaved,
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
-        modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_DIRTY_DESCRIPTION },
+        modifier = Modifier.testTag(VOICE_STUDIO_DIRTY_DESCRIPTION),
     )
     StudioSaveNotice(state.save, labels.saved, labels.saveFailed)
     DistrictButton(
@@ -113,7 +112,7 @@ private fun SaveBar(state: VoiceStudioUiState.Ready, onSave: () -> Unit) {
         },
         onClick = onSave,
         enabled = state.canSave,
-        modifier = Modifier.fillMaxWidth().semantics { contentDescription = VOICE_STUDIO_SAVE_DESCRIPTION },
+        modifier = Modifier.fillMaxWidth().testTag(VOICE_STUDIO_SAVE_DESCRIPTION),
     )
 }
 
@@ -135,6 +134,6 @@ private fun StudioSaveNotice(save: StudioSaveState, saved: String, saveFailed: S
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = tone,
-        modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_NOTICE_DESCRIPTION },
+        modifier = Modifier.testTag(VOICE_STUDIO_NOTICE_DESCRIPTION),
     )
 }

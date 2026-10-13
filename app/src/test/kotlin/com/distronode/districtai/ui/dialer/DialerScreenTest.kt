@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -81,13 +81,13 @@ class DialerScreenTest {
     fun `the entry card and the call control are drawn for a role that may dial`() {
         render(idle(entry = "+14165550100"))
 
-        composeRule.onNodeWithContentDescription(DIALER_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DIALER_ENTRY_CARD_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(DIALER_FIELD_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(DIALER_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_ENTRY_CARD_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(DIALER_FIELD_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
         // ⚠️ THE MICROPHONE NOTICE IS SHOWN BEFORE THE DIALOG, so the permission request has a
         // visible reason. A request with no explanation is the one users deny permanently.
-        composeRule.onNodeWithContentDescription(DIALER_MIC_NOTICE_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(DIALER_MIC_NOTICE_DESCRIPTION).assertExists()
     }
 
     @Test
@@ -96,8 +96,8 @@ class DialerScreenTest {
         // here would be one that 403s on the screen's only action.
         render(idle(canDial = false, entry = "+14165550100"))
 
-        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(DIALER_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(DIALER_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -106,7 +106,7 @@ class DialerScreenTest {
         // counting characters would enable the button for a 400 that reads as a server fault.
         render(idle(entry = "(416) 5"))
 
-        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -117,7 +117,7 @@ class DialerScreenTest {
         // `DialFormatTest`'s property; what matters here is that both are drawn.
         render(idle(entry = "+14165550100"))
 
-        composeRule.onNodeWithContentDescription(DIALER_PREVIEW_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_PREVIEW_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("+14165550100").assertExists()
     }
 
@@ -125,7 +125,7 @@ class DialerScreenTest {
     fun `pressing call fires once`() {
         render(idle(entry = "+14165550100"))
 
-        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).performClick()
 
         assertEquals(1, dialTaps)
     }
@@ -143,8 +143,8 @@ class DialerScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DIALER_REFUSAL_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DIALER_REFUSAL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── The call-back list ───────────────────────────────────────────────────
@@ -154,7 +154,7 @@ class DialerScreenTest {
         // ⛔ ONE TAP MUST NEVER PLACE A CALL, least of all from a scrolling list.
         render(idle(callbacks = CallbacksState.Ready(listOf(callRow()))))
 
-        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+        composeRule.onNodeWithTag(callbackRowDescription("call-1")).performClick()
 
         assertEquals(listOf("+14165550100"), callBacks)
         assertEquals(0, dialTaps)
@@ -164,7 +164,7 @@ class DialerScreenTest {
     fun `an empty call-back list explains itself rather than showing nothing`() {
         render(idle())
 
-        composeRule.onNodeWithContentDescription(DIALER_CALLBACKS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_CALLBACKS_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -178,8 +178,8 @@ class DialerScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DIALER_CALLBACKS_FAILED_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(DIALER_CALLBACKS_FAILED_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
     }
 
     // ── The call takes over the same destination ─────────────────────────────
@@ -197,8 +197,8 @@ class DialerScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(IN_CALL_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(DIALER_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── A redraw, a row with no number, and the preview ──────────────────────
@@ -213,8 +213,8 @@ class DialerScreenTest {
 
         theme.flip()
 
-        composeRule.onNodeWithContentDescription(DIALER_MIC_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+        composeRule.onNodeWithTag(DIALER_MIC_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(callbackRowDescription("call-1")).performClick()
         assertEquals(listOf("+14165550100"), callBacks)
     }
 
@@ -226,7 +226,7 @@ class DialerScreenTest {
 
         theme.flip()
 
-        composeRule.onNodeWithContentDescription(DIALER_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -235,7 +235,7 @@ class DialerScreenTest {
         // takes any row it is handed, and one without a number must not produce something dialable.
         render(idle(callbacks = CallbacksState.Ready(listOf(callRow().copy(from = null)))))
 
-        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+        composeRule.onNodeWithTag(callbackRowDescription("call-1")).performClick()
 
         assertEquals(listOf(""), callBacks)
         assertEquals(0, dialTaps)
@@ -245,7 +245,7 @@ class DialerScreenTest {
     fun `the preview renders a dialable number`() {
         composeRule.setContent { DialerScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
     }
 
     private fun handlers() = DialerHandlers(
@@ -286,7 +286,7 @@ class DialerScreenTest {
 
         current = handlers().copy(onCallBack = { later += it })
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(callbackRowDescription("call-1")).performClick()
+        composeRule.onNodeWithTag(callbackRowDescription("call-1")).performClick()
 
         assertEquals(listOf("+14165550100"), later)
         assertEquals(emptyList<String>(), callBacks)

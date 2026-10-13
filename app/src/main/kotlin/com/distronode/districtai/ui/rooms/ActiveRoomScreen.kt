@@ -16,9 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -65,7 +64,7 @@ fun ActiveRoomScreen(
     modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = ACTIVE_ROOM_ROOT_DESCRIPTION },
+        modifier = modifier.testTag(ACTIVE_ROOM_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 // ⚠️ The human half of the name. `meet_<uuid>_standup` is not a title.
@@ -111,7 +110,7 @@ private fun ParticipantGrid(participants: List<MediaParticipant>) {
         EmptyState(
             title = stringResource(R.string.room_alone_title),
             body = stringResource(R.string.room_alone_body),
-            modifier = Modifier.semantics { contentDescription = ROOM_ALONE_DESCRIPTION },
+            modifier = Modifier.testTag(ROOM_ALONE_DESCRIPTION),
         )
         return
     }
@@ -121,7 +120,7 @@ private fun ParticipantGrid(participants: List<MediaParticipant>) {
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         modifier = Modifier
             .fillMaxSize()
-            .semantics { contentDescription = ROOM_GRID_DESCRIPTION },
+            .testTag(ROOM_GRID_DESCRIPTION),
     ) {
         // ⚠️ Keyed on the server-derived identity, which is the EVICTION key — the same human
         // rejoining replaces themselves rather than producing a second tile with a new key.
@@ -134,9 +133,7 @@ private fun ParticipantGrid(participants: List<MediaParticipant>) {
 @Composable
 private fun ParticipantTile(participant: MediaParticipant) {
     DistrictCard(
-        modifier = Modifier.semantics {
-            contentDescription = participantTileDescription(participant.identity)
-        },
+        modifier = Modifier.testTag(participantTileDescription(participant.identity)),
     ) {
         Box(
             modifier = Modifier
@@ -157,9 +154,7 @@ private fun ParticipantTile(participant: MediaParticipant) {
                         ?: stringResource(R.string.room_unnamed_participant),
                     style = MaterialTheme.typography.titleSmall,
                     color = DistrictTheme.colors.mutedForeground,
-                    modifier = Modifier.semantics {
-                        contentDescription = audioTileDescription(participant.identity)
-                    },
+                    modifier = Modifier.testTag(audioTileDescription(participant.identity)),
                 )
             }
         }
@@ -199,7 +194,7 @@ private fun RoomControlsRow(state: ActiveRoomUiState, controls: RoomControls) {
             variant = ButtonVariant.Secondary,
             size = ButtonSize.Md,
             enabled = state.canPublish && state.permissions.microphoneGranted,
-            modifier = Modifier.semantics { contentDescription = ROOM_MIC_DESCRIPTION },
+            modifier = Modifier.testTag(ROOM_MIC_DESCRIPTION),
         )
         DistrictButton(
             text = stringResource(
@@ -209,7 +204,7 @@ private fun RoomControlsRow(state: ActiveRoomUiState, controls: RoomControls) {
             variant = ButtonVariant.Secondary,
             size = ButtonSize.Md,
             enabled = state.canPublish && state.permissions.cameraGranted,
-            modifier = Modifier.semantics { contentDescription = ROOM_CAMERA_DESCRIPTION },
+            modifier = Modifier.testTag(ROOM_CAMERA_DESCRIPTION),
         )
         DistrictButton(
             text = stringResource(R.string.room_flip),
@@ -219,7 +214,7 @@ private fun RoomControlsRow(state: ActiveRoomUiState, controls: RoomControls) {
             // ⚠️ Only while the camera is publishing — flipping an off camera does nothing visible,
             // so an enabled control would report success for an action with no effect.
             enabled = state.cameraEnabled,
-            modifier = Modifier.semantics { contentDescription = ROOM_FLIP_DESCRIPTION },
+            modifier = Modifier.testTag(ROOM_FLIP_DESCRIPTION),
         )
         DistrictButton(
             text = stringResource(
@@ -228,7 +223,7 @@ private fun RoomControlsRow(state: ActiveRoomUiState, controls: RoomControls) {
             onClick = controls.onToggleSpeaker,
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Md,
-            modifier = Modifier.semantics { contentDescription = ROOM_SPEAKER_DESCRIPTION },
+            modifier = Modifier.testTag(ROOM_SPEAKER_DESCRIPTION),
         )
     }
 }
@@ -244,7 +239,7 @@ private fun LeaveRow(
             text = stringResource(R.string.room_leave),
             onClick = onLeave,
             variant = ButtonVariant.Danger,
-            modifier = Modifier.semantics { contentDescription = ROOM_LEAVE_DESCRIPTION },
+            modifier = Modifier.testTag(ROOM_LEAVE_DESCRIPTION),
         )
         // ⛔ ABSENT, NOT DISABLED, WHEN THE SERVER MINTED NO INVITE. A disabled share control would
         // suggest a viewer could invite someone if only something else were true; the server's
@@ -255,7 +250,7 @@ private fun LeaveRow(
                 text = stringResource(R.string.room_share_invite),
                 onClick = { onShareInvite(link) },
                 variant = ButtonVariant.Secondary,
-                modifier = Modifier.semantics { contentDescription = ROOM_SHARE_DESCRIPTION },
+                modifier = Modifier.testTag(ROOM_SHARE_DESCRIPTION),
             )
         }
     }

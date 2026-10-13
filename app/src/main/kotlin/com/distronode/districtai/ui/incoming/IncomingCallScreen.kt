@@ -11,9 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
@@ -111,7 +110,7 @@ private fun RingingScreen(
     modifier: Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = INCOMING_ROOT_DESCRIPTION },
+        modifier = modifier.testTag(INCOMING_ROOT_DESCRIPTION),
     ) { inset ->
         ContentContainer(modifier = inset.fillMaxSize()) {
             Column(
@@ -127,7 +126,7 @@ private fun RingingScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     color = DistrictTheme.colors.foreground,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.semantics { contentDescription = INCOMING_CALLER_DESCRIPTION },
+                    modifier = Modifier.testTag(INCOMING_CALLER_DESCRIPTION),
                 )
                 PhaseLine(state)
                 Spacer(modifier = Modifier.weight(1f))
@@ -148,7 +147,7 @@ private fun PhaseLine(state: IncomingCallUiState) {
             style = MaterialTheme.typography.titleMedium,
             color = DistrictTheme.colors.mutedForeground,
             textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { contentDescription = INCOMING_MESSAGE_DESCRIPTION },
+            modifier = Modifier.testTag(INCOMING_MESSAGE_DESCRIPTION),
         )
         return
     }
@@ -163,7 +162,7 @@ private fun PhaseLine(state: IncomingCallUiState) {
         style = MaterialTheme.typography.titleMedium,
         color = DistrictTheme.colors.mutedForeground,
         textAlign = TextAlign.Center,
-        modifier = Modifier.semantics { contentDescription = INCOMING_PHASE_DESCRIPTION },
+        modifier = Modifier.testTag(INCOMING_PHASE_DESCRIPTION),
     )
 }
 
@@ -181,14 +180,14 @@ private fun Actions(state: IncomingCallUiState, handlers: IncomingCallHandlers) 
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { contentDescription = INCOMING_NOTICE_DESCRIPTION },
+                modifier = Modifier.testTag(INCOMING_NOTICE_DESCRIPTION),
             )
             DistrictButton(
                 text = stringResource(R.string.incoming_call_answer),
                 onClick = handlers.onAnswer,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = INCOMING_ANSWER_DESCRIPTION },
+                    .testTag(INCOMING_ANSWER_DESCRIPTION),
             )
             DistrictButton(
                 text = stringResource(R.string.incoming_call_decline),
@@ -196,7 +195,7 @@ private fun Actions(state: IncomingCallUiState, handlers: IncomingCallHandlers) 
                 variant = ButtonVariant.Danger,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = INCOMING_DECLINE_DESCRIPTION },
+                    .testTag(INCOMING_DECLINE_DESCRIPTION),
             )
         }
         // ⚠️ NOTHING TO PRESS WHILE THE ANSWER ROUND TRIP IS OUT. See the ⛔ on the screen: a
@@ -207,7 +206,7 @@ private fun Actions(state: IncomingCallUiState, handlers: IncomingCallHandlers) 
             onClick = handlers.onDismiss,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = INCOMING_DISMISS_DESCRIPTION },
+                .testTag(INCOMING_DISMISS_DESCRIPTION),
         )
         // ⚠️ UNREACHABLE HERE BY CONSTRUCTION: IN_CALL always carries a session, and the screen
         // hands that to `InCallScreen` before this composable is reached.

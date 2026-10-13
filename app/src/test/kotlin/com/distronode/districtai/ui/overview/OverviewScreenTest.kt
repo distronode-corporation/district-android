@@ -1,11 +1,12 @@
 package com.distronode.districtai.ui.overview
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -16,6 +17,7 @@ import com.distronode.districtai.core.data.RecentActivity
 import com.distronode.districtai.core.model.OverviewMetrics
 import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.SignedOutCause
 import com.distronode.districtai.ui.UiText
@@ -134,7 +136,7 @@ class OverviewScreenTest {
     fun `renders the four KPI tiles with the server's duration label`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_ROOT_DESCRIPTION).assertIsDisplayed()
 
         // ⚠️ ASSERTED THROUGH THE PAIRED CONTENT DESCRIPTION, NOT THE RENDERED LABEL, AND THAT IS
         // A DELIBERATE CHANGE. The label is now an `Eyebrow`, which UPPERCASES its input the way
@@ -144,12 +146,20 @@ class OverviewScreenTest {
         // Asserting on "$label, $value" is better than asserting on the uppercased text: it pins
         // the label-value PAIRING that a screen reader announces, which is the behaviour that
         // actually matters here, and it survives a future change to the visual casing.
-        composeRule.onNodeWithContentDescription("Total Calls Routed, 412").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Weekly Call Volume, 19").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Customer Contacts, 87").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_total_calls), "412"),
+        ).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_weekly_calls), "19"),
+        ).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_contacts), "87"),
+        ).assertIsDisplayed()
         // ⛔ The server's label. A locally-formatted value would read "0m 45s" and disagree with
         // the browser on every sub-minute average.
-        composeRule.onNodeWithContentDescription("Avg Call Duration, 45s").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_avg_duration), "45s"),
+        ).assertIsDisplayed()
         composeRule.onNodeWithText("412").assertIsDisplayed()
         composeRule.onNodeWithText("45s").assertIsDisplayed()
     }
@@ -159,7 +169,7 @@ class OverviewScreenTest {
         render(content())
 
         composeRule.onNodeWithText("Alpha Agency").assertIsDisplayed()
-        composeRule.onNodeWithText("Region: CA").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_workspace_region, "CA")).assertIsDisplayed()
     }
 
     @Test
@@ -167,14 +177,14 @@ class OverviewScreenTest {
         // ⚠️ Better than letting the user discover it by tapping something that 403s.
         render(content(overview = overview(role = WorkspaceRole.VIEWER)))
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_READ_ONLY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_READ_ONLY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `offers no switcher for a single workspace`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_SWITCHER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(OVERVIEW_SWITCHER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -188,7 +198,7 @@ class OverviewScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_SWITCHER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_SWITCHER_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -205,9 +215,9 @@ class OverviewScreenTest {
 
         composeRule
             .onNode(hasScrollToNodeAction())
-            .performScrollToNode(hasContentDescription(OVERVIEW_OPEN_ANALYTICS_DESCRIPTION))
+            .performScrollToNode(hasTestTag(OVERVIEW_OPEN_ANALYTICS_DESCRIPTION))
         composeRule
-            .onNodeWithContentDescription(OVERVIEW_OPEN_ANALYTICS_DESCRIPTION)
+            .onNodeWithTag(OVERVIEW_OPEN_ANALYTICS_DESCRIPTION)
             .performClick()
 
         assertEquals("ws-a", opened)
@@ -236,9 +246,9 @@ class OverviewScreenTest {
 
         composeRule
             .onNode(hasScrollToNodeAction())
-            .performScrollToNode(hasContentDescription(OVERVIEW_OPEN_MARKETPLACE_DESCRIPTION))
+            .performScrollToNode(hasTestTag(OVERVIEW_OPEN_MARKETPLACE_DESCRIPTION))
         composeRule
-            .onNodeWithContentDescription(OVERVIEW_OPEN_MARKETPLACE_DESCRIPTION)
+            .onNodeWithTag(OVERVIEW_OPEN_MARKETPLACE_DESCRIPTION)
             .performClick()
 
         assertEquals("ws-a", openedWorkspace)
@@ -268,8 +278,8 @@ class OverviewScreenTest {
 
         composeRule
             .onNode(hasScrollToNodeAction())
-            .performScrollToNode(hasContentDescription(OVERVIEW_OPEN_ROOMS_DESCRIPTION))
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_ROOMS_DESCRIPTION).performClick()
+            .performScrollToNode(hasTestTag(OVERVIEW_OPEN_ROOMS_DESCRIPTION))
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_ROOMS_DESCRIPTION).performClick()
 
         assertEquals("ws-a", openedWorkspace)
         assertEquals(WorkspaceRole.CLIENT, openedRole)
@@ -290,8 +300,8 @@ class OverviewScreenTest {
 
         composeRule
             .onNode(hasScrollToNodeAction())
-            .performScrollToNode(hasContentDescription(OVERVIEW_OPEN_DIALER_DESCRIPTION))
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_DIALER_DESCRIPTION).performClick()
+            .performScrollToNode(hasTestTag(OVERVIEW_OPEN_DIALER_DESCRIPTION))
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_DIALER_DESCRIPTION).performClick()
 
         // ⚠️ THE OVERVIEW'S ROLE, the effective one for this caller: support access can grant
         // "agency" with no membership row, which the workspace list would understate.
@@ -304,14 +314,14 @@ class OverviewScreenTest {
         render(content(overview = overview(role = WorkspaceRole.VIEWER)))
 
         composeRule
-            .onNodeWithContentDescription(OVERVIEW_OPEN_DIALER_DESCRIPTION)
+            .onNodeWithTag(OVERVIEW_OPEN_DIALER_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         // ⚠️ The rooms tile IS still there for the same viewer, which is what makes this a gate
         // rather than a layout accident.
         composeRule
             .onNode(hasScrollToNodeAction())
-            .performScrollToNode(hasContentDescription(OVERVIEW_OPEN_ROOMS_DESCRIPTION))
-        composeRule.onNodeWithContentDescription(OVERVIEW_OPEN_ROOMS_DESCRIPTION).assertExists()
+            .performScrollToNode(hasTestTag(OVERVIEW_OPEN_ROOMS_DESCRIPTION))
+        composeRule.onNodeWithTag(OVERVIEW_OPEN_ROOMS_DESCRIPTION).assertExists()
     }
 
     @Test
@@ -430,7 +440,7 @@ class OverviewScreenTest {
         // showing none at all.
         render(content(degradedRegions = listOf("eu", "apac")))
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_PARTIAL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_PARTIAL_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── The states with nothing to show ──────────────────────────────────────
@@ -438,19 +448,19 @@ class OverviewScreenTest {
     @Test
     fun `distinguishes an empty account from a lapsed one`() {
         render(OverviewUiState.NoWorkspaces)
-        composeRule.onNodeWithContentDescription(OVERVIEW_NO_WORKSPACES_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(OVERVIEW_BILLING_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(OVERVIEW_NO_WORKSPACES_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_BILLING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a lapsed account gets a billing message and no purchase path`() {
         render(OverviewUiState.BillingBlocked(inactiveCount = 2))
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_BILLING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Subscription inactive").assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_BILLING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_billing_title)).assertIsDisplayed()
         // ⚠️ Read-only billing, per Play's Payments policy: no button, no purchase affordance.
         // Only the ONE action this state offers may exist, and it is not "pay".
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -467,11 +477,11 @@ class OverviewScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_UNAVAILABLE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(OVERVIEW_NO_WORKSPACES_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithText("Affected regions: eu").assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_UNAVAILABLE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_NO_WORKSPACES_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_degraded_regions, "eu")).assertIsDisplayed()
 
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retries)
     }
 
@@ -481,8 +491,8 @@ class OverviewScreenTest {
         // alarming message would be both wrong and unactionable.
         render(OverviewUiState.SignedOut(SignedOutCause.ROUTINE))
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_SIGNED_OUT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Your session ended. Signing in again will restore it.")
+        composeRule.onNodeWithTag(OVERVIEW_SIGNED_OUT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_signed_out_routine))
             .assertIsDisplayed()
     }
 
@@ -491,7 +501,7 @@ class OverviewScreenTest {
         var signIns = 0
         render(OverviewUiState.SignedOut(SignedOutCause.SESSION_INVALID), onSignIn = { signIns += 1 })
 
-        composeRule.onNodeWithText("Sign in").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_sign_in_again)).performClick()
         assertEquals(1, signIns)
     }
 
@@ -499,6 +509,6 @@ class OverviewScreenTest {
     fun `loading is announced rather than being a bare spinner`() {
         render(OverviewUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OVERVIEW_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 }

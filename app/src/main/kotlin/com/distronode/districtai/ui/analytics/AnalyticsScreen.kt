@@ -13,9 +13,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -58,7 +57,7 @@ fun AnalyticsScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = ANALYTICS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(ANALYTICS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.analytics_title), onBack = onBack)
         },
@@ -90,7 +89,7 @@ private fun LoadingState(inset: Modifier) {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = ANALYTICS_LOADING_DESCRIPTION },
+                .testTag(ANALYTICS_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             SkeletonBlock(modifier = Modifier.fillMaxWidth(SKELETON_CHIPS_FRACTION))
@@ -122,7 +121,7 @@ private fun ContentState(
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = ANALYTICS_REFRESHING_DESCRIPTION },
+                    .testTag(ANALYTICS_REFRESHING_DESCRIPTION),
                 color = DistrictTheme.colors.district,
                 trackColor = DistrictTheme.colors.muted,
             )
@@ -217,7 +216,7 @@ private fun RangeChip(
         onClick = { onSelectRange(range) },
         variant = if (range == selected) ButtonVariant.Primary else ButtonVariant.Secondary,
         size = ButtonSize.Sm,
-        modifier = Modifier.semantics { contentDescription = rangeDescription(range) },
+        modifier = Modifier.testTag(rangeDescription(range)),
     )
 }
 

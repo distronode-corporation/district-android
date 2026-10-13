@@ -18,10 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -67,7 +66,7 @@ fun ThreadScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = THREAD_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(THREAD_ROOT_DESCRIPTION),
         topBar = { DistrictTopBar(title = title, onBack = onBack) },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
@@ -160,7 +159,7 @@ private fun Loaded(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = DistrictTheme.spacing.gutter)
-                        .semantics { contentDescription = THREAD_SEND_FAILURE_DESCRIPTION },
+                        .testTag(THREAD_SEND_FAILURE_DESCRIPTION),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
                 ) {
@@ -215,7 +214,7 @@ private fun LoadOlder(state: ThreadUiState.Content, onLoadOlder: () -> Unit) {
                     horizontal = DistrictTheme.spacing.gutter,
                     vertical = DistrictTheme.spacing.tight,
                 )
-                .semantics { contentDescription = THREAD_LOAD_OLDER_ROW_DESCRIPTION },
+                .testTag(THREAD_LOAD_OLDER_ROW_DESCRIPTION),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             state.olderFailure?.let { failure ->
@@ -226,7 +225,7 @@ private fun LoadOlder(state: ThreadUiState.Content, onLoadOlder: () -> Unit) {
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(bottom = DistrictTheme.spacing.hairline)
-                        .semantics { contentDescription = THREAD_LOAD_OLDER_FAILURE_DESCRIPTION },
+                        .testTag(THREAD_LOAD_OLDER_FAILURE_DESCRIPTION),
                 )
             }
             DistrictButton(
@@ -241,7 +240,7 @@ private fun LoadOlder(state: ThreadUiState.Content, onLoadOlder: () -> Unit) {
                 variant = ButtonVariant.Ghost,
                 size = ButtonSize.Sm,
                 enabled = !state.loadingOlder,
-                modifier = Modifier.semantics { contentDescription = THREAD_LOAD_OLDER_DESCRIPTION },
+                modifier = Modifier.testTag(THREAD_LOAD_OLDER_DESCRIPTION),
             )
         }
     }
@@ -261,7 +260,7 @@ private fun AttachmentChips(attachments: List<UploadedMedia>, onRemove: (String)
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = THREAD_ATTACHMENTS_DESCRIPTION },
+                .testTag(THREAD_ATTACHMENTS_DESCRIPTION),
             horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -273,9 +272,7 @@ private fun AttachmentChips(attachments: List<UploadedMedia>, onRemove: (String)
                     onClick = { onRemove(media.url) },
                     variant = ButtonVariant.Ghost,
                     size = ButtonSize.Sm,
-                    modifier = Modifier.semantics {
-                        contentDescription = THREAD_ATTACHMENT_CHIP_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(THREAD_ATTACHMENT_CHIP_DESCRIPTION),
                 )
             }
         }
@@ -312,7 +309,7 @@ private fun ReplyBox(
                 colors = districtFieldColors(),
                 modifier = Modifier
                     .weight(1f)
-                    .semantics { contentDescription = THREAD_REPLY_FIELD_DESCRIPTION },
+                    .testTag(THREAD_REPLY_FIELD_DESCRIPTION),
             )
             ComposerActions(state, onSend, composer)
         }
@@ -346,7 +343,7 @@ private fun ComposerActions(
                 variant = ButtonVariant.Ghost,
                 size = ButtonSize.Sm,
                 enabled = !state.attaching && !state.sending,
-                modifier = Modifier.semantics { contentDescription = THREAD_ATTACH_DESCRIPTION },
+                modifier = Modifier.testTag(THREAD_ATTACH_DESCRIPTION),
             )
         }
         DistrictButton(
@@ -357,7 +354,7 @@ private fun ComposerActions(
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Sm,
             enabled = !state.generating && !state.sending,
-            modifier = Modifier.semantics { contentDescription = THREAD_AI_DRAFT_DESCRIPTION },
+            modifier = Modifier.testTag(THREAD_AI_DRAFT_DESCRIPTION),
         )
         // ⛔ DISABLED WHILE A SEND IS IN FLIGHT, AND THAT GUARD IS ABOUT MONEY. Every send is
         // billable and the server caps a workspace at 30/min, so a double tap must not become two
@@ -372,7 +369,7 @@ private fun ComposerActions(
             ),
             onClick = { onSend(composer.text) },
             enabled = !state.sending && composer.text.isNotBlank(),
-            modifier = Modifier.semantics { contentDescription = THREAD_SEND_DESCRIPTION },
+            modifier = Modifier.testTag(THREAD_SEND_DESCRIPTION),
         )
     }
 }
@@ -496,7 +493,7 @@ private fun CallEvent(event: TimelineEvent) {
                 if (event.isMissedCall) R.string.thread_call_missed else R.string.thread_call,
             ),
             tone = if (event.isMissedCall) Tone.Danger else Tone.Neutral,
-            modifier = Modifier.semantics { contentDescription = THREAD_CALL_DESCRIPTION },
+            modifier = Modifier.testTag(THREAD_CALL_DESCRIPTION),
         )
         Text(
             text = event.timestamp,
@@ -524,7 +521,7 @@ private fun ThreadLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = THREAD_LOADING_DESCRIPTION },
+                .testTag(THREAD_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_BUBBLES) { SkeletonBlock(height = SKELETON_BUBBLE_HEIGHT) }

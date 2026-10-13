@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -108,8 +108,8 @@ fun RowScope.DistrictNavItem(
             .padding(horizontal = DistrictTheme.spacing.row, vertical = DistrictTheme.spacing.tight)
             .semantics {
                 this.selected = selected
-                if (description != null) contentDescription = description
-            },
+            }
+            .then(if (description != null) Modifier.testTag(description) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
         Text(

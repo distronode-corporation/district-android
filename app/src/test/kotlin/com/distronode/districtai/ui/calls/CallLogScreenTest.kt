@@ -8,7 +8,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.paging.LoadState
@@ -20,6 +20,8 @@ import com.distronode.districtai.core.data.PagedLoadException
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ThemeFlip
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -99,7 +101,7 @@ class CallLogScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CALL_LOG_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_ROOT_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
         composeRule.onNodeWithText("Bob Barker").assertIsDisplayed()
     }
@@ -109,16 +111,16 @@ class CallLogScreenTest {
         // ⚠️ Reachable only from NotLoading, which is what makes "no calls yet" honest here.
         render(emptyList())
 
-        composeRule.onNodeWithContentDescription(CALL_LOG_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `shows a labelled spinner while refreshing`() {
         render(emptyList(), states(refresh = LoadState.Loading))
 
-        composeRule.onNodeWithContentDescription(CALL_LOG_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_LOADING_DESCRIPTION).assertIsDisplayed()
         // ⛔ NOT the empty state. An in-flight load is not an absence of calls.
-        composeRule.onNodeWithContentDescription(CALL_LOG_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_LOG_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -127,10 +129,10 @@ class CallLogScreenTest {
         // loss to the person holding the phone.
         render(emptyList(), states(refresh = LoadState.Error(degraded())))
 
-        composeRule.onNodeWithContentDescription(CALL_LOG_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_LOG_EMPTY_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithText("Affected regions: eu").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_degraded_regions, "eu")).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertIsDisplayed()
     }
 
     @Test
@@ -141,8 +143,8 @@ class CallLogScreenTest {
             states(refresh = LoadState.Error(PagedLoadException(ApiResult.Unauthorized(reason = null)))),
         )
 
-        composeRule.onNodeWithText("Sign in").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_sign_in_again)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -158,9 +160,9 @@ class CallLogScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CALL_LOG_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
-        composeRule.onNodeWithText("Sign in").assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_LOG_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_sign_in_again)).assertDoesNotExist()
     }
 
     @Test
@@ -175,9 +177,9 @@ class CallLogScreenTest {
         )
 
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_LOG_APPEND_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_APPEND_FAILURE_DESCRIPTION).assertIsDisplayed()
         // Emphatically NOT the full-screen treatment.
-        composeRule.onNodeWithContentDescription(CALL_LOG_FAILURE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_LOG_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -185,14 +187,14 @@ class CallLogScreenTest {
         render(listOf(testCall(id = "c1")), states(append = LoadState.Loading))
 
         composeRule.onNodeWithText("Ada").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CALL_LOG_APPENDING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_LOG_APPENDING_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `renders a placeholder rather than the literal Unknown`() {
         render(listOf(testCall(id = "c1").copy(number = "Unknown")))
 
-        composeRule.onNodeWithText("No caller ID").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_no_caller_id)).assertIsDisplayed()
         composeRule.onNodeWithText("Unknown").assertDoesNotExist()
     }
 
@@ -207,7 +209,7 @@ class CallLogScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Live").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_status_live)).assertIsDisplayed()
         composeRule.onNodeWithText("no-answer").assertIsDisplayed()
     }
 
@@ -222,8 +224,8 @@ class CallLogScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Transferred").assertIsDisplayed()
-        composeRule.onNodeWithText("Transfer failed").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_badge_transferred)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_badge_transfer_failed)).assertIsDisplayed()
     }
 
     @Test
@@ -235,15 +237,15 @@ class CallLogScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Outbound", substring = true).assertIsDisplayed()
-        composeRule.onNodeWithText("Inbound", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_direction_outbound), substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_direction_inbound), substring = true).assertIsDisplayed()
     }
 
     @Test
     fun `a ringing call is flagged live like one in progress`() {
         render(listOf(testCall(id = "ringing", status = "ringing")))
 
-        composeRule.onNodeWithText("Live").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_status_live)).assertIsDisplayed()
     }
 
     @Test
@@ -297,7 +299,7 @@ class CallLogScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 

@@ -13,9 +13,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -67,7 +66,7 @@ fun MarketplaceScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = MARKETPLACE_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(MARKETPLACE_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.marketplace_title), onBack = onBack)
         },
@@ -118,7 +117,7 @@ private fun Segments(selected: MarketplaceTab, onSelectTab: (MarketplaceTab) -> 
                 ButtonVariant.Secondary
             },
             size = ButtonSize.Sm,
-            modifier = Modifier.semantics { contentDescription = MARKETPLACE_TAB_OWNED_DESCRIPTION },
+            modifier = Modifier.testTag(MARKETPLACE_TAB_OWNED_DESCRIPTION),
         )
         DistrictButton(
             text = stringResource(R.string.marketplace_tab_search),
@@ -129,7 +128,7 @@ private fun Segments(selected: MarketplaceTab, onSelectTab: (MarketplaceTab) -> 
                 ButtonVariant.Secondary
             },
             size = ButtonSize.Sm,
-            modifier = Modifier.semantics { contentDescription = MARKETPLACE_TAB_SEARCH_DESCRIPTION },
+            modifier = Modifier.testTag(MARKETPLACE_TAB_SEARCH_DESCRIPTION),
         )
     }
 }
@@ -141,7 +140,7 @@ private fun OwnedTab(state: OwnedState, onRetry: () -> Unit) {
             Column(
                 modifier = Modifier
                     .padding(DistrictTheme.spacing.gutter)
-                    .semantics { contentDescription = MARKETPLACE_LOADING_DESCRIPTION },
+                    .testTag(MARKETPLACE_LOADING_DESCRIPTION),
                 verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
             ) {
                 repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
@@ -183,7 +182,7 @@ private fun SearchTab(
             Column(
                 modifier = Modifier
                     .padding(DistrictTheme.spacing.gutter)
-                    .semantics { contentDescription = MARKETPLACE_SEARCHING_DESCRIPTION },
+                    .testTag(MARKETPLACE_SEARCHING_DESCRIPTION),
             ) {
                 SkeletonBlock(height = DistrictTheme.spacing.header)
             }
@@ -220,7 +219,7 @@ private fun ReadOnlyCaption(role: WorkspaceRole?) {
         color = DistrictTheme.colors.mutedForeground,
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = MARKETPLACE_READ_ONLY_DESCRIPTION },
+            .testTag(MARKETPLACE_READ_ONLY_DESCRIPTION),
     )
 }
 
@@ -249,7 +248,7 @@ private fun PurchaseHandOff(role: WorkspaceRole?, onOpenWeb: () -> Unit) {
             variant = ButtonVariant.Secondary,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = MARKETPLACE_BUY_WEB_DESCRIPTION },
+                .testTag(MARKETPLACE_BUY_WEB_DESCRIPTION),
         )
         Text(
             text = stringResource(R.string.marketplace_buy_web_caption),

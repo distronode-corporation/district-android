@@ -14,9 +14,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.distronode.districtai.R
@@ -93,7 +92,7 @@ fun ContactsScreen(
 
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = CONTACTS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(CONTACTS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.contacts_title), onBack = onBack)
         },
@@ -131,7 +130,7 @@ fun ContactsScreen(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(DistrictTheme.spacing.section)
-                        .semantics { contentDescription = CONTACTS_ADD_DESCRIPTION },
+                        .testTag(CONTACTS_ADD_DESCRIPTION),
                 ) {
                     Text("+")
                 }
@@ -157,7 +156,7 @@ private fun Loaded(
                         text = stringResource(R.string.contacts_read_only),
                         modifier = Modifier
                             .padding(DistrictTheme.spacing.gutter)
-                            .semantics { contentDescription = CONTACTS_READ_ONLY_DESCRIPTION },
+                            .testTag(CONTACTS_READ_ONLY_DESCRIPTION),
                     )
                 }
             }

@@ -55,9 +55,23 @@ internal val DistrictShapes = Shapes(
     extraLarge = RoundedCornerShape(24.dp),
 )
 
+/**
+ * The few words this module draws itself.
+ *
+ * ⚠️ THIS MODULE HOLDS NO STRING RESOURCES. Every user-visible string comes from the app's
+ * catalog (`l10n/android.toml`), so the app passes these in at its one theme root (MainActivity)
+ * from its own resources. The defaults exist for this module's tests and previews only.
+ */
+@Immutable
+data class DistrictLabels(
+    /** The top bar's back button. */
+    val back: String = "Back",
+)
+
 internal val LocalDistrictColors = staticCompositionLocalOf { DistrictColors.Dark }
 internal val LocalDistrictSpacing = staticCompositionLocalOf { DistrictSpacing() }
 internal val LocalDistrictTextStyles = staticCompositionLocalOf { DistrictExtraTextStyles }
+internal val LocalDistrictLabels = staticCompositionLocalOf { DistrictLabels() }
 
 /**
  * Accessors for the tokens Material does not carry.
@@ -83,6 +97,11 @@ object DistrictTheme {
     val text: DistrictTextStyles
         @Composable @ReadOnlyComposable
         get() = LocalDistrictTextStyles.current
+
+    /** The words this module draws itself, from the app's catalog. See [DistrictLabels]. */
+    val labels: DistrictLabels
+        @Composable @ReadOnlyComposable
+        get() = LocalDistrictLabels.current
 }
 
 /**
@@ -105,6 +124,7 @@ object DistrictTheme {
 @Composable
 fun DistrictTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    labels: DistrictLabels = DistrictLabels(),
     content: @Composable () -> Unit,
 ) {
     val colors = if (darkTheme) DistrictColors.Dark else DistrictColors.Light
@@ -113,6 +133,7 @@ fun DistrictTheme(
         LocalDistrictColors provides colors,
         LocalDistrictSpacing provides DistrictSpacing(),
         LocalDistrictTextStyles provides DistrictExtraTextStyles,
+        LocalDistrictLabels provides labels,
     ) {
         MaterialTheme(
             colorScheme = colors.toMaterialScheme(dark = darkTheme),

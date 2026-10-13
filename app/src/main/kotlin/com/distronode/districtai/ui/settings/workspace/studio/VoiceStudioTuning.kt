@@ -17,9 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -57,7 +56,7 @@ internal fun StudioTuningSection(
             if (open) R.string.voice_studio_advanced_hide else R.string.voice_studio_advanced_show,
         ),
         onClick = @DontMemoize { open = !open },
-        modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_ADVANCED, leg) },
+        modifier = Modifier.testTag(studioHandle(HANDLE_ADVANCED, leg)),
     )
     if (!open) return
     val interruptions = StudioTuningControls.firstInterruption(advanced)
@@ -71,9 +70,7 @@ internal fun StudioTuningSection(
 @Composable
 private fun TuningControlView(control: TuningControl, enabled: Boolean) {
     Column(
-        modifier = Modifier.semantics(
-            properties = @DontMemoize { contentDescription = studioHandle(HANDLE_TUNING, control.key.key) },
-        ),
+        modifier = Modifier.testTag(studioHandle(HANDLE_TUNING, control.key.key)),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
     ) {
         if (control is TuningControl.Number) {
@@ -94,11 +91,7 @@ private fun TuningControlView(control: TuningControl, enabled: Boolean) {
                     checked = control.checked,
                     onCheckedChange = control.onChange,
                     enabled = enabled,
-                    modifier = Modifier.semantics(
-                        properties = @DontMemoize {
-                            contentDescription = studioHandle(HANDLE_CHECKBOX, control.key.key)
-                        },
-                    ),
+                    modifier = Modifier.testTag(studioHandle(HANDLE_CHECKBOX, control.key.key)),
                 )
                 TuningLabel(control.key)
             }
@@ -122,7 +115,7 @@ private fun NumberControl(control: TuningControl.Number, enabled: Boolean) {
             text = tuningText(value, range.whole),
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
-            modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_VALUE, key) },
+            modifier = Modifier.testTag(studioHandle(HANDLE_VALUE, key)),
         )
         Slider(
             value = value.toFloat(),
@@ -130,7 +123,7 @@ private fun NumberControl(control: TuningControl.Number, enabled: Boolean) {
             valueRange = range.min.toFloat()..range.max.toFloat(),
             steps = range.steps,
             enabled = enabled,
-            modifier = Modifier.fillMaxWidth().semantics { contentDescription = studioHandle(HANDLE_SLIDER, key) },
+            modifier = Modifier.fillMaxWidth().testTag(studioHandle(HANDLE_SLIDER, key)),
         )
     }
     control.onUseDefault?.let { onUseDefault ->
@@ -139,7 +132,7 @@ private fun NumberControl(control: TuningControl.Number, enabled: Boolean) {
                 checked = control.value == null,
                 onCheckedChange = onUseDefault,
                 enabled = enabled,
-                modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_DEFAULT, key) },
+                modifier = Modifier.testTag(studioHandle(HANDLE_DEFAULT, key)),
             )
             Text(
                 text = range.useDefaultLabel ?: stringResource(R.string.voice_studio_use_default),
@@ -164,9 +157,7 @@ private fun KeytermsControl(control: TuningControl.Lines, enabled: Boolean) {
         colors = districtFieldColors(),
         enabled = enabled,
         minLines = KEYTERM_LINES,
-        modifier = Modifier.fillMaxWidth().semantics(
-            properties = @DontMemoize { contentDescription = studioHandle(HANDLE_KEYTERMS, control.key.key) },
-        ),
+        modifier = Modifier.fillMaxWidth().testTag(studioHandle(HANDLE_KEYTERMS, control.key.key)),
     )
     control.key.description?.let { Caption(it) }
 }

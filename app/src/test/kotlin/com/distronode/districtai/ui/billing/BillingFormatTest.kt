@@ -221,4 +221,29 @@ class BillingFormatTest {
         assertEquals(0f, meterFraction(used = 100.0, included = 0), 0.0001f)
         assertEquals(0f, meterFraction(used = 100.0, included = -5), 0.0001f)
     }
+
+    // ── The plan's name ──────────────────────────────────────────────────────
+
+    @Test
+    fun `each catalogue tier reads as the name pricing and checkout use`() {
+        // ⛔ The Billing card printed the key ("VoicePro"). These four are the server's
+        // PLAN_TIER_LABELS, character for character.
+        assertEquals("Voice Solo", planName("VoiceSolo"))
+        assertEquals("Voice Starter", planName("VoiceStarter"))
+        assertEquals("Voice Pro", planName("VoicePro"))
+        assertEquals("Voice Studio", planName("VoiceStudio"))
+    }
+
+    @Test
+    fun `a tier is matched ignoring case, because nothing normalises the column`() {
+        assertEquals("Voice Pro", planName("voicepro"))
+        assertEquals("Voice Studio", planName("VOICESTUDIO"))
+    }
+
+    @Test
+    fun `a tier outside the table is shown as sent, not renamed and not hidden`() {
+        assertEquals("Enterprise", planName("Enterprise"))
+        assertEquals("Free", planName("Free"))
+        assertEquals("", planName(""))
+    }
 }

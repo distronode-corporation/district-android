@@ -8,6 +8,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixes the plan name on the Billing page, which showed the plan's internal key (for example
+  "VoicePro") instead of its name.
+
 ## [2.1] - 2026-10-05
 
 ### Added

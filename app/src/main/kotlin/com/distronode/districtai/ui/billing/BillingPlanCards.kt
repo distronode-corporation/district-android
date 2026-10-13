@@ -70,7 +70,7 @@ internal fun PlanCard(billing: WorkspaceBilling) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = billing.subscriptionTier ?: stringResource(R.string.billing_plan_none),
+                text = billing.subscriptionTier?.let(::planName) ?: stringResource(R.string.billing_plan_none),
                 style = DistrictTheme.text.metric,
                 color = DistrictTheme.colors.foreground,
                 modifier = Modifier.weight(1f),

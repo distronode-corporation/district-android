@@ -13,6 +13,8 @@ import com.distronode.districtai.ui.ARG_WORKSPACE_ID
 import com.distronode.districtai.ui.OnSessionChanged
 import com.distronode.districtai.ui.Routes
 import com.distronode.districtai.ui.pathArgument
+import com.distronode.districtai.ui.scheduling.admin.SchedulingAdminRoutes
+import com.distronode.districtai.ui.scheduling.admin.schedulingAdminDestinations
 
 /**
  * The workspace's booking page, as a navigation destination.
@@ -98,6 +100,12 @@ internal fun NavGraphBuilder.schedulingDestination(
             onOpenDashboard = { viewModel.openDashboard(launchInBrowser) },
             onOpenScheduler = { viewModel.openScheduler(launchInBrowser) },
             onDismissNotice = viewModel::dismissNotice,
+            onOpenSection = { section ->
+                navController.navigate(SchedulingAdminRoutes.section(workspaceId, section))
+            },
         )
     }
+
+    // The native admin's sections, one booking and one event type; see SchedulingAdminDestinations.kt.
+    schedulingAdminDestinations(container, navController, sessionEpoch, launchInBrowser)
 }

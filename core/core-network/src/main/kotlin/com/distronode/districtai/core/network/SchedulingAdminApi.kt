@@ -15,9 +15,8 @@ import kotlinx.serialization.json.JsonObject
  * answer, which on this surface means "this tenancy has no bookings" for "the scheduler is down".
  *
  * ⚠️ IT IS A TRANSPORT-LEVEL DISTINCTION AND NOT A UI ONE. A screen should branch on a small
- * recovery vocabulary that collapses this arm together with the HTTP refusals, built in core-data
- * beside the first screen that calls this route (none does today), and never switch on [Refusal]
- * directly.
+ * recovery vocabulary that collapses this arm together with the HTTP refusals (core-data's
+ * `SchedulingAdminFailureCode`), and never switch on [Refusal] directly.
  */
 sealed interface SchedulingAdminEnvelope<out T> {
 
@@ -51,10 +50,9 @@ sealed interface SchedulingAdminEnvelope<out T> {
  * generic RPC whose response type is the CALLER's choice, and it carries an envelope no other
  * route on the API sends.
  *
- * ⚠️ NOTHING IN THE APP CALLS THIS YET, AND NOTHING CONSTRUCTS IT. The typed core-data layer that
- * once sat on top of it was deleted unused; the interface and [HttpSchedulingAdminApi] stay
- * because endpoint parity counts their methods and the contract tests decode their DTOs. The
- * first screen that needs the admin surface wires it into `AppContainer` itself.
+ * ⚠️ `AppContainer` CONSTRUCTS IT, AND THE ONLY CALLER IS core-data's `SchedulingAdminRepository`,
+ * which gives each op a typed wrapper and collapses every failure into the five recoveries a
+ * screen offers. A screen never calls this directly.
  *
  * ⛔ NOTHING HERE RETRIES, AND THE SERVER'S OWN RETRY IS THE REASON IT MUST NOT START. The server's
  * op route already performs exactly ONE re-mint and ONE re-send on a 401, bounded because an unbounded one

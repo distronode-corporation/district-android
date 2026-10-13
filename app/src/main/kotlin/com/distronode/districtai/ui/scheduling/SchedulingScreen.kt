@@ -19,12 +19,17 @@ import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
+import com.distronode.districtai.core.designsystem.DistrictListRow
+import com.distronode.districtai.core.designsystem.DistrictRowDivider
+import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
+import com.distronode.districtai.core.model.SchedulingTenantStatus.READY
+import com.distronode.districtai.ui.scheduling.admin.SchedulingSection
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
@@ -33,13 +38,12 @@ import com.distronode.districtai.ui.resolve
  * The workspace's booking page: what state its scheduling tenancy is in, the one button that
  * provisions one, and the hand-off into the scheduler's own admin.
  *
- * ⛔ THERE IS NO BOOKING EDITOR IN THIS APP AND THERE MUST NOT BE ONE. Event types, availability,
- * questions and branding are edited in the scheduler's own admin, served from the workspace's
- * public host, exactly as the web dashboard does it — the web card links out for the same reason.
- * Rebuilding any of that here would be a second editor over the same rows with no server surface
- * of its own to talk to.
+ * ⚠️ THE NATIVE ADMIN SITS BEHIND THE "MANAGE" LIST. Once the tenancy is `ready`, the sections
+ * district-ios has (overview, event types, working hours, bookings, calendar, team, settings and
+ * developer) open as native screens; see `ui/scheduling/admin`. The web hand-offs stay for what
+ * only a browser can do (a calendar's OAuth consent) and for anyone who prefers the dashboard.
  *
- * ⛔ AND NOTHING ON THIS SCREEN OFFERS A PURCHASE PATH. A workspace the feature does not admit gets
+ * ⛔ NOTHING ON THIS SCREEN OFFERS A PURCHASE PATH. A workspace the feature does not admit gets
  * one sentence and no control at all: Google Play's Payments policy is the same shape as the App
  * Store's 3.1.3(b) here, and a "contact sales" link out of a paid product's own settings is that
  * offer wearing a different hat. The marketplace's read-only hand-off exists for the same reason.
@@ -61,6 +65,7 @@ fun SchedulingScreen(
     onOpenDashboard: () -> Unit,
     onOpenScheduler: () -> Unit,
     onDismissNotice: () -> Unit,
+    onOpenSection: (SchedulingSection) -> Unit = {},
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(SCHEDULING_ROOT_DESCRIPTION),
@@ -103,6 +108,9 @@ fun SchedulingScreen(
                         onRefresh = onRetry,
                     )
                 }
+
+                val live = (state.screen as? SchedulingScreenState.Ready)?.status?.tenant?.tenantStatus == READY
+                if (live) SchedulingSections(onOpenSection)
             }
         }
     }
@@ -141,6 +149,28 @@ private fun SchedulingNotice(message: String, onDismiss: () -> Unit) {
     }
 }
 
+/**
+ * The native admin's sections, drawn only for a `ready` tenancy: before that there is nothing for
+ * them to read, and every one would answer "not set up yet".
+ */
+@Composable
+private fun SchedulingSections(onOpenSection: (SchedulingSection) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+        Eyebrow(stringResource(R.string.scheduling_admin_common_manage))
+        DistrictCard(modifier = Modifier.testTag(SCHEDULING_SECTIONS_DESCRIPTION)) {
+            SchedulingSection.entries.forEachIndexed { index, section ->
+                if (index > 0) DistrictRowDivider()
+                DistrictListRow(
+                    title = stringResource(section.title),
+                    subtitle = stringResource(section.subtitle),
+                    onClick = { onOpenSection(section) },
+                    modifier = Modifier.testTag("$SCHEDULING_SECTION_DESCRIPTION-${section.pathSegment}"),
+                )
+            }
+        }
+    }
+}
+
 private const val SKELETON_ROWS = 3
 
 /** Stable handles for tests; a literal duplicated in a test drifts silently. */
@@ -165,6 +195,10 @@ const val SCHEDULING_NOTICE_DESCRIPTION: String = "district-scheduling-notice"
 const val SCHEDULING_DISMISS_DESCRIPTION: String = "district-scheduling-dismiss"
 const val SCHEDULING_FAILURE_DESCRIPTION: String = "district-scheduling-failure"
 const val SCHEDULING_RETRY_DESCRIPTION: String = "district-scheduling-retry"
+
+/** The native admin's section list, and each row in it (suffixed with the section's path segment). */
+const val SCHEDULING_SECTIONS_DESCRIPTION: String = "district-scheduling-sections"
+const val SCHEDULING_SECTION_DESCRIPTION: String = "district-scheduling-section"
 
 // ⚠️ INTERNAL RATHER THAN PRIVATE so `SchedulingScreenTest` can render it: a preview that stopped
 // composing would break Android Studio's renderer without failing anything else.

@@ -49,7 +49,7 @@ jobs:
 
       # The string catalogs, also in seconds: the vendored tools match their recorded hashes, the
       # error-code and wire-label catalogs (and their Kotlin tables) are what contracts/i18n
-      # generates, the three catalogs are valid, canonical and collision-free together, and every
+      # generates, the four catalogs are valid, canonical and collision-free together, and every
       # generated resource file (main and French) is byte for byte what its catalog produces. A
       # hand edit to strings.xml fails here.
       # Python 3.11 or newer, standard library only; ubuntu-24.04 ships 3.12.
@@ -57,10 +57,11 @@ jobs:
         run: |
           python3 tools/l10n/l10n.py vendor --check --dest tools/l10n
           python3 scripts/l10n-contracts.py --check
-          python3 tools/l10n/l10n.py check l10n/android.toml l10n/api_errors.toml l10n/wire_labels.toml
+          python3 tools/l10n/l10n.py check l10n/android.toml l10n/api_errors.toml l10n/wire_labels.toml l10n/scheduling.toml
           python3 tools/l10n/l10n.py check l10n/android.toml --gen android:l10n/res --opt name=strings
           python3 tools/l10n/l10n.py check l10n/api_errors.toml --gen android:l10n/res --opt name=api_errors
           python3 tools/l10n/l10n.py check l10n/wire_labels.toml --gen android:l10n/res --opt name=wire_labels
+          python3 tools/l10n/l10n.py check l10n/scheduling.toml --gen android:l10n/res --opt name=scheduling
 
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.

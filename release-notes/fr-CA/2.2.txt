@@ -1,0 +1,5 @@
+• La recherche de numéros s'ouvre sur le pays de la région de votre espace de travail, comme sur le Web.
+• L'application prend en charge la nouvelle étape d'authentification du service. Votre connexion ne change pas.
+
+• Corrige le nom du forfait sur la page Facturation, qui affichait sa clé interne (par exemple « VoicePro ») au lieu de son nom.
+• Si le jeton de notification de votre appareil change quand vous êtes déconnecté, l'application l'enregistre à la connexion, sans erreur.

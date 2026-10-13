@@ -147,4 +147,30 @@ internal fun meterFraction(used: Double, included: Int): Float {
     return (used / included).toFloat().coerceIn(0f, 1f)
 }
 
+/**
+ * The plan's name as a customer knows it: "VoicePro" becomes "Voice Pro".
+ *
+ * ⛔ `subscriptionTier` IS THE CATALOGUE KEY, NOT A NAME. The Billing card printed it verbatim, so a
+ * customer read "VoicePro" where /pricing and checkout say "Voice Pro". [PLAN_TIER_LABELS] mirrors
+ * the server's table of the same name (`src/lib/payments/plan-urls.ts`), the short names /pricing
+ * and checkout's plan chooser show.
+ *
+ * ⚠️ CONSTANTS, NOT STRING RESOURCES. Plan names are product marks and the service keeps them
+ * untranslated in every locale, so a translatable resource would invite a French name that no other
+ * surface uses.
+ *
+ * ⚠️ Matched ignoring case, because nothing normalises the column on write (see `WorkspaceBilling`).
+ * A tier outside the table is shown as sent: a new plan the server already sells reads as its key
+ * rather than as nothing, and this client invents no name for it.
+ */
+internal fun planName(tier: String): String = PLAN_TIER_LABELS[tier.lowercase(Locale.ROOT)] ?: tier
+
+/** The server's `PLAN_TIER_LABELS`, keyed by the lowercased tier. */
+private val PLAN_TIER_LABELS: Map<String, String> = mapOf(
+    "voicesolo" to "Voice Solo",
+    "voicestarter" to "Voice Starter",
+    "voicepro" to "Voice Pro",
+    "voicestudio" to "Voice Studio",
+)
+
 private const val CENTS_PER_UNIT = 100L

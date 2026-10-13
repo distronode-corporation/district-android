@@ -138,7 +138,7 @@ class BillingScreenTest {
         render(content())
 
         composeRule.onNodeWithContentDescription(BILLING_PLAN_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
+        composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
         composeRule.onNodeWithText("Active").assertIsDisplayed()
         composeRule.onNodeWithContentDescription(BILLING_REFRESHING_DESCRIPTION).assertDoesNotExist()
     }
@@ -148,7 +148,7 @@ class BillingScreenTest {
         render(content().copy(refreshing = true))
 
         composeRule.onNodeWithContentDescription(BILLING_REFRESHING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
+        composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
     }
 
     @Test
@@ -181,6 +181,21 @@ class BillingScreenTest {
 
         composeRule.onNodeWithText("No plan on this workspace").assertIsDisplayed()
         composeRule.onNodeWithText("No subscription").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the plan reads as its name, never as its catalogue key`() {
+        render(content())
+
+        composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
+        composeRule.onNodeWithText("VoicePro").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a tier outside the table is shown as the server sent it`() {
+        render(content(plan = activePlan.copy(subscriptionTier = "Enterprise")))
+
+        composeRule.onNodeWithText("Enterprise").assertIsDisplayed()
     }
 
     // ── The overage pair ─────────────────────────────────────────────────────
@@ -274,7 +289,7 @@ class BillingScreenTest {
                 "account has changed.",
         ).assertIsDisplayed()
         // ⛔ AND THE PLAN CARD IS STILL THERE, correct and current: it never went to Stripe.
-        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
+        composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
         // ⛔ NO INVOICE CARD AT ALL, which is the free-account reading this state must not produce.
         composeRule.onAllNodesWithContentDescription(BILLING_INVOICES_DESCRIPTION)
             .assertCountEquals(0)
@@ -300,7 +315,7 @@ class BillingScreenTest {
         )
 
         composeRule.onNodeWithContentDescription(BILLING_STRIPE_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
+        composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
     }
 
     // ── Subscriptions: renews vs ends, cents, discount ───────────────────────
@@ -579,7 +594,7 @@ class BillingScreenTest {
     @Test
     fun `the preview renders the plan it describes`() {
         composeRule.setContent { BillingScreenPreview() }
-        composeRule.onNodeWithText("VoicePro").assertIsDisplayed()
+        composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
         composeRule.onNodeWithContentDescription(BILLING_SUBSCRIPTIONS_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 

@@ -100,6 +100,7 @@ class OverviewRepository(private val api: DistrictApi) {
         // Pre-formatted by the server in the OPERATOR's timezone. ⚠️ Not a parseable instant;
         // use CallSummary.createdAt for anything that sorts or re-formats.
         time = call.time,
+        createdAt = call.createdAt,
     )
 
     companion object {
@@ -175,4 +176,6 @@ data class RecentActivity(
     val transferFailed: Boolean,
     /** Pre-formatted in the operator's timezone by the server. */
     val time: String,
+    /** The ISO instant [time] was formatted from, for a reading in another language. */
+    val createdAt: String? = null,
 )

@@ -3,6 +3,9 @@ package com.distronode.districtai.ui.billing
 import com.distronode.districtai.core.model.BillingInvoice
 import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.UsageData
+import com.distronode.districtai.l10n.AppLanguage
+import com.distronode.districtai.l10n.DistrictFormat
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -36,18 +39,23 @@ import java.util.Locale
  * "249" beside a price of "249.99" reads as a different KIND of number; money is padded and
  * quantities are not.
  *
- * ⚠️ `Locale.US` PINS THE SEPARATOR, deliberately, and matches what the web console renders. A
- * locale-formatted "249,00" beside an unlocalised "$" would be a half-localised amount, which is
- * worse than a consistent one.
+ * ⚠️ THE SEPARATOR IS FIXED BY LANGUAGE, NOT BY THE DEVICE. English is "249.00" whatever the
+ * device's locale (it was `String.format(Locale.US, ...)`, and a locale-formatted "249,00" beside an
+ * unlocalised "$" would be a half-localised amount); French is DistrictFormat's "1 204,25", beside
+ * the French resource's own "$".
  *
- * ⛔ THE SIGN IS FORMATTED SEPARATELY FROM THE DIGITS. `cents / 100` is 0 for -1..-99, and a zero
- * carries no sign, so formatting the quotient directly turned a 50-cent credit into "0.50" (owed).
+ * ⛔ THE SIGN IS CARRIED BY THE DECIMAL, NOT BY INTEGER DIVISION. `cents / 100` is 0 for -1..-99,
+ * so a sign taken from the quotient would print -50 cents as "0.50". `BigDecimal.valueOf(cents, 2)`
+ * and DistrictFormat both keep it.
  */
-internal fun formatCents(cents: Long): String {
-    val sign = if (cents < 0) "-" else ""
-    val magnitude = kotlin.math.abs(cents)
-    return String.format(Locale.US, "%s%d.%02d", sign, magnitude / CENTS_PER_UNIT, magnitude % CENTS_PER_UNIT)
-}
+internal fun formatCents(cents: Long, language: AppLanguage = AppLanguage.EN): String =
+    if (language == AppLanguage.FR) {
+        DistrictFormat.moneyBare(cents, language)
+    } else {
+        // ⚠️ English is this app's own price, "1204.25": two decimals, never grouped. The web groups
+        // ("1,204.25"); W1 changes no English, so the difference is kept and recorded here.
+        BigDecimal.valueOf(cents, 2).toPlainString()
+    }
 
 /**
  * What an invoice row should show as its amount.
@@ -83,10 +91,15 @@ internal fun formatUnixSeconds(
     seconds: Long,
     zone: ZoneId = ZoneId.systemDefault(),
     locale: Locale = Locale.getDefault(),
-): String = DateTimeFormatter
-    .ofLocalizedDate(FormatStyle.MEDIUM)
-    .withLocale(locale)
-    .format(Instant.ofEpochSecond(seconds).atZone(zone))
+    language: AppLanguage = AppLanguage.EN,
+): String = if (language == AppLanguage.FR) {
+    DistrictFormat.date(Instant.ofEpochSecond(seconds), zone, DistrictFormat.DateStyle.MEDIUM, language)
+} else {
+    DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .withLocale(locale)
+        .format(Instant.ofEpochSecond(seconds).atZone(zone))
+}
 
 /**
  * The billable call minutes this month, or null when the month has none.
@@ -172,5 +185,3 @@ private val PLAN_TIER_LABELS: Map<String, String> = mapOf(
     "voicepro" to "Voice Pro",
     "voicestudio" to "Voice Studio",
 )
-
-private const val CENTS_PER_UNIT = 100L

@@ -301,7 +301,7 @@ class MessagingViewModel(
 internal fun MessagingWriteOutcome.toSaveState(): SaveState = when (this) {
     is MessagingWriteOutcome.Saved -> SaveState.Saved
     is MessagingWriteOutcome.Unverifiable -> SaveState.Failed(
-        FailureText(message = UiText.Literal(message), retryable = true),
+        FailureText(message = UiText.Server(message), retryable = true),
     )
     is MessagingWriteOutcome.NotSaved -> SaveState.Failed(failure.toFailureText())
 }

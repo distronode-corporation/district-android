@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import com.distronode.districtai.l10n.callDurationText
+import com.distronode.districtai.l10n.countText
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.Overview
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -44,12 +46,12 @@ internal fun MetricTiles(overview: Overview) {
         ) {
             Tile(
                 label = stringResource(R.string.overview_tile_total_calls),
-                value = overview.metrics.totalCalls.toString(),
+                value = countText(overview.metrics.totalCalls.toLong()),
                 caption = stringResource(R.string.overview_tile_total_calls_caption),
             )
             Tile(
                 label = stringResource(R.string.overview_tile_weekly_calls),
-                value = overview.metrics.callsThisWeek.toString(),
+                value = countText(overview.metrics.callsThisWeek.toLong()),
                 caption = stringResource(R.string.overview_tile_weekly_calls_caption),
             )
         }
@@ -59,7 +61,7 @@ internal fun MetricTiles(overview: Overview) {
         ) {
             Tile(
                 label = stringResource(R.string.overview_tile_contacts),
-                value = overview.metrics.totalContacts.toString(),
+                value = countText(overview.metrics.totalContacts.toLong()),
                 caption = stringResource(R.string.overview_tile_contacts_caption),
             )
             Tile(
@@ -68,8 +70,9 @@ internal fun MetricTiles(overview: Overview) {
                 // product and disagree on the same input: this tile omits a zero minutes component
                 // ("45s") while a call row always emits one ("0m 45s"). Formatting
                 // metrics.avgDuration here would make the app disagree with the browser on every
-                // sub-minute average.
-                value = overview.avgDurationLabel,
+                // sub-minute average. French alone is rebuilt from the seconds (the server's label
+                // is English), with the portal's own reading of a duration.
+                value = callDurationText(overview.avgDurationLabel, overview.metrics.avgDuration),
                 caption = stringResource(R.string.overview_tile_avg_duration_caption),
             )
         }

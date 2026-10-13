@@ -375,6 +375,7 @@
     <string name="knowledge_section_mode">Where answers come from</string>
     <string name="knowledge_status_unknown">unknown status</string>
     <string name="knowledge_title">Knowledge base</string>
+    <string name="l10n_language">en</string>
     <string name="login_status_completing">Completing sign-in…</string>
     <string name="login_status_denied">Sign-in did not complete (%1$s).</string>
     <string name="login_status_did_not_complete">Sign-in did not complete. Tap Sign in to try again.</string>

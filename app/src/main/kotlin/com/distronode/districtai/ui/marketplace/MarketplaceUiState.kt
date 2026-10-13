@@ -95,7 +95,7 @@ sealed interface SearchState {
      * @param message the server's own wording, which also covers the narrower case of naming a
      *   provider the workspace has not connected.
      */
-    data class NotConfigured(val message: String) : SearchState
+    data class NotConfigured(val message: String, val code: String? = null) : SearchState
 
     data class Failed(val failure: FailureText) : SearchState
 }

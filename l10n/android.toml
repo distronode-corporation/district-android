@@ -2582,6 +2582,15 @@ screen = "knowledge"
 tier = "T3"
 note = "── Knowledge base ──────────────────────────────────────────────────── ⛔ THE MODE IS A DATA-RESIDENCY CONTROL. `linked` sends this workspace's questions to Atlassian to be answered; the wording says so rather than selling coverage."
 
+[l10n.language]
+en = "en"
+fr = "fr"
+ctx = "format"
+screen = "(none: read by code)"
+tier = "T3"
+state = "draft"
+note = "Not shown to anyone, and not a translation: the language this resource set is written in. The app reads it to know whether the French resources are the ones in use, and shows the server's own English wording only while it says en."
+
 [login_status.completing]
 en = "Completing sign-in…"
 ctx = "label"

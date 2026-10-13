@@ -1,5 +1,8 @@
 package com.distronode.districtai.ui.analytics
 
+import com.distronode.districtai.l10n.AppLanguage
+import com.distronode.districtai.l10n.DistrictFormat
+
 /**
  * The arithmetic behind the analytics charts, deliberately kept OUT of the drawing code.
  *
@@ -116,8 +119,11 @@ fun parseHexArgb(hex: String): Long? {
  * non-negative durations, so a negative is corrupt input, and a minus sign in a KPI tile reads as
  * a measurement rather than as a fault.
  */
-fun formatDurationSeconds(seconds: Int): String {
+fun formatDurationSeconds(seconds: Int, language: AppLanguage = AppLanguage.EN): String {
     val safe = seconds.coerceAtLeast(0)
+    // French is the portal's reading of a duration ("1 min 5 s"). English keeps this tile's own
+    // "2m 0s", which differs from the portal's "2m" only when the seconds are zero.
+    if (language == AppLanguage.FR) return DistrictFormat.minutesSeconds(safe, language)
     val minutes = safe / SECONDS_PER_MINUTE
     val remainder = safe % SECONDS_PER_MINUTE
     return if (minutes > 0) "${minutes}m ${remainder}s" else "${remainder}s"
@@ -134,9 +140,12 @@ fun formatDurationSeconds(seconds: Int): String {
  * `String.format`, which does not. A comma decimal separator here would be defensible for display
  * and is not what the assertions or the web console show.
  */
-fun formatUsageAmount(value: Double): String {
+fun formatUsageAmount(value: Double, language: AppLanguage = AppLanguage.EN): String {
     if (!value.isFinite()) return UNKNOWN_AMOUNT
     val rounded = Math.round(value * CENTS) / CENTS
+    // French groups thousands and writes a decimal comma ("1 522,75"). English keeps this app's
+    // ungrouped "1522.75".
+    if (language == AppLanguage.FR) return DistrictFormat.number(rounded, language)
     return if (rounded == Math.floor(rounded)) {
         rounded.toLong().toString()
     } else {
@@ -208,13 +217,14 @@ fun sumMetered(vararg values: Double?): Double? {
  * shape of should render as itself rather than as a blank or a guess — the raw `2026-08` is still
  * a true statement about which month the row is, which "Unknown" is not.
  */
-fun monthLabel(month: String): String {
+fun monthLabel(month: String, language: AppLanguage = AppLanguage.EN): String {
     val parts = month.split('-')
     if (parts.size != MONTH_KEY_PARTS) return month
     val (year, ordinal) = parts
     if (year.length != YEAR_DIGITS || !year.all { it.isDigit() }) return month
     val index = ordinal.toIntOrNull() ?: return month
     if (index !in 1..MONTH_NAMES.size) return month
+    if (language == AppLanguage.FR) return DistrictFormat.monthYear(index, year.toInt(), language)
     return "${MONTH_NAMES[index - 1]} $year"
 }
 

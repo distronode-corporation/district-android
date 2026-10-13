@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.distronode.districtai.l10n.appLanguage
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -115,7 +116,7 @@ private fun HistoryMonthRow(month: UsageData, minutes: Double?, barWidth: Float)
         Text(
             // ⛔ FROM THE `YYYY-MM` KEY BY LOOKUP, never by parsing it into a date — see
             // [monthLabel]. An unrecognised key renders verbatim rather than as a guess.
-            text = monthLabel(month.month),
+            text = monthLabel(month.month, appLanguage()),
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
         )
@@ -153,7 +154,7 @@ private fun MeteredRow(@StringRes labelRes: Int, amount: Double?) {
             modifier = Modifier.weight(1f),
         )
         Text(
-            text = amount?.let { formatUsageAmount(it) }
+            text = amount?.let { formatUsageAmount(it, appLanguage()) }
                 ?: stringResource(R.string.analytics_history_absent),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.foreground,

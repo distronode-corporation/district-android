@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.appLanguage
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -240,7 +241,7 @@ private fun LatestRunBadge(workflow: WorkflowListItem) {
             modifier = Modifier.testTag(workflowLatestRunDescription(workflow.id)),
         )
         Text(
-            text = formatRunTimestamp(run.startedAt),
+            text = formatRunTimestamp(run.startedAt, language = appLanguage()),
             style = MaterialTheme.typography.labelSmall,
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),
@@ -326,7 +327,7 @@ private fun RunCard(run: WorkflowRun) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DistrictBadge(text = run.status, tone = runTone(run.status))
             Text(
-                text = formatRunTimestamp(run.startedAt),
+                text = formatRunTimestamp(run.startedAt, language = appLanguage()),
                 style = MaterialTheme.typography.labelSmall,
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
@@ -335,7 +336,7 @@ private fun RunCard(run: WorkflowRun) {
             )
             Text(
                 text = run.finishedAt
-                    ?.let { formatRunTimestamp(it) }
+                    ?.let { formatRunTimestamp(it, language = appLanguage()) }
                     ?: stringResource(R.string.workflows_run_unfinished),
                 style = MaterialTheme.typography.labelSmall,
                 color = DistrictTheme.colors.mutedForeground,

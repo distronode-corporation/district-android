@@ -24,3 +24,6 @@ google-services.json
 *.keystore
 *.p12
 *.pepk
+
+# Python bytecode (scripts/l10n-contracts.py imports the vendored tools/l10n/l10n.py).
+__pycache__/

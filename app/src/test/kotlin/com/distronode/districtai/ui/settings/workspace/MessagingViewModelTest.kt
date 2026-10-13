@@ -473,7 +473,7 @@ class MessagingViewModelTest {
         val failed = model.state.value.accountSave as SaveState.Failed
         assertTrue(failed.failure.retryable)
         assertEquals(
-            com.distronode.districtai.ui.UiText.Literal(message),
+            com.distronode.districtai.ui.UiText.Server(message),
             failed.failure.message,
         )
     }
@@ -504,7 +504,7 @@ class MessagingViewModelTest {
             val failed = model.state.value.accountSave as SaveState.Failed
             assertFalse(failed.failure.retryable)
             assertEquals(
-                com.distronode.districtai.ui.UiText.Literal(sentence),
+                com.distronode.districtai.ui.UiText.Server(sentence),
                 failed.failure.message,
             )
             assertEquals(

@@ -108,7 +108,7 @@ class MarketplaceViewModel(
         result is ApiResult.Success ->
             SearchState.Ready(result.value.provider, result.value.numbers)
         result is ApiResult.HttpFailure && result.status == NOT_CONFIGURED_STATUS ->
-            SearchState.NotConfigured(result.message)
+            SearchState.NotConfigured(result.message, result.code)
         else -> SearchState.Failed((result as ApiResult.Failure).toFailureText())
     }
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.tooling.preview.Preview
+import com.distronode.districtai.l10n.callTimeText
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -237,7 +238,7 @@ private fun CallbackRow(call: CallSummary, handlers: DialerHandlers) {
     val number = call.from.orEmpty()
     DistrictListRow(
         title = call.number,
-        subtitle = "${formatDialEntry(number)} · ${call.time}",
+        subtitle = "${formatDialEntry(number)} · ${callTimeText(call.time, call.createdAt)}",
         onClick = { handlers.onCallBack(number) },
         modifier = Modifier.testTag(callbackRowDescription(call.id)),
         trailing = {

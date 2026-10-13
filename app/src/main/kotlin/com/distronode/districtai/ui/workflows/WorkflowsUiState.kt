@@ -1,6 +1,8 @@
 package com.distronode.districtai.ui.workflows
 
 import androidx.annotation.StringRes
+import com.distronode.districtai.l10n.AppLanguage
+import com.distronode.districtai.l10n.DistrictFormat
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.CampaignStatus
@@ -222,11 +224,16 @@ fun formatRunTimestamp(
     iso: String,
     zone: ZoneId = ZoneId.systemDefault(),
     locale: Locale = Locale.getDefault(),
+    language: AppLanguage = AppLanguage.EN,
 ): String = try {
-    DateTimeFormatter
-        .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-        .withLocale(locale)
-        .format(Instant.parse(iso).atZone(zone))
+    if (language == AppLanguage.FR) {
+        DistrictFormat.dateTime(Instant.parse(iso), zone, language)
+    } else {
+        DateTimeFormatter
+            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+            .withLocale(locale)
+            .format(Instant.parse(iso).atZone(zone))
+    }
 } catch (_: DateTimeParseException) {
     iso
 }

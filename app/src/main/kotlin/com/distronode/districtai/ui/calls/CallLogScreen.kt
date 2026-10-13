@@ -12,6 +12,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import com.distronode.districtai.l10n.callDurationText
+import com.distronode.districtai.l10n.callTimeText
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
@@ -147,7 +151,7 @@ private fun CallRow(call: CallSummary, onClick: () -> Unit) {
     val statusLabel = if (display.live) {
         stringResource(R.string.overview_status_live)
     } else {
-        display.status
+        wireLabel(WireCategory.CALL_STATUS, display.status)
     }
     val statusTone = if (display.live) Tone.District else toneForCallStatus(display.status)
 
@@ -167,10 +171,10 @@ private fun CallRow(call: CallSummary, onClick: () -> Unit) {
             // Pre-formatted server-side in the OPERATOR's timezone. Not a parseable instant —
             // reformatting it locally would render it in the device's zone and disagree with the
             // browser.
-            append(display.time)
+            append(callTimeText(display.time, display.createdAt))
             display.durationLabel?.let {
                 append(" · ")
-                append(it)
+                append(callDurationText(it, display.durationSeconds))
             }
         },
         onClick = onClick,

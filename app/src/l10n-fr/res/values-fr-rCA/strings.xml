@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPIKE (v3 fr-CA, do not merge): a few French strings to prove locale resolution. -->
+<resources>
+    <string name="sign_in_subtitle">Connectez-vous à votre espace de travail.</string>
+    <string name="sign_in_action">Se connecter</string>
+    <plurals name="thread_attachments">
+        <item quantity="one">%1$d pièce jointe</item>
+        <item quantity="other">%1$d pièces jointes</item>
+    </plurals>
+</resources>

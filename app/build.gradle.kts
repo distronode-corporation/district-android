@@ -358,3 +358,19 @@ dependencies {
     // configuration name.
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+// ── SPIKE (v3 fr-CA, do not merge): French behind -Pdistrict.l10n.fr ──────────────
+// The French resources live in their own source directory, src/l10n-fr/res, and are added to
+// `main` only when the Gradle property is present, so a build without it carries no fr-rCA.
+val districtL10nFr = providers.gradleProperty("district.l10n.fr").isPresent
+android {
+    androidResources {
+        generateLocaleConfig = true
+    }
+    if (districtL10nFr) {
+        sourceSets.getByName("main").res.directories.add("src/l10n-fr/res")
+    }
+}
+tasks.withType<Test>().configureEach {
+    systemProperty("district.l10n.fr", districtL10nFr.toString())
+}

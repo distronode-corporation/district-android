@@ -33,7 +33,9 @@ import com.distronode.districtai.core.data.MembersRepository
 import com.distronode.districtai.core.data.MessagingRepository
 import com.distronode.districtai.core.data.NumbersRepository
 import com.distronode.districtai.core.data.OverviewRepository
+import com.distronode.districtai.core.data.SchedulingAdminRepository
 import com.distronode.districtai.core.data.SchedulingRepository
+import com.distronode.districtai.ui.scheduling.admin.reportUnknownSchedulingOp
 import com.distronode.districtai.core.data.SetupRepository
 import com.distronode.districtai.core.data.SupportRepository
 import com.distronode.districtai.call.AndroidForegroundCallHost
@@ -64,6 +66,7 @@ import com.distronode.districtai.core.network.HttpCallControlApi
 import com.distronode.districtai.core.network.HttpCallHandlingApi
 import com.distronode.districtai.core.network.HttpDeskApi
 import com.distronode.districtai.core.network.HttpDistrictApi
+import com.distronode.districtai.core.network.HttpSchedulingAdminApi
 import com.distronode.districtai.core.network.HttpInboxExtrasApi
 import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSetupApi
@@ -482,6 +485,19 @@ class AppContainer(
         // hardcoded host would keep passing on a build pointed somewhere else, which is a gate that
         // succeeds when it is misconfigured. `ApiEnvironment.baseUrl` is the single source.
         webOrigin = ApiEnvironment.baseUrl,
+    )
+
+    /**
+     * The native scheduling admin: every `bookings.*`, `eventTypes.*`, `availability.*` and other
+     * catalogued op, typed (see [SchedulingAdminRepository]).
+     *
+     * ⛔ ITS OWN API OBJECT RATHER THAN A FAMILY ON [districtApi]: it is a generic RPC whose response
+     * type is the caller's choice and whose 200 can be a refusal. It shares [apiClient], so the
+     * bearer, the refresh and the error mapping are the same as everywhere else.
+     */
+    val schedulingAdminRepository: SchedulingAdminRepository = SchedulingAdminRepository(
+        api = seams.schedulingAdminApi ?: HttpSchedulingAdminApi(apiClient),
+        reportUnknownOp = ::reportUnknownSchedulingOp,
     )
 
     /**

@@ -1,0 +1,821 @@
+[meta]
+catalog = "scheduling"
+platform = "android"
+
+[scheduling_admin.bookings.answers_eyebrow]
+en = "Answers"
+ctx = "label"
+screen = "scheduling booking"
+tier = "T3"
+note = "Eyebrow above the attendee's answers to the booking questions."
+
+[scheduling_admin.bookings.cancel_body]
+en = "The attendee gets a cancellation email."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T2"
+
+[scheduling_admin.bookings.cancel_confirm]
+en = "Cancel booking"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T2"
+note = "Destructive: cancels the booking and emails the attendee."
+
+[scheduling_admin.bookings.cancel_done]
+en = "Booking cancelled"
+ctx = "toast"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.cancel_keep]
+en = "Keep it"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Closes the cancel dialog without cancelling the booking."
+
+[scheduling_admin.bookings.cancel_reason_hint]
+en = "Optional. It goes in the email."
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.cancel_reason_label]
+en = "Reason"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.cancel_reason_too_long]
+en = "That reason is longer than 1000 characters."
+ctx = "error"
+screen = "scheduling bookings"
+tier = "T2"
+
+[scheduling_admin.bookings.cancel_title]
+en = "Cancel this booking?"
+ctx = "title"
+screen = "scheduling bookings"
+tier = "T2"
+
+[scheduling_admin.bookings.empty_cancelled]
+en = "No cancelled bookings."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.empty_past]
+en = "No past bookings."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.empty_title]
+en = "No bookings"
+ctx = "title"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.empty_upcoming]
+en = "Nothing is booked yet. Share your booking page and bookings appear here."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Shown under the Upcoming and All filters when there is nothing to list."
+
+[scheduling_admin.bookings.no_answers]
+en = "This event type asks no questions."
+ctx = "body"
+screen = "scheduling booking"
+tier = "T3"
+
+[scheduling_admin.bookings.reassign_action]
+en = "Reassign"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Opens the dialog that gives a booking to another host."
+
+[scheduling_admin.bookings.reassign_body]
+en = "The booking keeps its time. Both hosts get an email about the change."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reassign_confirm]
+en = "Change host"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reassign_done]
+en = "Host changed"
+ctx = "toast"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reassign_host_label]
+en = "New host"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reassign_no_hosts]
+en = "No other host can take it."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reassign_title]
+en = "Reassign this booking?"
+ctx = "title"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_action]
+en = "Reschedule"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Opens the dialog that moves a booking to another time."
+
+[scheduling_admin.bookings.reschedule_body]
+en = "The attendee gets an email with the new time."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_confirm]
+en = "Move booking"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_day_label]
+en = "Day"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_done]
+en = "Booking moved"
+ctx = "toast"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_done_at]
+en = "Booking moved to {when}"
+ctx = "toast"
+screen = "scheduling bookings"
+tier = "T3"
+args = { when = "str" }
+note = "{when} is the booking's new date and time, e.g. \"Oct 2, 2026, 1:00 p.m.\"."
+
+[scheduling_admin.bookings.reschedule_next_day]
+en = "Next day"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_no_slots]
+en = "Nothing free that day. Try another."
+ctx = "body"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_pick_time]
+en = "Pick a time."
+ctx = "error"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_previous_day]
+en = "Previous day"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_time_label]
+en = "Time"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.reschedule_title]
+en = "Reschedule this booking?"
+ctx = "title"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.bookings.status_cancelled]
+en = "Cancelled"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Status badge on a booking that was cancelled."
+
+[scheduling_admin.bookings.status_confirmed]
+en = "Confirmed"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Status badge on a booking that is confirmed."
+
+[scheduling_admin.bookings.status_rescheduled]
+en = "Rescheduled"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Status badge on a booking that was moved to another time."
+
+[scheduling_admin.bookings.subtitle]
+en = "{who} · {what} · {host}"
+ctx = "format"
+screen = "scheduling bookings"
+tier = "T3"
+args = { who = "str", what = "str", host = "str" }
+note = "Under a booking's time: who booked, which event type, and the host."
+
+[scheduling_admin.bookings.view_all]
+en = "All"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Bookings list filter: every booking, whatever its status or date."
+
+[scheduling_admin.bookings.view_cancelled]
+en = "Cancelled"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Bookings list filter: the bookings that were cancelled."
+
+[scheduling_admin.bookings.view_past]
+en = "Past"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Bookings list filter: confirmed bookings that already happened."
+
+[scheduling_admin.bookings.view_upcoming]
+en = "Upcoming"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "Bookings list filter: confirmed bookings still to come."
+
+[scheduling_admin.common.cancel]
+en = "Cancel"
+ctx = "button"
+screen = "scheduling"
+tier = "T3"
+note = "Closes a scheduling dialog without saving."
+
+[scheduling_admin.common.dismiss]
+en = "Dismiss"
+ctx = "button"
+screen = "scheduling"
+tier = "T3"
+note = "Hides a confirmation or failure line under a scheduling form."
+
+[scheduling_admin.common.load_more]
+en = "Load more"
+ctx = "button"
+screen = "scheduling bookings"
+tier = "T3"
+
+[scheduling_admin.common.loading_more]
+en = "Loading…"
+ctx = "label"
+screen = "scheduling bookings"
+tier = "T3"
+note = "The Load more button while the next page is on its way."
+
+[scheduling_admin.common.manage]
+en = "Manage"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Eyebrow above the list of scheduling sections on the booking-page screen, and above the write controls on a detail screen."
+
+[scheduling_admin.common.minutes]
+en = "{minutes} min"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+args = { minutes = "int" }
+note = "A length in minutes (an event type's duration, a buffer), e.g. \"30 min\"."
+
+[scheduling_admin.common.none]
+en = "None"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Shown in place of a value that is not set (an answer left blank, a booking with no host)."
+
+[scheduling_admin.common.not_set]
+en = "Not set"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Shown in place of a length in minutes that the event type does not set."
+
+[scheduling_admin.common.range]
+en = "{start} to {end}"
+ctx = "format"
+screen = "scheduling"
+tier = "T3"
+args = { start = "str", end = "str" }
+note = "A span between two times or two days, e.g. \"9:00 to 17:00\" or \"Mon to Fri\"."
+
+[scheduling_admin.common.refresh]
+en = "Refresh"
+ctx = "button"
+screen = "scheduling"
+tier = "T3"
+note = "Top bar button on every scheduling section: reads the section again."
+
+[scheduling_admin.common.retry]
+en = "Try again"
+ctx = "button"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.common.save]
+en = "Save"
+ctx = "button"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.common.saving]
+en = "Saving…"
+ctx = "button"
+screen = "scheduling"
+tier = "T3"
+note = "The Save button while the change is on its way."
+
+[scheduling_admin.common.times_in]
+en = "Times in {zone}"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+args = { zone = "str" }
+note = "Above a list of bookings: which time zone the times are shown in. {zone} is an IANA zone name such as America/Toronto, never translated."
+
+[scheduling_admin.common.unknown_time]
+en = "Unknown"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Shown in place of a booking time the app could not read."
+
+[scheduling_admin.common.unknown_value]
+en = "{value}"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+args = { value = "str" }
+same_ok = true
+note = "A status, role or type the server sent that this version of the app does not know, shown as the server spelled it."
+
+[scheduling_admin.failure.forbidden]
+en = "You can view this but not change it."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+note = "The member's role lets them read the scheduling admin but not change it."
+
+[scheduling_admin.failure.not_ready]
+en = "Scheduling is not set up for this workspace yet."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+
+[scheduling_admin.failure.offline]
+en = "You appear to be offline. Check your connection and try again."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+
+[scheduling_admin.failure.slot_taken]
+en = "That time was just taken. Pick another."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+note = "Somebody else booked the slot between the list being shown and the member choosing it."
+
+[scheduling_admin.failure.stale_build]
+en = "This version of the app could not read that response. Please update."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+
+[scheduling_admin.failure.unavailable]
+en = "The booking system did not answer. Try again in a minute."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+
+[scheduling_admin.failure.unknown]
+en = "That did not save. Try again."
+ctx = "error"
+screen = "scheduling"
+tier = "T2"
+
+[scheduling_admin.overview.booking]
+en = "Booking"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+note = "Shown in place of an event type name for a booking whose event type is unknown."
+
+[scheduling_admin.overview.booking_line]
+en = "{when}, {who}, {what}"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { when = "str", who = "str", what = "str" }
+note = "The next booking on the booking desk, e.g. \"Today 9:30, Ana Lima, Intro call\"."
+
+[scheduling_admin.overview.calendar_line]
+en = "{provider}, {account}"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { provider = "str", account = "str" }
+note = "A connected calendar on the booking desk, e.g. \"Google Calendar, ana@example.com\"."
+
+[scheduling_admin.overview.coming_up_empty]
+en = "No bookings yet. Share your booking page and they will appear here."
+ctx = "body"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.coming_up_eyebrow]
+en = "Coming up"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_booking_page]
+en = "Booking page"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_calendar]
+en = "Calendar"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_event_types]
+en = "Event types"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_eyebrow]
+en = "Your booking desk"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_hours]
+en = "Working hours"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_next_booking]
+en = "Next booking"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_no_bookings]
+en = "None yet."
+ctx = "body"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_no_calendar]
+en = "No calendar is connected, so nothing is checked for conflicts."
+ctx = "body"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_no_event_types]
+en = "No event types yet, so there is nothing to book."
+ctx = "body"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_no_host]
+en = "The booking address is not ready yet."
+ctx = "body"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.desk_no_hours]
+en = "Not bookable on any day yet."
+ctx = "body"
+screen = "scheduling overview"
+tier = "T3"
+
+[scheduling_admin.overview.event_types]
+en = "{types}, {active} active"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { types = "str", active = "int" }
+note = "How many event types the workspace has and how many take bookings, e.g. \"3 event types, 2 active\". {types} is the count with its noun."
+
+[scheduling_admin.overview.event_types_count]
+en.one = "{count} event type"
+en.other = "{count} event types"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+args = { count = "int" }
+note = "The number of event types, inside \"{types}, {active} active\"."
+
+[scheduling_admin.overview.hours_clause]
+en = "{days}, {hours}"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { days = "str", hours = "str" }
+note = "One clause of the working-hours summary, e.g. \"Mon to Fri, 9:00 to 17:00\". Clauses are joined with semicolons."
+
+[scheduling_admin.overview.someone]
+en = "Someone"
+ctx = "label"
+screen = "scheduling overview"
+tier = "T3"
+note = "Shown in place of an attendee who left neither a name nor an email."
+
+[scheduling_admin.overview.subtitle]
+en = "{who} · {what}"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { who = "str", what = "str" }
+note = "Under a booking's time: who booked and which event type."
+
+[scheduling_admin.overview.today]
+en = "Today {clock}"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { clock = "str" }
+note = "A booking later today, e.g. \"Today 9:30\"."
+
+[scheduling_admin.overview.tomorrow]
+en = "Tomorrow {clock}"
+ctx = "format"
+screen = "scheduling overview"
+tier = "T3"
+args = { clock = "str" }
+note = "A booking tomorrow, e.g. \"Tomorrow 9:30\"."
+
+[scheduling_admin.provider.apple]
+en = "Apple Calendar"
+ctx = "label"
+screen = "scheduling calendars"
+tier = "T3"
+note = "A connected calendar account's provider. Apple's product name."
+
+[scheduling_admin.provider.caldav]
+en = "CalDAV"
+ctx = "label"
+screen = "scheduling calendars"
+tier = "T3"
+same_ok = true
+note = "A connected calendar account's provider: a CalDAV server. A protocol name."
+
+[scheduling_admin.provider.google]
+en = "Google Calendar"
+ctx = "label"
+screen = "scheduling calendars"
+tier = "T3"
+note = "A connected calendar account's provider. Google's product name."
+
+[scheduling_admin.provider.microsoft]
+en = "Microsoft 365"
+ctx = "label"
+screen = "scheduling calendars"
+tier = "T3"
+same_ok = true
+note = "A connected calendar account's provider. Microsoft's product name."
+
+[scheduling_admin.provider.zoom]
+en = "Zoom"
+ctx = "label"
+screen = "scheduling calendars"
+tier = "T3"
+same_ok = true
+note = "The video meeting provider. A product name."
+
+[scheduling_admin.section.subtitle_bookings]
+en = "Every booking in this workspace, upcoming and past"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_calendar]
+en = "The accounts bookings are written to and checked against"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_developer]
+en = "API keys, connected apps and webhooks"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_event_types]
+en = "The pages a customer can book, and how long each one runs"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_hours]
+en = "The weekly hours you are bookable, and the dates you are not"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_overview]
+en = "Your booking desk, and what is coming up"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_settings]
+en = "Your booking page, your booking assistant, and how the scheduler treats you"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.subtitle_team]
+en = "The hosts who can be booked, and the teams they route through"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_booking]
+en = "Booking"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+note = "Title of the screen that shows one booking."
+
+[scheduling_admin.section.title_bookings]
+en = "Bookings"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_calendar]
+en = "Calendar"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_developer]
+en = "Developer"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_event_type]
+en = "Event type"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+note = "Title of the screen that shows one event type, until its name has loaded."
+
+[scheduling_admin.section.title_event_types]
+en = "Event types"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_hours]
+en = "Working hours"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_overview]
+en = "Overview"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.section.title_settings]
+en = "Settings"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+note = "The scheduler's own settings (booking page, assistant, profile), not the Android system settings."
+
+[scheduling_admin.section.title_team]
+en = "Team"
+ctx = "title"
+screen = "scheduling"
+tier = "T3"
+
+[scheduling_admin.weekday.fri]
+en = "Friday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.weekday.mon]
+en = "Monday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.weekday.sat]
+en = "Saturday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.weekday.short_fri]
+en = "Fri"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary."
+
+[scheduling_admin.weekday.short_mon]
+en = "Mon"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary such as \"Mon to Fri, 9:00 to 17:00\"."
+
+[scheduling_admin.weekday.short_sat]
+en = "Sat"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary."
+
+[scheduling_admin.weekday.short_sun]
+en = "Sun"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary."
+
+[scheduling_admin.weekday.short_thu]
+en = "Thu"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary."
+
+[scheduling_admin.weekday.short_tue]
+en = "Tue"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary."
+
+[scheduling_admin.weekday.short_wed]
+en = "Wed"
+ctx = "label"
+screen = "scheduling"
+tier = "T3"
+note = "Abbreviated weekday, in a working-hours summary."
+
+[scheduling_admin.weekday.sun]
+en = "Sunday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.weekday.thu]
+en = "Thursday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.weekday.tue]
+en = "Tuesday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.weekday.wed]
+en = "Wednesday"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"

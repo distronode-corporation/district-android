@@ -10,6 +10,7 @@ import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
+import com.distronode.districtai.core.network.SchedulingAdminApi
 import com.distronode.districtai.core.network.SupportApi
 import com.distronode.districtai.core.network.live.LiveDependencies
 import com.distronode.districtai.push.PushTokenSource
@@ -81,4 +82,5 @@ data class AppContainerSeams(
     val callEngineFactory: CallEngineFactory? = null,
     /** What the softphone tells the OS; Robolectric does not model `TelecomManager`. */
     val telecomBridge: TelecomBridge? = null,
+    val schedulingAdminApi: SchedulingAdminApi? = null,
 )

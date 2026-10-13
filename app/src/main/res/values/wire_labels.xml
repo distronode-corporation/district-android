@@ -38,11 +38,15 @@
     <string name="wire_sentiment_positive">positive</string>
     <string name="wire_sentiment_unknown">%1$s</string>
     <string name="wire_transfer_reason_auth_error">auth_error</string>
+    <string name="wire_transfer_reason_caller_requested_human">caller_requested_human</string>
     <string name="wire_transfer_reason_error">error</string>
     <string name="wire_transfer_reason_no_answer">no_answer</string>
+    <string name="wire_transfer_reason_provider_unsupported">provider_unsupported</string>
     <string name="wire_transfer_reason_ring_timeout">ring_timeout</string>
+    <string name="wire_transfer_reason_room_not_found">room_not_found</string>
     <string name="wire_transfer_reason_trunk_not_configured">trunk_not_configured</string>
     <string name="wire_transfer_reason_unknown">%1$s</string>
+    <string name="wire_transfer_status_completed">completed</string>
     <string name="wire_transfer_status_failed">failed</string>
     <string name="wire_transfer_status_success">success</string>
     <string name="wire_transfer_status_unknown">%1$s</string>

@@ -25,7 +25,9 @@
     <string name="wire_transfer_reason_auth_error">Erreur d\'autorisation du transfert</string>
     <string name="wire_transfer_reason_error">Échec du transfert</string>
     <string name="wire_transfer_reason_no_answer">Le poste n\'a pas répondu</string>
+    <string name="wire_transfer_reason_provider_unsupported">Transfert tenté, sans connexion</string>
     <string name="wire_transfer_reason_ring_timeout">Le poste n\'a pas répondu (sonnerie expirée)</string>
+    <string name="wire_transfer_reason_room_not_found">Transfert tenté, sans connexion</string>
     <string name="wire_transfer_reason_trunk_not_configured">Voie de transfert non configurée</string>
     <string name="wire_transfer_status_failed">Échec du transfert</string>
     <string name="wire_transfer_status_success">Transféré</string>

@@ -311,6 +311,13 @@ tier = "T3"
 state = "draft"
 note = "The transferReason value `auth_error` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer authorization error\"."
 
+[wire.transfer_reason_caller_requested_human]
+en = "caller_requested_human"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "The transferReason value `caller_requested_human` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
 [wire.transfer_reason_error]
 en = "error"
 fr = "Échec du transfert"
@@ -329,6 +336,15 @@ tier = "T3"
 state = "draft"
 note = "The transferReason value `no_answer` as the server sends it. This app has always shown it as sent. The portal's English label is \"Target didn't answer\"."
 
+[wire.transfer_reason_provider_unsupported]
+en = "provider_unsupported"
+fr = "Transfert tenté, sans connexion"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+state = "draft"
+note = "The transferReason value `provider_unsupported` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer attempted but not connected\"."
+
 [wire.transfer_reason_ring_timeout]
 en = "ring_timeout"
 fr = "Le poste n'a pas répondu (sonnerie expirée)"
@@ -337,6 +353,15 @@ screen = "call detail"
 tier = "T3"
 state = "draft"
 note = "The transferReason value `ring_timeout` as the server sends it. This app has always shown it as sent. The portal's English label is \"Target didn't answer (rang out)\"."
+
+[wire.transfer_reason_room_not_found]
+en = "room_not_found"
+fr = "Transfert tenté, sans connexion"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+state = "draft"
+note = "The transferReason value `room_not_found` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer attempted but not connected\"."
 
 [wire.transfer_reason_trunk_not_configured]
 en = "trunk_not_configured"
@@ -354,6 +379,13 @@ screen = "call detail"
 tier = "T3"
 args = { value = "str" }
 note = "A transferReason value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.transfer_status_completed]
+en = "completed"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "The transferStatus value `completed` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.transfer_status_failed]
 en = "failed"

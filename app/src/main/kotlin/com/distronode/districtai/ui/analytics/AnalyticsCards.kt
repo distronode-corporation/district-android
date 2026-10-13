@@ -19,6 +19,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.distronode.districtai.l10n.appLanguage
+import com.distronode.districtai.l10n.chartDateText
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -70,7 +74,7 @@ internal fun MetricTiles(report: AnalyticsResponse) {
             MetricCard(
                 label = stringResource(R.string.analytics_metric_avg_duration),
                 // ⛔ COMPLETED-ONLY, and the caption says so. See AnalyticsMetrics.
-                value = formatDurationSeconds(metrics.avgDuration),
+                value = formatDurationSeconds(metrics.avgDuration, appLanguage()),
                 caption = stringResource(R.string.analytics_metric_avg_duration_caption),
                 modifier = Modifier.weight(1f),
             )
@@ -206,8 +210,8 @@ internal fun TrendCard(points: List<EngagementPoint>) {
                 Text(
                     text = stringResource(
                         R.string.analytics_trend_axis,
-                        points.first().date,
-                        points.last().date,
+                        chartDateText(points.first().date, points.first().isoDate),
+                        chartDateText(points.last().date, points.last().isoDate),
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
@@ -249,7 +253,7 @@ internal fun FunnelCard(stages: List<FunnelStage>) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stage.name,
+                    text = wireLabel(WireCategory.FUNNEL_STAGE, stage.name),
                     style = MaterialTheme.typography.bodyMedium,
                     color = DistrictTheme.colors.foreground,
                     modifier = Modifier.weight(1f),
@@ -316,7 +320,7 @@ internal fun SentimentCard(slices: List<SentimentSlice>) {
                     .padding(top = DistrictTheme.spacing.hairline),
             ) {
                 Text(
-                    text = slice.name,
+                    text = wireLabel(WireCategory.ANALYTICS_SENTIMENT, slice.name),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
                     modifier = Modifier.weight(1f),
@@ -388,7 +392,7 @@ internal fun UsageCard(usage: UsageData?) {
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = formatUsageAmount(amount),
+                    text = formatUsageAmount(amount, appLanguage()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = DistrictTheme.colors.foreground,
                 )

@@ -16,6 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.callDurationText
+import com.distronode.districtai.l10n.callTimeText
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictCard
@@ -106,13 +110,13 @@ private fun Content(
                 append(" · ")
                 // Pre-formatted in the OPERATOR's timezone server-side. Reformatting locally would
                 // render it in the device's zone and disagree with the browser.
-                append(display.time)
+                append(callTimeText(display.time, display.createdAt))
                 // ⛔ GUARDED, NOT APPENDED UNCONDITIONALLY. The server always formats a duration
                 // string, so a missed call (which never connected) would read "· 0s" here while the
                 // call log correctly shows nothing.
                 display.durationLabel?.let {
                     append(" · ")
-                    append(it)
+                    append(callDurationText(it, display.durationSeconds))
                 }
             },
             style = MaterialTheme.typography.bodySmall,
@@ -123,19 +127,26 @@ private fun Content(
             text = if (display.live) {
                 stringResource(R.string.overview_status_live)
             } else {
-                display.status
+                wireLabel(WireCategory.CALL_STATUS, display.status)
             },
             style = MaterialTheme.typography.labelLarge,
         )
 
         LabelledCard(stringResource(R.string.call_detail_summary), call.aiSummary)
 
-        call.sentiment?.let { LabelledCard(stringResource(R.string.call_detail_sentiment), it) }
-        call.disposition?.let { LabelledCard(stringResource(R.string.call_detail_disposition), it) }
-        call.transferStatus?.let {
+        call.sentiment?.let {
+            LabelledCard(stringResource(R.string.call_detail_sentiment), wireLabel(WireCategory.SENTIMENT, it))
+        }
+        call.disposition?.let {
+            LabelledCard(stringResource(R.string.call_detail_disposition), wireLabel(WireCategory.DISPOSITION, it))
+        }
+        call.transferStatus?.let { status ->
             LabelledCard(
                 stringResource(R.string.call_detail_transfer),
-                listOfNotNull(it, call.transferReason).joinToString(" · "),
+                listOfNotNull(
+                    wireLabel(WireCategory.TRANSFER_STATUS, status),
+                    call.transferReason?.let { wireLabel(WireCategory.TRANSFER_REASON, it) },
+                ).joinToString(" · "),
             )
         }
         // ⚠️ The wire key is `sms`, not `smsBody` — the column is followUpSMSBody and the handler

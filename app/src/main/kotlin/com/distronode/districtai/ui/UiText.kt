@@ -3,6 +3,7 @@ package com.distronode.districtai.ui
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.serverSentence
 
 /**
  * A user-facing message that has NOT been resolved to a String yet.
@@ -59,18 +60,37 @@ sealed interface UiText {
     data class Literal(val value: String) : UiText
 
     /**
+     * The server's description of an error: its English sentence, plus the machine code that names
+     * it when the response carried one (the body's `code`, else the `X-Distronode-Error-Code`
+     * header).
+     *
+     * ⚠️ IN ENGLISH IT READS EXACTLY AS A [Literal] DID, the server's own sentence. The difference is
+     * French: there the code picks the catalog's sentence (contracts/i18n/api-errors.json), and a
+     * response with no known code shows [fallback] (the screen's own sentence, when it has one)
+     * rather than English. See [serverSentence].
+     */
+    data class Server(
+        val value: String,
+        val code: String? = null,
+        /** The names a list-bearing code's sentence lists (`degradedRegions`, for instance). */
+        val items: List<String> = emptyList(),
+        @get:StringRes val fallback: Int? = null,
+    ) : UiText
+
+    /**
      * The literal text, or null for a resource reference.
      *
      * ⚠️ For assertions and diagnostics only. Rendering must go through [resolve] so a
      * [Resource] is never silently dropped.
      */
-    val literalOrNull: String? get() = (this as? Literal)?.value
+    val literalOrNull: String? get() = (this as? Literal)?.value ?: (this as? Server)?.value
 }
 
 /** Resolve to displayable text. The only place a [UiText] should become a `String`. */
 @Composable
 fun UiText.resolve(): String = when (this) {
     is UiText.Literal -> value
+    is UiText.Server -> serverSentence(value, code, items, fallback)
     // ⚠️ Two explicit calls rather than one spread. See [UiText.Resource.arg].
     is UiText.Resource -> if (arg == null) stringResource(id) else stringResource(id, arg)
 }

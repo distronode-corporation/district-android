@@ -188,7 +188,7 @@ private fun SearchTab(
             }
         }
         is SearchState.Ready -> SearchResults(search)
-        is SearchState.NotConfigured -> ContentContainer { NotConfiguredState(search.message) }
+        is SearchState.NotConfigured -> ContentContainer { NotConfiguredState(search.message, search.code) }
         is SearchState.Failed -> ContentContainer {
             InlineFailure(
                 title = stringResource(R.string.marketplace_search_failed),

@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.appLanguage
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -75,6 +76,7 @@ internal fun SubscriptionsCard(detail: StripeBilling) {
 
 @Composable
 private fun SubscriptionRow(subscription: BillingSubscription) {
+    val language = appLanguage()
     Column(modifier = Modifier.padding(top = DistrictTheme.spacing.tight)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -87,7 +89,7 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
             // free plan to someone who is paying.
             subscription.amount?.let {
                 Text(
-                    text = stringResource(R.string.billing_amount_monthly, formatCents(it)),
+                    text = stringResource(R.string.billing_amount_monthly, formatCents(it, language)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = DistrictTheme.colors.foreground,
                 )
@@ -97,9 +99,9 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
             Text(
                 // ⛔ See the ⛔ on the card. The flag chooses the sentence, not the date.
                 text = if (subscription.cancelAtPeriodEnd) {
-                    stringResource(R.string.billing_ends_on, formatUnixSeconds(end))
+                    stringResource(R.string.billing_ends_on, formatUnixSeconds(end, language = language))
                 } else {
-                    stringResource(R.string.billing_renews_on, formatUnixSeconds(end))
+                    stringResource(R.string.billing_renews_on, formatUnixSeconds(end, language = language))
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
@@ -116,10 +118,14 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
                     stringResource(
                         R.string.billing_discount_percent,
                         discount.couponName,
-                        formatUsageAmount(it),
+                        formatUsageAmount(it, appLanguage()),
                     )
                 } ?: discount.amountOff?.let {
-                    stringResource(R.string.billing_discount_amount, discount.couponName, formatCents(it))
+                    stringResource(
+                        R.string.billing_discount_amount,
+                        discount.couponName,
+                        formatCents(it, language),
+                    )
                 } ?: discount.couponName,
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.success,
@@ -185,6 +191,7 @@ internal fun InvoicesCard(detail: StripeBilling, onOpenInvoice: (String) -> Unit
 
 @Composable
 private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit) {
+    val language = appLanguage()
     val url = invoice.hostedInvoiceUrl?.takeIf { it.isNotBlank() }
     Column(
         modifier = Modifier
@@ -198,7 +205,7 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 // ⚠️ UNIX SECONDS. The multiplication lives in `formatUnixSeconds` and nowhere else.
-                text = formatUnixSeconds(invoice.created),
+                text = formatUnixSeconds(invoice.created, language = language),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier.weight(1f),
@@ -208,7 +215,7 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
                 // paid. See [invoiceAmountCents].
                 text = stringResource(
                     R.string.billing_amount,
-                    formatCents(invoiceAmountCents(invoice)),
+                    formatCents(invoiceAmountCents(invoice), language),
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DistrictTheme.colors.foreground,
@@ -227,7 +234,7 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
             // only when non-zero: an "incl. $0.00 tax" line is noise on every untaxed invoice.
             if (invoice.tax > 0) {
                 Text(
-                    text = stringResource(R.string.billing_invoice_tax, formatCents(invoice.tax)),
+                    text = stringResource(R.string.billing_invoice_tax, formatCents(invoice.tax, language)),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
                     modifier = Modifier.padding(start = DistrictTheme.spacing.tight),

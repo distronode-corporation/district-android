@@ -64,6 +64,10 @@ internal data class CallDisplay(
      * from `durationRaw`.
      */
     val durationLabel: String?,
+    /** The ISO instant [time] was formatted from, so French can rebuild it. */
+    val createdAt: String = "",
+    /** [durationLabel]'s seconds, so French can rebuild it. */
+    val durationSeconds: Int? = null,
 )
 
 /** Map a wire row to its display rules. The only place these comparisons should appear in `app`. */
@@ -79,6 +83,8 @@ internal fun CallSummary.toDisplay(): CallDisplay = CallDisplay(
     // ⚠️ `durationRaw` is a property from another module, so Kotlin will not smart-cast it after
     // a null check — read it into a local first.
     durationLabel = durationRaw.let { seconds -> duration.takeIf { seconds != null && seconds > 0 } },
+    createdAt = createdAt,
+    durationSeconds = durationRaw,
 )
 
 // ⚠️ DEFINED ONCE, HERE. These are wire values, not display copy, so they are not localizable and

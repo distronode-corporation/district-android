@@ -30,6 +30,25 @@ kotlinx.serialization in use and nothing will say so until `assembleRelease` is 
 Static only. A full decode under R8 needs a signed-in device, and the login leg needs a browser the
 emulator does not have.
 
+## `l10n-contracts.py`
+
+Generates `l10n/api_errors.toml` and `l10n/wire_labels.toml`, with their Kotlin lookup tables under
+`app/src/main/kotlin/.../l10n/`, from the website's contract files in `contracts/i18n/`. Run it after
+those files change, then `tools/l10n/l10n.py gen` for each catalog (CONTRIBUTING.md, "Strings").
+`--check` is what CI runs.
+
+⚠️ A wire label's English is what this app has always shown (the raw value, or upper-cased for a
+region), not the portal's label: W1 changes no English. The portal's English is in each entry's note.
+
+## `french-guard.sh`
+
+`absent` fails when any of the app's own strings has an fr-rCA value in an `.aab` or `.apk`
+(release.yml, on every bundle); `present` fails when none does (the French CI job, built with
+`-Pdistrict.l10n.fr`).
+
+⛔ **The app's own keys, not "any fr-rCA configuration".** AndroidX ships fr-rCA strings in every
+build, so the configuration is always there.
+
 ## `smoke-emulator.sh`
 
 Boots an emulator headless, installs the debug APK, runs the Maestro flow in `.maestro/smoke.yaml`,

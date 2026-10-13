@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
+import com.distronode.districtai.l10n.serverSentence
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
@@ -248,7 +249,7 @@ private fun PartialBanner(failedProviders: List<String>) {
  * "the provider you asked for is not connected" and this layer cannot.
  */
 @Composable
-internal fun NotConfiguredState(message: String) {
+internal fun NotConfiguredState(message: String, code: String? = null) {
     Column(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
@@ -256,7 +257,9 @@ internal fun NotConfiguredState(message: String) {
     ) {
         EmptyState(
             title = stringResource(R.string.marketplace_not_configured_title),
-            body = message,
+            // In English the server's own sentence, which tells the two not-connected cases apart;
+            // in French its code picks the catalog's sentence.
+            body = serverSentence(message, code),
         )
     }
 }

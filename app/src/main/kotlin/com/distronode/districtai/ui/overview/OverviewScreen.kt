@@ -26,6 +26,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -708,7 +710,10 @@ private fun WorkspaceHeader(
         PageHeader(
             title = active.name,
             // Region is shown because data residency is a product promise here, not a detail.
-            subtitle = stringResource(R.string.overview_workspace_region, active.region.uppercase()),
+            subtitle = stringResource(
+                R.string.overview_workspace_region,
+                wireLabel(WireCategory.REGION, active.region),
+            ),
             actions = {
                 if (readOnly) {
                     // ⚠️ Stated up front rather than discovered by tapping something that 403s. The

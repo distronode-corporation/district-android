@@ -49,7 +49,11 @@ sealed interface ApiResult<out T> {
      * ⚠️ Reaching this is not necessarily a bug in the UI's role gating. The role can change
      * server-side between the list being fetched and the action being taken.
      */
-    data class Forbidden(val message: String) : Failure
+    data class Forbidden(
+        val message: String,
+        /** The machine-readable code, from the body or the [ApiErrorEnvelope.CODE_HEADER] header. */
+        val code: String? = null,
+    ) : Failure
 
     /**
      * HTTP 404.
@@ -58,7 +62,11 @@ sealed interface ApiResult<out T> {
      * 403 — so this is not only "wrong URL". An account with no workspace at all is a
      * distinct, legitimate state that needs its own screen.
      */
-    data class NotFound(val message: String) : Failure
+    data class NotFound(
+        val message: String,
+        /** The machine-readable code, from the body or the error-code header. */
+        val code: String? = null,
+    ) : Failure
 
     /**
      * HTTP 429, or a refresh that was itself throttled.
@@ -73,7 +81,12 @@ sealed interface ApiResult<out T> {
      *   the endpoint itself, i.e. the request was never sent. Same user-facing handling
      *   ("try again shortly"); worth distinguishing in logs because the remedies differ.
      */
-    data class RateLimited(val message: String, val refreshThrottled: Boolean = false) : Failure
+    data class RateLimited(
+        val message: String,
+        val refreshThrottled: Boolean = false,
+        /** The machine-readable code, from the body or the error-code header. */
+        val code: String? = null,
+    ) : Failure
 
     /**
      * HTTP 503 with `code: "REGIONS_DEGRADED"` — one or more regional databases did not
@@ -93,7 +106,10 @@ sealed interface ApiResult<out T> {
     data class HttpFailure(
         val status: Int,
         val message: String,
-        /** The machine-readable `code`, when the response carried one. */
+        /**
+         * The machine-readable `code`, when the response carried one: the body's, else the
+         * `X-Distronode-Error-Code` header's (see [ApiErrorEnvelope.CODE_HEADER]).
+         */
         val code: String? = null,
     ) : Failure
 

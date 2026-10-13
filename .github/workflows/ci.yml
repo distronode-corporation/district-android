@@ -47,14 +47,20 @@ jobs:
       - name: Release script tests
         run: scripts/release-scripts.test.sh
 
-      # The string catalog, also in seconds: the vendored tools match their recorded hashes, the
-      # catalog is valid and canonical, and the committed strings.xml (and the French source set's
-      # file) are byte for byte what the catalog generates. A hand edit to strings.xml fails here.
+      # The string catalogs, also in seconds: the vendored tools match their recorded hashes, the
+      # error-code and wire-label catalogs (and their Kotlin tables) are what contracts/i18n
+      # generates, the three catalogs are valid, canonical and collision-free together, and every
+      # generated resource file (main and French) is byte for byte what its catalog produces. A
+      # hand edit to strings.xml fails here.
       # Python 3.11 or newer, standard library only; ubuntu-24.04 ships 3.12.
       - name: String catalog
         run: |
           python3 tools/l10n/l10n.py vendor --check --dest tools/l10n
+          python3 scripts/l10n-contracts.py --check
+          python3 tools/l10n/l10n.py check l10n/android.toml l10n/api_errors.toml l10n/wire_labels.toml
           python3 tools/l10n/l10n.py check l10n/android.toml --gen android:l10n/res --opt name=strings
+          python3 tools/l10n/l10n.py check l10n/api_errors.toml --gen android:l10n/res --opt name=api_errors
+          python3 tools/l10n/l10n.py check l10n/wire_labels.toml --gen android:l10n/res --opt name=wire_labels
 
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.
@@ -166,6 +172,56 @@ jobs:
             **/build/reports/lint-results-*.html
             **/build/reports/lint-results-*.xml
             **/build/reports/detekt/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # The French build, NON-BLOCKING until the 3.0 cut: the debug APK with the French resources built
+  # in (-Pdistrict.l10n.fr) and the pseudolocales every debug build carries, linted, and checked to
+  # hold the app's own fr-rCA strings. French is incomplete until W3, so lint's MissingTranslation
+  # and friends are expected to have things to say; this job is a window on that work, not a gate.
+  # It holds no secret and builds nothing that ships.
+  french:
+    name: French build (non-blocking)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-provider: basic
+
+      - name: Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+          test -d "$ANDROID_HOME/platforms/android-37.0"
+          test -d "$ANDROID_HOME/build-tools/37.0.0"
+
+      - name: Debug APK with French and the pseudolocales
+        run: ./gradlew assembleDebug lintDebug -Pdistrict.l10n.fr --no-daemon --continue
+
+      - name: The app's own French strings are in it
+        if: always()
+        run: |
+          scripts/french-guard.sh present app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/37.0.0/aapt2" dump configurations app/build/outputs/apk/debug/app-debug.apk \
+            | grep -E '^(en-rXA|ar-rXB)$' | sort -u
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: french-lint-results
+          path: app/build/reports/lint-results-*.html
           if-no-files-found: warn
           retention-days: 14
 

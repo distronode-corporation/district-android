@@ -197,17 +197,19 @@ class SchedulingViewModel(
          * WHAT WENT WRONG. Promoting it to a failure would throw that sentence away; the fallback
          * exists only for a server that sent neither.
          *
-         * ⚠️ THE SERVER'S SENTENCE IS A [UiText.Literal] AND OURS IS A [UiText.Resource], which is
+         * ⚠️ THE SERVER'S SENTENCE IS A [UiText.Server] AND OURS IS A [UiText.Resource], which is
          * the split that type exists for: the provisioner's classified message is more specific
-         * than anything this client could infer, and it is not ours to translate.
+         * than anything this client could infer. It is shown as written in English; in French,
+         * where the server's English never appears, the fallback below stands in for it.
          */
         internal fun enableNotice(result: ApiResult<SchedulingEnableResponse>): UiText? = when (result) {
             is ApiResult.Success ->
                 if (result.value.ok) {
                     null
                 } else {
-                    result.value.error?.let { UiText.Literal(it) }
-                        ?: UiText.Resource(R.string.scheduling_enable_failed_fallback)
+                    result.value.error?.let {
+                        UiText.Server(it, fallback = R.string.scheduling_enable_failed_fallback)
+                    } ?: UiText.Resource(R.string.scheduling_enable_failed_fallback)
                 }
             is ApiResult.Failure -> enableFailureNotice(result)
         }
@@ -234,10 +236,10 @@ class SchedulingViewModel(
          * would put a second, drifting copy of a product decision in an app that ships on its own
          * release schedule.
          *
-         * ⚠️ AND IT IS A [UiText.Literal] FOR THE SAME REASON THE PROVISIONER'S REFUSAL IS: it is
-         * the server's copy, more specific than anything this build could infer, and not ours to
-         * translate. ⛔ No retry is offered anywhere near it — the notice carries a Dismiss and
-         * nothing else — because the console is not coming back for this region, and the sentence
+         * ⚠️ AND IT IS A [UiText.Server] FOR THE SAME REASON THE PROVISIONER'S REFUSAL IS: it is
+         * the server's copy, more specific than anything this build could infer; in French its code
+         * picks the catalog's sentence. ⛔ No retry is offered anywhere near it (the notice carries a
+         * Dismiss and nothing else), because the console is not coming back for this region, and the sentence
          * itself points at the primary action.
          *
          * ⚠️ 409 IS NOT A FAULT EITHER, for a different reason. The SSO route answers it when the
@@ -246,7 +248,7 @@ class SchedulingViewModel(
          */
         internal fun handOffNotice(failure: ApiResult.Failure): UiText = when {
             failure.isConsoleRetired() ->
-                UiText.Literal((failure as ApiResult.HttpFailure).message)
+                (failure as ApiResult.HttpFailure).let { UiText.Server(it.message, it.code) }
             failure is ApiResult.HttpFailure && failure.status == HTTP_CONFLICT ->
                 UiText.Resource(R.string.scheduling_not_ready_yet)
             else -> failure.toFailureText().message

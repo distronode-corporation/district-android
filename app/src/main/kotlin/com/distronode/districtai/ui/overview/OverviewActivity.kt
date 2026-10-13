@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.callTimeText
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.RecentActivity
 import com.distronode.districtai.core.designsystem.Avatar
@@ -27,7 +30,11 @@ import com.distronode.districtai.ui.toneForCallStatus
 internal fun ActivityRow(call: RecentActivity) {
     // ⚠️ `live` is derived from the DISPLAY status, which the server has already downgraded for a
     // stale call, so this cannot label a day-old row "Live".
-    val statusLabel = if (call.live) stringResource(R.string.overview_status_live) else call.status
+    val statusLabel = if (call.live) {
+        stringResource(R.string.overview_status_live)
+    } else {
+        wireLabel(WireCategory.CALL_STATUS, call.status)
+    }
     val statusTone = if (call.live) Tone.District else toneForCallStatus(call.status)
 
     DistrictListRow(
@@ -40,7 +47,7 @@ internal fun ActivityRow(call: RecentActivity) {
             } else {
                 R.string.overview_direction_inbound
             },
-        ) + " · " + call.time,
+        ) + " · " + callTimeText(call.time, call.createdAt),
         leading = {
             Avatar(
                 name = call.displayName ?: "",

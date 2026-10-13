@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.distronode.districtai.l10n.appLanguage
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictCard
@@ -226,9 +227,9 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
 
         Text(
             text = if (included == null) {
-                stringResource(R.string.billing_meter_used, formatUsageAmount(used))
+                stringResource(R.string.billing_meter_used, formatUsageAmount(used, appLanguage()))
             } else {
-                stringResource(R.string.billing_meter_used_of, formatUsageAmount(used), included)
+                stringResource(R.string.billing_meter_used_of, formatUsageAmount(used, appLanguage()), included)
             },
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,

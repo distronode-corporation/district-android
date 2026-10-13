@@ -130,6 +130,9 @@ if (districtSentryDsn.isEmpty()) {
     )
 }
 
+/** -Pdistrict.l10n.fr: build the French resources in. See "Languages" in the android block. */
+val districtL10nFr: Boolean = providers.gradleProperty("district.l10n.fr").isPresent
+
 android {
     namespace = "com.distronode.districtai"
 
@@ -167,6 +170,33 @@ android {
             // Where the value comes from, and why it defaults to empty, is the note above.
             buildConfigField("String", "SENTRY_DSN", "\"$districtSentryDsn\"")
         }
+
+        // ⚠️ PSEUDOLOCALES IN DEBUG ONLY: en-XA (accented, about 40% longer) and ar-XB
+        // (mirrored) find hard-coded text, concatenation and truncation on a device set to one of
+        // them. A release build never carries them.
+        getByName("debug") {
+            isPseudoLocalesEnabled = true
+        }
+    }
+
+    // ── Languages ────────────────────────────────────────────────────────────
+    //
+    // ⛔ NO FRENCH SHIPS UNTIL THE 3.0 CUT, AND ONE GRADLE PROPERTY IS THE SWITCH. The French
+    // resources are generated from l10n/*.toml into their own source directory, src/l10n-fr/res,
+    // which joins `main` only when the build is run with -Pdistrict.l10n.fr. Without it no
+    // app-owned string has an fr-rCA value, which release.yml checks on every bundle
+    // (scripts/french-guard.sh). fr-FR, fr-BE, fr-CH and plain fr all resolve to values-fr-rCA,
+    // so no plain values-fr is needed.
+    //
+    // ⚠️ generateLocaleConfig writes the locale list Android 13+ shows in the per-app language
+    // setting, from the resource directories in the build: `en-US` alone today, `en-US fr-CA`
+    // with the property. It needs src/main/res/resources.properties to name the language of the
+    // unqualified resources (en-US).
+    androidResources {
+        generateLocaleConfig = true
+    }
+    if (districtL10nFr) {
+        sourceSets.getByName("main").res.directories.add("src/l10n-fr/res")
     }
 }
 

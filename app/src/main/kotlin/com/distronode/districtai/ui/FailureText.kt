@@ -24,7 +24,8 @@ data class FailureText(
      * ⚠️ A [UiText], NOT A `String`. This mapper runs in ViewModels, which have no `Context`, so
      * holding rendered text meant every message the CLIENT authors was hardcoded English —
      * untranslatable in an app that declares `supportsRtl="true"`. Ours are now
-     * [UiText.Resource]; the server's own copy stays [UiText.Literal]. See [UiText].
+     * [UiText.Resource]; the server's own copy is a [UiText.Server], its English sentence plus the
+     * error code that names it in French. See [UiText].
      */
     val message: UiText,
     /**
@@ -63,13 +64,13 @@ fun ApiResult.Failure.toFailureText(): FailureText = when (this) {
     // spent, and its limits are sized to tolerate several devices behind one NAT — an office
     // sharing an egress IP is exactly when this fires. Signing them out would be the wrong
     // response to the product working as designed.
-    is ApiResult.RateLimited -> FailureText(message = UiText.Literal(message))
+    is ApiResult.RateLimited -> FailureText(message = UiText.Server(message, code))
 
     // ⚠️ Not retryable: the role will not change because the user pressed a button again. It can
     // change server-side, but presenting "try again" implies this attempt was unlucky.
-    is ApiResult.Forbidden -> FailureText(message = UiText.Literal(message), retryable = false)
+    is ApiResult.Forbidden -> FailureText(message = UiText.Server(message, code), retryable = false)
 
-    is ApiResult.NotFound -> FailureText(message = UiText.Literal(message), retryable = false)
+    is ApiResult.NotFound -> FailureText(message = UiText.Server(message, code), retryable = false)
 
     is ApiResult.NetworkFailure -> FailureText(message = UiText.Resource(R.string.failure_offline))
 
@@ -140,7 +141,7 @@ private fun ApiResult.HttpFailure.httpFailureText(): FailureText = FailureText(
     message = if (status >= HTTP_SERVER_ERROR) {
         UiText.Resource(R.string.failure_server)
     } else {
-        UiText.Literal(message)
+        UiText.Server(message, code)
     },
 )
 

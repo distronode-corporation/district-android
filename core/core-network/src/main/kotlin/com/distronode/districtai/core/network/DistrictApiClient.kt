@@ -461,20 +461,25 @@ class DistrictApiClient(
 
         val envelope = parseError(body)
         val message = envelope.error?.takeIf { it.isNotBlank() } ?: ApiErrorEnvelope.FALLBACK_MESSAGE
+        // ⚠️ THE BODY'S CODE WINS, THEN THE HEADER'S. A route that puts a code in its body is the
+        // specific answer; a header may have been stamped by a shared guard wrapping it. The header
+        // exists because a byte-pinned error body cannot gain a key (see ApiErrorEnvelope.CODE_HEADER).
+        val code = envelope.code?.takeIf { it.isNotBlank() }
+            ?: response.header(ApiErrorEnvelope.CODE_HEADER)?.takeIf { it.isNotBlank() }
 
         return when {
             response.code == HTTP_UNAUTHORIZED -> ApiResult.Unauthorized(reason = null)
-            response.code == HTTP_FORBIDDEN -> ApiResult.Forbidden(message)
-            response.code == HTTP_NOT_FOUND -> ApiResult.NotFound(message)
-            response.code == HTTP_TOO_MANY_REQUESTS -> ApiResult.RateLimited(message)
+            response.code == HTTP_FORBIDDEN -> ApiResult.Forbidden(message, code)
+            response.code == HTTP_NOT_FOUND -> ApiResult.NotFound(message, code)
+            response.code == HTTP_TOO_MANY_REQUESTS -> ApiResult.RateLimited(message, code = code)
             // Checked on the CODE, not on the status alone: a plain 503 from an edge proxy is an
             // ordinary outage, while this one carries which regions were unreachable and means
             // the answer would have been incomplete.
-            envelope.code == ApiErrorEnvelope.CODE_REGIONS_DEGRADED -> ApiResult.RegionsDegraded(
+            code == ApiErrorEnvelope.CODE_REGIONS_DEGRADED -> ApiResult.RegionsDegraded(
                 message = message,
                 degradedRegions = envelope.degradedRegions,
             )
-            else -> ApiResult.HttpFailure(response.code, message, envelope.code)
+            else -> ApiResult.HttpFailure(response.code, message, code)
         }
     }
 

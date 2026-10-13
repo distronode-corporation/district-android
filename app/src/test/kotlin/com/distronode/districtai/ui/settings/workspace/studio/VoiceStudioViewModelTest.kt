@@ -136,7 +136,10 @@ class VoiceStudioViewModelTest {
         advanceUntilIdle()
 
         val failed = vm.ready().save as StudioSaveState.Failed
-        assertEquals(UiText.Literal("That voice chain cannot be saved."), failed.failure.message)
+        assertEquals(
+            UiText.Server("That voice chain cannot be saved.", code = "invalid_engine_mix"),
+            failed.failure.message,
+        )
         assertEquals(setOf(StudioKey.MODEL_ID, StudioKey.ENGINE_MIX), vm.ready().pending)
     }
 

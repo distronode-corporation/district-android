@@ -77,6 +77,13 @@ data class ApiErrorEnvelope(
         /** Shown when the body was empty, truncated, or not JSON — so the UI always has a sentence. */
         const val FALLBACK_MESSAGE: String = "Something went wrong. Please try again."
 
+        /**
+         * The header that carries the code when the body cannot (a shared guard, or a route whose
+         * body is byte-pinned by a fixture). The body's own `code` wins when both are present, the
+         * same order the web's `describeApiError` reads them in.
+         */
+        const val CODE_HEADER: String = "X-Distronode-Error-Code"
+
         /** The `code` that marks an incomplete answer rather than a genuine absence of data. */
         const val CODE_REGIONS_DEGRADED: String = "REGIONS_DEGRADED"
     }

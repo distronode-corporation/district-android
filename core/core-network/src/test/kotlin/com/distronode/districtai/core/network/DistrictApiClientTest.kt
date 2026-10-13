@@ -323,6 +323,57 @@ class DistrictApiClientTest {
     }
 
     @Test
+    fun `carries the error code from the header when the body has none`() = runTest {
+        // A shared guard cannot change a byte-pinned body, so it names the error in a header.
+        server.enqueue(
+            MockResponse(
+                code = 403,
+                headers = Headers.headersOf(ApiErrorEnvelope.CODE_HEADER, "forbidden"),
+                body = """{"error":"Forbidden: Insufficient workspace privileges"}""",
+            ),
+        )
+        server.enqueue(
+            MockResponse(
+                code = 429,
+                headers = Headers.headersOf(ApiErrorEnvelope.CODE_HEADER, "rate_limited"),
+                body = """{"error":"Too many requests."}""",
+            ),
+        )
+        server.enqueue(
+            MockResponse(
+                code = 404,
+                headers = Headers.headersOf(ApiErrorEnvelope.CODE_HEADER, " "),
+                body = """{"error":"Not here"}""",
+            ),
+        )
+
+        assertEquals(ApiResult.Forbidden("Forbidden: Insufficient workspace privileges", "forbidden"), get()())
+        assertEquals(ApiResult.RateLimited("Too many requests.", code = "rate_limited"), get()())
+        assertEquals(ApiResult.NotFound("Not here"), get()())
+    }
+
+    @Test
+    fun `the body's code wins over the header's, and either can mark degraded regions`() = runTest {
+        server.enqueue(
+            MockResponse(
+                code = 409,
+                headers = Headers.headersOf(ApiErrorEnvelope.CODE_HEADER, "conflict"),
+                body = """{"error":"Already booked","code":"already_booked"}""",
+            ),
+        )
+        server.enqueue(
+            MockResponse(
+                code = 503,
+                headers = Headers.headersOf(ApiErrorEnvelope.CODE_HEADER, ApiErrorEnvelope.CODE_REGIONS_DEGRADED),
+                body = """{"error":"Some regions are unreachable.","degradedRegions":["eu"]}""",
+            ),
+        )
+
+        assertEquals(ApiResult.HttpFailure(409, "Already booked", "already_booked"), get()())
+        assertEquals(ApiResult.RegionsDegraded("Some regions are unreachable.", listOf("eu")), get()())
+    }
+
+    @Test
     fun `maps 404 including the no-workspace case`() = runTest {
         // ⚠️ 404, not 403, when the account has no workspace at all — a distinct legitimate
         // state that needs its own screen rather than a "not found" dead end.

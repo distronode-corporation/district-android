@@ -279,7 +279,7 @@ class MembersViewModelTest {
         advanceUntilIdle()
 
         val failed = vm.state.value.removeSave as SaveState.Failed
-        assertEquals(UiText.Literal("Too many membership changes."), failed.failure.message)
+        assertEquals(UiText.Server("Too many membership changes."), failed.failure.message)
     }
 
     @Test

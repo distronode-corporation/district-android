@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.media.CallConnectionState
@@ -94,10 +94,10 @@ class ActiveRoomScreenTest {
     fun `every participant gets a tile`() {
         render(connected())
 
-        composeRule.onNodeWithContentDescription(ACTIVE_ROOM_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ROOM_GRID_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-4f2a")).assertExists()
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-9c11")).assertExists()
+        composeRule.onNodeWithTag(ACTIVE_ROOM_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_GRID_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(participantTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(participantTileDescription("user-9c11")).assertExists()
     }
 
     @Test
@@ -107,15 +107,15 @@ class ActiveRoomScreenTest {
         // checks before saying something private.
         render(connected(participants = listOf(ada)))
 
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-4f2a")).assertExists()
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(participantTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(audioTileDescription("user-4f2a")).assertExists()
     }
 
     @Test
     fun `an empty room says so rather than rendering an empty grid`() {
         render(connected(participants = emptyList()))
 
-        composeRule.onNodeWithContentDescription(ROOM_ALONE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_ALONE_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── The Companion ────────────────────────────────────────────────────────
@@ -127,11 +127,11 @@ class ActiveRoomScreenTest {
         // people are being recorded.
         render(connected(participants = listOf(ada), companionPresent = true))
 
-        composeRule.onNodeWithContentDescription(ROOM_COMPANION_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_COMPANION_DESCRIPTION).assertIsDisplayed()
         // ⚠️ The agent identity is never in `participants` (the ViewModel filters it), so no tile
         // can carry it. Asserted so a future change that stopped filtering fails HERE, visibly.
         composeRule
-            .onNodeWithContentDescription(participantTileDescription("agent-AJ_abc123"))
+            .onNodeWithTag(participantTileDescription("agent-AJ_abc123"), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -139,7 +139,7 @@ class ActiveRoomScreenTest {
     fun `no Companion means no chip`() {
         render(connected(companionPresent = false))
 
-        composeRule.onNodeWithContentDescription(ROOM_COMPANION_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_COMPANION_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── Connection state ─────────────────────────────────────────────────────
@@ -152,29 +152,29 @@ class ActiveRoomScreenTest {
         render(connected().copy(connection = CallConnectionState.Reconnecting))
 
         composeRule
-            .onNodeWithContentDescription(ROOM_BANNER_RECONNECTING_DESCRIPTION)
+            .onNodeWithTag(ROOM_BANNER_RECONNECTING_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ROOM_GRID_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(ROOM_GRID_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(participantTileDescription("user-4f2a")).assertExists()
         // ⛔ AND IT IS NOT THE FAILURE BANNER. Two different banners, two different tones, and only
         // one of them tells the user something has gone wrong.
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_FAILED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_BANNER_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a connected room shows no banner at all`() {
         render(connected())
 
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_CONNECTING_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_RECONNECTING_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_FAILED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_BANNER_CONNECTING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_BANNER_RECONNECTING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_BANNER_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a lost session shows the failure banner`() {
         render(connected().copy(connection = CallConnectionState.Failed("gone")))
 
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_FAILED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_BANNER_FAILED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -186,7 +186,7 @@ class ActiveRoomScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOM_JOIN_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_JOIN_FAILURE_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── Permissions and the viewer seat ──────────────────────────────────────
@@ -197,8 +197,8 @@ class ActiveRoomScreenTest {
         // warning in that window tells the user something untrue about their own device.
         render(connected(permissions = RoomPermissions()))
 
-        composeRule.onNodeWithContentDescription(ROOM_NO_MIC_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(ROOM_NO_CAMERA_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_NO_MIC_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_NO_CAMERA_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -213,11 +213,11 @@ class ActiveRoomScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOM_NO_MIC_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_NO_MIC_DESCRIPTION).assertIsDisplayed()
         // ⛔ DISABLED, NOT HIDDEN. A missing control makes the user hunt for it; a disabled one
         // beside a sentence saying why is the pair that actually explains the state.
-        composeRule.onNodeWithContentDescription(ROOM_MIC_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(ROOM_CAMERA_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(ROOM_MIC_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROOM_CAMERA_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
@@ -232,9 +232,9 @@ class ActiveRoomScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOM_NO_CAMERA_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ROOM_CAMERA_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(ROOM_MIC_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(ROOM_NO_CAMERA_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_CAMERA_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROOM_MIC_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
@@ -244,10 +244,10 @@ class ActiveRoomScreenTest {
         // permission ones rather than stacking with them.
         render(connected(canPublish = false))
 
-        composeRule.onNodeWithContentDescription(ROOM_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ROOM_MIC_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(ROOM_CAMERA_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(ROOM_NO_MIC_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_VIEWER_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_MIC_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROOM_CAMERA_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROOM_NO_MIC_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── Controls ─────────────────────────────────────────────────────────────
@@ -256,10 +256,10 @@ class ActiveRoomScreenTest {
     fun `the controls fire their callbacks`() {
         render(connected().copy(cameraEnabled = true))
 
-        composeRule.onNodeWithContentDescription(ROOM_MIC_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(ROOM_CAMERA_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(ROOM_FLIP_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(ROOM_SPEAKER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOM_MIC_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOM_CAMERA_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOM_FLIP_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOM_SPEAKER_DESCRIPTION).performClick()
 
         assertEquals(1, micTaps)
         assertEquals(1, cameraTaps)
@@ -273,14 +273,14 @@ class ActiveRoomScreenTest {
         // would report success for an action that did nothing.
         render(connected())
 
-        composeRule.onNodeWithContentDescription(ROOM_FLIP_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(ROOM_FLIP_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
     fun `leaving fires exactly once per tap`() {
         render(connected())
 
-        composeRule.onNodeWithContentDescription(ROOM_LEAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOM_LEAVE_DESCRIPTION).performClick()
 
         assertEquals(1, leaveTaps)
     }
@@ -294,7 +294,7 @@ class ActiveRoomScreenTest {
         // locally is one `/api/meet/token` will not honour.
         render(connected(guestLink = null))
 
-        composeRule.onNodeWithContentDescription(ROOM_SHARE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_SHARE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -302,7 +302,7 @@ class ActiveRoomScreenTest {
         val link = "https://www.distronode.test/meet/meet_ws-abc_standup?e=1786973400&s=sig"
         render(connected(guestLink = link))
 
-        composeRule.onNodeWithContentDescription(ROOM_SHARE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOM_SHARE_DESCRIPTION).performClick()
 
         assertEquals(listOf(link), sharedLinks)
     }

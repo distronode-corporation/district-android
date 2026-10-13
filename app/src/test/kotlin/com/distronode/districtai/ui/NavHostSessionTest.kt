@@ -2,7 +2,7 @@ package com.distronode.districtai.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.model.WorkspaceRole
@@ -134,7 +134,7 @@ class NavHostSessionTest {
         ).forEach { (route, root) ->
             harness.navigate(route)
             harness.bumpEpoch()
-            composeRule.onNodeWithContentDescription(root).assertIsDisplayed()
+            composeRule.onNodeWithTag(root).assertIsDisplayed()
         }
     }
 
@@ -144,10 +144,10 @@ class NavHostSessionTest {
     fun `the host builds its own controller when none is passed, as the activity does`() {
         harness.render(ownController = true)
 
-        composeRule.onNodeWithContentDescription(OVERVIEW_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(NAV_INBOX_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(OVERVIEW_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(NAV_INBOX_DESCRIPTION).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -156,14 +156,14 @@ class NavHostSessionTest {
 
         harness.overviewState = NavHostHarness.content(role = WorkspaceRole.VIEWER)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_CONTACTS_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.CONTACTS, harness.route())
         assertEquals("viewer", harness.argument(ARG_ROLE))
 
         harness.overviewState = com.distronode.districtai.ui.overview.OverviewUiState.Loading
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(NAV_CONTACTS_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -172,14 +172,14 @@ class NavHostSessionTest {
 
         // Unchanged: the caller recomposes for the epoch alone, and the tabs still carry agency.
         harness.bumpEpoch()
-        composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_CONTACTS_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals("agency", harness.argument(ARG_ROLE))
 
         // Changed: a new state with a narrower role, and the next tab carries it.
         harness.overviewState = NavHostHarness.content(role = WorkspaceRole.VIEWER)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(NAV_INBOX_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_INBOX_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.INBOX, harness.route())
         assertEquals("viewer", harness.argument(ARG_ROLE))

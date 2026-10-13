@@ -11,9 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -65,7 +64,7 @@ internal fun SdrCampaignCard(
     onRequestChange: (Boolean) -> Unit,
 ) {
     DistrictCard(
-        modifier = Modifier.semantics { contentDescription = WORKFLOWS_CAMPAIGN_DESCRIPTION },
+        modifier = Modifier.testTag(WORKFLOWS_CAMPAIGN_DESCRIPTION),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Eyebrow(
@@ -81,9 +80,7 @@ internal fun SdrCampaignCard(
                     },
                 ),
                 tone = if (status.infiniteSdrEnabled) Tone.Success else Tone.Neutral,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKFLOWS_CAMPAIGN_BADGE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKFLOWS_CAMPAIGN_BADGE_DESCRIPTION),
             )
         }
         Text(
@@ -103,7 +100,7 @@ internal fun SdrCampaignCard(
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.hairline)
-                .semantics { contentDescription = WORKFLOWS_CAMPAIGN_GOAL_DESCRIPTION },
+                .testTag(WORKFLOWS_CAMPAIGN_GOAL_DESCRIPTION),
         )
         Text(
             text = stringResource(
@@ -117,7 +114,7 @@ internal fun SdrCampaignCard(
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.tight)
-                .semantics { contentDescription = WORKFLOWS_CAMPAIGN_CAPTION_DESCRIPTION },
+                .testTag(WORKFLOWS_CAMPAIGN_CAPTION_DESCRIPTION),
         )
 
         // ⛔ THE ONLY WRITE ON THIS CARD, AND IT IS DRAWN ONLY FOR A ROLE THE ROUTE ADMITS. A
@@ -140,7 +137,7 @@ internal fun SdrCampaignCard(
                 enabled = !pending,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION },
+                    .testTag(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION),
             )
         }
 
@@ -151,7 +148,7 @@ internal fun SdrCampaignCard(
                 color = DistrictTheme.colors.destructive,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = WORKFLOWS_CAMPAIGN_CHANGE_FAILURE_DESCRIPTION },
+                    .testTag(WORKFLOWS_CAMPAIGN_CHANGE_FAILURE_DESCRIPTION),
             )
         }
     }
@@ -188,9 +185,7 @@ internal fun WorkflowRow(
             ?.let { stringResource(it) }
             ?: workflow.trigger,
         onClick = onToggleExpanded,
-        modifier = Modifier.semantics {
-            contentDescription = workflowRowDescription(workflow.id)
-        },
+        modifier = Modifier.testTag(workflowRowDescription(workflow.id)),
         trailing = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -203,9 +198,7 @@ internal fun WorkflowRow(
                     // ⚠️ Disabled while its own write is in flight, not while ANY is: two switches
                     // touch two different rows and nothing re-reads, so they do not race.
                     enabled = canToggle && !pending,
-                    modifier = Modifier.semantics {
-                        contentDescription = workflowToggleDescription(workflow.id)
-                    },
+                    modifier = Modifier.testTag(workflowToggleDescription(workflow.id)),
                 )
             }
         },
@@ -236,9 +229,7 @@ private fun LatestRunBadge(workflow: WorkflowListItem) {
         DistrictBadge(
             text = stringResource(R.string.workflows_never_run),
             tone = Tone.Neutral,
-            modifier = Modifier.semantics {
-                contentDescription = workflowLatestRunDescription(workflow.id)
-            },
+            modifier = Modifier.testTag(workflowLatestRunDescription(workflow.id)),
         )
         return
     }
@@ -246,9 +237,7 @@ private fun LatestRunBadge(workflow: WorkflowListItem) {
         DistrictBadge(
             text = run.status,
             tone = runTone(run.status),
-            modifier = Modifier.semantics {
-                contentDescription = workflowLatestRunDescription(workflow.id)
-            },
+            modifier = Modifier.testTag(workflowLatestRunDescription(workflow.id)),
         )
         Text(
             text = formatRunTimestamp(run.startedAt),
@@ -278,7 +267,7 @@ internal fun RunHistoryPanel(history: RunHistory?, onLoadMore: () -> Unit) {
                 end = DistrictTheme.spacing.gutter,
                 bottom = DistrictTheme.spacing.tight,
             )
-            .semantics { contentDescription = WORKFLOWS_RUNS_DESCRIPTION },
+            .testTag(WORKFLOWS_RUNS_DESCRIPTION),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         if (history == null || (history.loading && history.runs.isEmpty())) {
@@ -303,9 +292,7 @@ internal fun RunHistoryPanel(history: RunHistory?, onLoadMore: () -> Unit) {
                 text = failure.message.resolve(),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKFLOWS_RUNS_FAILURE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKFLOWS_RUNS_FAILURE_DESCRIPTION),
             )
         }
 
@@ -316,9 +303,7 @@ internal fun RunHistoryPanel(history: RunHistory?, onLoadMore: () -> Unit) {
                 variant = ButtonVariant.Secondary,
                 size = ButtonSize.Sm,
                 enabled = !history.loading,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKFLOWS_RUNS_MORE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKFLOWS_RUNS_MORE_DESCRIPTION),
             )
         }
     }
@@ -337,7 +322,7 @@ internal fun RunHistoryPanel(history: RunHistory?, onLoadMore: () -> Unit) {
  */
 @Composable
 private fun RunCard(run: WorkflowRun) {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = runCardDescription(run.id) }) {
+    DistrictCard(modifier = Modifier.testTag(runCardDescription(run.id))) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DistrictBadge(text = run.status, tone = runTone(run.status))
             Text(
@@ -394,7 +379,7 @@ private fun RunCard(run: WorkflowRun) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = runErrorDescription(run.id) },
+                    .testTag(runErrorDescription(run.id)),
             )
         }
     }

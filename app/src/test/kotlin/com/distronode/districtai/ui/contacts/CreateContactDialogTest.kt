@@ -5,12 +5,14 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -58,19 +60,19 @@ class CreateContactDialogTest {
     }
 
     private fun type(description: String, text: String) {
-        composeRule.onNodeWithContentDescription(description).performTextInput(text)
+        composeRule.onNodeWithTag(description).performTextInput(text)
     }
 
-    private fun submit() = composeRule.onNodeWithContentDescription(CONTACT_CREATE_SUBMIT_DESCRIPTION)
+    private fun submit() = composeRule.onNodeWithTag(CONTACT_CREATE_SUBMIT_DESCRIPTION)
 
     @Test
     fun `opens with all three fields and nothing submittable`() {
         render()
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_NAME_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_PHONE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_EMAIL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_NAME_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_PHONE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_EMAIL_DESCRIPTION).assertIsDisplayed()
         submit().assertIsNotEnabled()
     }
 
@@ -80,7 +82,7 @@ class CreateContactDialogTest {
 
         type(CONTACT_CREATE_NAME_DESCRIPTION, "Ada Lovelace")
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_HINT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_HINT_DESCRIPTION).assertIsDisplayed()
         submit().assertIsNotEnabled()
     }
 
@@ -89,7 +91,7 @@ class CreateContactDialogTest {
         // ⚠️ An empty form is the normal starting state; telling the user off for it is noise.
         render()
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_HINT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_CREATE_HINT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -125,7 +127,7 @@ class CreateContactDialogTest {
 
         submit().assertIsNotEnabled()
         // The hint is keyed to "named but unreachable", so it stays away here.
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_HINT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_CREATE_HINT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -142,7 +144,7 @@ class CreateContactDialogTest {
     fun `saving disables submission and relabels the button`() {
         render(CreateContactUiState.Saving)
 
-        composeRule.onNodeWithText("Adding…").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_create_saving)).assertIsDisplayed()
         submit().assertIsNotEnabled()
     }
 
@@ -151,7 +153,7 @@ class CreateContactDialogTest {
         var dismissed = 0
         render(CreateContactUiState.Saving, onDismiss = { dismissed++ })
 
-        composeRule.onNodeWithText("Cancel").assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).assertIsNotEnabled()
 
         assertEquals(0, dismissed)
     }
@@ -161,7 +163,7 @@ class CreateContactDialogTest {
         var dismissed = 0
         render(onDismiss = { dismissed++ })
 
-        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).performClick()
 
         assertEquals(1, dismissed)
     }
@@ -176,11 +178,11 @@ class CreateContactDialogTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_CREATE_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("A contact with that phone number already exists.")
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -201,8 +203,8 @@ class CreateContactDialogTest {
     fun `the idle button reads Add rather than Adding`() {
         render()
 
-        composeRule.onNodeWithText("Add").assertIsDisplayed()
-        composeRule.onNodeWithText("Adding…").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_create_save)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_create_saving)).assertDoesNotExist()
     }
 
     /**
@@ -235,6 +237,6 @@ class CreateContactDialogTest {
         pressBackOnDialog()
 
         assertEquals(0, dismissed)
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
     }
 }

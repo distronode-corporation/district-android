@@ -21,10 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -161,7 +160,7 @@ fun OverviewScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = OVERVIEW_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(OVERVIEW_ROOT_DESCRIPTION),
         topBar = {
             // ⛔ IN THE APP BAR, SO IT IS PRESENT IN EVERY STATE, AND THAT PLACEMENT IS THE
             // REQUIREMENT. Sign-out and account deletion are Play prerequisites and they are
@@ -177,9 +176,7 @@ fun OverviewScreen(
                         onClick = onOpenSettings,
                         variant = ButtonVariant.Ghost,
                         size = ButtonSize.Sm,
-                        modifier = Modifier.semantics {
-                            contentDescription = OVERVIEW_OPEN_SETTINGS_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(OVERVIEW_OPEN_SETTINGS_DESCRIPTION),
                     )
                 },
             )
@@ -273,7 +270,7 @@ private fun LoadingState(inset: Modifier) {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = OVERVIEW_LOADING_DESCRIPTION },
+                .testTag(OVERVIEW_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             SkeletonBlock(
@@ -344,7 +341,7 @@ private fun ContentState(
                         tone = Tone.Warning,
                         modifier = Modifier
                             .padding(horizontal = DistrictTheme.spacing.gutter)
-                            .semantics { contentDescription = OVERVIEW_PARTIAL_DESCRIPTION },
+                            .testTag(OVERVIEW_PARTIAL_DESCRIPTION),
                     )
                 }
             }
@@ -422,7 +419,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = OVERVIEW_OPEN_CONTACTS_DESCRIPTION },
+                            .testTag(OVERVIEW_OPEN_CONTACTS_DESCRIPTION),
                     )
                     // ⚠️ HERE RATHER THAN IN THE NAV BAR, AND THAT IS A MEASURED CONSTRAINT, NOT A
                     // preference. The bar already carries five text items; a sixth is what pushes a
@@ -438,7 +435,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = OVERVIEW_OPEN_HQ_DESCRIPTION },
+                            .testTag(OVERVIEW_OPEN_HQ_DESCRIPTION),
                     )
                     // ⚠️ HERE RATHER THAN IN THE NAV BAR, FOR THE SAME MEASURED REASON HQ IS. The
                     // bar carries five text items and a sixth pushes a text-labelled row past its
@@ -458,7 +455,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = OVERVIEW_OPEN_ANALYTICS_DESCRIPTION },
+                            .testTag(OVERVIEW_OPEN_ANALYTICS_DESCRIPTION),
                     )
                     // ⚠️ THE FOURTH DESTINATION IN THIS COLUMN, AND STILL NOT IN THE NAV BAR, for
                     // the measured reason HQ and Analytics are not: the bar carries five text
@@ -480,9 +477,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics {
-                                contentDescription = OVERVIEW_OPEN_MARKETPLACE_DESCRIPTION
-                            },
+                            .testTag(OVERVIEW_OPEN_MARKETPLACE_DESCRIPTION),
                     )
                     // ⚠️ THE FIFTH DESTINATION IN THIS COLUMN, AND THE FIRST THAT WOULD MORE
                     // NATURALLY LIVE UNDER THE ACCOUNT SCREEN. It does not, and the reason is
@@ -502,9 +497,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics {
-                                contentDescription = OVERVIEW_OPEN_BILLING_DESCRIPTION
-                            },
+                            .testTag(OVERVIEW_OPEN_BILLING_DESCRIPTION),
                     )
                     // ⛔ THE SIXTH DESTINATION, AND THE ONLY ONE IN THIS COLUMN THAT IS
                     // CONDITIONAL. Every route behind it — including the config READ — excludes
@@ -534,7 +527,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = OVERVIEW_OPEN_ROOMS_DESCRIPTION },
+                            .testTag(OVERVIEW_OPEN_ROOMS_DESCRIPTION),
                     )
                     // ⚠️ THE SEVENTH DESTINATION, AND THE ONLY ONE WHOSE ROLE IS A *PARTIAL*
                     // GATE. Analytics carries no role at all; the marketplace and billing carry
@@ -554,9 +547,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics {
-                                contentDescription = OVERVIEW_OPEN_WORKFLOWS_DESCRIPTION
-                            },
+                            .testTag(OVERVIEW_OPEN_WORKFLOWS_DESCRIPTION),
                     )
                     // ⚠️ THE EIGHTH DESTINATION, UNCONDITIONAL, AND THE ONLY ONE IN THIS COLUMN
                     // THAT PASSES NO ROLE WHILE STILL HAVING SOMETHING GATED BEHIND IT. The
@@ -574,9 +565,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics {
-                                contentDescription = OVERVIEW_OPEN_SCHEDULING_DESCRIPTION
-                            },
+                            .testTag(OVERVIEW_OPEN_SCHEDULING_DESCRIPTION),
                     )
                     // ⛔ THE NINTH DESTINATION AND THE SECOND CONDITIONAL ONE, gated for the
                     // same reason workspace settings is and unlike the rooms entry above it:
@@ -599,9 +588,7 @@ private fun ContentState(
                             variant = ButtonVariant.Secondary,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics {
-                                    contentDescription = OVERVIEW_OPEN_DIALER_DESCRIPTION
-                                },
+                                .testTag(OVERVIEW_OPEN_DIALER_DESCRIPTION),
                         )
                         // ⛔ THE TENTH AND ELEVENTH DESTINATIONS, INSIDE THE DIALLER'S GATE, AND
                         // THEY ARE MIRROR IMAGES RATHER THAN A PAIR. "Customer desk" is the tickets
@@ -627,9 +614,7 @@ private fun ContentState(
                             variant = ButtonVariant.Secondary,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics {
-                                    contentDescription = OVERVIEW_OPEN_DESK_DESCRIPTION
-                                },
+                                .testTag(OVERVIEW_OPEN_DESK_DESCRIPTION),
                         )
                         DistrictButton(
                             text = stringResource(R.string.support_open),
@@ -637,9 +622,7 @@ private fun ContentState(
                             variant = ButtonVariant.Secondary,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics {
-                                    contentDescription = OVERVIEW_OPEN_SUPPORT_DESCRIPTION
-                                },
+                                .testTag(OVERVIEW_OPEN_SUPPORT_DESCRIPTION),
                         )
                     }
                     // ⛔ UNCONDITIONAL, LIKE THE ROOMS AND WORKFLOWS ENTRIES ABOVE IT, NOT GATED ON
@@ -657,9 +640,7 @@ private fun ContentState(
                         variant = ButtonVariant.Secondary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics {
-                                contentDescription = OVERVIEW_OPEN_WORKSPACE_SETTINGS_DESCRIPTION
-                            },
+                            .testTag(OVERVIEW_OPEN_WORKSPACE_SETTINGS_DESCRIPTION),
                     )
                     DistrictButton(
                         text = stringResource(R.string.overview_retry),
@@ -702,7 +683,7 @@ private fun SectionHeading(
             onClick = onAction,
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Sm,
-            modifier = Modifier.semantics { contentDescription = OVERVIEW_OPEN_CALL_LOG_DESCRIPTION },
+            modifier = Modifier.testTag(OVERVIEW_OPEN_CALL_LOG_DESCRIPTION),
         )
     }
 }
@@ -735,9 +716,7 @@ private fun WorkspaceHeader(
                     DistrictBadge(
                         text = stringResource(R.string.overview_role_viewer),
                         tone = Tone.Neutral,
-                        modifier = Modifier.semantics {
-                            contentDescription = OVERVIEW_READ_ONLY_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(OVERVIEW_READ_ONLY_DESCRIPTION),
                     )
                 }
                 if (canSwitch) {
@@ -746,9 +725,7 @@ private fun WorkspaceHeader(
                         onClick = { expanded = true },
                         variant = ButtonVariant.Secondary,
                         size = ButtonSize.Sm,
-                        modifier = Modifier.semantics {
-                            contentDescription = OVERVIEW_SWITCHER_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(OVERVIEW_SWITCHER_DESCRIPTION),
                     )
                 }
             },
@@ -781,7 +758,7 @@ private fun MessageState(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = description },
+                .testTag(description),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

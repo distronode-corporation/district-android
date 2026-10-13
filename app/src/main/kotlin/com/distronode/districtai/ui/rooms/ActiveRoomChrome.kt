@@ -7,9 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -53,7 +52,7 @@ internal fun ConnectionBanner(connection: CallConnectionState) {
             Banner(R.string.room_state_failed, Tone.Danger, ROOM_BANNER_FAILED_DESCRIPTION)
         CallConnectionState.Connected -> return
     }
-    DistrictCard(modifier = Modifier.semantics { contentDescription = banner.handle }) {
+    DistrictCard(modifier = Modifier.testTag(banner.handle)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusDot(tone = banner.tone)
             Text(
@@ -73,7 +72,7 @@ internal fun ConnectionBanner(connection: CallConnectionState) {
  */
 @Composable
 internal fun CompanionChip() {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = ROOM_COMPANION_DESCRIPTION }) {
+    DistrictCard(modifier = Modifier.testTag(ROOM_COMPANION_DESCRIPTION)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusDot(tone = Tone.District)
             Text(
@@ -112,7 +111,7 @@ internal fun PermissionNotices(state: ActiveRoomUiState) {
 
 @Composable
 private fun Notice(text: Int, handle: String) {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = handle }) {
+    DistrictCard(modifier = Modifier.testTag(handle)) {
         Text(
             text = stringResource(text),
             style = MaterialTheme.typography.bodySmall,
@@ -123,7 +122,7 @@ private fun Notice(text: Int, handle: String) {
 
 @Composable
 internal fun JoinFailure(failure: FailureText) {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = ROOM_JOIN_FAILURE_DESCRIPTION }) {
+    DistrictCard(modifier = Modifier.testTag(ROOM_JOIN_FAILURE_DESCRIPTION)) {
         Eyebrow(stringResource(R.string.room_join_failed))
         Text(
             text = failure.message.resolve(),

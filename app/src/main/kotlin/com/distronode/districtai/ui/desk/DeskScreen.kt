@@ -15,9 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -63,7 +62,7 @@ fun DeskScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = DESK_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(DESK_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.desk_title),
@@ -163,7 +162,7 @@ private fun DeskLoaded(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(DistrictTheme.spacing.section)
-                            .semantics { contentDescription = DESK_FILTER_EMPTY_DESCRIPTION },
+                            .testTag(DESK_FILTER_EMPTY_DESCRIPTION),
                     )
                 }
             }
@@ -192,7 +191,7 @@ private fun DeskLoaded(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(DistrictTheme.spacing.section)
-                            .semantics { contentDescription = DESK_CAPPED_DESCRIPTION },
+                            .testTag(DESK_CAPPED_DESCRIPTION),
                     )
                 }
             }
@@ -208,12 +207,10 @@ private fun FilterChip(
     onClick: () -> Unit,
 ) {
     DistrictButton(
-        text = "${stringResource(statusLabel(status))} $count",
+        text = stringResource(R.string.desk_filter_label, stringResource(statusLabel(status)), count),
         onClick = onClick,
         variant = if (selected) ButtonVariant.Primary else ButtonVariant.Ghost,
-        modifier = Modifier.semantics {
-            contentDescription = "$DESK_FILTER_DESCRIPTION-${status.wire}"
-        },
+        modifier = Modifier.testTag("$DESK_FILTER_DESCRIPTION-${status.wire}"),
     )
 }
 
@@ -246,9 +243,7 @@ private fun TicketRow(ticket: DeskTicketSummary, onClick: () -> Unit) {
                         // unreadable on an installed build.
                         ?: ticket.status,
                     tone = toneFor(ticket.knownStatus),
-                    modifier = Modifier.semantics {
-                        contentDescription = DESK_STATUS_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(DESK_STATUS_DESCRIPTION),
                 )
             }
         },
@@ -262,7 +257,7 @@ private fun DeskDisabled(onEnable: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = DESK_DISABLED_DESCRIPTION },
+                .testTag(DESK_DISABLED_DESCRIPTION),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -287,7 +282,7 @@ private fun DeskEmpty() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = DESK_EMPTY_DESCRIPTION },
+                .testTag(DESK_EMPTY_DESCRIPTION),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             EmptyState(
@@ -309,7 +304,7 @@ private fun DeskRefused() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = DESK_REFUSED_DESCRIPTION },
+                .testTag(DESK_REFUSED_DESCRIPTION),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -327,7 +322,7 @@ private fun DeskLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = DESK_LOADING_DESCRIPTION },
+                .testTag(DESK_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_ROW_HEIGHT) }

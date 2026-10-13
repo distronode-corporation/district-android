@@ -13,9 +13,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
@@ -97,7 +96,7 @@ fun WorkflowsScreen(
     }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = WORKFLOWS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(WORKFLOWS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.workflows_title), onBack = onBack)
         },
@@ -123,9 +122,7 @@ fun WorkflowsScreen(
                             tone = Tone.Danger,
                             modifier = Modifier
                                 .padding(horizontal = DistrictTheme.spacing.gutter)
-                                .semantics {
-                                    contentDescription = WORKFLOWS_TOGGLE_FAILURE_DESCRIPTION
-                                },
+                                .testTag(WORKFLOWS_TOGGLE_FAILURE_DESCRIPTION),
                         )
                         DistrictButton(
                             text = stringResource(R.string.workflows_dismiss),
@@ -185,7 +182,7 @@ private fun LazyListScope.workflowSection(
                 Column(
                     modifier = Modifier
                         .padding(DistrictTheme.spacing.gutter)
-                        .semantics { contentDescription = WORKFLOWS_LOADING_DESCRIPTION },
+                        .testTag(WORKFLOWS_LOADING_DESCRIPTION),
                     verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
                 ) {
                     repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
@@ -213,9 +210,7 @@ private fun LazyListScope.workflowSection(
             item {
                 ContentContainer {
                     Column(
-                        modifier = Modifier.semantics {
-                            contentDescription = WORKFLOWS_EMPTY_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(WORKFLOWS_EMPTY_DESCRIPTION),
                     ) {
                         EmptyState(
                             title = stringResource(R.string.workflows_empty_title),
@@ -266,7 +261,7 @@ private fun CampaignSection(
         CampaignState.Loading -> Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = WORKFLOWS_CAMPAIGN_LOADING_DESCRIPTION },
+                .testTag(WORKFLOWS_CAMPAIGN_LOADING_DESCRIPTION),
         ) {
             SkeletonBlock(height = DistrictTheme.spacing.header)
         }
@@ -346,9 +341,7 @@ private fun CampaignConfirmDialog(
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKFLOWS_CAMPAIGN_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKFLOWS_CAMPAIGN_CONFIRM_DESCRIPTION),
             )
         },
         confirmButton = {
@@ -361,9 +354,7 @@ private fun CampaignConfirmDialog(
                     },
                 ),
                 onClick = onSubmit,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKFLOWS_CAMPAIGN_CONFIRM_SUBMIT_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKFLOWS_CAMPAIGN_CONFIRM_SUBMIT_DESCRIPTION),
             )
         },
         dismissButton = {
@@ -371,9 +362,7 @@ private fun CampaignConfirmDialog(
                 text = stringResource(R.string.workflows_campaign_cancel),
                 onClick = onDismiss,
                 variant = ButtonVariant.Ghost,
-                modifier = Modifier.semantics {
-                    contentDescription = WORKFLOWS_CAMPAIGN_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(WORKFLOWS_CAMPAIGN_CANCEL_DESCRIPTION),
             )
         },
     )

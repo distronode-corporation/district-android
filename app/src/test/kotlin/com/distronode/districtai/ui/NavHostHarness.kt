@@ -22,11 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.SemanticsNodeInteraction
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.performClick
@@ -200,7 +200,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
     }
 
     fun tap(description: String) {
-        composeRule.onNodeWithContentDescription(description).scrolledIntoView().performClick()
+        composeRule.onNodeWithTag(description).scrolledIntoView().performClick()
         composeRule.waitForIdle()
     }
 
@@ -210,13 +210,13 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
     }
 
     fun back() {
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         composeRule.waitForIdle()
     }
 
     fun awaitDescription(description: String) {
         runCatching {
-            awaitMain { composeRule.onAllNodes(hasContentDescription(description)).fetchSemanticsNodes().isNotEmpty() }
+            awaitMain { composeRule.onAllNodes(hasTestTag(description)).fetchSemanticsNodes().isNotEmpty() }
         }.onFailure {
             throw AssertionError(
                 "$description never appeared on ${route()}:\n" + composeRule.onRoot().printToString(),

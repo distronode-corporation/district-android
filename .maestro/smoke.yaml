@@ -37,16 +37,15 @@
 # variable default silently does not apply. `smoke-emulator.sh` reads the package name
 # out of the APK (with aapt2) and refuses to run if it disagrees with this line.
 #
-# ⚠️ SELECTORS ARE `text:`, NOT `id:`, AND THAT IS MEASURED RATHER THAN ASSUMED.
-# The app's stable handles are Compose `contentDescription` values (the
-# `district-*` constants next to each screen). Maestro's Android driver maps
-# `contentDescription` onto `accessibilityText`, and its `text:` predicate matches
-# `text` OR `accessibilityText`, while `id:` matches `resource-id`. Dumped from
-# `maestro hierarchy` against this app on API 35: every Compose node's `resource-id` is
-# the EMPTY STRING, and `district-sign-in-root` / `district-sign-in-action` appear as
-# `accessibilityText`. So an `id:` selector here matches nothing, and Compose only
-# publishes a testTag as a resource-id under `testTagsAsResourceId`, which this app does
-# not set.
+# ⚠️ HANDLES ARE SELECTED WITH `id:`, AND THAT DEPENDS ON ONE LINE IN MainActivity.
+# The app's stable handles are Compose test tags (the `district-*` constants next to each
+# screen). Compose publishes a test tag as the node's `resource-id` only under
+# `testTagsAsResourceId`, which MainActivity sets on its root, and Maestro's `id:`
+# predicate matches `resource-id`. The handles used to be `contentDescription` values,
+# matched with `text:` through `accessibilityText`, which is also what TalkBack read
+# aloud; they moved to test tags so a screen reader reads the screen's real words.
+# ⚠️ An AlertDialog is its own window and its own root, so a dialog's tags are not
+# published; no flow here selects inside a dialog.
 #
 # ⚠️ `permissions: all: allow` IS LOAD-BEARING, NOT TIDINESS. On a clean install the
 # app raises the API-33 POST_NOTIFICATIONS dialog on first launch, which takes focus
@@ -65,7 +64,7 @@ name: District AI smoke
       all: allow
 
 - assertVisible:
-    text: "district-sign-in-root"
+    id: "district-sign-in-root"
 - takeScreenshot: 01-sign-in
 
 # Both legs carry the SAME condition rather than one calling the other, so a reader can

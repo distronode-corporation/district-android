@@ -11,9 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -60,7 +59,7 @@ internal fun PlanCard(billing: WorkspaceBilling) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_PLAN_DESCRIPTION },
+            .testTag(BILLING_PLAN_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.billing_plan_title))
         Row(
@@ -78,7 +77,7 @@ internal fun PlanCard(billing: WorkspaceBilling) {
             DistrictBadge(
                 text = statusLabel(billing.subscriptionStatus),
                 tone = statusTone(billing.subscriptionStatus),
-                modifier = Modifier.semantics { contentDescription = BILLING_STATUS_DESCRIPTION },
+                modifier = Modifier.testTag(BILLING_STATUS_DESCRIPTION),
             )
         }
         // ⚠️ Explains the badge rather than repeating it. "Past due" on its own is a Stripe word;
@@ -143,7 +142,7 @@ internal fun OverageCard(billing: WorkspaceBilling) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_OVERAGE_DESCRIPTION },
+            .testTag(BILLING_OVERAGE_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.billing_overage_title))
         Text(
@@ -169,13 +168,13 @@ internal fun OverageCard(billing: WorkspaceBilling) {
                 tone = if (blocked) Tone.Danger else Tone.Warning,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics {
-                        contentDescription = if (blocked) {
+                    .testTag(
+                        if (blocked) {
                             BILLING_OVERAGE_BLOCKED_DESCRIPTION
                         } else {
                             BILLING_OVERAGE_EXCEEDED_DESCRIPTION
-                        }
-                    },
+                        },
+                    ),
             )
         }
     }
@@ -208,7 +207,7 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_METER_DESCRIPTION },
+            .testTag(BILLING_METER_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.billing_meter_title))
         // ⚠️ `usage == null` also makes `used` null; naming it here smart-casts `usage` below, where
@@ -220,7 +219,7 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = BILLING_METER_UNMETERED_DESCRIPTION },
+                    .testTag(BILLING_METER_UNMETERED_DESCRIPTION),
             )
             return@DistrictCard
         }

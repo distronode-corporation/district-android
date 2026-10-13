@@ -6,9 +6,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
@@ -30,7 +29,7 @@ internal fun FinishSetupCard(onFinishSetup: () -> Unit) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = OVERVIEW_FINISH_SETUP_DESCRIPTION },
+            .testTag(OVERVIEW_FINISH_SETUP_DESCRIPTION),
     ) {
         Text(
             text = stringResource(R.string.overview_finish_setup_title),
@@ -49,7 +48,7 @@ internal fun FinishSetupCard(onFinishSetup: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = DistrictTheme.spacing.row)
-                .semantics { contentDescription = OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION },
+                .testTag(OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION),
         )
     }
 }

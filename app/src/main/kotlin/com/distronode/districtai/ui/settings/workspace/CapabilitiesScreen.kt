@@ -11,9 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -55,7 +54,7 @@ fun CapabilitiesScreen(
     val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = CAPABILITIES_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(CAPABILITIES_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.capabilities_title),
@@ -146,7 +145,7 @@ private fun ToolSection(
                 enabled = state.canSaveTools,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = CAPABILITIES_SAVE_TOOLS_DESCRIPTION },
+                    .testTag(CAPABILITIES_SAVE_TOOLS_DESCRIPTION),
             )
         }
     }
@@ -174,9 +173,7 @@ private fun CapabilityToggleRow(
                 checked = row.enabled,
                 onCheckedChange = onToggle,
                 enabled = enabled,
-                modifier = Modifier.semantics {
-                    contentDescription = capabilityToggleDescription(row.id)
-                },
+                modifier = Modifier.testTag(capabilityToggleDescription(row.id)),
             )
         },
     )
@@ -212,9 +209,7 @@ private fun EnrichmentSection(
                     checked = state.enrichmentEnabled,
                     onCheckedChange = onToggleEnrichment,
                     enabled = !busy,
-                    modifier = Modifier.semantics {
-                        contentDescription = CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION),
                 )
             },
         )
@@ -238,7 +233,7 @@ private fun EnrichmentSection(
                 enabled = state.canSaveEnrichment,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION },
+                    .testTag(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION),
             )
         }
     }

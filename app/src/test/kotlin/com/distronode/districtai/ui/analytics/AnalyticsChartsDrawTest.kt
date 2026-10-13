@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictColors
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -50,7 +50,7 @@ class AnalyticsChartsDrawTest {
     }
 
     private fun colorsIn(description: String): Set<Color> {
-        val pixels = composeRule.onNodeWithContentDescription(description).captureToImage().toPixelMap()
+        val pixels = composeRule.onNodeWithTag(description).captureToImage().toPixelMap()
         val seen = mutableSetOf<Color>()
         for (x in 0 until pixels.width) {
             for (y in 0 until pixels.height) seen += pixels[x, y]

@@ -5,7 +5,7 @@ import android.net.Uri
 import android.os.Looper
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performTextInput
@@ -18,6 +18,8 @@ import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.TimelineResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.inbox.INBOX_SEARCH_FIELD_DESCRIPTION
 import com.distronode.districtai.ui.inbox.InboxViewModel
 import com.distronode.districtai.ui.inbox.PickerProvider
@@ -123,7 +125,7 @@ class NavHostInboxTest {
 
     private fun search(query: String, hit: MessageSearchHit) {
         harness.search.searchResult = ApiResult.Success(MessageSearchResponse(success = true, results = listOf(hit)))
-        composeRule.onNodeWithContentDescription(INBOX_SEARCH_FIELD_DESCRIPTION).performTextInput(query)
+        composeRule.onNodeWithTag(INBOX_SEARCH_FIELD_DESCRIPTION).performTextInput(query)
         // The search is debounced on the main looper; advance exactly past it.
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(InboxViewModel.SEARCH_DEBOUNCE_MILLIS))
         composeRule.waitForIdle()
@@ -186,7 +188,7 @@ class NavHostInboxTest {
             Routes.thread("ws-1", WorkspaceRole.AGENCY, threadKey = "contact:ct-4", replyTo = "+14165550100"),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION).performTextInput("See you then")
+        composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION).performTextInput("See you then")
         harness.tap(THREAD_SEND_DESCRIPTION)
 
         val sent = harness.api.sends.single()
@@ -199,8 +201,8 @@ class NavHostInboxTest {
         harness.render()
         harness.navigate(Routes.thread("ws-1", WorkspaceRole.CLIENT, threadKey = "contact:ct-4"))
 
-        composeRule.onNodeWithContentDescription(THREAD_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Inbox").assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_title)).assertIsDisplayed()
     }
 
     @Test
@@ -212,7 +214,7 @@ class NavHostInboxTest {
 
         assertEquals(Routes.THREAD, harness.route())
         composeRule.onNodeWithText("+14165550199").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -296,7 +298,7 @@ class NavHostInboxTest {
         harness.tap(THREAD_MEDIA_DESCRIPTION)
 
         assertTrue(harness.started.isEmpty())
-        composeRule.onNodeWithContentDescription(THREAD_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_ROOT_DESCRIPTION).assertIsDisplayed()
     }
 
     private companion object {

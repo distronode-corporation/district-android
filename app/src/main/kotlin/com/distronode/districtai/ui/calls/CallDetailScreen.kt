@@ -14,9 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictCard
@@ -42,7 +41,7 @@ fun CallDetailScreen(
     onShowTranscript: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = CALL_DETAIL_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(CALL_DETAIL_ROOT_DESCRIPTION),
         topBar = {
             // ⚠️ The back affordance lives IN the app bar. A text button at the bottom of the
             // FAILURE state only would leave a call that loaded successfully with no visible way
@@ -168,9 +167,7 @@ private fun TranscriptSection(state: CallDetailUiState.Content, onShowTranscript
         // embedding them.
         TranscriptState.Idle -> TextButton(
             onClick = onShowTranscript,
-            modifier = Modifier.semantics {
-                contentDescription = CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION
-            },
+            modifier = Modifier.testTag(CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION),
         ) {
             Text(stringResource(R.string.call_detail_transcript_show))
         }
@@ -188,9 +185,7 @@ private fun TranscriptSection(state: CallDetailUiState.Content, onShowTranscript
         TranscriptState.Absent -> Text(
             text = stringResource(R.string.call_detail_transcript_absent),
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.semantics {
-                contentDescription = CALL_DETAIL_NO_TRANSCRIPT_DESCRIPTION
-            },
+            modifier = Modifier.testTag(CALL_DETAIL_NO_TRANSCRIPT_DESCRIPTION),
         )
 
         is TranscriptState.Failed -> Text(
@@ -209,7 +204,7 @@ private fun LabelledCard(label: String, value: String, description: String? = nu
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
                 .then(
-                    description?.let { Modifier.semantics { contentDescription = it } } ?: Modifier,
+                    description?.let { Modifier.testTag(it) } ?: Modifier,
                 ),
         ) {
             Text(text = label, style = MaterialTheme.typography.labelSmall)

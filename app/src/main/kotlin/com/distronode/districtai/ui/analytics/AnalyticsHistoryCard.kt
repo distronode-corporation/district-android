@@ -12,9 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -52,7 +51,7 @@ internal fun UsageHistoryCard(months: List<UsageData>) {
     DistrictCard(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = ANALYTICS_HISTORY_DESCRIPTION },
+            .testTag(ANALYTICS_HISTORY_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.analytics_history_title))
 
@@ -66,7 +65,7 @@ internal fun UsageHistoryCard(months: List<UsageData>) {
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = ANALYTICS_HISTORY_EMPTY_DESCRIPTION },
+                    .testTag(ANALYTICS_HISTORY_EMPTY_DESCRIPTION),
             )
             return@DistrictCard
         }
@@ -111,7 +110,7 @@ private fun HistoryMonthRow(month: UsageData, minutes: Double?, barWidth: Float)
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = DistrictTheme.spacing.tight)
-            .semantics { contentDescription = historyMonthDescription(month.month) },
+            .testTag(historyMonthDescription(month.month)),
     ) {
         Text(
             // ⛔ FROM THE `YYYY-MM` KEY BY LOOKUP, never by parsing it into a date — see

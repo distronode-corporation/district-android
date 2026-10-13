@@ -13,9 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -58,7 +57,7 @@ fun SupportComposeDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .semantics { contentDescription = SUPPORT_COMPOSE_ROOT_DESCRIPTION },
+                    .testTag(SUPPORT_COMPOSE_ROOT_DESCRIPTION),
                 verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
                 Text(
@@ -79,9 +78,7 @@ fun SupportComposeDialog(
                                 ButtonVariant.Ghost
                             },
                             enabled = !state.submitting,
-                            modifier = Modifier.semantics {
-                                contentDescription = "$SUPPORT_COMPOSE_KIND_DESCRIPTION-${kind.wire}"
-                            },
+                            modifier = Modifier.testTag("$SUPPORT_COMPOSE_KIND_DESCRIPTION-${kind.wire}"),
                         )
                     }
                 }
@@ -95,9 +92,7 @@ fun SupportComposeDialog(
                         text = failure.message.resolve(),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.destructive,
-                        modifier = Modifier.semantics {
-                            contentDescription = SUPPORT_COMPOSE_FAILURE_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(SUPPORT_COMPOSE_FAILURE_DESCRIPTION),
                     )
                 }
 
@@ -110,7 +105,7 @@ fun SupportComposeDialog(
                     colors = districtFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .semantics { contentDescription = SUPPORT_COMPOSE_SUBJECT_DESCRIPTION },
+                        .testTag(SUPPORT_COMPOSE_SUBJECT_DESCRIPTION),
                 )
                 OutlinedTextField(
                     value = state.message,
@@ -120,7 +115,7 @@ fun SupportComposeDialog(
                     colors = districtFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .semantics { contentDescription = SUPPORT_COMPOSE_MESSAGE_DESCRIPTION },
+                        .testTag(SUPPORT_COMPOSE_MESSAGE_DESCRIPTION),
                 )
             }
         },
@@ -128,9 +123,7 @@ fun SupportComposeDialog(
             TextButton(
                 onClick = onSubmit,
                 enabled = state.submittable,
-                modifier = Modifier.semantics {
-                    contentDescription = SUPPORT_COMPOSE_SUBMIT_DESCRIPTION
-                },
+                modifier = Modifier.testTag(SUPPORT_COMPOSE_SUBMIT_DESCRIPTION),
             ) {
                 Text(
                     stringResource(
@@ -147,9 +140,7 @@ fun SupportComposeDialog(
             TextButton(
                 onClick = onDismiss,
                 enabled = !state.submitting,
-                modifier = Modifier.semantics {
-                    contentDescription = SUPPORT_COMPOSE_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(SUPPORT_COMPOSE_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.support_compose_cancel))
             }

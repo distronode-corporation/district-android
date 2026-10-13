@@ -3,10 +3,10 @@ package com.distronode.districtai.ui.billing
 import android.content.Context
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -20,6 +20,7 @@ import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.UsageData
 import com.distronode.districtai.core.model.WorkspaceBilling
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.ThemeFlip
@@ -137,17 +138,17 @@ class BillingScreenTest {
     fun `an active plan shows its tier and an active badge`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(BILLING_PLAN_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_PLAN_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
-        composeRule.onNodeWithText("Active").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(BILLING_REFRESHING_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.billing_status_active)).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_REFRESHING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a refresh in flight shows its bar over the plan it already has, rather than blanking it`() {
         render(content().copy(refreshing = true))
 
-        composeRule.onNodeWithContentDescription(BILLING_REFRESHING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_REFRESHING_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
     }
 
@@ -158,7 +159,7 @@ class BillingScreenTest {
         // rather than destructive because this is a state of the account, not a fault of the app.
         render(content(plan = activePlan.copy(subscriptionStatus = "past_due")))
 
-        composeRule.onNodeWithText("Past due").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_status_past_due)).assertIsDisplayed()
         composeRule.onNodeWithText(
             "A payment did not go through. Service continues while it is retried.",
         ).assertIsDisplayed()
@@ -168,8 +169,8 @@ class BillingScreenTest {
     fun `canceled says the plan will not renew`() {
         render(content(plan = activePlan.copy(subscriptionStatus = "canceled")))
 
-        composeRule.onNodeWithText("Cancelled").assertIsDisplayed()
-        composeRule.onNodeWithText("This plan will not renew.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_status_canceled)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_status_canceled_caption)).assertIsDisplayed()
     }
 
     @Test
@@ -179,8 +180,8 @@ class BillingScreenTest {
         // database row contains.
         render(content(plan = activePlan.copy(subscriptionTier = null, subscriptionStatus = "none")))
 
-        composeRule.onNodeWithText("No plan on this workspace").assertIsDisplayed()
-        composeRule.onNodeWithText("No subscription").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_plan_none)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_status_none)).assertIsDisplayed()
     }
 
     @Test
@@ -211,7 +212,7 @@ class BillingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(BILLING_OVERAGE_BLOCKED_DESCRIPTION)
+        composeRule.onNodeWithTag(BILLING_OVERAGE_BLOCKED_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText(
             "Calls are being declined — your included minutes are used up",
@@ -222,9 +223,9 @@ class BillingScreenTest {
     fun `auto_bill plus an exceeded cap says the extra is BILLED, not blocked`() {
         render(content(plan = activePlan.copy(overagePolicy = "auto_bill", overageCapExceeded = true)))
 
-        composeRule.onNodeWithContentDescription(BILLING_OVERAGE_EXCEEDED_DESCRIPTION)
+        composeRule.onNodeWithTag(BILLING_OVERAGE_EXCEEDED_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Over your included minutes — the extra is being billed")
+        composeRule.onNodeWithText(str(R.string.billing_overage_exceeded))
             .assertIsDisplayed()
     }
 
@@ -232,9 +233,9 @@ class BillingScreenTest {
     fun `a cap that has NOT been exceeded shows the policy and no warning`() {
         render(content(plan = activePlan.copy(overagePolicy = "hard_cap", overageCapExceeded = false)))
 
-        composeRule.onNodeWithText("Calls stop once your included minutes run out.")
+        composeRule.onNodeWithText(str(R.string.billing_overage_hard_cap))
             .assertIsDisplayed()
-        composeRule.onAllNodesWithContentDescription(BILLING_OVERAGE_BLOCKED_DESCRIPTION).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(BILLING_OVERAGE_BLOCKED_DESCRIPTION, useUnmergedTree = true).assertCountEquals(0)
     }
 
     // ── The usage meter ──────────────────────────────────────────────────────
@@ -245,7 +246,7 @@ class BillingScreenTest {
         // proves it is not clamped the way the bar is.
         render(content())
 
-        composeRule.onNodeWithText("1522.75 of 1500 included minutes used").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_meter_used_of, "1522.75", 1500)).assertIsDisplayed()
     }
 
     @Test
@@ -255,9 +256,9 @@ class BillingScreenTest {
         // different claim and the only one that was measured.
         render(content(plan = activePlan.copy(usage = null)))
 
-        composeRule.onNodeWithContentDescription(BILLING_METER_UNMETERED_DESCRIPTION)
+        composeRule.onNodeWithTag(BILLING_METER_UNMETERED_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("No call minutes have been recorded this month yet.")
+        composeRule.onNodeWithText(str(R.string.billing_meter_unmetered))
             .assertIsDisplayed()
     }
 
@@ -267,7 +268,7 @@ class BillingScreenTest {
         // meter. A bar drawn against an unknown denominator would have to invent one.
         render(content(stripe = StripeSectionState.Unavailable))
 
-        composeRule.onNodeWithText("1522.75 minutes used").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_meter_used, "1522.75")).assertIsDisplayed()
     }
 
     // ── The Stripe section: three shapes of one 200 ──────────────────────────
@@ -279,7 +280,7 @@ class BillingScreenTest {
         // list would tell a paying customer they have no plan.
         render(content(stripe = StripeSectionState.Unavailable))
 
-        composeRule.onNodeWithContentDescription(BILLING_UNAVAILABLE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_UNAVAILABLE_DESCRIPTION).assertIsDisplayed()
         // ⚠️ The BODY, not the card's Eyebrow title — `Eyebrow` uppercases its input (CSS
         // `text-transform` has no TextStyle equivalent in Compose), so an assertion on the
         // sentence-case resource would silently match nothing.
@@ -291,7 +292,7 @@ class BillingScreenTest {
         // ⛔ AND THE PLAN CARD IS STILL THERE, correct and current: it never went to Stripe.
         composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
         // ⛔ NO INVOICE CARD AT ALL, which is the free-account reading this state must not produce.
-        composeRule.onAllNodesWithContentDescription(BILLING_INVOICES_DESCRIPTION)
+        composeRule.onAllNodesWithTag(BILLING_INVOICES_DESCRIPTION, useUnmergedTree = true)
             .assertCountEquals(0)
     }
 
@@ -299,10 +300,10 @@ class BillingScreenTest {
     fun `an empty Ready reads as no billing account, which is a different sentence`() {
         render(content(stripe = StripeSectionState.Ready(StripeBilling())))
 
-        composeRule.onNodeWithText("No subscription is attached to this account.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(BILLING_INVOICES_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_subscriptions_empty)).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_INVOICES_EMPTY_DESCRIPTION).assertIsDisplayed()
         // ⛔ And NOT the outage card.
-        composeRule.onAllNodesWithContentDescription(BILLING_UNAVAILABLE_DESCRIPTION)
+        composeRule.onAllNodesWithTag(BILLING_UNAVAILABLE_DESCRIPTION, useUnmergedTree = true)
             .assertCountEquals(0)
     }
 
@@ -314,7 +315,7 @@ class BillingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(BILLING_STRIPE_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_STRIPE_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
     }
 
@@ -345,8 +346,10 @@ class BillingScreenTest {
     fun `a discount is shown when present and nothing is invented when absent`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(BILLING_DISCOUNT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Founding customer — 20% off").assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_DISCOUNT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            str(R.string.billing_discount_percent, "Founding customer", "20"),
+        ).assertIsDisplayed()
     }
 
     @Test
@@ -359,7 +362,7 @@ class BillingScreenTest {
             ),
         )
 
-        composeRule.onAllNodesWithContentDescription(BILLING_DISCOUNT_DESCRIPTION).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(BILLING_DISCOUNT_DESCRIPTION, useUnmergedTree = true).assertCountEquals(0)
     }
 
     // ── Invoices ─────────────────────────────────────────────────────────────
@@ -380,7 +383,7 @@ class BillingScreenTest {
         var opened: String? = null
         render(content(), onOpenInvoice = { opened = it })
 
-        composeRule.onNodeWithContentDescription(invoiceOpenDescription("in_paid")).performClick()
+        composeRule.onNodeWithTag(invoiceOpenDescription("in_paid")).performClick()
 
         assertEquals("https://invoice.stripe.test/in_paid", opened)
     }
@@ -392,7 +395,7 @@ class BillingScreenTest {
         // nothing would be worse than a plain one.
         render(content())
 
-        composeRule.onAllNodesWithContentDescription(invoiceOpenDescription("in_open")).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(invoiceOpenDescription("in_open"), useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test
@@ -401,7 +404,7 @@ class BillingScreenTest {
         // complete one.
         render(content())
 
-        composeRule.onNodeWithContentDescription(BILLING_INVOICES_TRUNCATED_DESCRIPTION)
+        composeRule.onNodeWithTag(BILLING_INVOICES_TRUNCATED_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -415,7 +418,7 @@ class BillingScreenTest {
         // as linking to it, and this copy is shared with the iOS client.
         render(content(), role = WorkspaceRole.CLIENT)
 
-        composeRule.onNodeWithContentDescription(BILLING_READ_ONLY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_READ_ONLY_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText(
             "Plan changes, payment methods and cancellations are not available in this app. " +
                 "This screen is read-only.",
@@ -448,7 +451,7 @@ class BillingScreenTest {
     @Test
     fun `loading shows skeletons and a total failure offers a retry`() {
         render(BillingUiState.Loading)
-        composeRule.onNodeWithContentDescription(BILLING_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -459,8 +462,8 @@ class BillingScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(BILLING_FAILED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(BILLING_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(BILLING_FAILED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_RETRY_DESCRIPTION).performClick()
         assertEquals(1, retries)
     }
 
@@ -474,7 +477,7 @@ class BillingScreenTest {
             ),
         )
 
-        composeRule.onAllNodesWithContentDescription(BILLING_RETRY_DESCRIPTION).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(BILLING_RETRY_DESCRIPTION, useUnmergedTree = true).assertCountEquals(0)
     }
 
     // ── The remaining shapes of a row ────────────────────────────────────────
@@ -498,7 +501,7 @@ class BillingScreenTest {
         composeRule.onNodeWithText(string(R.string.billing_discount_amount, "Spring", "5.00")).assertIsDisplayed()
         composeRule.onNodeWithText("Partner").assertIsDisplayed()
         // A subscription with no period end states no turnover date at all.
-        composeRule.onAllNodesWithContentDescription(renewalDescription("s_amount")).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(renewalDescription("s_amount"), useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test
@@ -506,7 +509,7 @@ class BillingScreenTest {
         var opened: String? = null
         render(content(), onOpenInvoice = { opened = it })
 
-        composeRule.onNodeWithContentDescription(invoiceDescription("in_paid")).performClick()
+        composeRule.onNodeWithTag(invoiceDescription("in_paid")).performClick()
 
         assertEquals("https://invoice.stripe.test/in_paid", opened)
     }
@@ -520,13 +523,15 @@ class BillingScreenTest {
             onOpenInvoice = { opened = it },
         )
 
-        composeRule.onAllNodesWithContentDescription(invoiceOpenDescription("in_blank")).assertCountEquals(0)
-        composeRule.onNodeWithContentDescription(invoiceDescription("in_blank")).performClick()
+        composeRule.onAllNodesWithTag(invoiceOpenDescription("in_blank"), useUnmergedTree = true).assertCountEquals(0)
+        composeRule.onNodeWithTag(invoiceDescription("in_blank")).performClick()
         assertEquals(null, opened)
         // An unrecognised Stripe status is still shown, in its own words.
         composeRule.onNodeWithText("draft").assertIsDisplayed()
         // And a list the server did not cap says nothing about truncation.
-        composeRule.onAllNodesWithContentDescription(BILLING_INVOICES_TRUNCATED_DESCRIPTION).assertCountEquals(0)
+        composeRule
+            .onAllNodesWithTag(BILLING_INVOICES_TRUNCATED_DESCRIPTION, useUnmergedTree = true)
+            .assertCountEquals(0)
     }
 
     @Test
@@ -554,7 +559,7 @@ class BillingScreenTest {
             onRetry = { retries += 1 },
         )
         composeRule.onNodeWithText("Timed out").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retries)
     }
 
@@ -568,7 +573,7 @@ class BillingScreenTest {
             ),
         )
         composeRule.onNodeWithText("Unexpected response").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Try again").assertCountEquals(0)
+        composeRule.onAllNodesWithText(str(R.string.overview_retry)).assertCountEquals(0)
     }
 
     @Test
@@ -580,7 +585,7 @@ class BillingScreenTest {
     @Test
     fun `a blank billing month names no month`() {
         render(content(plan = activePlan.copy(usage = UsageData(month = "", callMinutesInbound = 5.0))))
-        composeRule.onNodeWithText("5 of 1500 included minutes used").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_meter_used_of, "5", 1500)).assertIsDisplayed()
         composeRule.onAllNodesWithText(string(R.string.billing_meter_month, ""), substring = false)
             .assertCountEquals(0)
     }
@@ -588,14 +593,14 @@ class BillingScreenTest {
     @Test
     fun `a month with no call keys is unmetered even though a usage row exists`() {
         render(content(plan = activePlan.copy(usage = UsageData(month = "2026-08", smsOutbound = 3.0))))
-        composeRule.onNodeWithContentDescription(BILLING_METER_UNMETERED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_METER_UNMETERED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `the preview renders the plan it describes`() {
         composeRule.setContent { BillingScreenPreview() }
         composeRule.onNodeWithText("Voice Pro").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(BILLING_SUBSCRIPTIONS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(BILLING_SUBSCRIPTIONS_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -615,8 +620,8 @@ class BillingScreenTest {
 
         theme.flip()
 
-        composeRule.onNodeWithContentDescription(invoiceDescription("in_paid")).performClick()
-        composeRule.onNodeWithContentDescription(invoiceOpenDescription("in_paid")).performClick()
+        composeRule.onNodeWithTag(invoiceDescription("in_paid")).performClick()
+        composeRule.onNodeWithTag(invoiceOpenDescription("in_paid")).performClick()
         assertEquals(List(2) { "https://invoice.stripe.test/in_paid" }, opened)
     }
 
@@ -633,7 +638,7 @@ class BillingScreenTest {
      * question answerable at all.
      */
     private fun assertRenewalStartsWith(subscriptionId: String, prefix: String) {
-        val text = composeRule.onNodeWithContentDescription(renewalDescription(subscriptionId))
+        val text = composeRule.onNodeWithTag(renewalDescription(subscriptionId))
             .fetchSemanticsNode()
             .config[SemanticsProperties.Text]
             .joinToString("") { it.text }

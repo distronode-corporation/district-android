@@ -22,9 +22,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -66,7 +65,7 @@ fun HqScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = HQ_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(HQ_ROOT_DESCRIPTION),
         topBar = { DistrictTopBar(title = stringResource(R.string.hq_title), onBack = onBack) },
     ) { inset ->
         Column(modifier = inset.fillMaxSize()) {
@@ -77,7 +76,7 @@ fun HqScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(DistrictTheme.spacing.section)
-                                .semantics { contentDescription = HQ_EMPTY_DESCRIPTION },
+                                .testTag(HQ_EMPTY_DESCRIPTION),
                             verticalArrangement = Arrangement.Center,
                         ) {
                             EmptyState(
@@ -186,11 +185,9 @@ private fun MessageRow(message: HqMessage, isLast: Boolean) {
                     shape = RoundedCornerShape(BUBBLE_RADIUS),
                 )
                 .padding(DistrictTheme.spacing.row)
-                .semantics {
-                    // ⚠️ Only the newest line gets the stable handle: a test asserting "the answer"
-                    // must not match six of them.
-                    if (isLast) contentDescription = HQ_LATEST_MESSAGE_DESCRIPTION
-                },
+                // ⚠️ Only the newest line gets the stable handle: a test asserting "the answer"
+                // must not match six of them.
+                .then(if (isLast) Modifier.testTag(HQ_LATEST_MESSAGE_DESCRIPTION) else Modifier),
         ) {
             Text(
                 text = message.text.resolve(),
@@ -211,7 +208,7 @@ private fun ThinkingRow() {
                     horizontal = DistrictTheme.spacing.gutter,
                     vertical = DistrictTheme.spacing.tight,
                 )
-                .semantics { contentDescription = HQ_THINKING_DESCRIPTION },
+                .testTag(HQ_THINKING_DESCRIPTION),
         ) {
             Text(
                 text = stringResource(R.string.hq_thinking),
@@ -249,7 +246,7 @@ private fun ConfirmCard(
                     horizontal = DistrictTheme.spacing.gutter,
                     vertical = DistrictTheme.spacing.tight,
                 )
-                .semantics { contentDescription = HQ_CONFIRM_DESCRIPTION },
+                .testTag(HQ_CONFIRM_DESCRIPTION),
         ) {
             Eyebrow(text = stringResource(R.string.hq_confirm_title))
             Text(
@@ -272,7 +269,7 @@ private fun ConfirmCard(
                     color = DistrictTheme.colors.destructive,
                     modifier = Modifier
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics { contentDescription = HQ_CONFIRM_FAILURE_DESCRIPTION },
+                        .testTag(HQ_CONFIRM_FAILURE_DESCRIPTION),
                 )
             }
 
@@ -291,9 +288,7 @@ private fun ConfirmCard(
                         ),
                         onClick = onConfirm,
                         enabled = !applying,
-                        modifier = Modifier.semantics {
-                            contentDescription = HQ_CONFIRM_ACCEPT_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(HQ_CONFIRM_ACCEPT_DESCRIPTION),
                     )
                 }
                 DistrictButton(
@@ -302,9 +297,7 @@ private fun ConfirmCard(
                     variant = ButtonVariant.Ghost,
                     size = ButtonSize.Sm,
                     enabled = !applying,
-                    modifier = Modifier.semantics {
-                        contentDescription = HQ_CONFIRM_DISMISS_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(HQ_CONFIRM_DISMISS_DESCRIPTION),
                 )
             }
         }
@@ -337,7 +330,7 @@ private fun Composer(enabled: Boolean, onSend: (String) -> Unit) {
                 colors = districtFieldColors(),
                 modifier = Modifier
                     .weight(1f)
-                    .semantics { contentDescription = HQ_PROMPT_FIELD_DESCRIPTION },
+                    .testTag(HQ_PROMPT_FIELD_DESCRIPTION),
             )
             DistrictButton(
                 text = stringResource(R.string.hq_send),
@@ -346,7 +339,7 @@ private fun Composer(enabled: Boolean, onSend: (String) -> Unit) {
                     draft = ""
                 },
                 enabled = enabled && draft.isNotBlank(),
-                modifier = Modifier.semantics { contentDescription = HQ_SEND_DESCRIPTION },
+                modifier = Modifier.testTag(HQ_SEND_DESCRIPTION),
             )
         }
     }

@@ -2,11 +2,11 @@ package com.distronode.districtai.ui
 
 import android.os.Looper
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -224,7 +224,7 @@ class DistrictNavHostTest {
     }
 
     private fun back() {
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         composeRule.waitForIdle()
     }
 
@@ -233,7 +233,7 @@ class DistrictNavHostTest {
     private fun argument(name: String): String? = navController.currentBackStackEntry?.arguments?.getString(name)
 
     private fun assertShown(description: String) {
-        composeRule.onNodeWithContentDescription(description).assertIsDisplayed()
+        composeRule.onNodeWithTag(description).assertIsDisplayed()
     }
 
     /**
@@ -246,9 +246,9 @@ class DistrictNavHostTest {
     private fun tapOverviewTile(description: String) {
         if (description != OVERVIEW_OPEN_SETTINGS_DESCRIPTION) {
             composeRule.onNode(hasScrollToNodeAction())
-                .performScrollToNode(hasContentDescription(description))
+                .performScrollToNode(hasTestTag(description))
         }
-        composeRule.onNodeWithContentDescription(description).performClick()
+        composeRule.onNodeWithTag(description).performClick()
         composeRule.waitForIdle()
     }
 
@@ -290,22 +290,22 @@ class DistrictNavHostTest {
         render(OverviewUiState.Loading)
 
         assertEquals(Routes.OVERVIEW, route())
-        composeRule.onNodeWithContentDescription(NAV_INBOX_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(NAV_ACCOUNT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(NAV_INBOX_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(NAV_ACCOUNT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `the tabs open the active workspace's destinations without growing the back stack`() {
         render()
 
-        composeRule.onNodeWithContentDescription(NAV_INBOX_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_INBOX_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.INBOX, route())
         assertEquals("ws-1", argument(ARG_WORKSPACE_ID))
         assertEquals("agency", argument(ARG_ROLE))
         assertShown(INBOX_ROOT_DESCRIPTION)
 
-        composeRule.onNodeWithContentDescription(NAV_CALLS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_CALLS_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.CALL_LOG, route())
         assertEquals("ws-1", argument(ARG_WORKSPACE_ID))
@@ -314,19 +314,19 @@ class DistrictNavHostTest {
         // log, so back from any tab leaves the app instead of walking through the tabs visited.
         assertEquals(Routes.OVERVIEW, navController.previousBackStackEntry?.destination?.route)
 
-        composeRule.onNodeWithContentDescription(NAV_CONTACTS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_CONTACTS_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.CONTACTS, route())
         assertEquals("agency", argument(ARG_ROLE))
         assertShown(CONTACTS_ROOT_DESCRIPTION)
 
-        composeRule.onNodeWithContentDescription(NAV_ACCOUNT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_ACCOUNT_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.SETTINGS, route())
         assertShown(SETTINGS_ROOT_DESCRIPTION)
         assertEquals(Routes.OVERVIEW, navController.previousBackStackEntry?.destination?.route)
 
-        composeRule.onNodeWithContentDescription(NAV_OVERVIEW_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(NAV_OVERVIEW_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.OVERVIEW, route())
         assertShown(OVERVIEW_ROOT_DESCRIPTION)
@@ -501,7 +501,7 @@ class DistrictNavHostTest {
         ).forEach { (row, expected) ->
             val (template, root) = expected
             // ⚠️ The hub scrolls, and the lower rows start below the fold on a phone-sized window.
-            composeRule.onNodeWithContentDescription(row).performScrollTo().performClick()
+            composeRule.onNodeWithTag(row).performScrollTo().performClick()
             composeRule.waitForIdle()
 
             assertEquals(row, template, route())
@@ -522,10 +522,12 @@ class DistrictNavHostTest {
         navigate(Routes.workspaceSettings("ws-1", WorkspaceRole.VIEWER))
 
         assertShown(WORKSPACE_SETTINGS_ROOT_DESCRIPTION)
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION).assertDoesNotExist()
+        composeRule
+            .onNodeWithTag(WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION, useUnmergedTree = true)
+            .assertDoesNotExist()
     }
 
     // ── The account screen ─────────────────────────────────────────────────────────────────
@@ -535,7 +537,7 @@ class DistrictNavHostTest {
         render()
         navigate(Routes.SETTINGS)
 
-        composeRule.onNodeWithContentDescription(SETTINGS_DEVICES_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_DEVICES_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(Routes.DEVICES, route())
         assertShown(DEVICES_ROOT_DESCRIPTION)
@@ -553,7 +555,7 @@ class DistrictNavHostTest {
         answerReads()
         val before = container.sessionSignal.epoch.value
 
-        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
 
         awaitMain { container.sessionSignal.epoch.value > before }
         assertEquals(before + 1, container.sessionSignal.epoch.value)

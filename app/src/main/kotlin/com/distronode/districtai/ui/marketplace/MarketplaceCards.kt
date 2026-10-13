@@ -10,9 +10,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -62,7 +61,7 @@ internal fun SearchFormCard(
                 colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = MARKETPLACE_AREA_CODE_DESCRIPTION },
+                    .testTag(MARKETPLACE_AREA_CODE_DESCRIPTION),
             )
             OutlinedTextField(
                 value = form.country,
@@ -74,7 +73,7 @@ internal fun SearchFormCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = MARKETPLACE_COUNTRY_DESCRIPTION },
+                    .testTag(MARKETPLACE_COUNTRY_DESCRIPTION),
             )
             Row(
                 modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
@@ -91,7 +90,7 @@ internal fun SearchFormCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = MARKETPLACE_SEARCH_ACTION_DESCRIPTION },
+                    .testTag(MARKETPLACE_SEARCH_ACTION_DESCRIPTION),
             )
         }
     }
@@ -110,7 +109,7 @@ private fun TypeChip(
         onClick = { onUpdateForm(form.copy(type = type)) },
         variant = if (form.type == type) ButtonVariant.Primary else ButtonVariant.Secondary,
         size = ButtonSize.Sm,
-        modifier = Modifier.semantics { contentDescription = typeDescription(type) },
+        modifier = Modifier.testTag(typeDescription(type)),
     )
 }
 
@@ -120,7 +119,7 @@ internal fun SearchResults(state: SearchState.Ready) {
         Column(
             modifier = Modifier
                 .padding(horizontal = DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = MARKETPLACE_RESULTS_DESCRIPTION },
+                .testTag(MARKETPLACE_RESULTS_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         ) {
             // ⚠️ The carrier that ACTUALLY answered, which need not be the one the operator
@@ -171,7 +170,7 @@ internal fun OwnedList(state: OwnedState.Ready) {
         Column(
             modifier = Modifier
                 .padding(horizontal = DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = MARKETPLACE_OWNED_DESCRIPTION },
+                .testTag(MARKETPLACE_OWNED_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         ) {
             // ⛔ THE BANNER SITS ABOVE THE ROWS AND DOES NOT REPLACE THEM. The list is real but
@@ -218,7 +217,7 @@ private fun ListedNumberRow(number: ListedNumber) {
                     tone = Tone.Info,
                     modifier = Modifier
                         .padding(top = DistrictTheme.spacing.hairline)
-                        .semantics { contentDescription = MARKETPLACE_MANAGED_DESCRIPTION },
+                        .testTag(MARKETPLACE_MANAGED_DESCRIPTION),
                 )
             }
         }
@@ -236,7 +235,7 @@ private fun PartialBanner(failedProviders: List<String>) {
         tone = Tone.Warning,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = MARKETPLACE_PARTIAL_DESCRIPTION },
+            .testTag(MARKETPLACE_PARTIAL_DESCRIPTION),
     )
 }
 
@@ -253,7 +252,7 @@ internal fun NotConfiguredState(message: String) {
     Column(
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = MARKETPLACE_NOT_CONFIGURED_DESCRIPTION },
+            .testTag(MARKETPLACE_NOT_CONFIGURED_DESCRIPTION),
     ) {
         EmptyState(
             title = stringResource(R.string.marketplace_not_configured_title),

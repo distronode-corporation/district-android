@@ -2,7 +2,7 @@ package com.distronode.districtai.ui.calls
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -12,6 +12,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.CallSummary
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.MainLooperDrain
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Rule
@@ -73,8 +75,8 @@ class CallLogScreenPagingTest {
         }
 
         composeRule.onNodeWithText("Ada").assertIsDisplayed()
-        composeRule.onNodeWithText("No caller ID").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CALL_LOG_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_no_caller_id)).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_LOG_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     private companion object {

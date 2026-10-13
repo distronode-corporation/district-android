@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
+import com.distronode.districtai.str
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,7 +37,7 @@ class UiTextResolveTest {
         }
 
         composeRule.onNodeWithText("Straight from the server").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertIsDisplayed()
-        composeRule.onNodeWithText("Billing month 2026-08").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_meter_month, "2026-08")).assertIsDisplayed()
     }
 }

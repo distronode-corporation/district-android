@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -152,14 +152,14 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Could not reach the server.").assertIsDisplayed()
 
         PERSONA_EDITABLE_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
     }
 
@@ -173,7 +173,7 @@ class PersonaFormScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
 
         assertEquals(1, retries)
     }
@@ -190,20 +190,20 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(PERSONA_NAME_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `loading draws skeletons and no fields`() {
         render(PersonaFormUiState())
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(PERSONA_NAME_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── The loaded form ──────────────────────────────────────────────────────
@@ -233,10 +233,10 @@ class PersonaFormScreenTest {
         )
 
         composeRule.onNodeWithText("The list could not be loaded.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_LANGUAGE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(PERSONA_RESPONSE_LENGTH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(PERSONA_NAME_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
         assertEquals(1, retries)
     }
 
@@ -246,12 +246,12 @@ class PersonaFormScreenTest {
         // so the persona does not read as one with no voice.
         render(PersonaFormUiState(load = loaded, options = PersonaOptionsState.Ready(catalogue)))
 
-        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(PERSONA_LANGUAGE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("English (US)").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(PERSONA_RESPONSE_LENGTH_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Concise").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_OPEN_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_OPEN_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(PERSONA_VOICE_STUDIO_NOTE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -263,9 +263,9 @@ class PersonaFormScreenTest {
             onSelectResponseLength = { picked += "length:$it" },
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_LANGUAGE_DESCRIPTION).performClick()
         composeRule.onNodeWithText("Italian").performClick()
-        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_RESPONSE_LENGTH_DESCRIPTION).performClick()
         composeRule.onNodeWithText("Balanced").performClick()
 
         assertEquals(listOf("language:it-IT", "length:balanced"), picked)
@@ -276,7 +276,7 @@ class PersonaFormScreenTest {
         var edited: Pair<PersonaField, String>? = null
         render(PersonaFormUiState(load = loaded), onEdit = { field, value -> edited = field to value })
 
-        composeRule.onNodeWithContentDescription(PERSONA_GREETING_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_GREETING_DESCRIPTION)
             .performTextReplacement("Good afternoon.")
 
         assertEquals(PersonaField.GREETING to "Good afternoon.", edited)
@@ -288,7 +288,7 @@ class PersonaFormScreenTest {
         // rate-limit slot and still stamps `updatedAt`, reporting an edit nobody made.
         render(PersonaFormUiState(load = loaded))
 
-        composeRule.onNodeWithContentDescription(PERSONA_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(PERSONA_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -300,7 +300,7 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_SAVE_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(PERSONA_SAVE_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
@@ -315,9 +315,9 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(PERSONA_GREETING_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(PERSONA_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(PERSONA_NAME_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(PERSONA_GREETING_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(PERSONA_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     // ── The save banners ─────────────────────────────────────────────────────
@@ -333,7 +333,7 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(PERSONA_NOTICE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Offline.").assertDoesNotExist()
     }
 
@@ -349,7 +349,7 @@ class PersonaFormScreenTest {
 
         composeRule.onNodeWithText("Too many updates.").assertIsDisplayed()
         composeRule.onNodeWithText("Bea").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_SAVE_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(PERSONA_SAVE_DESCRIPTION).assertIsEnabled()
     }
 
     // ── Leaving with pending edits ───────────────────────────────────────────
@@ -362,13 +362,13 @@ class PersonaFormScreenTest {
             onBack = { backs += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
             .assertIsDisplayed()
         assertEquals("the screen must not have left yet", 0, backs)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -380,11 +380,11 @@ class PersonaFormScreenTest {
             onBack = { backs += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KEEP_EDITING_DESCRIPTION)
             .performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals(0, backs)
         composeRule.onNodeWithText("Bea").assertIsDisplayed()
@@ -395,9 +395,9 @@ class PersonaFormScreenTest {
         var backs = 0
         render(PersonaFormUiState(load = loaded), onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals(1, backs)
     }
@@ -415,9 +415,9 @@ class PersonaFormScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_LANGUAGE_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_LANGUAGE_DESCRIPTION)
             .assertHasNoClickAction()
-        composeRule.onNodeWithContentDescription(PERSONA_RESPONSE_LENGTH_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_RESPONSE_LENGTH_DESCRIPTION)
             .assertHasNoClickAction()
         composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
     }
@@ -451,15 +451,15 @@ class PersonaFormScreenTest {
 
         current.value = PersonaFormUiState(load = loaded, edits = mapOf(PersonaField.NAME to "Bea"))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(PERSONA_NAME_DESCRIPTION).performTextReplacement("Cara")
-        composeRule.onNodeWithContentDescription(PERSONA_GREETING_DESCRIPTION).performTextReplacement("Hi.")
-        composeRule.onNodeWithContentDescription(PERSONA_PERSONALITY_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_NAME_DESCRIPTION).performTextReplacement("Cara")
+        composeRule.onNodeWithTag(PERSONA_GREETING_DESCRIPTION).performTextReplacement("Hi.")
+        composeRule.onNodeWithTag(PERSONA_PERSONALITY_DESCRIPTION)
             .performTextReplacement("Brisk.")
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         current.value = current.value.copy(edits = mapOf(PersonaField.NAME to "Dee"))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
 
         assertEquals(listOf("NAME:Cara", "GREETING:Hi.", "PERSONALITY:Brisk.", "back"), calls)
     }
@@ -472,7 +472,7 @@ class PersonaFormScreenTest {
                 PersonaFormScreen(state.value, { _, _ -> }, {}, {}, {}, {}, {}, {})
             }
         }
-        val notice = composeRule.onNodeWithContentDescription(PERSONA_REFIT_DESCRIPTION)
+        val notice = composeRule.onNodeWithTag(PERSONA_REFIT_DESCRIPTION)
         notice.assertTextEquals("Checking that the voice chain speaks the new language.")
 
         state.value = state.value.copy(refit = PersonaRefit.Refitted)
@@ -493,6 +493,6 @@ class PersonaFormScreenTest {
             "The voice chain could not be moved to the new language. Fit it in Voice Studio. Refused.",
         )
         state.value = state.value.copy(refit = null)
-        composeRule.onNodeWithContentDescription(PERSONA_REFIT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(PERSONA_REFIT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 }

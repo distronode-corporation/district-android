@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -24,6 +24,8 @@ import com.distronode.districtai.core.model.EngagementPoint
 import com.distronode.districtai.core.model.FunnelStage
 import com.distronode.districtai.core.model.SentimentSlice
 import com.distronode.districtai.core.model.UsageData
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -161,8 +163,8 @@ class AnalyticsScreenTest {
     fun `the loading state stands in for the content rather than spinning`() {
         render(AnalyticsUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -170,7 +172,7 @@ class AnalyticsScreenTest {
         var backs = 0
         render(content(), Callbacks(onBack = { backs++ }))
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
     }
@@ -181,7 +183,7 @@ class AnalyticsScreenTest {
     fun `the headline figures are rendered as the server derived them`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_METRICS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_METRICS_DESCRIPTION).assertIsDisplayed()
         // ⚠️ UPPERCASE, because `Eyebrow` transforms its input — CSS `text-transform: uppercase`
         // has no TextStyle equivalent in Compose, so the design system does it in Kotlin and the
         // string resource stays sentence-case and translatable.
@@ -193,7 +195,7 @@ class AnalyticsScreenTest {
         // ⛔ THE TILE DURATION FORM, and it is COMPLETED-only — the caption says so, because
         // avgDuration * totalCalls is not talk time.
         composeRule.onNodeWithText("2m 0s").assertIsDisplayed()
-        composeRule.onNodeWithText("Across completed sessions").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_metric_avg_duration_caption)).assertIsDisplayed()
         // ⚠️ ALREADY A PERCENTAGE. A screen that multiplied by 100 would show "3800%".
         composeRule.onNodeWithText("38%").assertIsDisplayed()
     }
@@ -214,9 +216,9 @@ class AnalyticsScreenTest {
     fun `a rise shows its magnitude with the arrow carrying the sign`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_DELTA_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("▲ 20% vs the previous period").assertIsDisplayed()
-        composeRule.onNodeWithText("48 now, 40 in the previous period").assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_DELTA_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_up, 20)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_counts, 48, 40)).assertIsDisplayed()
     }
 
     @Test
@@ -228,7 +230,7 @@ class AnalyticsScreenTest {
         )
         render(content(analytics = AnalyticsCardState.Ready(falling)))
 
-        composeRule.onNodeWithText("▼ 20% vs the previous period").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_down, 20)).assertIsDisplayed()
     }
 
     @Test
@@ -241,9 +243,9 @@ class AnalyticsScreenTest {
         )
         render(content(analytics = AnalyticsCardState.Ready(fresh)))
 
-        composeRule.onNodeWithText("New — no previous period to compare").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_new)).assertIsDisplayed()
         composeRule.onNodeWithText("0% vs the previous period").assertDoesNotExist()
-        composeRule.onNodeWithText("No change vs the previous period").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_flat)).assertDoesNotExist()
     }
 
     @Test
@@ -253,7 +255,7 @@ class AnalyticsScreenTest {
         )
         render(content(analytics = AnalyticsCardState.Ready(flat)))
 
-        composeRule.onNodeWithText("No change vs the previous period").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_flat)).assertIsDisplayed()
     }
 
     // ── Charts ───────────────────────────────────────────────────────────────
@@ -262,11 +264,11 @@ class AnalyticsScreenTest {
     fun `the trend chart draws and labels its axis with the server's display strings`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
         // ⚠️ RENDERED VERBATIM. `date` is localized server-side to the operator's timezone and
         // carries no year; the client never parses it.
         composeRule.onNodeWithText("Aug 9 to Aug 11").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -283,12 +285,12 @@ class AnalyticsScreenTest {
         )
         render(content(analytics = AnalyticsCardState.Ready(empty)))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("No calls in this window.").assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_trend_empty)).assertIsDisplayed()
         // The proportional bar has to survive a total of zero too.
-        composeRule.onNodeWithContentDescription(ANALYTICS_SENTIMENT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("No calls to analyse yet.").assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_SENTIMENT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_sentiment_empty)).assertIsDisplayed()
     }
 
     @Test
@@ -296,7 +298,7 @@ class AnalyticsScreenTest {
         val single = report.copy(engagementTrends = listOf(trends.last()))
         render(content(analytics = AnalyticsCardState.Ready(single)))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Aug 11 to Aug 11").assertIsDisplayed()
     }
 
@@ -308,15 +310,15 @@ class AnalyticsScreenTest {
         val none = report.copy(engagementTrends = emptyList())
         render(content(analytics = AnalyticsCardState.Ready(none)))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `the funnel renders each stage with its own count`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_FUNNEL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_FUNNEL_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Total Dials").assertIsDisplayed()
         composeRule.onNodeWithText("Successful Leads").assertIsDisplayed()
         composeRule.onNodeWithText("18").assertIsDisplayed()
@@ -335,7 +337,7 @@ class AnalyticsScreenTest {
         )
         render(content(analytics = AnalyticsCardState.Ready(odd)))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_SENTIMENT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_SENTIMENT_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Positive Sentiment").assertIsDisplayed()
         composeRule.onNodeWithText("21").assertIsDisplayed()
     }
@@ -347,11 +349,11 @@ class AnalyticsScreenTest {
         var chosen: AnalyticsRange? = null
         render(content(), Callbacks(onSelectRange = { chosen = it }))
 
-        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.SEVEN_DAYS))
+        composeRule.onNodeWithTag(rangeDescription(AnalyticsRange.SEVEN_DAYS))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.THIRTY_DAYS))
+        composeRule.onNodeWithTag(rangeDescription(AnalyticsRange.THIRTY_DAYS))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.NINETY_DAYS))
+        composeRule.onNodeWithTag(rangeDescription(AnalyticsRange.NINETY_DAYS))
             .performClick()
 
         assertEquals(AnalyticsRange.NINETY_DAYS, chosen)
@@ -375,10 +377,10 @@ class AnalyticsScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.THIRTY_DAYS)).performClick()
+        composeRule.onNodeWithTag(rangeDescription(AnalyticsRange.THIRTY_DAYS)).performClick()
         state = content(range = AnalyticsRange.THIRTY_DAYS)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(rangeDescription(AnalyticsRange.SEVEN_DAYS)).performClick()
+        composeRule.onNodeWithTag(rangeDescription(AnalyticsRange.SEVEN_DAYS)).performClick()
 
         assertEquals(listOf(AnalyticsRange.THIRTY_DAYS, AnalyticsRange.SEVEN_DAYS), chosen)
     }
@@ -387,10 +389,10 @@ class AnalyticsScreenTest {
     fun `a reload over existing content is announced without blanking the figures`() {
         render(content(range = AnalyticsRange.NINETY_DAYS, refreshing = true))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_REFRESHING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_REFRESHING_DESCRIPTION).assertIsDisplayed()
         // ⛔ The previous window's figures stay on screen — a range switch must not flash the page.
-        composeRule.onNodeWithContentDescription(ANALYTICS_METRICS_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("48 now, 40 in the previous period").assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_METRICS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_delta_counts, 48, 40)).assertIsDisplayed()
     }
 
     // ── Usage ────────────────────────────────────────────────────────────────
@@ -399,15 +401,15 @@ class AnalyticsScreenTest {
     fun `a metered month lists only the metrics it actually carries`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Month 2026-08").assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "2026-08")).assertIsDisplayed()
         // Whole amounts print whole; fractional ones keep their decimals — these are billing
         // figures and a truncation is a wrong number.
         composeRule.onNodeWithText("412").assertIsDisplayed()
         composeRule.onNodeWithText("1204.25").assertIsDisplayed()
         // ⚠️ Present-at-zero IS shown; absent is not. Those are different facts.
-        composeRule.onNodeWithText("WhatsApp sent").assertIsDisplayed()
-        composeRule.onNodeWithText("SMS received").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_whatsapp_outbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_sms_inbound)).assertDoesNotExist()
     }
 
     @Test
@@ -432,15 +434,15 @@ class AnalyticsScreenTest {
         )
         render(content(usageCard = UsageCardState.Ready(everything)))
 
-        composeRule.onNodeWithText("SMS sent").assertIsDisplayed()
-        composeRule.onNodeWithText("SMS received").assertIsDisplayed()
-        composeRule.onNodeWithText("MMS sent").assertIsDisplayed()
-        composeRule.onNodeWithText("WhatsApp sent").assertIsDisplayed()
-        composeRule.onNodeWithText("WhatsApp received").assertIsDisplayed()
-        composeRule.onNodeWithText("Outbound call minutes").assertIsDisplayed()
-        composeRule.onNodeWithText("Inbound call minutes").assertIsDisplayed()
-        composeRule.onNodeWithText("Phone numbers").assertIsDisplayed()
-        composeRule.onNodeWithText("Video minutes (tracked)").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_sms_outbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_sms_inbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_mms_outbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_whatsapp_outbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_whatsapp_inbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_call_minutes_outbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_call_minutes_inbound)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_numbers)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_video_minutes)).assertIsDisplayed()
         // Fractional minutes survive; whole counts print whole.
         composeRule.onNodeWithText("318.5").assertIsDisplayed()
         composeRule.onNodeWithText("87").assertIsDisplayed()
@@ -458,11 +460,11 @@ class AnalyticsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Phone numbers").assertIsDisplayed()
-        composeRule.onNodeWithText("Video minutes (tracked)").assertIsDisplayed()
-        composeRule.onNodeWithText("SMS sent").assertDoesNotExist()
-        composeRule.onNodeWithText("WhatsApp sent").assertDoesNotExist()
-        composeRule.onNodeWithText("Inbound call minutes").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_numbers)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_video_minutes)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_sms_outbound)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_whatsapp_outbound)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_call_minutes_inbound)).assertDoesNotExist()
     }
 
     @Test
@@ -473,11 +475,11 @@ class AnalyticsScreenTest {
         // it is drawn as "0".
         render(content(usageCard = UsageCardState.Ready(null)))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_USAGE_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("No usage has been recorded for this month yet.")
+        composeRule.onNodeWithTag(ANALYTICS_USAGE_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_none))
             .assertIsDisplayed()
-        composeRule.onNodeWithText("SMS sent").assertDoesNotExist()
-        composeRule.onNodeWithText("Outbound call minutes").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_sms_outbound)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_call_minutes_outbound)).assertDoesNotExist()
         composeRule.onNodeWithText("0").assertDoesNotExist()
     }
 
@@ -508,11 +510,11 @@ class AnalyticsScreenTest {
     fun `the history card renders one labelled row per month, newest first`() {
         render(content())
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_HISTORY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_HISTORY_DESCRIPTION).assertIsDisplayed()
         // ⛔ THE MONTH LABEL COMES FROM THE `YYYY-MM` KEY BY LOOKUP, NOT BY PARSING IT AS A DATE.
         // A formatter would resolve the key against a timezone it does not have and can shift a
         // month by one for a reader west of UTC.
-        composeRule.onNodeWithContentDescription(historyMonthDescription("2026-08"))
+        composeRule.onNodeWithTag(historyMonthDescription("2026-08"))
             .assertIsDisplayed()
         composeRule.onNodeWithText("Aug 2026").assertIsDisplayed()
         composeRule.onNodeWithText("Jul 2026").assertIsDisplayed()
@@ -533,12 +535,12 @@ class AnalyticsScreenTest {
         // was never measured for calls at all.
         render(content())
 
-        composeRule.onNodeWithContentDescription(historyMonthDescription("2026-06"))
+        composeRule.onNodeWithTag(historyMonthDescription("2026-06"))
             .assertIsDisplayed()
-        composeRule.onNodeWithText("—").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_history_absent)).assertIsDisplayed()
         composeRule.onNodeWithText("77").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Metered call minutes").assertCountEquals(3)
-        composeRule.onAllNodesWithText("Messages").assertCountEquals(3)
+        composeRule.onAllNodesWithText(str(R.string.analytics_history_minutes)).assertCountEquals(3)
+        composeRule.onAllNodesWithText(str(R.string.analytics_history_messages)).assertCountEquals(3)
     }
 
     @Test
@@ -548,12 +550,12 @@ class AnalyticsScreenTest {
         // nothing".
         render(content(history = UsageHistoryCardState.Ready(emptyList())))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_HISTORY_EMPTY_DESCRIPTION)
+        composeRule.onNodeWithTag(ANALYTICS_HISTORY_EMPTY_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("No usage has been recorded in any recent month yet.")
+        composeRule.onNodeWithText(str(R.string.analytics_history_none))
             .assertIsDisplayed()
         composeRule.onNodeWithText("Aug 2026").assertDoesNotExist()
-        composeRule.onAllNodesWithText("Messages").assertCountEquals(0)
+        composeRule.onAllNodesWithText(str(R.string.analytics_history_messages)).assertCountEquals(0)
     }
 
     @Test
@@ -563,11 +565,11 @@ class AnalyticsScreenTest {
         // and wrong: it would discard the current month over a trend nobody asked for first.
         render(content(history = UsageHistoryCardState.Failed(failure())))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_HISTORY_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(ANALYTICS_HISTORY_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Month 2026-08").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_FAILED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "2026-08")).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── Independent failures ─────────────────────────────────────────────────
@@ -578,22 +580,22 @@ class AnalyticsScreenTest {
         // not discard the other's answer.
         render(content(analytics = AnalyticsCardState.Failed(failure())))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Month 2026-08").assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "2026-08")).assertIsDisplayed()
         // And the whole-screen failure state is NOT what was shown.
-        composeRule.onNodeWithContentDescription(ANALYTICS_FAILED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ANALYTICS_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a failed usage read keeps the analytics figures on screen`() {
         render(content(usageCard = UsageCardState.Failed(failure())))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_USAGE_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(ANALYTICS_USAGE_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_METRICS_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_METRICS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_TREND_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -604,7 +606,7 @@ class AnalyticsScreenTest {
             Callbacks(onRetry = { retried++ }),
         )
 
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         assertEquals(1, retried)
     }
@@ -615,9 +617,9 @@ class AnalyticsScreenTest {
         // there is a control that cannot succeed.
         render(content(analytics = AnalyticsCardState.Failed(failure(retryable = false))))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -628,20 +630,20 @@ class AnalyticsScreenTest {
             Callbacks(onRetry = { retried++ }),
         )
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_FAILED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_FAILED_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("A region is unreachable.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ANALYTICS_RETRY_DESCRIPTION).performClick()
 
         assertEquals(1, retried)
         // Neither card area is drawn — there is nothing to preserve.
-        composeRule.onNodeWithContentDescription(ANALYTICS_USAGE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a total failure that cannot be retried offers no button`() {
         render(AnalyticsUiState.Failed(failure(retryable = false)))
 
-        composeRule.onNodeWithContentDescription(ANALYTICS_FAILED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ANALYTICS_RETRY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ANALYTICS_FAILED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ANALYTICS_RETRY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 }

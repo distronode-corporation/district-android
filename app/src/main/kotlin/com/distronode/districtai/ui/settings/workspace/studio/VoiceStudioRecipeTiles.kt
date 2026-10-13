@@ -8,9 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -36,7 +35,7 @@ internal fun RecipeSection(state: VoiceStudioUiState.Ready, enabled: Boolean, ac
                     enabled = enabled,
                     size = ButtonSize.Sm,
                     variant = if (tier == state.tier) ButtonVariant.Primary else ButtonVariant.Secondary,
-                    modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_TIER, tier) },
+                    modifier = Modifier.testTag(studioHandle(HANDLE_TIER, tier)),
                 )
             }
     }
@@ -56,7 +55,7 @@ internal fun RecipeSection(state: VoiceStudioUiState.Ready, enabled: Boolean, ac
                 text = basedOn,
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.foreground,
-                modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_BASED_ON_DESCRIPTION },
+                modifier = Modifier.testTag(VOICE_STUDIO_BASED_ON_DESCRIPTION),
             )
             DistrictButton(
                 text = labels.reset,
@@ -64,7 +63,7 @@ internal fun RecipeSection(state: VoiceStudioUiState.Ready, enabled: Boolean, ac
                 enabled = enabled,
                 size = ButtonSize.Sm,
                 variant = ButtonVariant.Ghost,
-                modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_RESET_DESCRIPTION },
+                modifier = Modifier.testTag(VOICE_STUDIO_RESET_DESCRIPTION),
             )
         }
     }
@@ -84,7 +83,7 @@ private fun RecipeTile(
 ) {
     DistrictCard(
         onClick = onClick.takeIf { enabled },
-        modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_RECIPE, recipe.id, selected) },
+        modifier = Modifier.testTag(studioHandle(HANDLE_RECIPE, recipe.id, selected)),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
             Text(recipe.name, style = MaterialTheme.typography.titleSmall, color = DistrictTheme.colors.foreground)

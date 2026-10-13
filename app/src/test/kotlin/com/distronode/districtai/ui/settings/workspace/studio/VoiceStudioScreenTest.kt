@@ -11,7 +11,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -21,6 +21,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.EngineMix
 import com.distronode.districtai.core.network.testing.VoiceStudioFixture
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -94,7 +96,7 @@ class VoiceStudioScreenTest {
         return actions
     }
 
-    private fun tap(description: String) = composeRule.onNodeWithContentDescription(description).performClick()
+    private fun tap(description: String) = composeRule.onNodeWithTag(description).performClick()
 
     private fun pick(picker: String, option: String) {
         tap(studioHandle(HANDLE_PICKER, picker))
@@ -109,8 +111,8 @@ class VoiceStudioScreenTest {
     fun `loading draws a skeleton under the app's own title`() {
         render(VoiceStudioUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Voice Studio").assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.voice_studio_title)).assertIsDisplayed()
     }
 
     @Test
@@ -118,7 +120,7 @@ class VoiceStudioScreenTest {
         val actions = render(VoiceStudioUiState.LoadFailed(FailureText(UiText.Literal("Could not reach the server."))))
 
         composeRule.onNodeWithText("Could not reach the server.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_SAVE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(VOICE_STUDIO_SAVE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         tap(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
         assertEquals(listOf("load"), actions.calls)
     }
@@ -131,18 +133,18 @@ class VoiceStudioScreenTest {
 
         composeRule.onNodeWithText(labels.description).assertIsDisplayed()
         composeRule.onNodeWithText(labels.allSaved).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_SAVE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_RECIPE, "fastest", selected = true))
+        composeRule.onNodeWithTag(VOICE_STUDIO_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(studioHandle(HANDLE_RECIPE, "fastest", selected = true))
             .assertIsDisplayed()
         composeRule.onNodeWithText("Stays in the United States").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_BLOCK, "stt", selected = true))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_BLOCK, "stt", selected = true))
             .assertIsDisplayed()
         composeRule.onNodeWithText("Deepgram Flux (English)").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_METER_DESCRIPTION).assertTextEquals(studio.latency.text)
+        composeRule.onNodeWithTag(VOICE_STUDIO_METER_DESCRIPTION).assertTextEquals(studio.latency.text)
         composeRule.onNodeWithText(studio.latency.sourceText).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_RESIDENCY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(VOICE_STUDIO_RESIDENCY_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText(studio.current.chain.residency.text).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_BASED_ON_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(VOICE_STUDIO_BASED_ON_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -153,10 +155,10 @@ class VoiceStudioScreenTest {
 
         assertTrue(actions.ready.held.engine is StudioEngine.Realtime)
         composeRule.onNodeWithText(labels.unsaved).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_SAVE_DESCRIPTION).assertIsEnabled().performClick()
+        composeRule.onNodeWithTag(VOICE_STUDIO_SAVE_DESCRIPTION).assertIsEnabled().performClick()
         assertEquals(listOf("recipe:realtime", "save"), actions.calls)
         // A realtime engine is one block, and its editor is open on it.
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_BLOCK, StudioLegEdits.REALTIME, selected = true))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_BLOCK, StudioLegEdits.REALTIME, selected = true))
             .assertIsDisplayed()
     }
 
@@ -178,7 +180,7 @@ class VoiceStudioScreenTest {
         tap(VOICE_STUDIO_RESET_DESCRIPTION)
 
         assertEquals(0, actions.ready.changes)
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_BASED_ON_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(VOICE_STUDIO_BASED_ON_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -198,7 +200,7 @@ class VoiceStudioScreenTest {
         val dirty = ready().withRecipe("realtime")
         val actions = render(dirty.copy(save = StudioSaveState.Saving))
         composeRule.onNodeWithText("Saving", substring = true).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(VOICE_STUDIO_SAVE_DESCRIPTION).assertIsNotEnabled()
 
         actions.state = dirty.copy(save = StudioSaveState.Saved)
         composeRule.onNodeWithText(labels.saved).assertIsDisplayed()
@@ -210,7 +212,7 @@ class VoiceStudioScreenTest {
         composeRule.onNodeWithText("${labels.saveFailed} Refused.").assertIsDisplayed()
 
         actions.state = dirty.copy(save = StudioSaveState.SavedButStale(FailureText(UiText.Literal("Offline."))))
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(VOICE_STUDIO_NOTICE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -229,7 +231,7 @@ class VoiceStudioScreenTest {
     @Test
     fun `an unsaved edit's meter is summed from measured medians, and a missing stage says at least`() {
         val actions = render(ready().withMix { it.copy(llm = it.llm.copy(location = "global")) })
-        val meter = composeRule.onNodeWithContentDescription(VOICE_STUDIO_METER_DESCRIPTION)
+        val meter = composeRule.onNodeWithTag(VOICE_STUDIO_METER_DESCRIPTION)
         meter.assertTextEquals("At least 520\u00a0ms")
         composeRule.onNodeWithText("${labels.stages.llmTtft}: ${labels.notMeasured}").assertIsDisplayed()
 
@@ -281,7 +283,7 @@ class VoiceStudioScreenTest {
         )
         render(VoiceStudioUiState.Ready.of(french).withMix { it.copy(llm = it.llm.copy(location = "global")) })
 
-        composeRule.onNodeWithContentDescription(VOICE_STUDIO_METER_DESCRIPTION)
+        composeRule.onNodeWithTag(VOICE_STUDIO_METER_DESCRIPTION)
             .assertTextEquals("Au moins 520 ms")
         composeRule.onNodeWithText(french.labels.meterPartial).assertIsDisplayed()
         composeRule.onNodeWithText("Basé sur Fastest, 1 modification.").assertIsDisplayed()
@@ -302,10 +304,10 @@ class VoiceStudioScreenTest {
         assertEquals("nova-3-general", actions.mix.stt.model)
 
         tap(studioHandle(HANDLE_ADVANCED, StudioLegEdits.EAR))
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_KEYTERMS, StudioTuningValues.KEYTERMS))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_KEYTERMS, StudioTuningValues.KEYTERMS))
             .performTextReplacement("Distronode\nDistronode\nLedger")
         assertEquals(listOf("Distronode", "Ledger"), actions.mix.stt.keyterms)
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_KEYTERMS, StudioTuningValues.KEYTERMS))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_KEYTERMS, StudioTuningValues.KEYTERMS))
             .performTextReplacement("")
         assertEquals(null, actions.mix.stt.keyterms)
     }
@@ -315,29 +317,29 @@ class VoiceStudioScreenTest {
         val actions = render(ready().withLeg(StudioLegEdits.TURN))
         val sooner = studioHandle(HANDLE_CHECKBOX, StudioTuningValues.PREEMPTIVE_TTS)
 
-        composeRule.onNodeWithContentDescription(sooner).assertIsOff().performClick()
+        composeRule.onNodeWithTag(sooner).assertIsOff().performClick()
         assertEquals(true, actions.mix.preemptiveTts)
-        composeRule.onNodeWithContentDescription(sooner).assertIsOn()
+        composeRule.onNodeWithTag(sooner).assertIsOn()
 
         val minDelay = "engineMix.turn.minDelay"
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_SLIDER, minDelay)).assertDoesNotExist()
+        composeRule.onNodeWithTag(studioHandle(HANDLE_SLIDER, minDelay), useUnmergedTree = true).assertDoesNotExist()
         tap(studioHandle(HANDLE_ADVANCED, StudioLegEdits.TURN))
         composeRule.onNodeWithText(labels.interruptions.uppercase()).assertIsDisplayed()
 
         // Unticking "use the default" starts the slider where the server says it starts.
         tap(studioHandle(HANDLE_DEFAULT, minDelay))
         assertEquals(0.3, actions.mix.turn.minDelay!!, 0.0)
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_SLIDER, minDelay))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_SLIDER, minDelay))
             .performSemanticsAction(SemanticsActions.SetProgress) { it(0.8f) }
         assertEquals(0.8, actions.mix.turn.minDelay!!, 0.0)
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_VALUE, minDelay)).assertIsDisplayed()
+        composeRule.onNodeWithTag(studioHandle(HANDLE_VALUE, minDelay)).assertIsDisplayed()
         tap(studioHandle(HANDLE_DEFAULT, minDelay))
         assertEquals(null, actions.mix.turn.minDelay)
 
         // A whole-number slider.
         val words = "engineMix.turn.interruption.minWords"
         tap(studioHandle(HANDLE_DEFAULT, words))
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_SLIDER, words))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_SLIDER, words))
             .performSemanticsAction(SemanticsActions.SetProgress) { it(3.2f) }
         assertEquals(3.0, actions.mix.turn.interruption!!.minWords!!, 0.0)
 
@@ -346,7 +348,7 @@ class VoiceStudioScreenTest {
 
         // And Advanced closes again.
         tap(studioHandle(HANDLE_ADVANCED, StudioLegEdits.TURN))
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_SLIDER, words)).assertDoesNotExist()
+        composeRule.onNodeWithTag(studioHandle(HANDLE_SLIDER, words), useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -393,7 +395,7 @@ class VoiceStudioScreenTest {
         pick("voice", "Kore")
         assertEquals("Kore", actions.ready.held.engine.voice)
         tap(studioHandle(HANDLE_ADVANCED, StudioLegEdits.REALTIME))
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_SLIDER, StudioTuningValues.REALTIME_TEMPERATURE))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_SLIDER, StudioTuningValues.REALTIME_TEMPERATURE))
             .performSemanticsAction(SemanticsActions.SetProgress) { it(0.25f) }
         assertEquals(0.25, actions.ready.held.realtimeTemperature, 0.0)
         pick(StudioTuningValues.VOICE_STYLE, "en-US-News-K")
@@ -408,9 +410,11 @@ class VoiceStudioScreenTest {
     fun `nothing is editable while a save is in the air`() {
         render(ready().withRecipe("in-region").copy(save = StudioSaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_TIER, StudioRecipes.LATEST)).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_PICKER, "ear-vendor")).performClick()
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_OPTION, "google-stt")).assertDoesNotExist()
+        composeRule.onNodeWithTag(studioHandle(HANDLE_TIER, StudioRecipes.LATEST)).assertIsNotEnabled()
+        composeRule.onNodeWithTag(studioHandle(HANDLE_PICKER, "ear-vendor")).performClick()
+        composeRule
+            .onNodeWithTag(studioHandle(HANDLE_OPTION, "google-stt"), useUnmergedTree = true)
+            .assertDoesNotExist()
     }
 
     @Test
@@ -427,11 +431,11 @@ class VoiceStudioScreenTest {
         val actions = render(VoiceStudioUiState.Ready.of(bare).withLeg(StudioLegEdits.TURN))
 
         tap(studioHandle(HANDLE_ADVANCED, StudioLegEdits.TURN))
-        composeRule.onNodeWithText("Use the default").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.voice_studio_use_default)).assertIsDisplayed()
 
         // ⚠️ Advanced stays open across a leg change: it is one section that follows the editor.
         actions.selectLeg(StudioLegEdits.EAR)
-        composeRule.onNodeWithContentDescription(studioHandle(HANDLE_KEYTERMS, StudioTuningValues.KEYTERMS))
+        composeRule.onNodeWithTag(studioHandle(HANDLE_KEYTERMS, StudioTuningValues.KEYTERMS))
             .assertIsDisplayed()
         composeRule.onNodeWithText(studio.advanced.first().description!!).assertDoesNotExist()
     }

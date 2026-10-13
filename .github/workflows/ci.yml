@@ -47,6 +47,15 @@ jobs:
       - name: Release script tests
         run: scripts/release-scripts.test.sh
 
+      # The string catalog, also in seconds: the vendored tools match their recorded hashes, the
+      # catalog is valid and canonical, and the committed strings.xml (and the French source set's
+      # file) are byte for byte what the catalog generates. A hand edit to strings.xml fails here.
+      # Python 3.11 or newer, standard library only; ubuntu-24.04 ships 3.12.
+      - name: String catalog
+        run: |
+          python3 tools/l10n/l10n.py vendor --check --dest tools/l10n
+          python3 tools/l10n/l10n.py check l10n/android.toml --gen android:l10n/res --opt name=strings
+
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1

@@ -13,9 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -65,7 +64,7 @@ fun CreateContactDialog(
         textContentColor = DistrictTheme.colors.foreground,
         title = { Text(stringResource(R.string.contact_create)) },
         text = {
-            Column(modifier = Modifier.semantics { contentDescription = CONTACT_CREATE_DESCRIPTION }) {
+            Column(modifier = Modifier.testTag(CONTACT_CREATE_DESCRIPTION)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -75,7 +74,7 @@ fun CreateContactDialog(
                     enabled = !saving,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .semantics { contentDescription = CONTACT_CREATE_NAME_DESCRIPTION },
+                        .testTag(CONTACT_CREATE_NAME_DESCRIPTION),
                 )
                 OutlinedTextField(
                     value = phone,
@@ -87,7 +86,7 @@ fun CreateContactDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics { contentDescription = CONTACT_CREATE_PHONE_DESCRIPTION },
+                        .testTag(CONTACT_CREATE_PHONE_DESCRIPTION),
                 )
                 OutlinedTextField(
                     value = email,
@@ -99,7 +98,7 @@ fun CreateContactDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics { contentDescription = CONTACT_CREATE_EMAIL_DESCRIPTION },
+                        .testTag(CONTACT_CREATE_EMAIL_DESCRIPTION),
                 )
 
                 // Stated as guidance rather than an error, since it is the normal starting state.
@@ -110,7 +109,7 @@ fun CreateContactDialog(
                         color = DistrictTheme.colors.mutedForeground,
                         modifier = Modifier
                             .padding(top = DistrictTheme.spacing.tight)
-                            .semantics { contentDescription = CONTACT_CREATE_HINT_DESCRIPTION },
+                            .testTag(CONTACT_CREATE_HINT_DESCRIPTION),
                     )
                 }
 
@@ -123,7 +122,7 @@ fun CreateContactDialog(
                         color = DistrictTheme.colors.destructive,
                         modifier = Modifier
                             .padding(top = DistrictTheme.spacing.tight)
-                            .semantics { contentDescription = CONTACT_CREATE_FAILURE_DESCRIPTION },
+                            .testTag(CONTACT_CREATE_FAILURE_DESCRIPTION),
                     )
                 }
             }
@@ -135,7 +134,7 @@ fun CreateContactDialog(
                 ),
                 onClick = { onCreate(name, phone, email) },
                 enabled = canSubmit,
-                modifier = Modifier.semantics { contentDescription = CONTACT_CREATE_SUBMIT_DESCRIPTION },
+                modifier = Modifier.testTag(CONTACT_CREATE_SUBMIT_DESCRIPTION),
             )
         },
         dismissButton = {

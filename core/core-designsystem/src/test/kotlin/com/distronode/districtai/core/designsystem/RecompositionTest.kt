@@ -23,7 +23,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -262,14 +261,14 @@ class RecompositionTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         recomposeUnchanged()
 
         onBack = { backs += 1 }
         title = "Contacts"
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Contacts").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         assertEquals(1, backs)
         composeRule.onNodeWithText("Filter").assertIsDisplayed()
     }
@@ -327,7 +326,6 @@ class RecompositionTest {
                             label = OVERVIEW,
                             selected = selected == OVERVIEW,
                             onClick = { selected = OVERVIEW },
-                            modifier = Modifier.testTag(OVERVIEW),
                             description = if (described) "nav-$OVERVIEW" else null,
                         )
                         DistrictNavItem(CALLS, selected == CALLS, { selected = CALLS })
@@ -337,14 +335,14 @@ class RecompositionTest {
             }
         }
 
-        composeRule.onNodeWithTag(OVERVIEW).assertIsSelected()
-        composeRule.onNodeWithContentDescription("nav-$OVERVIEW").assertDoesNotExist()
+        composeRule.onNodeWithText(OVERVIEW).assertIsSelected()
+        composeRule.onNodeWithTag("nav-$OVERVIEW", useUnmergedTree = true).assertDoesNotExist()
         recomposeUnchanged()
 
         composeRule.onNodeWithText(CALLS).performClick()
         described = true
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("nav-$OVERVIEW").assertIsNotSelected()
+        composeRule.onNodeWithTag("nav-$OVERVIEW").assertIsNotSelected()
         composeRule.onNodeWithText("Alone").assertIsNotSelected()
     }
 

@@ -9,10 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
@@ -21,6 +20,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.MediaParticipant
 import com.distronode.districtai.core.media.VideoTrackHandle
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -86,13 +87,13 @@ class ActiveRoomScreenStatesTest {
                 )
             }
         }
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_CONNECTING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_BANNER_CONNECTING_DESCRIPTION).assertIsDisplayed()
 
         connection = CallConnectionState.Disconnected()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_LEFT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ROOM_BANNER_CONNECTING_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOM_BANNER_LEFT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOM_BANNER_CONNECTING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -106,9 +107,11 @@ class ActiveRoomScreenStatesTest {
             ),
         )
 
-        composeRule.onNode(hasContentDescription(ROOM_MIC_DESCRIPTION) and hasText("Mute")).assertExists()
-        composeRule.onNode(hasContentDescription(ROOM_CAMERA_DESCRIPTION) and hasText("Stop video")).assertExists()
-        composeRule.onNode(hasContentDescription(ROOM_SPEAKER_DESCRIPTION) and hasText("Speaker on")).assertExists()
+        composeRule.onNode(hasTestTag(ROOM_MIC_DESCRIPTION) and hasText(str(R.string.room_mic_on))).assertExists()
+        composeRule.onNode(hasTestTag(ROOM_CAMERA_DESCRIPTION) and hasText(str(R.string.room_camera_on))).assertExists()
+        composeRule.onNode(
+            hasTestTag(ROOM_SPEAKER_DESCRIPTION) and hasText(str(R.string.room_speaker_on)),
+        ).assertExists()
     }
 
     @Test
@@ -123,8 +126,8 @@ class ActiveRoomScreenStatesTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-nameless")).assertTextEquals("Someone")
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-blank")).assertTextEquals("Someone")
+        composeRule.onNodeWithTag(audioTileDescription("user-nameless")).assertTextEquals("Someone")
+        composeRule.onNodeWithTag(audioTileDescription("user-blank")).assertTextEquals("Someone")
     }
 
     @Test
@@ -138,8 +141,8 @@ class ActiveRoomScreenStatesTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-cam")).assertExists()
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-cam")).assertDoesNotExist()
+        composeRule.onNodeWithTag(participantTileDescription("user-cam")).assertExists()
+        composeRule.onNodeWithTag(audioTileDescription("user-cam"), useUnmergedTree = true).assertDoesNotExist()
         // The name still labels the tile under the video.
         composeRule.onNodeWithText("Ada").assertExists()
     }
@@ -169,16 +172,16 @@ class ActiveRoomScreenStatesTest {
 
         ada = ada.copy(name = "Ada L.", isMicrophoneEnabled = false)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-4f2a")).assertTextEquals("Ada L.")
+        composeRule.onNodeWithTag(audioTileDescription("user-4f2a")).assertTextEquals("Ada L.")
 
         dark = true
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-4f2a")).assertTextEquals("Ada L.")
-        composeRule.onNodeWithContentDescription(ROOM_NO_MIC_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(audioTileDescription("user-4f2a")).assertTextEquals("Ada L.")
+        composeRule.onNodeWithTag(ROOM_NO_MIC_DESCRIPTION).assertIsDisplayed()
         assertEquals(
             "one tile per identity",
             1,
-            composeRule.onAllNodes(hasContentDescription(participantTileDescription("user-4f2a")))
+            composeRule.onAllNodes(hasTestTag(participantTileDescription("user-4f2a")))
                 .fetchSemanticsNodes().size,
         )
     }
@@ -203,9 +206,9 @@ class ActiveRoomScreenStatesTest {
         people = listOf(MediaParticipant(identity = "user-9c11", name = "Grace"), ada)
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-4f2a")).assertExists()
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-9c11")).assertExists()
-        composeRule.onNodeWithContentDescription(audioTileDescription("user-4f2a")).assertTextEquals("Ada")
+        composeRule.onNodeWithTag(participantTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(participantTileDescription("user-9c11")).assertExists()
+        composeRule.onNodeWithTag(audioTileDescription("user-4f2a")).assertTextEquals("Ada")
     }
 
     @Test
@@ -234,16 +237,16 @@ class ActiveRoomScreenStatesTest {
         height = 600.dp
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription(ROOM_NO_MIC_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(ROOM_NO_CAMERA_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(ROOM_NO_MIC_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(ROOM_NO_CAMERA_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(participantTileDescription("user-4f2a")).assertExists()
     }
 
     @Test
     fun `the design preview draws a connected room with its Companion`() {
         composeRule.setContent { ActiveRoomScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(ROOM_COMPANION_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(participantTileDescription("user-4f2a")).assertExists()
+        composeRule.onNodeWithTag(ROOM_COMPANION_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(participantTileDescription("user-4f2a")).assertExists()
     }
 }

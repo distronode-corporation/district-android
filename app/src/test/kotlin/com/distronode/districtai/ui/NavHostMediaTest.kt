@@ -3,8 +3,8 @@ package com.distronode.districtai.ui
 import android.Manifest
 import android.content.Intent
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.core.content.IntentCompat
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -68,7 +68,7 @@ class NavHostMediaTest {
         harness.render()
         harness.navigate(Routes.rooms("ws-1", WorkspaceRole.CLIENT))
 
-        composeRule.onNodeWithContentDescription(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("Weekly Review")
+        composeRule.onNodeWithTag(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("Weekly Review")
         harness.tap(ROOMS_JOIN_DESCRIPTION)
 
         assertEquals(Routes.ACTIVE_ROOM, harness.route())
@@ -84,7 +84,7 @@ class NavHostMediaTest {
         harness.render()
         harness.navigate(Routes.rooms(" ", WorkspaceRole.AGENCY))
 
-        composeRule.onNodeWithContentDescription(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("standup")
+        composeRule.onNodeWithTag(ROOMS_NAME_FIELD_DESCRIPTION).performTextInput("standup")
         harness.tap(ROOMS_JOIN_DESCRIPTION)
 
         assertEquals(Routes.ROOMS, harness.route())
@@ -190,7 +190,7 @@ class NavHostMediaTest {
         harness.navigate(Routes.dialer("ws-1", WorkspaceRole.AGENCY))
         // ⚠️ Nothing is asked on entry: the microphone dialog belongs to the first dial.
         assertTrue(harness.registry.launched.none { it == Manifest.permission.RECORD_AUDIO })
-        composeRule.onNodeWithContentDescription(DIALER_FIELD_DESCRIPTION).performTextInput(number)
+        composeRule.onNodeWithTag(DIALER_FIELD_DESCRIPTION).performTextInput(number)
         harness.tap(DIALER_CALL_DESCRIPTION)
     }
 

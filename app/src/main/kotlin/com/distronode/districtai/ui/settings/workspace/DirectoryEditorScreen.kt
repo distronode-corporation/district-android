@@ -18,10 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -79,7 +78,7 @@ fun DirectoryEditorScreen(
     }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = DIRECTORY_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(DIRECTORY_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.directory_title),
@@ -158,9 +157,7 @@ private fun DirectoryAddRow(
                 text = stringResource(R.string.directory_add_rejected),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.destructive,
-                modifier = Modifier.semantics {
-                    contentDescription = DIRECTORY_ADD_REJECTED_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DIRECTORY_ADD_REJECTED_DESCRIPTION),
             )
         }
         DistrictButton(
@@ -170,7 +167,7 @@ private fun DirectoryAddRow(
             enabled = state.canAdd,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = DIRECTORY_ADD_DESCRIPTION },
+                .testTag(DIRECTORY_ADD_DESCRIPTION),
         )
     }
 }
@@ -186,7 +183,7 @@ private fun DirectoryList(
         EmptyState(
             title = stringResource(R.string.directory_empty_title),
             body = stringResource(R.string.directory_empty_body),
-            modifier = Modifier.semantics { contentDescription = DIRECTORY_EMPTY_DESCRIPTION },
+            modifier = Modifier.testTag(DIRECTORY_EMPTY_DESCRIPTION),
         )
         return
     }
@@ -222,9 +219,7 @@ private fun DirectoryList(
                     variant = ButtonVariant.Ghost,
                     size = ButtonSize.Sm,
                     enabled = !state.save.busy,
-                    modifier = Modifier.semantics {
-                        contentDescription = directoryRemoveDescription(index)
-                    },
+                    modifier = Modifier.testTag(directoryRemoveDescription(index)),
                 )
             }
         }
@@ -253,9 +248,7 @@ private fun DirectorySaveSection(state: DirectoryEditorUiState, onRequestSave: (
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = DIRECTORY_INCOMPLETE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DIRECTORY_INCOMPLETE_DESCRIPTION),
             )
         }
         SaveNotice(state = state.save, description = DIRECTORY_NOTICE_DESCRIPTION)
@@ -271,7 +264,7 @@ private fun DirectorySaveSection(state: DirectoryEditorUiState, onRequestSave: (
             enabled = state.canSave,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = DIRECTORY_SAVE_DESCRIPTION },
+                .testTag(DIRECTORY_SAVE_DESCRIPTION),
         )
     }
 }
@@ -315,9 +308,7 @@ private fun ReplaceDirectoryDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics {
-                    contentDescription = DIRECTORY_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DIRECTORY_CONFIRM_DESCRIPTION),
             ) {
                 Text(
                     stringResource(
@@ -333,9 +324,7 @@ private fun ReplaceDirectoryDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = DIRECTORY_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DIRECTORY_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.workspace_settings_keep_editing))
             }

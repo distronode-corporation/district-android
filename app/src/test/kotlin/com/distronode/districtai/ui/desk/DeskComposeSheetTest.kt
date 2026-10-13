@@ -4,12 +4,14 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -72,22 +74,22 @@ class DeskComposeSheetTest {
         }
     }
 
-    private fun submit() = composeRule.onNodeWithContentDescription(DESK_COMPOSE_SUBMIT_DESCRIPTION)
+    private fun submit() = composeRule.onNodeWithTag(DESK_COMPOSE_SUBMIT_DESCRIPTION)
 
-    private fun cancel() = composeRule.onNodeWithContentDescription(DESK_COMPOSE_CANCEL_DESCRIPTION)
+    private fun cancel() = composeRule.onNodeWithTag(DESK_COMPOSE_CANCEL_DESCRIPTION)
 
     @Test
     fun `the sheet offers all five boxes`() {
         render()
 
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_COMPOSE_ROOT_DESCRIPTION).assertIsDisplayed()
         listOf(
             DESK_COMPOSE_SUBJECT_DESCRIPTION,
             DESK_COMPOSE_MESSAGE_DESCRIPTION,
             DESK_COMPOSE_NAME_DESCRIPTION,
             DESK_COMPOSE_EMAIL_DESCRIPTION,
             DESK_COMPOSE_PHONE_DESCRIPTION,
-        ).forEach { composeRule.onNodeWithContentDescription(it).assertIsDisplayed() }
+        ).forEach { composeRule.onNodeWithTag(it).assertIsDisplayed() }
     }
 
     @Test
@@ -153,15 +155,15 @@ class DeskComposeSheetTest {
         val recorder = Recorder()
         render(recorder = recorder)
 
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_SUBJECT_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_COMPOSE_SUBJECT_DESCRIPTION)
             .performTextInput("Leaking tap")
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_MESSAGE_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_COMPOSE_MESSAGE_DESCRIPTION)
             .performTextInput("The tap drips.")
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_NAME_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_COMPOSE_NAME_DESCRIPTION)
             .performTextInput("Ada Lovelace")
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_EMAIL_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_COMPOSE_EMAIL_DESCRIPTION)
             .performTextInput("ada@example.com")
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_PHONE_DESCRIPTION)
+        composeRule.onNodeWithTag(DESK_COMPOSE_PHONE_DESCRIPTION)
             .performTextInput("+14165550142")
 
         // ⚠️ THE FIRST REPORT, NOT THE WHOLE LIST. The sheet is stateless and this test holds
@@ -180,8 +182,8 @@ class DeskComposeSheetTest {
         // impossible to make.
         render(filled.copy(submitting = true))
 
-        composeRule.onNodeWithText("Raising…").assertIsDisplayed()
-        composeRule.onNodeWithText("Raise the ticket").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_compose_submitting)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_compose_submit)).assertDoesNotExist()
         submit().assertIsNotEnabled()
     }
 
@@ -196,7 +198,7 @@ class DeskComposeSheetTest {
             DESK_COMPOSE_NAME_DESCRIPTION,
             DESK_COMPOSE_EMAIL_DESCRIPTION,
             DESK_COMPOSE_PHONE_DESCRIPTION,
-        ).forEach { composeRule.onNodeWithContentDescription(it).assertIsNotEnabled() }
+        ).forEach { composeRule.onNodeWithTag(it).assertIsNotEnabled() }
         cancel().assertIsNotEnabled()
 
         assertEquals(0, recorder.dismissals)
@@ -224,7 +226,7 @@ class DeskComposeSheetTest {
             recorder,
         )
 
-        composeRule.onNodeWithContentDescription(DESK_COMPOSE_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_COMPOSE_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("A subject and a description are required.").assertIsDisplayed()
         // ⚠️ The operator's words survive it, and one tap retries them.
         submit().assertIsEnabled()

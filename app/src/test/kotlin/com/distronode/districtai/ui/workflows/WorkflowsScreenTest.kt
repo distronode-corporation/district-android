@@ -6,8 +6,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -17,6 +17,8 @@ import com.distronode.districtai.core.model.WorkflowActionResult
 import com.distronode.districtai.core.model.WorkflowLatestRun
 import com.distronode.districtai.core.model.WorkflowListItem
 import com.distronode.districtai.core.model.WorkflowRun
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -140,9 +142,9 @@ class WorkflowsScreenTest {
     fun `a running campaign shows its batch size and goal`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Active").assertIsDisplayed()
-        composeRule.onNodeWithText("25 contacts per batch").assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKFLOWS_CAMPAIGN_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_active)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_batch, 25)).assertIsDisplayed()
         composeRule.onNodeWithText("Book demos with lapsed trials").assertIsDisplayed()
     }
 
@@ -153,11 +155,11 @@ class WorkflowsScreenTest {
         // "Off" or "Not set up", and an explicit sentence rather than a blank where a goal would be.
         render(ready(campaign = CampaignStatus()))
 
-        composeRule.onNodeWithText("Paused").assertIsDisplayed()
-        composeRule.onNodeWithText("No goal configured yet.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_paused)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_no_goal)).assertIsDisplayed()
         // ⛔ NULL IS NOT ZERO. The stored batch size is floored to at least 1, so "0" on screen
         // would be a number nobody configured.
-        composeRule.onNodeWithText("No batch size configured yet.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_batch_unset)).assertIsDisplayed()
     }
 
     @Test
@@ -170,10 +172,10 @@ class WorkflowsScreenTest {
         render(ready())
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_CAPTION_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_CAPTION_DESCRIPTION)
             .assertIsDisplayed()
         composeRule
-            .onNodeWithText("The campaign goal and batch size cannot be changed in this app.")
+            .onNodeWithText(str(R.string.workflows_campaign_read_only))
             .assertIsDisplayed()
     }
 
@@ -184,9 +186,9 @@ class WorkflowsScreenTest {
         val campaign = CampaignRecorder()
         render(ready(), campaign = campaign)
 
-        composeRule.onNodeWithText("Pause campaign").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_pause)).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
             .performClick()
 
         // ⛔ THE TARGET VALUE, NOT A TOGGLE SIGNAL. A screen that emitted "the user tapped" would
@@ -200,9 +202,9 @@ class WorkflowsScreenTest {
         val campaign = CampaignRecorder()
         render(ready(campaign = CampaignStatus(infiniteSdrEnabled = false)), campaign = campaign)
 
-        composeRule.onNodeWithText("Resume campaign").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_resume)).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
             .performClick()
 
         assertEquals(listOf(true), campaign.requested)
@@ -216,11 +218,11 @@ class WorkflowsScreenTest {
         // weaker way of saying what the viewer caption already says in words.
         render(ready(), canToggle = false)
 
-        composeRule.onNodeWithText("Active").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_active)).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithText("Pause campaign").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_pause)).assertDoesNotExist()
         composeRule
             .onNodeWithText(
                 "You are in this workspace as a viewer. Ask an agency or client member to change the campaign.",
@@ -235,9 +237,9 @@ class WorkflowsScreenTest {
         render(ready(campaignPending = true))
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_ACTION_DESCRIPTION)
             .assertIsNotEnabled()
-        composeRule.onNodeWithText("Saving…").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_working)).assertIsDisplayed()
     }
 
     @Test
@@ -248,13 +250,13 @@ class WorkflowsScreenTest {
         render(ready(campaignConfirm = CampaignConfirm(enable = false)), campaign = campaign)
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_CONFIRM_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_CONFIRM_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Pause the outbound campaign?").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_pause_title)).assertIsDisplayed()
 
         assertEquals("nothing is committed by opening the dialog", 0, campaign.confirms)
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_CONFIRM_SUBMIT_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_CONFIRM_SUBMIT_DESCRIPTION)
             .performClick()
         assertEquals(1, campaign.confirms)
     }
@@ -270,7 +272,7 @@ class WorkflowsScreenTest {
             campaign = campaign,
         )
 
-        composeRule.onNodeWithText("Resume the outbound campaign?").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_resume_title)).assertIsDisplayed()
         composeRule
             .onNodeWithText(
                 "The SDR engine starts calling and messaging your contacts again, which spends " +
@@ -279,7 +281,7 @@ class WorkflowsScreenTest {
             .assertIsDisplayed()
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_CANCEL_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_CANCEL_DESCRIPTION)
             .performClick()
 
         assertEquals(1, campaign.dismissals)
@@ -301,11 +303,11 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_CHANGE_FAILURE_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_CHANGE_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("You do not have access to this workspace.").assertIsDisplayed()
-        composeRule.onNodeWithText("Active").assertIsDisplayed()
-        composeRule.onNodeWithText("25 contacts per batch").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_active)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_campaign_batch, 25)).assertIsDisplayed()
     }
 
     @Test
@@ -332,7 +334,7 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_FAILURE_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Missed-call follow-up").assertIsDisplayed()
     }
@@ -344,11 +346,11 @@ class WorkflowsScreenTest {
         render(ready())
 
         composeRule.onNodeWithText("Missed-call follow-up").assertIsDisplayed()
-        composeRule.onNodeWithText("After a missed call").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflow_trigger_call_ended_unanswered)).assertIsDisplayed()
         composeRule.onNodeWithText("New contact welcome").assertIsDisplayed()
-        composeRule.onNodeWithText("New contact").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflow_trigger_contact_created)).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(workflowLatestRunDescription("wf-active"))
+            .onNodeWithTag(workflowLatestRunDescription("wf-active"), useUnmergedTree = true)
             .assertIsDisplayed()
     }
 
@@ -358,7 +360,7 @@ class WorkflowsScreenTest {
         // missing value rather than as the answer.
         render(ready())
 
-        composeRule.onNodeWithText("Never run").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_never_run)).assertIsDisplayed()
     }
 
     @Test
@@ -376,8 +378,8 @@ class WorkflowsScreenTest {
     fun `an empty list is an explanatory empty state, not a failure`() {
         render(ready(workflows = emptyList()))
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("No workflows yet").assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKFLOWS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_empty_title)).assertIsDisplayed()
     }
 
     @Test
@@ -392,9 +394,9 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_LIST_FAILURE_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_LIST_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retried)
     }
 
@@ -411,7 +413,7 @@ class WorkflowsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     // ── The switch ───────────────────────────────────────────────────────────
@@ -422,7 +424,7 @@ class WorkflowsScreenTest {
         render(ready(), onSetActive = { id, value -> changed = id to value })
 
         composeRule
-            .onNodeWithContentDescription(workflowToggleDescription("wf-active"))
+            .onNodeWithTag(workflowToggleDescription("wf-active"))
             .assertIsEnabled()
             .performClick()
 
@@ -439,7 +441,7 @@ class WorkflowsScreenTest {
         render(ready(), canToggle = false)
 
         composeRule
-            .onNodeWithContentDescription(workflowToggleDescription("wf-active"))
+            .onNodeWithTag(workflowToggleDescription("wf-active"))
             .assertIsNotEnabled()
         composeRule.onNodeWithText("Missed-call follow-up").assertIsDisplayed()
     }
@@ -449,12 +451,12 @@ class WorkflowsScreenTest {
         render(ready(pendingToggles = setOf("wf-active")))
 
         composeRule
-            .onNodeWithContentDescription(workflowToggleDescription("wf-active"))
+            .onNodeWithTag(workflowToggleDescription("wf-active"))
             .assertIsNotEnabled()
         // ⚠️ Only ITS OWN. Two switches touch different rows and nothing re-reads, so a write on
         // one must not freeze the other.
         composeRule
-            .onNodeWithContentDescription(workflowToggleDescription("wf-paused"))
+            .onNodeWithTag(workflowToggleDescription("wf-paused"))
             .assertIsEnabled()
     }
 
@@ -467,10 +469,10 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_TOGGLE_FAILURE_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_TOGGLE_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Missed-call follow-up").assertIsDisplayed()
-        composeRule.onNodeWithText("Dismiss").performClick()
+        composeRule.onNodeWithText(str(R.string.workflows_dismiss)).performClick()
         assertEquals(1, dismissed)
     }
 
@@ -480,7 +482,7 @@ class WorkflowsScreenTest {
         render(ready(), onToggleExpanded = { expanded = it })
 
         composeRule
-            .onNodeWithContentDescription(workflowRowDescription("wf-paused"))
+            .onNodeWithTag(workflowRowDescription("wf-paused"))
             .performClick()
 
         assertEquals("wf-paused", expanded)
@@ -522,9 +524,9 @@ class WorkflowsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKFLOWS_RUNS_DESCRIPTION).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(runCardDescription("run-partial"))
+            .onNodeWithTag(runCardDescription("run-partial"))
             .assertIsDisplayed()
         composeRule.onNodeWithText("send_email").assertIsDisplayed()
         composeRule.onNodeWithText("contact has no email address").assertIsDisplayed()
@@ -558,11 +560,11 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(runErrorDescription("run-failed"))
+            .onNodeWithTag(runErrorDescription("run-failed"))
             .assertIsDisplayed()
         composeRule.onNodeWithText("notify_ops webhook returned 502").assertIsDisplayed()
         // ⚠️ And a run with no finish time says so rather than leaving a gap where a time goes.
-        composeRule.onNodeWithText("Did not finish").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_run_unfinished)).assertIsDisplayed()
     }
 
     @Test
@@ -584,7 +586,7 @@ class WorkflowsScreenTest {
             onLoadMoreRuns = { loadedMore += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_MORE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKFLOWS_RUNS_MORE_DESCRIPTION).performClick()
         assertEquals(1, loadedMore)
     }
 
@@ -606,7 +608,7 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_RUNS_MORE_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_RUNS_MORE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -616,7 +618,7 @@ class WorkflowsScreenTest {
         // never "we could not look", which is the failure branch below.
         render(ready(expanded = "wf-paused", runs = mapOf("wf-paused" to RunHistory(total = 0))))
 
-        composeRule.onNodeWithText("This workflow has not run yet.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_runs_empty)).assertIsDisplayed()
     }
 
     @Test
@@ -638,10 +640,10 @@ class WorkflowsScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(runCardDescription("run-1"))
+            .onNodeWithTag(runCardDescription("run-1"))
             .assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_RUNS_FAILURE_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_RUNS_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -651,10 +653,10 @@ class WorkflowsScreenTest {
     fun `the loading state draws skeletons in the shape of the content`() {
         render(WorkflowsUiState())
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKFLOWS_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKFLOWS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKFLOWS_LOADING_DESCRIPTION).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(WORKFLOWS_CAMPAIGN_LOADING_DESCRIPTION)
+            .onNodeWithTag(WORKFLOWS_CAMPAIGN_LOADING_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -671,8 +673,8 @@ class WorkflowsScreenTest {
             }
         }
 
-        composeRule.onAllNodesWithContentDescription(WORKFLOWS_RUNS_DESCRIPTION).assertCountEquals(2)
-        composeRule.onNodeWithText("This workflow has not run yet.").assertDoesNotExist()
+        composeRule.onAllNodesWithTag(WORKFLOWS_RUNS_DESCRIPTION, useUnmergedTree = true).assertCountEquals(2)
+        composeRule.onNodeWithText(str(R.string.workflows_runs_empty)).assertDoesNotExist()
     }
 
     @Test
@@ -686,8 +688,8 @@ class WorkflowsScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("This workflow has not run yet.").assertDoesNotExist()
+        composeRule.onNodeWithTag(WORKFLOWS_RUNS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workflows_runs_empty)).assertDoesNotExist()
     }
 
     @Test
@@ -707,8 +709,8 @@ class WorkflowsScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(WORKFLOWS_RUNS_MORE_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(runCardDescription("run-1")).assertIsDisplayed()
+        composeRule.onNodeWithTag(WORKFLOWS_RUNS_MORE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(runCardDescription("run-1")).assertIsDisplayed()
         assertEquals(0, loadedMore)
     }
 }

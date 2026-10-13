@@ -2,7 +2,7 @@ package com.distronode.districtai.ui.settings.workspace
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -71,7 +71,7 @@ class WorkspaceSettingsScreenTest {
             WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION,
         ).forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertIsDisplayed()
+            composeRule.onNodeWithTag(handle).assertIsDisplayed()
         }
     }
 
@@ -99,7 +99,7 @@ class WorkspaceSettingsScreenTest {
         val headingTop = composeRule.onNodeWithText("District Studio".uppercase())
             .fetchSemanticsNode().boundsInRoot.top
         val tops = studioOrder.map {
-            composeRule.onNodeWithContentDescription(it).fetchSemanticsNode().boundsInRoot.top
+            composeRule.onNodeWithTag(it).fetchSemanticsNode().boundsInRoot.top
         }
         assertTrue("the heading sits above the first Studio row", headingTop < tops.first())
         assertEquals(tops.sorted(), tops)
@@ -110,13 +110,13 @@ class WorkspaceSettingsScreenTest {
         render(canMutate = false)
 
         composeRule.onNodeWithText("District Studio".uppercase()).assertIsDisplayed()
-        val callsTop = composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
+        val callsTop = composeRule.onNodeWithTag(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
             .fetchSemanticsNode().boundsInRoot.top
         val knowledgeTop = composeRule
-            .onNodeWithContentDescription(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
+            .onNodeWithTag(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
             .fetchSemanticsNode().boundsInRoot.top
         val messagingTop = composeRule
-            .onNodeWithContentDescription(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
+            .onNodeWithTag(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
             .fetchSemanticsNode().boundsInRoot.top
         assertTrue(callsTop < knowledgeTop)
         assertTrue("messaging is outside the Studio, below it", knowledgeTop < messagingTop)
@@ -130,19 +130,19 @@ class WorkspaceSettingsScreenTest {
         var section: String? = null
         render(onOpenSection = { section = it })
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION)
             .performClick()
         assertEquals("directory", section)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION)
             .performClick()
         assertEquals("routing", section)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
             .performClick()
         assertEquals("knowledge", section)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
             .performClick()
         assertEquals("messaging", section)
 
@@ -150,15 +150,15 @@ class WorkspaceSettingsScreenTest {
         // `viewer` while the row is still shown to mutating roles only. That is a deliberate
         // stopping point rather than a rule: the members screen needs its own affordance audit
         // before it widens.
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION)
             .performClick()
         assertEquals("members", section)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION)
             .performClick()
         assertEquals("voice-studio", section)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
             .performClick()
         assertEquals("calls", section)
     }
@@ -175,11 +175,11 @@ class WorkspaceSettingsScreenTest {
         // the controls the two PATCHes refuse.
         render(canMutate = false)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION)
             .assertIsDisplayed()
 
         listOf(
@@ -193,7 +193,7 @@ class WorkspaceSettingsScreenTest {
             WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION,
             WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION,
         ).forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
     }
 
@@ -202,11 +202,11 @@ class WorkspaceSettingsScreenTest {
         var section: String? = null
         render(canMutate = false, onOpenSection = { section = it })
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION)
             .performClick()
         assertEquals("knowledge", section)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION)
             .performClick()
         assertEquals("messaging", section)
     }
@@ -220,17 +220,17 @@ class WorkspaceSettingsScreenTest {
             onOpenNumbers = { opened = "numbers" },
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION)
             .performClick()
         assertEquals("persona", opened)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION)
             .performClick()
         assertEquals("capabilities", opened)
 
         // ⚠️ Points at the EXISTING marketplace screen rather than a second numbers view; a
         // duplicate under settings would be a second place for its read-only boundary to drift.
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION)
             .performClick()
         assertEquals("numbers", opened)
     }
@@ -244,7 +244,7 @@ class WorkspaceSettingsScreenTest {
         // what this matches on.
         render()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MORE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_MORE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("not available in this app", substring = true).assertIsDisplayed()
     }
@@ -256,7 +256,7 @@ class WorkspaceSettingsScreenTest {
         // are editable here for anyone else, and a viewer cannot edit anything anywhere either.
         render(canMutate = false)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_MORE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_MORE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("read-only access", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("not available in this app", substring = true).assertDoesNotExist()

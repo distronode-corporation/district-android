@@ -12,9 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
@@ -56,7 +55,7 @@ fun InCallScreen(
     modifier: Modifier = Modifier,
 ) {
     DistrictScaffold(
-        modifier = modifier.semantics { contentDescription = IN_CALL_ROOT_DESCRIPTION },
+        modifier = modifier.testTag(IN_CALL_ROOT_DESCRIPTION),
     ) { inset ->
         ContentContainer(modifier = inset.fillMaxSize()) {
             Column(
@@ -86,7 +85,7 @@ private fun Callee(call: ActiveCallUiState) {
         style = MaterialTheme.typography.headlineSmall,
         color = DistrictTheme.colors.foreground,
         textAlign = TextAlign.Center,
-        modifier = Modifier.semantics { contentDescription = IN_CALL_NUMBER_DESCRIPTION },
+        modifier = Modifier.testTag(IN_CALL_NUMBER_DESCRIPTION),
     )
 }
 
@@ -116,7 +115,7 @@ private fun PhaseLine(call: ActiveCallUiState) {
             style = MaterialTheme.typography.titleMedium,
             color = DistrictTheme.colors.mutedForeground,
             textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { contentDescription = description },
+            modifier = Modifier.testTag(description),
         )
         return
     }
@@ -131,7 +130,7 @@ private fun Duration(call: ActiveCallUiState) {
                 text = stringResource(R.string.call_state_ended),
                 style = MaterialTheme.typography.titleMedium,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics { contentDescription = IN_CALL_ENDED_DESCRIPTION },
+                modifier = Modifier.testTag(IN_CALL_ENDED_DESCRIPTION),
             )
         }
         Text(
@@ -142,7 +141,7 @@ private fun Duration(call: ActiveCallUiState) {
             },
             style = MaterialTheme.typography.headlineSmall,
             color = DistrictTheme.colors.foreground,
-            modifier = Modifier.semantics { contentDescription = IN_CALL_TIMER_DESCRIPTION },
+            modifier = Modifier.testTag(IN_CALL_TIMER_DESCRIPTION),
         )
         if (call.ended) {
             // ⚠️ STATED, BECAUSE THIS APP NEVER WRITES THE CALL'S OUTCOME. The row's terminal
@@ -155,7 +154,7 @@ private fun Duration(call: ActiveCallUiState) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.tight)
-                    .semantics { contentDescription = IN_CALL_LOG_NOTICE_DESCRIPTION },
+                    .testTag(IN_CALL_LOG_NOTICE_DESCRIPTION),
             )
         }
     }
@@ -168,7 +167,7 @@ private fun ReconnectingBanner() {
         style = MaterialTheme.typography.bodyMedium,
         color = DistrictTheme.colors.mutedForeground,
         textAlign = TextAlign.Center,
-        modifier = Modifier.semantics { contentDescription = IN_CALL_RECONNECTING_DESCRIPTION },
+        modifier = Modifier.testTag(IN_CALL_RECONNECTING_DESCRIPTION),
     )
 }
 
@@ -192,7 +191,7 @@ private fun LiveControls(call: ActiveCallUiState, handlers: DialerHandlers) {
             variant = ButtonVariant.Secondary,
             modifier = Modifier
                 .weight(1f)
-                .semantics { contentDescription = IN_CALL_MIC_DESCRIPTION },
+                .testTag(IN_CALL_MIC_DESCRIPTION),
         )
         DistrictButton(
             text = stringResource(
@@ -202,7 +201,7 @@ private fun LiveControls(call: ActiveCallUiState, handlers: DialerHandlers) {
             variant = ButtonVariant.Secondary,
             modifier = Modifier
                 .weight(1f)
-                .semantics { contentDescription = IN_CALL_SPEAKER_DESCRIPTION },
+                .testTag(IN_CALL_SPEAKER_DESCRIPTION),
         )
     }
     DistrictButton(
@@ -211,7 +210,7 @@ private fun LiveControls(call: ActiveCallUiState, handlers: DialerHandlers) {
         variant = ButtonVariant.Danger,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = IN_CALL_HANG_UP_DESCRIPTION },
+            .testTag(IN_CALL_HANG_UP_DESCRIPTION),
     )
 }
 
@@ -222,7 +221,7 @@ private fun EndedActions(handlers: DialerHandlers) {
         onClick = handlers.onDismissEndedCall,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = IN_CALL_DONE_DESCRIPTION },
+            .testTag(IN_CALL_DONE_DESCRIPTION),
     )
 }
 

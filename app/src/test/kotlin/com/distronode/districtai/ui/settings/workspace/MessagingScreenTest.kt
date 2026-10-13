@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -18,6 +18,8 @@ import com.distronode.districtai.core.model.MESSAGING_SOURCE_MANAGED
 import com.distronode.districtai.core.model.ManagedAccount
 import com.distronode.districtai.core.model.MessagingAccount
 import com.distronode.districtai.core.model.MessagingResponse
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -118,13 +120,16 @@ class MessagingScreenTest {
     fun `every account renders with its provider, credential source and number count`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingAccountDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingAccountDescription("acct-twilio"))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(messagingAccountDescription("acct-telnyx"))
+        composeRule.onNodeWithTag(messagingAccountDescription("acct-telnyx"))
             .assertIsDisplayed()
         // ⚠️ `byok` vs `managed` is what tells an operator whose carrier account is being billed.
-        composeRule.onNodeWithText("twilio · byok · 2 numbers", substring = true).assertIsDisplayed()
-        composeRule.onNodeWithText("telnyx · managed · 1 numbers", substring = true)
+        composeRule.onNodeWithText(
+            str(R.string.messaging_account_subtitle, "twilio", "byok", 2),
+            substring = true,
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.messaging_account_subtitle, "telnyx", "managed", 1), substring = true)
             .assertIsDisplayed()
     }
 
@@ -134,7 +139,7 @@ class MessagingScreenTest {
         // not answer it at a glance.
         render(ready())
 
-        composeRule.onNodeWithText("Default", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.messaging_default_badge), substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -144,8 +149,8 @@ class MessagingScreenTest {
         // pickable sender whose every send fails — and would carry an Edit button that 404s.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("1 numbers on our carrier account", substring = true)
+        composeRule.onNodeWithTag(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.messaging_managed_subtitle, 1), substring = true)
             .assertIsDisplayed()
     }
 
@@ -158,7 +163,7 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MESSAGING_MANAGED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(MESSAGING_MANAGED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -174,7 +179,7 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(messagingChannelDescription("whatsapp"))
+        composeRule.onNodeWithTag(messagingChannelDescription("whatsapp"))
             .assertIsDisplayed()
         composeRule.onNodeWithText("acct-deleted", substring = true).assertIsDisplayed()
     }
@@ -192,8 +197,8 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MESSAGING_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_ADD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_ADD_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -205,7 +210,7 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
 
         assertEquals(1, rec.retries)
     }
@@ -214,7 +219,7 @@ class MessagingScreenTest {
     fun `loading draws skeletons`() {
         render(MessagingUiState(load = MessagingLoadState.Loading, canEdit = true))
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -226,21 +231,21 @@ class MessagingScreenTest {
         // invitation to a 403. This is a real audience: the settings hub is open to viewers.
         render(ready(canEdit = false))
 
-        composeRule.onNodeWithContentDescription(messagingAccountDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingAccountDescription("acct-twilio"))
             .assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(MESSAGING_ADD_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(messagingEditDescription("acct-twilio"))
+        composeRule.onNodeWithTag(MESSAGING_ADD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(messagingEditDescription("acct-twilio"), useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingRemoveDescription("acct-twilio"), useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(messagingDefaultDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingDefaultDescription("acct-twilio"), useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("sms"))
+        composeRule.onNodeWithTag(messagingChannelSetDescription("sms"), useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_SAVE_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_SAVE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -251,7 +256,7 @@ class MessagingScreenTest {
         // either.
         render(ready(canEdit = false))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_READ_ONLY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_READ_ONLY_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("read-only access", substring = true).assertIsDisplayed()
     }
 
@@ -266,7 +271,7 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("sms"))
+        composeRule.onNodeWithTag(messagingChannelSetDescription("sms"), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -274,9 +279,9 @@ class MessagingScreenTest {
     fun `a mutating role gets the caption's editable branch instead`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(MESSAGING_READ_ONLY_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_READ_ONLY_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -286,11 +291,11 @@ class MessagingScreenTest {
     fun `edit, make-default and remove each report the account they belong to`() {
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingEditDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingEditDescription("acct-twilio"))
             .performClick()
         assertEquals(listOf<String?>("acct-twilio"), rec.edited)
 
-        composeRule.onNodeWithContentDescription(messagingDefaultDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingDefaultDescription("acct-twilio"))
             .performClick()
         assertEquals(listOf("acct-twilio"), rec.defaults)
     }
@@ -301,9 +306,9 @@ class MessagingScreenTest {
         // adds a control that can never do anything.
         render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingDefaultDescription("acct-telnyx"))
+        composeRule.onNodeWithTag(messagingDefaultDescription("acct-telnyx"), useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(messagingEditDescription("acct-telnyx"))
+        composeRule.onNodeWithTag(messagingEditDescription("acct-telnyx"))
             .assertIsDisplayed()
     }
 
@@ -311,7 +316,7 @@ class MessagingScreenTest {
     fun `add reports a null id, which is what opens a create`() {
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(MESSAGING_ADD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_ADD_DESCRIPTION).performClick()
 
         assertEquals(listOf<String?>(null), rec.edited)
     }
@@ -323,7 +328,7 @@ class MessagingScreenTest {
         // a confirmation in form and a trap in practice.
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingRemoveDescription("acct-twilio"))
             .performClick()
 
         composeRule.onNodeWithText("released", substring = true).assertIsDisplayed()
@@ -333,7 +338,7 @@ class MessagingScreenTest {
         // from "some numbers".
         composeRule.onNodeWithText("2 phone number", substring = true).assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(MESSAGING_DELETE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_DELETE_CONFIRM_DESCRIPTION).performClick()
         assertEquals(listOf("acct-twilio"), rec.deletes)
     }
 
@@ -341,12 +346,12 @@ class MessagingScreenTest {
     fun `cancelling the delete dialog deletes nothing`() {
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingRemoveDescription("acct-twilio"))
             .performClick()
-        composeRule.onNodeWithContentDescription(MESSAGING_DELETE_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_DELETE_CANCEL_DESCRIPTION).performClick()
 
         assertEquals(emptyList<String>(), rec.deletes)
-        composeRule.onNodeWithContentDescription(MESSAGING_DELETE_CONFIRM_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_DELETE_CONFIRM_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -357,17 +362,17 @@ class MessagingScreenTest {
         // twice over.
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("voice"))
+        composeRule.onNodeWithTag(messagingChannelSetDescription("voice"))
             .performClick()
 
-        composeRule.onNodeWithContentDescription(messagingChannelOptionDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingChannelOptionDescription("acct-twilio"))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(messagingChannelOptionDescription("acct-telnyx"))
+        composeRule.onNodeWithTag(messagingChannelOptionDescription("acct-telnyx"))
             .assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(messagingChannelOptionDescription("acct-telnyx"))
+        composeRule.onNodeWithTag(messagingChannelOptionDescription("acct-telnyx"))
             .performClick()
-        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION)
             .performClick()
 
         assertEquals(listOf("voice" to "acct-telnyx"), rec.channels)
@@ -377,8 +382,8 @@ class MessagingScreenTest {
     fun `cancelling the channel picker sets nothing`() {
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("sms")).performClick()
-        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(messagingChannelSetDescription("sms")).performClick()
+        composeRule.onNodeWithTag(MESSAGING_CHANNEL_CANCEL_DESCRIPTION).performClick()
 
         assertEquals(emptyList<Pair<String, String>>(), rec.channels)
     }
@@ -396,7 +401,7 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("sms"))
+        composeRule.onNodeWithTag(messagingChannelSetDescription("sms"), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -406,16 +411,16 @@ class MessagingScreenTest {
         // is the shape that saves a blank over a real number.
         val rec = render(ready())
 
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_HELP_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_HELP_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("cannot show the saved number", substring = true)
             .assertIsDisplayed()
         // ⚠️ DISABLED WHILE BLANK: the route answers 400 for an absent value and stores an empty
         // string for a blank one, so an accidental press must not be able to clear it.
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_SAVE_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_SAVE_DESCRIPTION)
             .assertIsNotEnabled()
 
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_DESCRIPTION)
             .performTextInput("+14165550170")
         assertEquals("+14165550170", rec.creatorCell)
     }
@@ -429,13 +434,13 @@ class MessagingScreenTest {
         // live carrier secret" objection does not hold.
         render(ready(draft = MessagingDraft.of(populated.accounts.first())))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_SECRET_KEEP_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_SECRET_KEEP_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Leave blank to keep the saved value", substring = true)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(messagingCredentialDescription("accountSid"))
+        composeRule.onNodeWithTag(messagingCredentialDescription("accountSid"))
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(messagingCredentialDescription("authToken"))
+        composeRule.onNodeWithTag(messagingCredentialDescription("authToken"))
             .assertIsDisplayed()
     }
 
@@ -443,11 +448,11 @@ class MessagingScreenTest {
     fun `a create form does NOT say that, because a blank there stores nothing`() {
         render(ready(draft = MessagingDraft()))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_SECRET_KEEP_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_SECRET_KEEP_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         // ⛔ AND SAVE IS DISABLED UNTIL EVERY SECRET IS TYPED. The route would accept the save and
         // store an account with no credentials, which then fails on its first send.
-        composeRule.onNodeWithContentDescription(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -464,10 +469,10 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MESSAGING_PROVIDER_SWITCH_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_PROVIDER_SWITCH_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("clears the saved keys", substring = true).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -476,12 +481,12 @@ class MessagingScreenTest {
 
         listOf("projectId", "keyId", "keySecret", "applicationKey", "applicationSecret")
             .forEach { key ->
-                composeRule.onNodeWithContentDescription(messagingCredentialDescription(key))
+                composeRule.onNodeWithTag(messagingCredentialDescription(key))
                     .assertIsDisplayed()
             }
         // ⚠️ AND NOT TWILIO'S. A field list that leaked across providers would send `accountSid` as
         // an unrecognised PLAINTEXT identifier, which the route stores in the clear.
-        composeRule.onNodeWithContentDescription(messagingCredentialDescription("accountSid"))
+        composeRule.onNodeWithTag(messagingCredentialDescription("accountSid"), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -491,7 +496,7 @@ class MessagingScreenTest {
         // would deny a legitimate one; the server's 403 names support and is what the operator sees.
         render(ready(draft = MessagingDraft()))
 
-        composeRule.onNodeWithContentDescription(messagingSourceDescription(MESSAGING_SOURCE_MANAGED))
+        composeRule.onNodeWithTag(messagingSourceDescription(MESSAGING_SOURCE_MANAGED))
             .assertIsDisplayed()
     }
 
@@ -502,8 +507,8 @@ class MessagingScreenTest {
         // saved account as broken.
         render(ready(draft = MessagingDraft.of(populated.accounts.first())))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_UNAVAILABLE_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_TEST_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(MESSAGING_TEST_UNAVAILABLE_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -517,10 +522,10 @@ class MessagingScreenTest {
             ).copy(test = MessagingTestState.Passed("Acme Ltd")),
         )
 
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_TEST_DESCRIPTION).performClick()
         assertEquals(1, rec.tests)
 
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_RESULT_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_TEST_RESULT_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Acme Ltd", substring = true).assertIsDisplayed()
     }
@@ -544,10 +549,10 @@ class MessagingScreenTest {
             ready(draft = MessagingDraft.of(populated.accounts.first())),
         )
 
-        composeRule.onNodeWithContentDescription(MESSAGING_SAVE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_SAVE_DESCRIPTION).performClick()
         assertEquals(1, rec.saves)
 
-        composeRule.onNodeWithContentDescription(MESSAGING_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_CANCEL_DESCRIPTION).performClick()
         // ⚠️ A null draft is what closes the form — see `MessagingViewModel.editDraft`.
         assertEquals(true, rec.draftCleared)
     }
@@ -558,11 +563,11 @@ class MessagingScreenTest {
         // label change would rewrite the account's numbers from whatever this client rendered.
         val rec = render(ready(draft = MessagingDraft.of(populated.accounts.first())))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_NUMBERS_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_NUMBERS_DESCRIPTION)
             .performTextInput("\n+14165550149")
 
         assertEquals(true, rec.drafts?.numbersEdited)
-        composeRule.onNodeWithContentDescription(MESSAGING_NUMBERS_HELP_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_NUMBERS_HELP_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -584,22 +589,24 @@ class MessagingScreenTest {
         )
         render(MessagingUiState(load = MessagingLoadState.Ready(bare), canEdit = true))
 
-        composeRule.onNodeWithText("unknown · unknown · 0 numbers").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(messagingChannelDescription("voice")).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            str(R.string.messaging_account_subtitle, "unknown", "unknown", 0),
+        ).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(messagingChannelDescription("voice")).assertIsDisplayed()
     }
 
     @Test
     fun `a write in flight locks every row's controls`() {
         render(ready().copy(defaultSave = SaveState.Saving))
 
-        composeRule.onNodeWithContentDescription(messagingDefaultDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingDefaultDescription("acct-twilio"))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(messagingEditDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingEditDescription("acct-twilio"))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-twilio"))
+        composeRule.onNodeWithTag(messagingRemoveDescription("acct-twilio"))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(MESSAGING_CREATOR_CELL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MESSAGING_CREATOR_CELL_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -615,30 +622,30 @@ class MessagingScreenTest {
             MESSAGING_NUMBERS_DESCRIPTION,
             MESSAGING_MAKE_DEFAULT_DESCRIPTION,
             MESSAGING_SAVE_DESCRIPTION,
-        ).forEach { composeRule.onNodeWithContentDescription(it).assertIsNotEnabled() }
-        composeRule.onNodeWithText("Saving…").assertIsDisplayed()
+        ).forEach { composeRule.onNodeWithTag(it).assertIsNotEnabled() }
+        composeRule.onNodeWithText(str(R.string.messaging_saving)).assertIsDisplayed()
     }
 
     @Test
     fun `a probe in flight says it is asking the carrier and shows no result yet`() {
         render(ready(draft = typedTwilio).copy(test = MessagingTestState.Running))
 
-        composeRule.onNodeWithText("Checking with the carrier…").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_RESULT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.messaging_testing)).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_TEST_RESULT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a typed form that has not been probed shows no result`() {
         render(ready(draft = typedTwilio))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_RESULT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(MESSAGING_TEST_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_TEST_RESULT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a pass with no account name still says the keys were accepted`() {
         render(ready(draft = typedTwilio).copy(test = MessagingTestState.Passed(null)))
-        composeRule.onNodeWithText("The carrier accepted these keys.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.messaging_test_passed)).assertIsDisplayed()
     }
 
     @Test
@@ -657,7 +664,7 @@ class MessagingScreenTest {
         // ⛔ A SID WITH NO TOKEN STORES A CREDENTIAL THAT CAN NEVER AUTHENTICATE.
         render(ready(draft = MessagingDraft(secrets = mapOf("accountSid" to "AC_only"))))
 
-        composeRule.onNodeWithContentDescription(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MESSAGING_SAVE_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -666,7 +673,7 @@ class MessagingScreenTest {
         // another, and stored in the clear.
         val rec = render(ready(draft = typedTwilio))
 
-        composeRule.onNodeWithContentDescription(messagingProviderDescription(MESSAGING_PROVIDER_TELNYX))
+        composeRule.onNodeWithTag(messagingProviderDescription(MESSAGING_PROVIDER_TELNYX))
             .performClick()
 
         assertEquals(MESSAGING_PROVIDER_TELNYX, rec.drafts?.provider)
@@ -677,7 +684,7 @@ class MessagingScreenTest {
     fun `typing a key adds it to the draft and keeps the others`() {
         val rec = render(ready(draft = twilioEdit.copy(secrets = mapOf("accountSid" to "AC_typed"))))
 
-        composeRule.onNodeWithContentDescription(messagingCredentialDescription("authToken"))
+        composeRule.onNodeWithTag(messagingCredentialDescription("authToken"))
             .performTextInput("tok")
 
         assertEquals(mapOf("accountSid" to "AC_typed", "authToken" to "tok"), rec.drafts?.secrets)
@@ -702,9 +709,9 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(MESSAGING_LABEL_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_SECRET_KEEP_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(MESSAGING_TEST_UNAVAILABLE_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_LABEL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(MESSAGING_SECRET_KEEP_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(MESSAGING_TEST_UNAVAILABLE_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -719,7 +726,7 @@ class MessagingScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-bare")).performClick()
+        composeRule.onNodeWithTag(messagingRemoveDescription("acct-bare")).performClick()
 
         composeRule.onNodeWithText("acct-bare", substring = true).assertIsDisplayed()
     }
@@ -761,21 +768,21 @@ class MessagingScreenTest {
             composeRule.waitForIdle()
         }
 
-        composeRule.onNodeWithContentDescription(messagingRemoveDescription("acct-telnyx")).performClick()
+        composeRule.onNodeWithTag(messagingRemoveDescription("acct-telnyx")).performClick()
         redraw(ready().copy(creatorCellDraft = "+1"))
-        composeRule.onNodeWithContentDescription(MESSAGING_DELETE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_DELETE_CONFIRM_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(messagingChannelSetDescription("voice")).performClick()
+        composeRule.onNodeWithTag(messagingChannelSetDescription("voice")).performClick()
         redraw(ready().copy(creatorCellDraft = "+14"))
-        composeRule.onNodeWithContentDescription(messagingChannelOptionDescription("acct-telnyx"))
+        composeRule.onNodeWithTag(messagingChannelOptionDescription("acct-telnyx"))
             .performClick()
-        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).performClick()
 
         redraw(ready(draft = twilioEdit))
         redraw(ready(draft = twilioEdit).copy(creatorCellDraft = "+141"))
-        composeRule.onNodeWithContentDescription(MESSAGING_NUMBERS_DESCRIPTION)
+        composeRule.onNodeWithTag(MESSAGING_NUMBERS_DESCRIPTION)
             .performTextReplacement("+14165550149")
-        composeRule.onNodeWithContentDescription(MESSAGING_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_CANCEL_DESCRIPTION).performClick()
 
         assertEquals(listOf("acct-telnyx"), rec.deletes)
         assertEquals(listOf("voice" to "acct-telnyx"), rec.channels)
@@ -798,7 +805,7 @@ class MessagingScreenTest {
         }
 
         composeRule.onNodeWithText("acct-bare").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).performClick()
         assertEquals("acct-bare", chosen)
     }
 
@@ -812,6 +819,6 @@ class MessagingScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).assertIsNotEnabled()
     }
 }

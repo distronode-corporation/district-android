@@ -2,13 +2,15 @@ package com.distronode.districtai.ui.inbox
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.ConversationLastMessage
 import com.distronode.districtai.core.model.ConversationSummary
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.FailureText
@@ -93,7 +95,7 @@ class InboxScreenTest {
     fun `a thread shows who it is with and what they last said`() {
         render(InboxUiState.Content(listOf(thread()), partial = false))
 
-        composeRule.onNodeWithContentDescription(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
         composeRule.onNodeWithText("Are you open Thursday?").assertIsDisplayed()
     }
@@ -115,7 +117,7 @@ class InboxScreenTest {
     @Test
     fun `an unread thread carries a count and a read one does not`() {
         render(InboxUiState.Content(listOf(thread(unread = 3)), partial = false))
-        composeRule.onNodeWithContentDescription(INBOX_UNREAD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_UNREAD_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithText("3").assertIsDisplayed()
     }
 
@@ -146,14 +148,14 @@ class InboxScreenTest {
         // ⛔ See the class doc. This is the whole point of the file.
         render(InboxUiState.Content(listOf(thread()), partial = true))
 
-        composeRule.onNodeWithContentDescription(INBOX_PARTIAL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_PARTIAL_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `a complete list does not claim to be partial`() {
         render(InboxUiState.Content(listOf(thread()), partial = false))
 
-        composeRule.onNodeWithContentDescription(INBOX_PARTIAL_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INBOX_PARTIAL_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -173,7 +175,7 @@ class InboxScreenTest {
     fun `an empty inbox reads as empty, not as broken`() {
         render(InboxUiState.Content(emptyList(), partial = false))
 
-        composeRule.onNodeWithContentDescription(INBOX_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -184,8 +186,8 @@ class InboxScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(INBOX_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithTag(INBOX_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
         assertEquals(1, retries)
     }
 
@@ -199,14 +201,14 @@ class InboxScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
     fun `loading is announced`() {
         render(InboxUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(INBOX_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── The drafts badge (Task A1) ──────────────────────────────────────────
@@ -226,14 +228,14 @@ class InboxScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(INBOX_DRAFT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_DRAFT_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
     fun `a thread with no draft carries no chip`() {
         render(InboxUiState.Content(listOf(thread()), partial = false))
 
-        composeRule.onNodeWithContentDescription(INBOX_DRAFT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INBOX_DRAFT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     /**
@@ -253,8 +255,8 @@ class InboxScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(INBOX_DRAFT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INBOX_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_DRAFT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -269,7 +271,7 @@ class InboxScreenTest {
     fun `a thread whose last message has no body says so rather than showing a blank line`() {
         render(InboxUiState.Content(listOf(thread(body = "  ")), partial = false))
 
-        composeRule.onNodeWithText("No message body").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_no_preview)).assertIsDisplayed()
     }
 
     @Test
@@ -289,7 +291,7 @@ class InboxScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Searching…").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_search_running)).assertIsDisplayed()
     }
 
     @Test

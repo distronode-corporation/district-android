@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.paging.LoadState
@@ -17,6 +17,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
@@ -131,10 +133,10 @@ class ContactsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CONTACTS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_ROOT_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("+14165550142").assertIsDisplayed()
         composeRule.onNodeWithText("bob@example.com").assertIsDisplayed()
-        composeRule.onNodeWithText("No phone or email").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contacts_no_contact_details)).assertIsDisplayed()
     }
 
     @Test
@@ -153,7 +155,7 @@ class ContactsScreenTest {
         // name. The null is produced in the model so every render site inherits the decision.
         render(listOf(contact(name = "Unknown")))
 
-        composeRule.onNodeWithText("Unnamed contact").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contacts_unnamed)).assertIsDisplayed()
         composeRule.onNodeWithText("Unknown").assertDoesNotExist()
     }
 
@@ -169,24 +171,24 @@ class ContactsScreenTest {
             ),
         )
 
-        composeRule.onAllNodesWithText("Building dossier…").assertCountEquals(1)
+        composeRule.onAllNodesWithText(str(R.string.contact_detail_dossier_pending)).assertCountEquals(1)
     }
 
     @Test
     fun `shows a labelled skeleton while refreshing, and not the empty state`() {
         render(emptyList(), states(refresh = LoadState.Loading))
 
-        composeRule.onNodeWithContentDescription(CONTACTS_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_LOADING_DESCRIPTION).assertIsDisplayed()
         // ⛔ An in-flight load is not an absence of contacts.
-        composeRule.onNodeWithContentDescription(CONTACTS_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `the empty state is reachable only after refresh succeeded`() {
         render(emptyList())
 
-        composeRule.onNodeWithContentDescription(CONTACTS_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("No contacts yet").assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contacts_empty_title)).assertIsDisplayed()
     }
 
     @Test
@@ -195,32 +197,32 @@ class ContactsScreenTest {
         // elsewhere is a dead end. The two affordances are mutually exclusive on purpose.
         render(emptyList())
 
-        composeRule.onNodeWithText("Add a contact").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contacts_create_action)).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a viewer is offered no create action in the empty state`() {
         render(emptyList(), canMutate = false)
 
-        composeRule.onNodeWithContentDescription(CONTACTS_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Add a contact").assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contacts_create_action)).assertDoesNotExist()
     }
 
     @Test
     fun `a viewer is told up front rather than discovering it by tapping`() {
         render(listOf(contact()), canMutate = false)
 
-        composeRule.onNodeWithContentDescription(CONTACTS_READ_ONLY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_READ_ONLY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a populated list offers the floating button and no read-only notice`() {
         render(listOf(contact()))
 
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_READ_ONLY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_READ_ONLY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -229,21 +231,21 @@ class ContactsScreenTest {
         // indistinguishable from data loss to the person holding the phone.
         render(emptyList(), states(refresh = LoadState.Error(degraded())))
 
-        composeRule.onNodeWithContentDescription(CONTACTS_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_EMPTY_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithText("Affected regions: eu").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_degraded_regions, "eu")).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertIsDisplayed()
     }
 
     @Test
     fun `retrying a failed refresh is offered and clickable`() {
         render(emptyList(), states(refresh = LoadState.Error(degraded())))
 
-        composeRule.onNodeWithText("Try again").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performClick()
 
         // Paging owns the retry; asserting the control exists and is enabled is the useful half —
         // that a dead-end screen is never drawn.
-        composeRule.onNodeWithContentDescription(CONTACTS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_FAILURE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -255,8 +257,8 @@ class ContactsScreenTest {
             callbacks = Callbacks(onSignIn = { signIns++ }),
         )
 
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
-        composeRule.onNodeWithText("Sign in").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_sign_in_again)).performClick()
 
         assertEquals(1, signIns)
     }
@@ -273,9 +275,9 @@ class ContactsScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CONTACTS_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
-        composeRule.onNodeWithText("Sign in").assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_sign_in_again)).assertDoesNotExist()
     }
 
     @Test
@@ -288,9 +290,9 @@ class ContactsScreenTest {
         )
 
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_APPEND_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACTS_APPEND_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_FAILURE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -304,7 +306,7 @@ class ContactsScreenTest {
             callbacks = Callbacks(onSignIn = { signIns++ }),
         )
 
-        composeRule.onNodeWithText("Sign in").performClick()
+        composeRule.onNodeWithText(str(R.string.overview_sign_in_again)).performClick()
 
         assertEquals(1, signIns)
     }
@@ -314,26 +316,26 @@ class ContactsScreenTest {
         render(listOf(contact(id = "c1")), states(append = LoadState.Loading))
 
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_APPENDING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_APPENDING_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `the floating button opens the create dialog`() {
         render(listOf(contact()))
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `the empty state's create action opens the same dialog`() {
         render(emptyList())
 
-        composeRule.onNodeWithText("Add a contact").performClick()
+        composeRule.onNodeWithText(str(R.string.contacts_create_action)).performClick()
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -341,10 +343,10 @@ class ContactsScreenTest {
         var handled = 0
         render(listOf(contact()), callbacks = Callbacks(onCreateHandled = { handled++ }))
 
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).performClick()
-        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION).performClick()
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).performClick()
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertEquals(1, handled)
     }
 
@@ -359,7 +361,7 @@ class ContactsScreenTest {
             callbacks = Callbacks(onCreateHandled = { handled++ }),
         )
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertEquals(1, handled)
     }
 
@@ -368,7 +370,7 @@ class ContactsScreenTest {
         var backs = 0
         render(listOf(contact()), callbacks = Callbacks(onBack = { backs++ }))
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
     }

@@ -4,7 +4,7 @@ import android.Manifest
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.call.IncomingCallController
@@ -90,7 +90,7 @@ class IncomingCallHostTest {
     fun `with no call, nothing is drawn`() {
         render()
 
-        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertEquals(emptyList<Any?>(), registry.launched)
     }
 
@@ -98,9 +98,9 @@ class IncomingCallHostTest {
     fun `Answer asks for the microphone and then answers`() {
         render()
         ringing()
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION).assertExists()
 
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION).performClick()
         composeRule.waitForIdle()
 
         assertEquals(listOf<Any?>(Manifest.permission.RECORD_AUDIO), registry.launched)
@@ -114,7 +114,7 @@ class IncomingCallHostTest {
         render()
         ringing()
 
-        composeRule.onNodeWithContentDescription(INCOMING_ANSWER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_ANSWER_DESCRIPTION).performClick()
         composeRule.waitForIdle()
 
         assertEquals(listOf("CA1/ws-1"), api.pushApi.answerRequests)
@@ -138,15 +138,15 @@ class IncomingCallHostTest {
         render()
         ringing()
 
-        composeRule.onNodeWithContentDescription(INCOMING_DECLINE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_DECLINE_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(IncomingCallPhase.ENDED, controller.state.value?.phase)
         assertEquals(emptyList<Any?>(), registry.launched)
         assertEquals(emptyList<String>(), api.pushApi.answerRequests)
 
-        composeRule.onNodeWithContentDescription(INCOMING_DISMISS_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(INCOMING_DISMISS_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertNull(controller.state.value)
-        composeRule.onNodeWithContentDescription(INCOMING_ROOT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(INCOMING_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 }

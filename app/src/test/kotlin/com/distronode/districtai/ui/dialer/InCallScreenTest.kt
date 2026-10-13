@@ -3,7 +3,7 @@ package com.distronode.districtai.ui.dialer
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -83,9 +83,9 @@ class InCallScreenTest {
     fun `placing the call says so and shows no duration`() {
         render(call(connection = CallConnectionState.Connecting))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_DIALING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_DIALING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -94,17 +94,17 @@ class InCallScreenTest {
         // screen that started a timer on `Connected` would count the ringing as conversation.
         render(call(connection = CallConnectionState.Connected, answered = false))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_RINGING_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_RINGING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `an answered call shows the duration counting up`() {
         render(call(answered = true, elapsedSeconds = 75))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("01:15").assertExists()
-        composeRule.onNodeWithContentDescription(IN_CALL_RINGING_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_RINGING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -113,32 +113,32 @@ class InCallScreenTest {
         // be told the record is the call log, because this app never writes the call's outcome.
         render(call(answered = true, elapsedSeconds = 75, ended = true))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_ENDED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_LOG_NOTICE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_ENDED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_LOG_NOTICE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
         // ⛔ THE LIVE CONTROLS ARE GONE. A mute button on a finished call is a control that cannot
         // work, and a hang-up on one invites a second press that would race the first's teardown.
-        composeRule.onNodeWithContentDescription(IN_CALL_HANG_UP_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(IN_CALL_DONE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_HANG_UP_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_DONE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `a failed connection says so instead of showing a running call`() {
         render(call(connection = CallConnectionState.Failed("unreachable")))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_FAILED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_FAILED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `reconnecting is a banner over the call, not a replacement for it`() {
         render(call(connection = CallConnectionState.Reconnecting, answered = true, elapsedSeconds = 30))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_RECONNECTING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_RECONNECTING_DESCRIPTION).assertIsDisplayed()
         // ⛔ THE CALL IS STILL DRAWN, timer and controls included. Replacing it with an error would
         // tear down a call that was about to recover.
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(IN_CALL_HANG_UP_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_HANG_UP_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── Controls ─────────────────────────────────────────────────────────────
@@ -150,17 +150,17 @@ class InCallScreenTest {
         // somebody ever copies that row of controls across, this fails.
         render(call(answered = true))
 
-        composeRule.onNodeWithContentDescription("district-room-camera").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("district-room-flip").assertDoesNotExist()
+        composeRule.onNodeWithTag("district-room-camera", useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag("district-room-flip", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `mute, speaker and hang up each fire once`() {
         render(call(answered = true))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_MIC_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(IN_CALL_SPEAKER_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(IN_CALL_HANG_UP_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(IN_CALL_MIC_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(IN_CALL_SPEAKER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(IN_CALL_HANG_UP_DESCRIPTION).performClick()
 
         assertEquals(1, micTaps)
         assertEquals(1, speakerTaps)
@@ -171,7 +171,7 @@ class InCallScreenTest {
     fun `done dismisses the ended call`() {
         render(call(ended = true, elapsedSeconds = 10))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_DONE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(IN_CALL_DONE_DESCRIPTION).performClick()
 
         assertEquals(1, dismissTaps)
     }
@@ -180,8 +180,8 @@ class InCallScreenTest {
     fun `a muted microphone offers Unmute and a speaker in use offers Speaker on`() {
         render(call(answered = true, micEnabled = false, speakerOn = true))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_MIC_DESCRIPTION).assertTextEquals("Unmute")
-        composeRule.onNodeWithContentDescription(IN_CALL_SPEAKER_DESCRIPTION).assertTextEquals("Speaker on")
+        composeRule.onNodeWithTag(IN_CALL_MIC_DESCRIPTION).assertTextEquals("Unmute")
+        composeRule.onNodeWithTag(IN_CALL_SPEAKER_DESCRIPTION).assertTextEquals("Speaker on")
     }
 
     @Test
@@ -191,16 +191,16 @@ class InCallScreenTest {
         // this apart from a call that was answered and then hung up. The hang-up stays to clear it.
         render(call(connection = CallConnectionState.Disconnected(), answered = false))
 
-        composeRule.onNodeWithContentDescription(IN_CALL_RINGING_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertTextEquals("00:00")
-        composeRule.onNodeWithContentDescription(IN_CALL_HANG_UP_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_RINGING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION).assertTextEquals("00:00")
+        composeRule.onNodeWithTag(IN_CALL_HANG_UP_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `the preview renders an answered call with its duration`() {
         composeRule.setContent { InCallScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(IN_CALL_TIMER_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("01:15").assertExists()
     }
 }

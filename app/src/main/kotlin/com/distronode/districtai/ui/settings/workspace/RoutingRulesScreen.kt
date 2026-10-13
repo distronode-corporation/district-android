@@ -20,10 +20,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -85,7 +84,7 @@ fun RoutingRulesScreen(
     }
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = ROUTING_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(ROUTING_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.routing_title),
@@ -132,7 +131,7 @@ private fun RulesList(
         EmptyState(
             title = stringResource(R.string.routing_empty_title),
             body = stringResource(R.string.routing_empty_body),
-            modifier = Modifier.semantics { contentDescription = ROUTING_EMPTY_DESCRIPTION },
+            modifier = Modifier.testTag(ROUTING_EMPTY_DESCRIPTION),
         )
         return
     }
@@ -221,9 +220,7 @@ private fun RuleCard(
             ),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier.semantics {
-                contentDescription = routingFieldDescription(index, RoutingRuleField.MODEL)
-            },
+            modifier = Modifier.testTag(routingFieldDescription(index, RoutingRuleField.MODEL)),
         )
         DistrictButton(
             text = stringResource(R.string.routing_remove),
@@ -231,9 +228,7 @@ private fun RuleCard(
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Sm,
             enabled = enabled,
-            modifier = Modifier.semantics {
-                contentDescription = routingRemoveDescription(index)
-            },
+            modifier = Modifier.testTag(routingRemoveDescription(index)),
         )
     }
 }
@@ -256,7 +251,7 @@ private fun RulesActions(
             enabled = !state.save.busy,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = ROUTING_ADD_DESCRIPTION },
+                .testTag(ROUTING_ADD_DESCRIPTION),
         )
         SaveNotice(state = state.save, description = ROUTING_NOTICE_DESCRIPTION)
         DistrictButton(
@@ -267,7 +262,7 @@ private fun RulesActions(
             enabled = state.canSave,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = ROUTING_SAVE_DESCRIPTION },
+                .testTag(ROUTING_SAVE_DESCRIPTION),
         )
     }
 }
@@ -304,7 +299,7 @@ private fun ReplaceRulesDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics { contentDescription = ROUTING_CONFIRM_DESCRIPTION },
+                modifier = Modifier.testTag(ROUTING_CONFIRM_DESCRIPTION),
             ) {
                 Text(
                     stringResource(
@@ -320,7 +315,7 @@ private fun ReplaceRulesDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics { contentDescription = ROUTING_CANCEL_DESCRIPTION },
+                modifier = Modifier.testTag(ROUTING_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.workspace_settings_keep_editing))
             }
@@ -357,7 +352,7 @@ private fun OptionPicker(
             enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = description },
+                .testTag(description),
         )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             shown.forEach { option ->
@@ -367,9 +362,7 @@ private fun OptionPicker(
                         expanded = false
                         onSelect(option)
                     },
-                    modifier = Modifier.semantics {
-                        contentDescription = routingOptionDescription(description, option)
-                    },
+                    modifier = Modifier.testTag(routingOptionDescription(description, option)),
                 )
             }
         }

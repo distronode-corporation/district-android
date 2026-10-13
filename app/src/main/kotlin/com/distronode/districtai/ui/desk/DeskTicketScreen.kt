@@ -15,9 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -62,7 +61,7 @@ fun DeskTicketScreen(
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = DESK_TICKET_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(DESK_TICKET_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = (state as? DeskTicketUiState.Content)?.ticket?.displayReference
@@ -114,7 +113,7 @@ private fun TicketLoaded(
                     ContentContainer {
                         InlineFailure(
                             failure,
-                            Modifier.semantics { contentDescription = DESK_TICKET_STATUS_FAILURE_DESCRIPTION },
+                            Modifier.testTag(DESK_TICKET_STATUS_FAILURE_DESCRIPTION),
                         )
                     }
                 }
@@ -169,9 +168,7 @@ private fun TicketHeader(
                         // ⚠️ Disabled only while a status change is in flight — never while a
                         // REPLY is, which is a separate control with a separate flag.
                         enabled = !state.statusChanging,
-                        modifier = Modifier.semantics {
-                            contentDescription = "$DESK_TICKET_SET_STATUS_DESCRIPTION-${status.wire}"
-                        },
+                        modifier = Modifier.testTag("$DESK_TICKET_SET_STATUS_DESCRIPTION-${status.wire}"),
                     )
                 }
             }
@@ -226,17 +223,17 @@ private fun ReplyBox(
             when (state.lastNotified) {
                 true -> NotifyNote(
                     R.string.desk_notified,
-                    Modifier.semantics { contentDescription = DESK_TICKET_NOTIFIED_DESCRIPTION },
+                    Modifier.testTag(DESK_TICKET_NOTIFIED_DESCRIPTION),
                 )
                 false -> NotifyNote(
                     R.string.desk_not_notified,
-                    Modifier.semantics { contentDescription = DESK_TICKET_NOT_NOTIFIED_DESCRIPTION },
+                    Modifier.testTag(DESK_TICKET_NOT_NOTIFIED_DESCRIPTION),
                 )
                 null -> Unit
             }
 
             state.sendFailure?.let {
-                InlineFailure(it, Modifier.semantics { contentDescription = DESK_TICKET_SEND_FAILURE_DESCRIPTION })
+                InlineFailure(it, Modifier.testTag(DESK_TICKET_SEND_FAILURE_DESCRIPTION))
             }
 
             OutlinedTextField(
@@ -247,7 +244,7 @@ private fun ReplyBox(
                 colors = districtFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = DESK_TICKET_REPLY_DESCRIPTION },
+                    .testTag(DESK_TICKET_REPLY_DESCRIPTION),
             )
             DistrictButton(
                 text = stringResource(
@@ -289,7 +286,7 @@ private fun TicketLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = DESK_TICKET_LOADING_DESCRIPTION },
+                .testTag(DESK_TICKET_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_HEIGHT) }
@@ -304,7 +301,7 @@ private fun TicketRefused() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = DESK_TICKET_REFUSED_DESCRIPTION },
+                .testTag(DESK_TICKET_REFUSED_DESCRIPTION),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

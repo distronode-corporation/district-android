@@ -15,9 +15,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -53,7 +52,7 @@ fun CallHandlingScreen(
     val guardedBack = rememberUnsavedChangesGuard(state.hasUnsavedChanges, onBack)
 
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = CALL_HANDLING_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(CALL_HANDLING_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
                 title = stringResource(R.string.call_handling_title),
@@ -118,9 +117,7 @@ private fun HandlingSection(
                             null
                         },
                         enabled = enabled,
-                        modifier = Modifier.semantics {
-                            contentDescription = callHandlingModeDescription(mode)
-                        },
+                        modifier = Modifier.testTag(callHandlingModeDescription(mode)),
                     )
                 },
             )
@@ -135,9 +132,7 @@ private fun HandlingSection(
                 text = stringResource(R.string.call_handling_ring_value, state.ringSeconds),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DistrictTheme.colors.foreground,
-                modifier = Modifier.semantics {
-                    contentDescription = CALL_HANDLING_RING_VALUE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(CALL_HANDLING_RING_VALUE_DESCRIPTION),
             )
             // ⛔ THE RANGE IS THE SERVER'S AND THE STEPS LAND ON WHOLE SECONDS. `appRingSeconds` is
             // a zod `.int()`, so a fractional slider position would be a 400 rather than a rounded
@@ -150,7 +145,7 @@ private fun HandlingSection(
                 enabled = enabled,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = CALL_HANDLING_RING_DESCRIPTION },
+                    .testTag(CALL_HANDLING_RING_DESCRIPTION),
             )
             Text(
                 text = stringResource(R.string.call_handling_ring_hint),
@@ -173,16 +168,14 @@ private fun HandlingSection(
                     enabled = state.canSave,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .semantics { contentDescription = CALL_HANDLING_SAVE_DESCRIPTION },
+                        .testTag(CALL_HANDLING_SAVE_DESCRIPTION),
                 )
             } else {
                 Text(
                     text = stringResource(R.string.call_handling_viewer_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
-                    modifier = Modifier.semantics {
-                        contentDescription = CALL_HANDLING_VIEWER_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(CALL_HANDLING_VIEWER_DESCRIPTION),
                 )
             }
         }
@@ -226,9 +219,7 @@ private fun AvailabilitySection(
                             checked = state.availableForCalls,
                             onCheckedChange = onSetAvailability,
                             enabled = state.canToggleAvailability,
-                            modifier = Modifier.semantics {
-                                contentDescription = CALL_HANDLING_AVAILABILITY_DESCRIPTION
-                            },
+                            modifier = Modifier.testTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION),
                         )
                     },
                 )

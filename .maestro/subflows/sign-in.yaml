@@ -33,9 +33,9 @@
 appId: com.distronode.districtai.debug
 ---
 - assertVisible:
-    text: "district-sign-in-action"
+    id: "district-sign-in-action"
 - tapOn:
-    text: "district-sign-in-action"
+    id: "district-sign-in-action"
 
 # ⚠️ A FRESH DEVICE SHOWS CHROME'S FIRST-RUN SCREENS before the Custom Tab, and nothing
 # below can get past them. Each tap is optional: on a device that has already run Chrome
@@ -98,5 +98,5 @@ appId: com.distronode.districtai.debug
 # app exchanges the code, mints a session and then loads the overview over the network.
 - extendedWaitUntil:
     visible:
-      text: "district-overview-root"
+      id: "district-overview-root"
     timeout: 60000

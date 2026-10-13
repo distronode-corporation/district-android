@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -16,6 +16,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.AiPersona
 import com.distronode.districtai.core.model.ToolConfig
 import com.distronode.districtai.core.model.WorkspaceConfig
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -90,17 +92,17 @@ class CapabilitiesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOAD_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION)
             .assertIsDisplayed()
 
         CAPABILITY_CATALOG.forEach { id ->
-            composeRule.onNodeWithContentDescription(capabilityToggleDescription(id))
+            composeRule.onNodeWithTag(capabilityToggleDescription(id), useUnmergedTree = true)
                 .assertDoesNotExist()
         }
         CAPABILITIES_MUTATING_DESCRIPTIONS.forEach { handle ->
-            composeRule.onNodeWithContentDescription(handle).assertDoesNotExist()
+            composeRule.onNodeWithTag(handle, useUnmergedTree = true).assertDoesNotExist()
         }
     }
 
@@ -114,7 +116,7 @@ class CapabilitiesScreenTest {
             onRetry = { retries += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_RETRY_DESCRIPTION).performClick()
 
         assertEquals(1, retries)
     }
@@ -123,9 +125,9 @@ class CapabilitiesScreenTest {
     fun `loading draws skeletons and no switches`() {
         render(CapabilitiesUiState())
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_LOADING_DESCRIPTION)
             .assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("leave_message"), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -135,12 +137,12 @@ class CapabilitiesScreenTest {
     fun `every catalog capability is drawn, on or off according to what is stored`() {
         render(CapabilitiesUiState(load = loaded))
 
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("leave_message"))
             .assertIsOn()
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("search_knowledge_base"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("search_knowledge_base"))
             .assertIsOn()
         // Not in the stored list, so off — and still present, so it can be turned on.
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("book_appointment"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("book_appointment"))
             .assertIsOff()
     }
 
@@ -150,7 +152,7 @@ class CapabilitiesScreenTest {
         render(CapabilitiesUiState(load = loaded))
 
         composeRule.onNodeWithText("transfer_to_creator").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("transfer_to_creator"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("transfer_to_creator"))
             .assertIsOn()
         composeRule.onNodeWithText(
             "Stored for this workspace. This version of the app does not have a name for it, and " +
@@ -163,7 +165,7 @@ class CapabilitiesScreenTest {
         var toggled: Pair<String, Boolean>? = null
         render(CapabilitiesUiState(load = loaded), onToggleTool = { id, on -> toggled = id to on })
 
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("leave_message"))
             .performClick()
 
         assertEquals("leave_message" to false, toggled)
@@ -176,7 +178,7 @@ class CapabilitiesScreenTest {
         // warning that is sometimes wrong trains people to ignore all of them.
         render(CapabilitiesUiState(load = loaded))
 
-        composeRule.onNodeWithText("Needs a support team number, which cannot be set in this app.")
+        composeRule.onNodeWithText(str(R.string.capabilities_needs_support_number))
             .assertDoesNotExist()
     }
 
@@ -190,7 +192,7 @@ class CapabilitiesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Needs a support team number, which cannot be set in this app.")
+        composeRule.onNodeWithText(str(R.string.capabilities_needs_support_number))
             .assertIsDisplayed()
     }
 
@@ -200,9 +202,9 @@ class CapabilitiesScreenTest {
     fun `both save buttons are disabled until their own section is dirty`() {
         render(CapabilitiesUiState(load = loaded))
 
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION)
             .assertIsNotEnabled()
     }
 
@@ -213,9 +215,9 @@ class CapabilitiesScreenTest {
             CapabilitiesUiState(load = loaded, toolToggles = mapOf("leave_message" to false)),
         )
 
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
             .assertIsEnabled()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION)
             .assertIsNotEnabled()
     }
 
@@ -223,11 +225,11 @@ class CapabilitiesScreenTest {
     fun `a dirty enrichment switch enables its own save and NOT the tools one`() {
         render(CapabilitiesUiState(load = loaded, enrichmentDraft = true))
 
-        composeRule.onNodeWithContentDescription(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
             .assertIsOn()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_ENRICHMENT_DESCRIPTION)
             .assertIsEnabled()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
             .assertIsNotEnabled()
     }
 
@@ -243,11 +245,11 @@ class CapabilitiesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("leave_message"))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_SAVE_TOOLS_DESCRIPTION)
             .assertIsNotEnabled()
     }
 
@@ -262,7 +264,7 @@ class CapabilitiesScreenTest {
         )
 
         composeRule.onNodeWithText("Invalid payload").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_ENRICHMENT_NOTICE_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_ENRICHMENT_NOTICE_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -276,13 +278,13 @@ class CapabilitiesScreenTest {
             onBack = { backs += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
             .assertIsDisplayed()
         assertEquals(0, backs)
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -296,9 +298,9 @@ class CapabilitiesScreenTest {
             onBack = { backs += 1 },
         )
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
             .assertIsDisplayed()
         assertEquals(0, backs)
     }
@@ -308,9 +310,9 @@ class CapabilitiesScreenTest {
         var backs = 0
         render(CapabilitiesUiState(load = loaded), onBack = { backs += 1 })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION)
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
         assertEquals(1, backs)
     }
@@ -354,11 +356,11 @@ class CapabilitiesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("leave_message"))
             .assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
+        composeRule.onNodeWithTag(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION)
             .assertIsNotEnabled()
-        composeRule.onNodeWithText("Saving…").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.workspace_settings_saving)).assertIsDisplayed()
     }
 
     @Test
@@ -384,13 +386,13 @@ class CapabilitiesScreenTest {
 
         current.value = CapabilitiesUiState(load = loaded, toolToggles = mapOf("send_sms" to true))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(capabilityToggleDescription("leave_message"))
+        composeRule.onNodeWithTag(capabilityToggleDescription("leave_message"))
             .performClick()
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         current.value = current.value.copy(toolToggles = mapOf("send_sms" to true, "dispatch_email" to true))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(WORKSPACE_SETTINGS_DISCARD_DESCRIPTION).performClick()
 
         assertEquals(listOf("leave_message:false", "back"), calls)
     }

@@ -9,7 +9,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -19,6 +18,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.MeetingDetail
 import com.distronode.districtai.core.model.MeetingSummary
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -94,9 +95,9 @@ class RoomsLobbyScreenTest {
     fun `renders a row per meeting`() {
         render(ready(liveMeeting, doneMeeting))
 
-        composeRule.onNodeWithContentDescription(ROOMS_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(meetingRowDescription("m-live")).assertExists()
-        composeRule.onNodeWithContentDescription(meetingRowDescription("m-done")).assertExists()
+        composeRule.onNodeWithTag(ROOMS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(meetingRowDescription("m-live")).assertExists()
+        composeRule.onNodeWithTag(meetingRowDescription("m-done")).assertExists()
     }
 
     @Test
@@ -106,9 +107,9 @@ class RoomsLobbyScreenTest {
         // start a second meeting under the name whose minutes the user was reading.
         render(ready(liveMeeting, doneMeeting))
 
-        composeRule.onNodeWithContentDescription(meetingRejoinDescription("m-live")).assertExists()
+        composeRule.onNodeWithTag(meetingRejoinDescription("m-live")).assertExists()
         composeRule
-            .onNodeWithContentDescription(meetingRejoinDescription("m-done"))
+            .onNodeWithTag(meetingRejoinDescription("m-done"), useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -117,7 +118,7 @@ class RoomsLobbyScreenTest {
         render(ready(liveMeeting))
 
         composeRule
-            .onNodeWithContentDescription(meetingRejoinDescription("m-live"))
+            .onNodeWithTag(meetingRejoinDescription("m-live"))
             .performScrollTo()
             .performClick()
 
@@ -131,7 +132,7 @@ class RoomsLobbyScreenTest {
         render(ready(doneMeeting))
 
         composeRule
-            .onNodeWithText("Preview: The team reviewed Thursday's inbound volume")
+            .onNodeWithText(str(R.string.rooms_preview, "The team reviewed Thursday's inbound volume"))
             .assertExists()
     }
 
@@ -141,7 +142,7 @@ class RoomsLobbyScreenTest {
         // summary, and that deserves its own sentence.
         render(ready(liveMeeting))
 
-        composeRule.onNodeWithText("Minutes are written when the meeting ends.").assertExists()
+        composeRule.onNodeWithText(str(R.string.rooms_no_minutes_yet)).assertExists()
     }
 
     @Test
@@ -157,7 +158,7 @@ class RoomsLobbyScreenTest {
     fun `an empty history is an explanatory empty state`() {
         render(ready())
 
-        composeRule.onNodeWithContentDescription(ROOMS_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOMS_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -172,10 +173,10 @@ class RoomsLobbyScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOMS_HISTORY_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(ROOMS_START_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOMS_HISTORY_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(ROOMS_START_DESCRIPTION).assertIsDisplayed()
         composeRule
-            .onNodeWithContentDescription(ROOMS_JOIN_DESCRIPTION)
+            .onNodeWithTag(ROOMS_JOIN_DESCRIPTION)
             .performScrollTo()
             .assertIsEnabled()
     }
@@ -191,7 +192,7 @@ class RoomsLobbyScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
         assertEquals(0, retryTaps)
     }
 
@@ -204,7 +205,7 @@ class RoomsLobbyScreenTest {
         render(ready(liveMeeting))
 
         composeRule
-            .onNodeWithContentDescription(ROOMS_JOIN_DESCRIPTION)
+            .onNodeWithTag(ROOMS_JOIN_DESCRIPTION)
             .performScrollTo()
             .assertIsNotEnabled()
     }
@@ -216,7 +217,7 @@ class RoomsLobbyScreenTest {
         render(ready(liveMeeting))
 
         composeRule
-            .onNodeWithContentDescription(ROOMS_NAME_FIELD_DESCRIPTION)
+            .onNodeWithTag(ROOMS_NAME_FIELD_DESCRIPTION)
             .performScrollTo()
             .performTextInput("Weekly")
 
@@ -234,7 +235,7 @@ class RoomsLobbyScreenTest {
         )
 
         composeRule
-            .onNodeWithText("Everyone joining “weekly-review” lands in the same room.")
+            .onNodeWithText(str(R.string.rooms_name_preview, "weekly-review"))
             .assertExists()
     }
 
@@ -245,7 +246,7 @@ class RoomsLobbyScreenTest {
         render(ready())
 
         composeRule
-            .onNodeWithContentDescription(ROOMS_COMPANION_NOTICE_DESCRIPTION)
+            .onNodeWithTag(ROOMS_COMPANION_NOTICE_DESCRIPTION)
             .assertExists()
     }
 
@@ -260,7 +261,7 @@ class RoomsLobbyScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(ROOMS_JOIN_DESCRIPTION)
+            .onNodeWithTag(ROOMS_JOIN_DESCRIPTION)
             .performScrollTo()
             .performClick()
 
@@ -274,7 +275,7 @@ class RoomsLobbyScreenTest {
         render(ready(doneMeeting))
 
         composeRule
-            .onNodeWithContentDescription(meetingOpenDescription("m-done"))
+            .onNodeWithTag(meetingOpenDescription("m-done"))
             .performScrollTo()
             .performClick()
 
@@ -295,10 +296,10 @@ class RoomsLobbyScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOMS_RECORD_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(ROOMS_RECORD_DESCRIPTION).assertExists()
         composeRule.onNodeWithText("The full minutes, all of them.").assertExists()
         composeRule
-            .onNodeWithContentDescription(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION)
+            .onNodeWithTag(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION)
             .assertExists()
     }
 
@@ -314,7 +315,7 @@ class RoomsLobbyScreenTest {
         )
 
         composeRule
-            .onNodeWithContentDescription(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION)
+            .onNodeWithTag(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -326,9 +327,9 @@ class RoomsLobbyScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOMS_RECORD_FAILURE_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(ROOMS_RECORD_FAILURE_DESCRIPTION).assertExists()
         // ⚠️ The list stays behind it — a detail failure must not blank rows the user is reading.
-        composeRule.onNodeWithContentDescription(meetingRowDescription("m-done")).assertExists()
+        composeRule.onNodeWithTag(meetingRowDescription("m-done")).assertExists()
     }
 
     @Test
@@ -339,7 +340,7 @@ class RoomsLobbyScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(ROOMS_RECORD_CLOSE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(ROOMS_RECORD_CLOSE_DESCRIPTION).performClick()
 
         assertEquals(1, closeTaps)
     }
@@ -348,7 +349,7 @@ class RoomsLobbyScreenTest {
     fun `no record is shown when none is open`() {
         render(ready(doneMeeting))
 
-        composeRule.onNodeWithContentDescription(ROOMS_RECORD_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOMS_RECORD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -369,17 +370,17 @@ class RoomsLobbyScreenTest {
     fun `a finished meeting with no preview says no minutes were saved, not that they are coming`() {
         render(ready(doneMeeting.copy(summaryPreview = null)))
 
-        composeRule.onNodeWithText("No minutes were saved for this meeting.").assertExists()
-        composeRule.onNodeWithText("Minutes are written when the meeting ends.").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.rooms_no_minutes)).assertExists()
+        composeRule.onNodeWithText(str(R.string.rooms_no_minutes_yet)).assertDoesNotExist()
     }
 
     @Test
     fun `an opening record shows a placeholder, not an empty dialog`() {
         render(ready(doneMeeting).copy(openMeeting = MeetingDetailState.Loading))
 
-        composeRule.onNodeWithContentDescription(ROOMS_RECORD_DESCRIPTION).assertExists()
-        composeRule.onNodeWithContentDescription(ROOMS_RECORD_FAILURE_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithText("Minutes").assertDoesNotExist()
+        composeRule.onNodeWithTag(ROOMS_RECORD_DESCRIPTION).assertExists()
+        composeRule.onNodeWithTag(ROOMS_RECORD_FAILURE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.rooms_record_minutes)).assertDoesNotExist()
     }
 
     @Test
@@ -399,11 +400,11 @@ class RoomsLobbyScreenTest {
         listOf(null, "  ").forEach { next ->
             summary = next
             composeRule.waitForIdle()
-            composeRule.onNodeWithText("Minutes are written when the meeting ends.").assertExists()
+            composeRule.onNodeWithText(str(R.string.rooms_no_minutes_yet)).assertExists()
             // ⚠️ A blank transcript is no transcript: an empty heading over nothing reads as a
             // failed load.
             composeRule
-                .onNodeWithContentDescription(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION)
+                .onNodeWithTag(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION, useUnmergedTree = true)
                 .assertDoesNotExist()
         }
     }
@@ -412,7 +413,7 @@ class RoomsLobbyScreenTest {
     fun `the design preview draws the join form and both kinds of meeting`() {
         composeRule.setContent { RoomsLobbyScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(meetingRowDescription("m1")).assertExists()
-        composeRule.onNodeWithContentDescription(meetingRowDescription("m2")).assertExists()
+        composeRule.onNodeWithTag(meetingRowDescription("m1")).assertExists()
+        composeRule.onNodeWithTag(meetingRowDescription("m2")).assertExists()
     }
 }

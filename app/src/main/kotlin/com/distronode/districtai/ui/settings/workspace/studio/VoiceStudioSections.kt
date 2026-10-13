@@ -7,8 +7,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -32,9 +33,7 @@ internal fun ChainSection(state: VoiceStudioUiState.Ready, actions: VoiceStudioA
 private fun ChainBlock(block: BlockView, selected: Boolean, labels: VoiceStudioLabels, onClick: () -> Unit) {
     DistrictCard(
         onClick = onClick,
-        modifier = Modifier.semantics(
-            properties = @DontMemoize { contentDescription = studioHandle(HANDLE_BLOCK, block.leg, selected) },
-        ),
+        modifier = Modifier.testTag(studioHandle(HANDLE_BLOCK, block.leg, selected)),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
             Eyebrow(
@@ -62,10 +61,10 @@ internal fun MeterSection(state: VoiceStudioUiState.Ready) {
         text = StudioText.meter(meter.headline, labels),
         style = MaterialTheme.typography.titleMedium,
         color = DistrictTheme.colors.foreground,
-        modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_METER_DESCRIPTION },
+        modifier = Modifier.testTag(VOICE_STUDIO_METER_DESCRIPTION),
     )
     meter.stages.forEach { stage ->
-        Caption("${stage.label}: ${latencyText(stage.value, labels)}")
+        Caption(stringResource(R.string.voice_studio_stage_latency, stage.label, latencyText(stage.value, labels)))
     }
     meter.note?.let { Caption(it) }
     Caption(state.studio.latency.sourceText)
@@ -80,7 +79,7 @@ internal fun ResidencySection(state: VoiceStudioUiState.Ready) {
         text = residency.text,
         style = MaterialTheme.typography.bodyMedium,
         color = residencyColor(residency.inRegion),
-        modifier = Modifier.semantics { contentDescription = VOICE_STUDIO_RESIDENCY_DESCRIPTION },
+        modifier = Modifier.testTag(VOICE_STUDIO_RESIDENCY_DESCRIPTION),
     )
     residency.legsOut.forEach { Caption(it) }
 }

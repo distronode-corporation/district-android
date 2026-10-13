@@ -5,11 +5,10 @@ import android.app.Application
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -62,7 +61,7 @@ class PersonaPreviewHostTest {
                     // The persona screen's own button is a plain callback; this stands in for it.
                     TextButton(
                         onClick = openPreview,
-                        modifier = Modifier.semantics { contentDescription = OPEN_BUTTON },
+                        modifier = Modifier.testTag(OPEN_BUTTON),
                     ) { Text("Open") }
                 }
             }
@@ -74,11 +73,11 @@ class PersonaPreviewHostTest {
         var name = "Ada"
         render { PersonaPreviewForm(name = name) }
 
-        composeRule.onNodeWithContentDescription(OPEN_BUTTON).performClick()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(OPEN_BUTTON).performClick()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_ROOT_DESCRIPTION).assertIsDisplayed()
         // ⛔ READ AT THE TAP. A value captured when the sheet opened would audition a stale form.
         name = "Bea"
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_START_DESCRIPTION).performClick()
         composeRule.waitForIdle()
 
         assertEquals(listOf("ws-host" to PersonaPreviewForm(name = "Bea")), api.previewCalls)
@@ -88,14 +87,14 @@ class PersonaPreviewHostTest {
     fun `a form that cannot be built starts nothing, and closing the sheet removes it`() {
         render { null }
 
-        composeRule.onNodeWithContentDescription(OPEN_BUTTON).performClick()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(OPEN_BUTTON).performClick()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_START_DESCRIPTION).performClick()
         composeRule.waitForIdle()
         assertEquals(emptyList<Pair<String, PersonaPreviewForm>>(), api.previewCalls)
 
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_CLOSE_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_ROOT_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(OPEN_BUTTON).assertIsDisplayed()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_CLOSE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_ROOT_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(OPEN_BUTTON).assertIsDisplayed()
     }
 
     private companion object {

@@ -89,10 +89,11 @@ private fun RowScope.Tile(
 ) {
     // ⚠️ A `RowScope` extension that weights itself, rather than a `modifier` parameter: every tile
     // sits in one of the two rows and every caller passed exactly this weight.
+    val description = stringResource(R.string.overview_metric_description, label, value)
     MetricCard(
         label = label,
         value = value,
         caption = caption,
-        modifier = Modifier.weight(1f).semantics { contentDescription = "$label, $value" },
+        modifier = Modifier.weight(1f).semantics { contentDescription = description },
     )
 }

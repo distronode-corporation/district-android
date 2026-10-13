@@ -4,11 +4,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -59,7 +61,7 @@ class PersonaPreviewDialogTest {
             "This places a real call to your agent using the settings on this screen, including " +
                 "the ones you have not saved. It uses call minutes.",
         ).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_START_DESCRIPTION).assertIsEnabled()
     }
 
     @Test
@@ -67,8 +69,8 @@ class PersonaPreviewDialogTest {
         // ⛔ TELLING SOMEBODY TO SPEAK BEFORE THE AGENT HAS JOINED has them talk into a room that
         // nothing is listening to, and then conclude the persona is broken.
         render(PersonaPreviewUiState(phase = PersonaPreviewPhase.Waiting))
-        composeRule.onNodeWithText("Connected. Waiting for the agent to join…").assertIsDisplayed()
-        composeRule.onNodeWithText("The agent is on the line. Say something.").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.persona_preview_waiting)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.persona_preview_live)).assertDoesNotExist()
     }
 
     @Test
@@ -76,9 +78,9 @@ class PersonaPreviewDialogTest {
         var stopped = 0
         render(PersonaPreviewUiState(phase = PersonaPreviewPhase.Live), onStop = { stopped++ })
 
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_START_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_STOP_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_STOP_DESCRIPTION).performClick()
 
         assertEquals(1, stopped)
     }
@@ -90,7 +92,7 @@ class PersonaPreviewDialogTest {
         // minute's slots finding out it is still refused.
         render(PersonaPreviewUiState(phase = PersonaPreviewPhase.Idle, cooling = true))
 
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_START_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_START_DESCRIPTION)
             .assertIsNotEnabled()
     }
 
@@ -102,8 +104,8 @@ class PersonaPreviewDialogTest {
             ),
         )
 
-        composeRule.onNodeWithText("The call ended.").assertIsDisplayed()
-        composeRule.onNodeWithText("You ended the call.").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.persona_preview_ended_dropped)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.persona_preview_ended_stopped)).assertDoesNotExist()
     }
 
     @Test
@@ -112,7 +114,7 @@ class PersonaPreviewDialogTest {
         // why nothing is being heard back instead of refusing to start.
         render(PersonaPreviewUiState(phase = PersonaPreviewPhase.Live, microphoneDenied = true))
 
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_NO_MIC_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_NO_MIC_DESCRIPTION)
             .assertIsDisplayed()
     }
 
@@ -125,7 +127,7 @@ class PersonaPreviewDialogTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Too many previews. Try again shortly.").assertIsDisplayed()
     }
@@ -137,7 +139,7 @@ class PersonaPreviewDialogTest {
         var dismissed = 0
         render(PersonaPreviewUiState(phase = PersonaPreviewPhase.Live), onDismiss = { dismissed++ })
 
-        composeRule.onNodeWithContentDescription(PERSONA_PREVIEW_CLOSE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(PERSONA_PREVIEW_CLOSE_DESCRIPTION).performClick()
 
         assertEquals(1, dismissed)
     }

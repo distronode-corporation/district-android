@@ -10,9 +10,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -64,7 +63,7 @@ fun SchedulingScreen(
     onDismissNotice: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = SCHEDULING_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(SCHEDULING_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.scheduling_title), onBack = onBack)
         },
@@ -112,7 +111,7 @@ fun SchedulingScreen(
 @Composable
 private fun LoadingCard() {
     Column(
-        modifier = Modifier.semantics { contentDescription = SCHEDULING_LOADING_DESCRIPTION },
+        modifier = Modifier.testTag(SCHEDULING_LOADING_DESCRIPTION),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
@@ -123,7 +122,7 @@ private fun LoadingCard() {
 @Composable
 private fun SchedulingNotice(message: String, onDismiss: () -> Unit) {
     DistrictCard(
-        modifier = Modifier.semantics { contentDescription = SCHEDULING_NOTICE_DESCRIPTION },
+        modifier = Modifier.testTag(SCHEDULING_NOTICE_DESCRIPTION),
     ) {
         Text(
             text = message,
@@ -137,7 +136,7 @@ private fun SchedulingNotice(message: String, onDismiss: () -> Unit) {
             size = ButtonSize.Sm,
             modifier = Modifier
                 .padding(top = DistrictTheme.spacing.tight)
-                .semantics { contentDescription = SCHEDULING_DISMISS_DESCRIPTION },
+                .testTag(SCHEDULING_DISMISS_DESCRIPTION),
         )
     }
 }

@@ -6,11 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasProgressBarRangeInfo
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,8 @@ import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.DeskSettings
 import com.distronode.districtai.core.model.DeskTicketStatus
 import com.distronode.districtai.core.model.DeskTicketSummary
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -98,15 +100,15 @@ class DeskScreenTest {
     fun `a disabled desk shows its own screen, not the empty one`() {
         render(DeskUiState.Disabled(DeskSettings(enabled = false)))
 
-        composeRule.onNodeWithContentDescription(DESK_DISABLED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("The customer desk is off").assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_DISABLED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_disabled_title)).assertIsDisplayed()
     }
 
     @Test
     fun `an enabled desk with no tickets shows the EMPTY screen, which says something different`() {
         render(content(tickets = emptyList()))
 
-        composeRule.onNodeWithContentDescription(DESK_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_EMPTY_DESCRIPTION).assertIsDisplayed()
         // ⛔ "The desk is on" is the load-bearing half of this sentence. It is what stops an
         // operator concluding their customers' tickets have been lost.
         val onCopy = "The desk is on. Tickets your customers raise, and any the " +
@@ -118,7 +120,7 @@ class DeskScreenTest {
     fun `a viewer sees why rather than an empty queue`() {
         render(content(), canUse = false)
 
-        composeRule.onNodeWithContentDescription(DESK_REFUSED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_REFUSED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -129,8 +131,8 @@ class DeskScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(DESK_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertIsDisplayed()
     }
 
     @Test
@@ -142,7 +144,7 @@ class DeskScreenTest {
         )
 
         composeRule.onNodeWithText("Forbidden").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -151,7 +153,7 @@ class DeskScreenTest {
 
         composeRule.onNodeWithText("Leaking tap").assertIsDisplayed()
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
-        composeRule.onNodeWithText("From a call").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_from_call)).assertIsDisplayed()
     }
 
     @Test
@@ -160,7 +162,7 @@ class DeskScreenTest {
 
         // ⚠️ A ticket raised during a call may genuinely carry none of the three, and a blank
         // subtitle reads as a rendering fault rather than as the truth.
-        composeRule.onNodeWithText("No contact details").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_no_requester)).assertIsDisplayed()
     }
 
     @Test
@@ -195,7 +197,7 @@ class DeskScreenTest {
     fun `a filter that matches nothing says so without claiming the queue is empty`() {
         render(content(filter = DeskTicketStatus.RESOLVED))
 
-        composeRule.onNodeWithContentDescription(DESK_FILTER_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DESK_FILTER_EMPTY_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -204,7 +206,7 @@ class DeskScreenTest {
         render(content(), callbacks = Callbacks(onFilter = { picked = it }))
 
         composeRule
-            .onNodeWithContentDescription("$DESK_FILTER_DESCRIPTION-waiting")
+            .onNodeWithTag("$DESK_FILTER_DESCRIPTION-waiting")
             .performClick()
 
         assertEquals(DeskTicketStatus.WAITING, picked)
@@ -232,8 +234,8 @@ class DeskScreenTest {
         // `assertIsDisplayed` fails on a screen that is behaving correctly. The inbox twin passes
         // without this only because its own cap is five and the whole list fits.
         composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasContentDescription(DESK_CAPPED_DESCRIPTION))
-        composeRule.onNodeWithContentDescription(DESK_CAPPED_DESCRIPTION).assertIsDisplayed()
+            .performScrollToNode(hasTestTag(DESK_CAPPED_DESCRIPTION))
+        composeRule.onNodeWithTag(DESK_CAPPED_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -241,7 +243,7 @@ class DeskScreenTest {
         var backs = 0
         render(content(), onBack = { backs++ })
 
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
     }
@@ -267,7 +269,7 @@ class DeskScreenTest {
 
         composeRule.onNodeWithText("ada@example.com").assertIsDisplayed()
         composeRule.onNodeWithText("+14165550142").assertIsDisplayed()
-        composeRule.onNodeWithText("No contact details").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.desk_no_requester)).assertDoesNotExist()
     }
 
     @Test
@@ -293,11 +295,11 @@ class DeskScreenTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("$DESK_FILTER_DESCRIPTION-resolved").performClick()
+        composeRule.onNodeWithTag("$DESK_FILTER_DESCRIPTION-resolved").performClick()
         state = content(filter = DeskTicketStatus.RESOLVED)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(DESK_FILTER_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("$DESK_FILTER_DESCRIPTION-open").performClick()
+        composeRule.onNodeWithTag(DESK_FILTER_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag("$DESK_FILTER_DESCRIPTION-open").performClick()
 
         assertEquals(listOf(DeskTicketStatus.RESOLVED, DeskTicketStatus.OPEN), picked)
     }
@@ -315,8 +317,8 @@ class DeskScreenTest {
         )
 
         // ⚠️ Exact matches: the filter chips read "Waiting 1" and "Resolved 1", so only a badge matches.
-        composeRule.onNodeWithText("Open").assertIsDisplayed()
-        composeRule.onNodeWithText("Waiting").assertIsDisplayed()
-        composeRule.onNodeWithText("Resolved").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_status_open)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_status_waiting)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.desk_status_resolved)).assertIsDisplayed()
     }
 }

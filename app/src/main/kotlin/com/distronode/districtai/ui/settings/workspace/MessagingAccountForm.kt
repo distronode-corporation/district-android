@@ -13,9 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -97,9 +96,7 @@ internal fun MessagingAccountDialog(
                 // ⛔ DISABLED ONLY FOR AN INCOMPLETE CREDENTIAL SET, never for a blank one on an
                 // ordinary edit — a blank there is the CORRECT input. See the ⛔ on the file.
                 enabled = state.canEditNow && draft.canSave,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_SAVE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_SAVE_DESCRIPTION),
             ) {
                 Text(
                     stringResource(
@@ -111,9 +108,7 @@ internal fun MessagingAccountDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.messaging_cancel))
             }
@@ -150,9 +145,7 @@ private fun ProviderPicker(
                         onEditDraft(draft.copy(provider = provider, secrets = emptyMap()))
                     },
                     enabled = enabled,
-                    modifier = Modifier.semantics {
-                        contentDescription = messagingProviderDescription(provider)
-                    },
+                    modifier = Modifier.testTag(messagingProviderDescription(provider)),
                 )
             },
         )
@@ -162,9 +155,7 @@ private fun ProviderPicker(
             text = stringResource(R.string.messaging_provider_switch_warning),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.destructive,
-            modifier = Modifier.semantics {
-                contentDescription = MESSAGING_PROVIDER_SWITCH_DESCRIPTION
-            },
+            modifier = Modifier.testTag(MESSAGING_PROVIDER_SWITCH_DESCRIPTION),
         )
     }
 }
@@ -203,9 +194,7 @@ private fun CredentialSourcePicker(
                     selected = source == draft.credentialSource,
                     onClick = { onEditDraft(draft.copy(credentialSource = source)) },
                     enabled = enabled,
-                    modifier = Modifier.semantics {
-                        contentDescription = messagingSourceDescription(source)
-                    },
+                    modifier = Modifier.testTag(messagingSourceDescription(source)),
                 )
             },
         )
@@ -239,7 +228,7 @@ private fun CredentialFields(
             text = stringResource(R.string.messaging_secret_keep),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier.semantics { contentDescription = MESSAGING_SECRET_KEEP_DESCRIPTION },
+            modifier = Modifier.testTag(MESSAGING_SECRET_KEEP_DESCRIPTION),
         )
     }
     fields.forEach { field ->
@@ -265,9 +254,7 @@ private fun TestConnection(state: MessagingUiState, draft: MessagingDraft, onTes
             text = stringResource(R.string.messaging_test_unavailable),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier.semantics {
-                contentDescription = MESSAGING_TEST_UNAVAILABLE_DESCRIPTION
-            },
+            modifier = Modifier.testTag(MESSAGING_TEST_UNAVAILABLE_DESCRIPTION),
         )
         return
     }
@@ -283,7 +270,7 @@ private fun TestConnection(state: MessagingUiState, draft: MessagingDraft, onTes
         variant = ButtonVariant.Secondary,
         size = ButtonSize.Sm,
         enabled = !state.busy,
-        modifier = Modifier.semantics { contentDescription = MESSAGING_TEST_DESCRIPTION },
+        modifier = Modifier.testTag(MESSAGING_TEST_DESCRIPTION),
     )
     TestResult(state.test)
 }
@@ -317,7 +304,7 @@ private fun TestResult(test: MessagingTestState) {
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = tone,
-        modifier = Modifier.semantics { contentDescription = MESSAGING_TEST_RESULT_DESCRIPTION },
+        modifier = Modifier.testTag(MESSAGING_TEST_RESULT_DESCRIPTION),
     )
 }
 
@@ -348,7 +335,7 @@ private fun NumbersField(
         text = stringResource(R.string.messaging_numbers_help),
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
-        modifier = Modifier.semantics { contentDescription = MESSAGING_NUMBERS_HELP_DESCRIPTION },
+        modifier = Modifier.testTag(MESSAGING_NUMBERS_HELP_DESCRIPTION),
     )
 }
 
@@ -370,9 +357,7 @@ private fun MakeDefaultToggle(
                 checked = draft.makeDefault,
                 onCheckedChange = { onEditDraft(draft.copy(makeDefault = it)) },
                 enabled = !state.busy,
-                modifier = Modifier.semantics {
-                    contentDescription = MESSAGING_MAKE_DEFAULT_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MESSAGING_MAKE_DEFAULT_DESCRIPTION),
             )
         },
     )

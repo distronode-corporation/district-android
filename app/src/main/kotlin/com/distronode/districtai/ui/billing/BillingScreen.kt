@@ -13,9 +13,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -70,7 +69,7 @@ fun BillingScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = BILLING_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(BILLING_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.billing_title), onBack = onBack)
         },
@@ -101,7 +100,7 @@ private fun LoadingState(inset: Modifier) {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = BILLING_LOADING_DESCRIPTION },
+                .testTag(BILLING_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_CARD_ROWS) { SkeletonBlock(height = SKELETON_CARD_HEIGHT) }
@@ -133,7 +132,7 @@ private fun ContentState(
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = BILLING_REFRESHING_DESCRIPTION },
+                    .testTag(BILLING_REFRESHING_DESCRIPTION),
                 color = DistrictTheme.colors.district,
                 trackColor = DistrictTheme.colors.muted,
             )
@@ -196,7 +195,7 @@ private fun ReadOnlyCaption(role: WorkspaceRole?) {
         color = DistrictTheme.colors.mutedForeground,
         modifier = Modifier
             .padding(horizontal = DistrictTheme.spacing.gutter)
-            .semantics { contentDescription = BILLING_READ_ONLY_DESCRIPTION },
+            .testTag(BILLING_READ_ONLY_DESCRIPTION),
     )
 }
 

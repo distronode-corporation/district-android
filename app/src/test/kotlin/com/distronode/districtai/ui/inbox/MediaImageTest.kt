@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -47,9 +47,9 @@ class MediaImageTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_LOADING_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_FAILED_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_DESCRIPTION).assertIsDisplayed().performClick()
+        composeRule.onNodeWithTag(THREAD_MEDIA_LOADING_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_MEDIA_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_MEDIA_DESCRIPTION).assertIsDisplayed().performClick()
 
         assertEquals(listOf(FIRST), opened)
     }
@@ -103,7 +103,7 @@ class MediaImageTest {
 
         assertEquals(listOf(FIRST), firstLoads)
         assertEquals(emptyList<String>(), secondLoads)
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_FAILED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_MEDIA_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     private companion object {

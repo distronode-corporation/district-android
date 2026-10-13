@@ -14,9 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -84,9 +83,7 @@ internal fun AddMemberDialog(
                         text = stringResource(R.string.members_add_rejected),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.destructive,
-                        modifier = Modifier.semantics {
-                            contentDescription = MEMBERS_ADD_REJECTED_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(MEMBERS_ADD_REJECTED_DESCRIPTION),
                     )
                 }
             }
@@ -95,9 +92,7 @@ internal fun AddMemberDialog(
             TextButton(
                 onClick = onConfirm,
                 enabled = !state.busy,
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_ADD_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_ADD_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.members_add_action))
             }
@@ -105,9 +100,7 @@ internal fun AddMemberDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_ADD_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_ADD_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.members_cancel))
             }
@@ -138,9 +131,7 @@ internal fun RemoveMemberDialog(email: String, onConfirm: () -> Unit, onDismiss:
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_REMOVE_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_REMOVE_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.members_remove))
             }
@@ -148,9 +139,7 @@ internal fun RemoveMemberDialog(email: String, onConfirm: () -> Unit, onDismiss:
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_REMOVE_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_REMOVE_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.members_cancel))
             }
@@ -203,9 +192,7 @@ internal fun RoleChangeDialog(
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(selected) },
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_ROLE_CONFIRM_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_ROLE_CONFIRM_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.members_role_action))
             }
@@ -213,9 +200,7 @@ internal fun RoleChangeDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics {
-                    contentDescription = MEMBERS_ROLE_CANCEL_DESCRIPTION
-                },
+                modifier = Modifier.testTag(MEMBERS_ROLE_CANCEL_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.members_cancel))
             }
@@ -249,7 +234,7 @@ private fun RolePicker(
                     selected = role == selected,
                     onClick = { onSelect(role) },
                     enabled = enabled,
-                    modifier = Modifier.semantics { contentDescription = descriptionFor(role) },
+                    modifier = Modifier.testTag(descriptionFor(role)),
                 )
             },
         )

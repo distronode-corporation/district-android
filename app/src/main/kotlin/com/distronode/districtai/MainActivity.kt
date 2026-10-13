@@ -14,6 +14,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -32,6 +35,7 @@ import com.distronode.districtai.ui.SignInScreen
 import com.distronode.districtai.ui.SignedOutCause
 import com.distronode.districtai.ui.overview.OverviewUiState
 import com.distronode.districtai.ui.overview.OverviewViewModel
+import com.distronode.districtai.core.designsystem.DistrictLabels
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import kotlinx.coroutines.launch
 
@@ -85,7 +89,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            DistrictTheme {
+            DistrictTheme(labels = DistrictLabels(back = stringResource(R.string.top_bar_back))) {
                 // ⛔ THE ONE instance, owned by the activity's ViewModelStore so it survives a
                 // configuration change, and passed into the graph rather than re-created there.
                 val overviewViewModel: OverviewViewModel = viewModel(
@@ -123,7 +127,11 @@ class MainActivity : ComponentActivity() {
                 // documents: a destination restored from the back stack after process death re-runs
                 // whatever effect put it there, which here would be a ringing screen for a call
                 // that died with the process. A live call is derived state, exactly as sign-in is.
-                Box(modifier = Modifier.fillMaxSize()) {
+                //
+                // ⚠️ `testTagsAsResourceId` publishes every `district-*` test tag as the node's
+                // resource-id, which is what Maestro's `id:` selector reads (.maestro/). The tags
+                // used to be contentDescriptions, which TalkBack read aloud as if they were labels.
+                Box(modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
                     if (neverSignedIn) {
                         // First run or a sign-out: the ordinary sign-in screen, not an error.
                         // ⛔ Kept OUT of the navigation graph — see DistrictNavHost. Sign-in is

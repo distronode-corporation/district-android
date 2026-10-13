@@ -14,8 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictButton
@@ -66,7 +65,7 @@ private fun LegChoice(state: VoiceStudioUiState.Ready, actions: VoiceStudioActio
                 onClick = @DontMemoize { actions.selectLeg(leg) },
                 size = ButtonSize.Sm,
                 variant = if (leg == state.leg) ButtonVariant.Primary else ButtonVariant.Secondary,
-                modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_LEG, leg) },
+                modifier = Modifier.testTag(studioHandle(HANDLE_LEG, leg)),
             )
         }
     }
@@ -81,7 +80,7 @@ private fun VoicePicker(model: VoiceModel, enabled: Boolean) {
             title = model.label,
             subtitle = model.selectedLabel,
             onClick = @DontMemoize { expanded = true }.takeIf { enabled },
-            modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_PICKER, "voice") },
+            modifier = Modifier.testTag(studioHandle(HANDLE_PICKER, "voice")),
         )
         DropdownMenu(expanded = expanded, onDismissRequest = @DontMemoize { expanded = false }) {
             model.voices.forEachIndexed { index, (_, option) ->
@@ -94,7 +93,7 @@ private fun VoicePicker(model: VoiceModel, enabled: Boolean) {
                         expanded = false
                         model.onSelect(option.value)
                     },
-                    modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_OPTION, option.value) },
+                    modifier = Modifier.testTag(studioHandle(HANDLE_OPTION, option.value)),
                 )
             }
         }
@@ -122,7 +121,7 @@ internal fun StudioPicker(
             title = label,
             subtitle = PickerOption.subtitle(options, selected),
             onClick = @DontMemoize { expanded = true }.takeIf { enabled },
-            modifier = Modifier.semantics { contentDescription = description },
+            modifier = Modifier.testTag(description),
         )
         DropdownMenu(expanded = expanded, onDismissRequest = @DontMemoize { expanded = false }) {
             options.forEach { option ->
@@ -132,7 +131,7 @@ internal fun StudioPicker(
                         expanded = false
                         onSelect(option.value)
                     },
-                    modifier = Modifier.semantics { contentDescription = studioHandle(HANDLE_OPTION, option.value) },
+                    modifier = Modifier.testTag(studioHandle(HANDLE_OPTION, option.value)),
                 )
             }
         }

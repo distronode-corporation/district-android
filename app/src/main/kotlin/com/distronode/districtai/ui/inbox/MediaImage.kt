@@ -19,9 +19,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -156,7 +156,7 @@ fun MediaImage(
             .clip(RoundedCornerShape(THUMBNAIL_RADIUS))
             .background(DistrictTheme.colors.muted)
             .clickable { onOpen(url) }
-            .semantics { contentDescription = THREAD_MEDIA_DESCRIPTION },
+            .testTag(THREAD_MEDIA_DESCRIPTION),
         contentAlignment = Alignment.Center,
     ) {
         when (phase) {
@@ -172,17 +172,13 @@ fun MediaImage(
                 text = stringResource(R.string.thread_image_failed),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = THREAD_MEDIA_FAILED_DESCRIPTION
-                },
+                modifier = Modifier.testTag(THREAD_MEDIA_FAILED_DESCRIPTION),
             )
             MediaPhase.Loading -> Text(
                 text = stringResource(R.string.thread_image_loading),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.semantics {
-                    contentDescription = THREAD_MEDIA_LOADING_DESCRIPTION
-                },
+                modifier = Modifier.testTag(THREAD_MEDIA_LOADING_DESCRIPTION),
             )
         }
     }

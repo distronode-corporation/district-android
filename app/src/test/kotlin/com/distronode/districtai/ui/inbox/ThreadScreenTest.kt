@@ -9,7 +9,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -18,6 +18,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -151,7 +153,7 @@ class ThreadScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_ROOT_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Are you open Thursday?").assertIsDisplayed()
         composeRule.onNodeWithText("We are, 9 til 5.").assertIsDisplayed()
     }
@@ -178,7 +180,7 @@ class ThreadScreenTest {
         // ⛔ See the class doc: dropping it leaves an unexplained gap in the conversation.
         render(ThreadUiState.Content(listOf(call(summary = "Asked about Thursday hours."))))
 
-        composeRule.onNodeWithContentDescription(THREAD_CALL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_CALL_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Asked about Thursday hours.").assertIsDisplayed()
     }
 
@@ -187,7 +189,7 @@ class ThreadScreenTest {
         // ⛔ `direction` is three-state here. A missed call has no side, which is why it is not a bubble.
         render(ThreadUiState.Content(listOf(call(direction = "missed"))))
 
-        composeRule.onNodeWithText("Missed call").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.thread_call_missed)).assertIsDisplayed()
     }
 
     @Test
@@ -196,15 +198,15 @@ class ThreadScreenTest {
         // user cannot act on — and this is the affordance, not the security control.
         render(ThreadUiState.Content(listOf(message())), canReply = false)
 
-        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `send is disabled until there is something to send`() {
         render(ThreadUiState.Content(listOf(message())))
 
-        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -212,9 +214,9 @@ class ThreadScreenTest {
         var sent: String? = null
         render(ThreadUiState.Content(listOf(message())), wiring = Wiring(onSend = { sent = it }))
 
-        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION)
+        composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION)
             .performTextInput("On our way")
-        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).performClick()
 
         assertEquals("On our way", sent)
     }
@@ -224,8 +226,8 @@ class ThreadScreenTest {
         // ⛔ THE MONEY GUARD. A second tap must not become a second charge and a duplicate message.
         render(ThreadUiState.Content(listOf(message()), sending = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithText("Sending…").assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.thread_sending)).assertIsDisplayed()
     }
 
     @Test
@@ -242,9 +244,9 @@ class ThreadScreenTest {
         )
 
         composeRule.onNodeWithText("Are you open Thursday?").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(THREAD_SEND_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_SEND_FAILURE_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Sender not verified.").assertIsDisplayed()
-        composeRule.onNodeWithText("Dismiss").performClick()
+        composeRule.onNodeWithText(str(R.string.thread_dismiss)).performClick()
         assertEquals(1, dismissed)
     }
 
@@ -266,7 +268,7 @@ class ThreadScreenTest {
     fun `an empty thread reads as empty, not as broken`() {
         render(ThreadUiState.Content(emptyList()))
 
-        composeRule.onNodeWithText("Nothing in this thread").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.thread_empty_title)).assertIsDisplayed()
     }
 
     @Test
@@ -275,14 +277,14 @@ class ThreadScreenTest {
             ThreadUiState.Failed(FailureText(message = UiText.Literal("Offline."), retryable = true)),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_FAILURE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `loading is announced`() {
         render(ThreadUiState.Loading)
 
-        composeRule.onNodeWithContentDescription(THREAD_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_LOADING_DESCRIPTION).assertIsDisplayed()
     }
 
     // ── Composer: attachments, AI drafting, inbound thumbnails (Task A1) ─────
@@ -297,22 +299,22 @@ class ThreadScreenTest {
     fun `the attach control is offered on sms and absent on email`() {
         render(ThreadUiState.Content(listOf(message())), wiring = Wiring(canAttach = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_ATTACH_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_ATTACH_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
     fun `an email thread shows no attach control at all`() {
         render(ThreadUiState.Content(listOf(message())), wiring = Wiring(canAttach = false))
 
-        composeRule.onNodeWithContentDescription(THREAD_ATTACH_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_ATTACH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
     fun `a viewer is offered neither the composer nor the attach control`() {
         render(ThreadUiState.Content(listOf(message())), canReply = false, wiring = Wiring(canAttach = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(THREAD_ATTACH_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_ATTACH_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -328,8 +330,8 @@ class ThreadScreenTest {
             wiring = Wiring(onRemoveAttachment = { removed = it }),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_ATTACHMENTS_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(THREAD_ATTACHMENT_CHIP_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_ATTACHMENTS_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_ATTACHMENT_CHIP_DESCRIPTION).performClick()
         assertEquals("https://x/api/media/m1", removed)
     }
 
@@ -337,7 +339,7 @@ class ThreadScreenTest {
     fun `no chip row is drawn when nothing is attached`() {
         render(ThreadUiState.Content(listOf(message())))
 
-        composeRule.onNodeWithContentDescription(THREAD_ATTACHMENTS_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_ATTACHMENTS_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     /**
@@ -348,7 +350,7 @@ class ThreadScreenTest {
     fun `the attach control is disabled while an upload is in flight`() {
         render(ThreadUiState.Content(listOf(message()), attaching = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_ATTACH_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_ATTACH_DESCRIPTION).assertIsNotEnabled()
     }
 
     /**
@@ -359,7 +361,7 @@ class ThreadScreenTest {
     fun `the AI draft control is disabled while a generation is in flight`() {
         render(ThreadUiState.Content(listOf(message()), generating = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_AI_DRAFT_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_AI_DRAFT_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -370,7 +372,7 @@ class ThreadScreenTest {
             wiring = Wiring(onGenerateDraft = { generations += 1 }),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_AI_DRAFT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_AI_DRAFT_DESCRIPTION).performClick()
 
         assertEquals(1, generations)
     }
@@ -389,7 +391,7 @@ class ThreadScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
     }
 
     /**
@@ -405,7 +407,7 @@ class ThreadScreenTest {
             wiring = Wiring(imageLoader = MediaImageLoader { awaitCancellation() }),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_LOADING_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_MEDIA_LOADING_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -415,7 +417,7 @@ class ThreadScreenTest {
             wiring = Wiring(imageLoader = MediaImageLoader { null }),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_FAILED_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_MEDIA_FAILED_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
         // ⚠️ AND THE COUNT BADGE SURVIVES. A thumbnail that failed leaves no indication the message
         // HAD an attachment, which is the one fact the operator must not lose.
         composeRule.onNodeWithText("1 attachment").assertIsDisplayed()
@@ -429,7 +431,7 @@ class ThreadScreenTest {
             wiring = Wiring(imageLoader = MediaImageLoader { null }, onOpenMedia = { opened = it }),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_MEDIA_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_MEDIA_DESCRIPTION).performClick()
 
         assertEquals("https://x/api/media/m1", opened)
     }
@@ -440,8 +442,8 @@ class ThreadScreenTest {
     fun `the load-older control is offered only when there is more behind the thread`() {
         render(ThreadUiState.Content(listOf(message()), hasMore = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Older messages").assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.thread_load_older)).assertIsDisplayed()
     }
 
     @Test
@@ -450,7 +452,7 @@ class ThreadScreenTest {
         // thread that failed to load its history, which is the opposite of what it means.
         render(ThreadUiState.Content(listOf(message()), hasMore = false))
 
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -459,8 +461,8 @@ class ThreadScreenTest {
         // at — and a server with nothing to show has nothing behind it.
         render(ThreadUiState.Content(emptyList(), hasMore = true))
 
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithText("Nothing in this thread").assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.thread_empty_title)).assertIsDisplayed()
     }
 
     @Test
@@ -471,7 +473,7 @@ class ThreadScreenTest {
             wiring = Wiring(onLoadOlder = { taps += 1 }),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_DESCRIPTION).performClick()
 
         assertEquals(1, taps)
     }
@@ -483,8 +485,8 @@ class ThreadScreenTest {
         // unexplained.
         render(ThreadUiState.Content(listOf(message()), hasMore = true, loadingOlder = true))
 
-        composeRule.onNodeWithText("Loading older…").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.thread_load_older_loading)).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_DESCRIPTION).assertIsNotEnabled()
     }
 
     @Test
@@ -500,10 +502,10 @@ class ThreadScreenTest {
         )
 
         composeRule.onNodeWithText("Are you open Thursday?").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_FAILURE_DESCRIPTION)
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Offline.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_DESCRIPTION).assertIsDisplayed()
     }
 
     /**
@@ -594,7 +596,7 @@ class ThreadScreenTest {
         )
 
         composeRule.onNodeWithText("Not yours.").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 
     @Test
@@ -607,7 +609,7 @@ class ThreadScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(THREAD_LOAD_OLDER_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_LOAD_OLDER_FAILURE_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -650,7 +652,7 @@ class ThreadScreenTest {
                 )
             }
         }
-        composeRule.onNodeWithContentDescription(THREAD_REPLY_FIELD_DESCRIPTION).performTextInput("On my way")
+        composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION).performTextInput("On my way")
 
         state = ThreadUiState.Content(
             listOf(message(id = "m1", body = "Hello?"), message(id = "m2", body = "Anyone?")),
@@ -660,7 +662,7 @@ class ThreadScreenTest {
 
         onSend = { second += it }
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(THREAD_SEND_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).performClick()
 
         assertEquals(emptyList<String>(), first)
         assertEquals(listOf("On my way"), second)

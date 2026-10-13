@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -14,6 +14,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactCompany
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -96,7 +98,7 @@ class ContactDossierScreenTest {
     }
 
     private fun scrollTo(description: String) =
-        composeRule.onNodeWithContentDescription(description).performScrollTo()
+        composeRule.onNodeWithTag(description).performScrollTo()
 
     // ── The enrich control's visibility matrix ───────────────────────────────
 
@@ -121,9 +123,9 @@ class ContactDossierScreenTest {
         // ⛔ The server excludes `viewer` from both DGI writes, so the button could only 403.
         render(contact(dgiStatus = null), canMutate = false)
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_ENRICH_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_ENRICH_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -134,7 +136,7 @@ class ContactDossierScreenTest {
         // is fail-open, so nothing behind the button would stop it.
         render(contact(dgiStatus = "crawling"), canMutate = true)
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_ENRICH_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_ENRICH_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -142,7 +144,7 @@ class ContactDossierScreenTest {
     fun `a completed dossier is not offered a re-run`() {
         render(contact(dgiStatus = "complete"), canMutate = true)
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_ENRICH_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_ENRICH_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -173,7 +175,7 @@ class ContactDossierScreenTest {
 
         // ⚠️ NOT `scrollTo`: a dialog is not inside the screen's scrollable column, and
         // performScrollTo on it throws.
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION)
             .performClick()
         assertEquals(1, clears)
     }
@@ -182,7 +184,7 @@ class ContactDossierScreenTest {
     fun `a contact with nothing to clear is offered no clear control`() {
         render(contact(dgiStatus = null, intelligence = null, company = null))
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -251,7 +253,7 @@ class ContactDossierScreenTest {
             ),
         )
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DOSSIER_RAW_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_DOSSIER_RAW_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithText("Competitors").assertIsDisplayed()
     }
@@ -282,7 +284,7 @@ class ContactDossierScreenTest {
         // empty "Company" heading would read as missing data rather than as absent data.
         render(contact(dgiStatus = "complete", company = ContactCompany()))
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
     }
 
@@ -325,9 +327,9 @@ class ContactDossierScreenTest {
         // would leave the enrich control hidden forever.
         render(contact(dgiStatus = null))
 
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_DOSSIER_PENDING_DESCRIPTION)
+        composeRule.onNodeWithTag(CONTACT_DETAIL_DOSSIER_PENDING_DESCRIPTION, useUnmergedTree = true)
             .assertDoesNotExist()
-        composeRule.onNodeWithText("No dossier for this contact.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_detail_dossier_none)).assertIsDisplayed()
     }
 
     @Test
@@ -341,7 +343,7 @@ class ContactDossierScreenTest {
 
         scrollTo(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("engines.test").assertIsDisplayed()
-        composeRule.onNodeWithText("Industry").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_detail_company_industry)).assertDoesNotExist()
     }
 
     @Test
@@ -400,14 +402,16 @@ class ContactDossierScreenTest {
 
         state = ContactDetailUiState.Content(contact(dgiStatus = "complete", company = ContactCompany(name = "New")))
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).assertIsDisplayed()
 
-        composeRule.onNodeWithText("Cancel").performClick()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_detail_cancel)).performClick()
+        composeRule
+            .onNodeWithTag(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION, useUnmergedTree = true)
+            .assertDoesNotExist()
         assertEquals(0, clears)
 
         scrollTo(CONTACT_DETAIL_CLEAR_INTEL_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(CONTACT_DETAIL_CLEAR_INTEL_CONFIRM_DESCRIPTION).performClick()
         assertEquals(1, clears)
     }
 
@@ -417,7 +421,7 @@ class ContactDossierScreenTest {
 
         scrollTo(CONTACT_DETAIL_DOSSIER_COMPANY_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithText("Analytical Engines").assertIsDisplayed()
-        composeRule.onNodeWithText("Domain").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_detail_company_domain)).assertDoesNotExist()
     }
 
     // ── A poll that stopped on a failure ─────────────────────────────────────
@@ -434,8 +438,10 @@ class ContactDossierScreenTest {
         )
 
         scrollTo(CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Could not check on the dossier. You are offline.").assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").performScrollTo().performClick()
+        composeRule.onNodeWithText(
+            str(R.string.contact_detail_dossier_poll_failed, "You are offline."),
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).performScrollTo().performClick()
 
         assertEquals(1, checks)
     }
@@ -448,6 +454,6 @@ class ContactDossierScreenTest {
         )
 
         scrollTo(CONTACT_DETAIL_POLL_FAILURE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("Try again").assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.overview_retry)).assertDoesNotExist()
     }
 }

@@ -2,7 +2,7 @@ package com.distronode.districtai.ui.settings.workspace
 
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -54,7 +54,7 @@ class SettingsDialogCallbacksTest {
     }
 
     private fun click(description: String) {
-        composeRule.onNodeWithContentDescription(description).performClick()
+        composeRule.onNodeWithTag(description).performClick()
     }
 
     private fun leaveThroughTheDiscardDialog() {

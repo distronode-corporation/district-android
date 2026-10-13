@@ -11,9 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
@@ -47,7 +46,7 @@ internal fun MeetingRecordDialog(detail: MeetingDetailState, onDismiss: () -> Un
         confirmButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics { contentDescription = ROOMS_RECORD_CLOSE_DESCRIPTION },
+                modifier = Modifier.testTag(ROOMS_RECORD_CLOSE_DESCRIPTION),
             ) {
                 Text(stringResource(R.string.rooms_record_close))
             }
@@ -57,7 +56,7 @@ internal fun MeetingRecordDialog(detail: MeetingDetailState, onDismiss: () -> Un
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
-                    .semantics { contentDescription = ROOMS_RECORD_DESCRIPTION },
+                    .testTag(ROOMS_RECORD_DESCRIPTION),
                 verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
                 when (detail) {
@@ -67,9 +66,7 @@ internal fun MeetingRecordDialog(detail: MeetingDetailState, onDismiss: () -> Un
                         text = detail.failure.message.resolve(),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.destructive,
-                        modifier = Modifier.semantics {
-                            contentDescription = ROOMS_RECORD_FAILURE_DESCRIPTION
-                        },
+                        modifier = Modifier.testTag(ROOMS_RECORD_FAILURE_DESCRIPTION),
                     )
                 }
             }
@@ -97,9 +94,7 @@ private fun MeetingRecordBody(detail: MeetingDetailState.Ready) {
             text = transcript,
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier.semantics {
-                contentDescription = ROOMS_RECORD_TRANSCRIPT_DESCRIPTION
-            },
+            modifier = Modifier.testTag(ROOMS_RECORD_TRANSCRIPT_DESCRIPTION),
         )
     }
 }

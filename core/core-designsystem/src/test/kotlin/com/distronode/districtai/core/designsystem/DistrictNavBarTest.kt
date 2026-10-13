@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -67,10 +67,10 @@ class DistrictNavBarTest {
     fun `exactly one destination reports itself selected`() {
         render(selectedLabel = CALLS)
 
-        composeRule.onNodeWithContentDescription("nav-$CALLS").assertIsSelected()
-        composeRule.onNodeWithContentDescription("nav-$OVERVIEW").assertIsNotSelected()
-        composeRule.onNodeWithContentDescription("nav-$CONTACTS").assertIsNotSelected()
-        composeRule.onNodeWithContentDescription("nav-$ACCOUNT").assertIsNotSelected()
+        composeRule.onNodeWithTag("nav-$CALLS").assertIsSelected()
+        composeRule.onNodeWithTag("nav-$OVERVIEW").assertIsNotSelected()
+        composeRule.onNodeWithTag("nav-$CONTACTS").assertIsNotSelected()
+        composeRule.onNodeWithTag("nav-$ACCOUNT").assertIsNotSelected()
     }
 
     @Test
@@ -78,7 +78,7 @@ class DistrictNavBarTest {
         val taps = mutableListOf<String>()
         render(onSelect = { taps += it })
 
-        composeRule.onNodeWithContentDescription("nav-$CONTACTS").performClick()
+        composeRule.onNodeWithTag("nav-$CONTACTS").performClick()
 
         assertEquals(listOf(CONTACTS), taps)
     }
@@ -91,7 +91,7 @@ class DistrictNavBarTest {
         val taps = mutableListOf<String>()
         render(selectedLabel = OVERVIEW, onSelect = { taps += it })
 
-        composeRule.onNodeWithContentDescription("nav-$OVERVIEW").performClick()
+        composeRule.onNodeWithTag("nav-$OVERVIEW").performClick()
 
         assertEquals(listOf(OVERVIEW), taps)
     }

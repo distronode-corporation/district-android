@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +22,8 @@ import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactListResponse
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -105,12 +107,12 @@ class ContactsScreenUpdatesTest {
         }
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
         val firstRead = loads[0]
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION).performClick()
 
         // Saving is not done: the dialog stays up and nothing is reported yet.
         createState = CreateContactUiState.Saving
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION).assertIsDisplayed()
         assertEquals(0, handled)
 
         createState = CreateContactUiState.Created("c-new")
@@ -119,7 +121,7 @@ class ContactsScreenUpdatesTest {
         // One re-read: the list the server orders, rather than a row guessed into place locally.
         assertEquals(firstRead + 1, loads[0])
 
-        composeRule.onNodeWithContentDescription(CONTACT_CREATE_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACT_CREATE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
         assertEquals(1, handled)
     }
 
@@ -142,17 +144,17 @@ class ContactsScreenUpdatesTest {
                 )
             }
         }
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION).assertIsDisplayed()
 
         canMutate = false
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CONTACTS_READ_ONLY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_READ_ONLY_DESCRIPTION).assertIsDisplayed()
 
         canMutate = true
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(CONTACTS_ADD_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(CONTACTS_READ_ONLY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_ADD_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_READ_ONLY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -245,8 +247,8 @@ class ContactsScreenUpdatesTest {
         }
 
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
-        composeRule.onNodeWithText("Unnamed contact").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(CONTACTS_EMPTY_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contacts_unnamed)).assertDoesNotExist()
+        composeRule.onNodeWithTag(CONTACTS_EMPTY_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -285,7 +287,7 @@ class ContactsScreenUpdatesTest {
         }
         composeRule.onNodeWithText("Ada Lovelace").assertIsDisplayed()
         // The role travelled through the factory: a viewer is told the list is read-only.
-        composeRule.onNodeWithContentDescription(CONTACTS_READ_ONLY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(CONTACTS_READ_ONLY_DESCRIPTION).assertIsDisplayed()
     }
 
     private companion object {

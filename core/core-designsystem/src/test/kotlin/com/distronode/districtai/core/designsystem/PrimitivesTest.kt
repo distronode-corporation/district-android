@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -167,7 +167,7 @@ class PrimitivesTest {
         }
 
         composeRule.onNodeWithText("Call log").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
         assertEquals(1, backs)
     }
 
@@ -176,7 +176,7 @@ class PrimitivesTest {
         composeRule.setContent { DistrictTheme { DistrictTopBar(title = "District AI") } }
 
         composeRule.onNodeWithText("District AI").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(TOP_BAR_BACK_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test

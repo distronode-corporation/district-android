@@ -16,8 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 /**
@@ -54,11 +53,11 @@ fun DistrictTopBar(
             ) {
                 if (onBack != null) {
                     DistrictButton(
-                        text = "Back",
+                        text = DistrictTheme.labels.back,
                         onClick = onBack,
                         variant = ButtonVariant.Ghost,
                         size = ButtonSize.Sm,
-                        modifier = Modifier.semantics { contentDescription = TOP_BAR_BACK_DESCRIPTION },
+                        modifier = Modifier.testTag(TOP_BAR_BACK_DESCRIPTION),
                     )
                 }
                 Text(

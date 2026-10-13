@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -16,6 +17,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.OverviewMetrics
 import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -63,20 +66,28 @@ class OverviewScreenUpdatesTest {
         }
 
         composeRule.onNode(progressBar).assertExists()
-        composeRule.onNodeWithContentDescription("Total Calls Routed, 412").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_total_calls), "412"),
+        ).assertIsDisplayed()
 
         // A figure moving while the bar is still up: the tile re-announces its new value.
         state = content(totalCalls = 450, refreshing = true)
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription("Total Calls Routed, 450").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_total_calls), "450"),
+        ).assertIsDisplayed()
 
         state = content(totalCalls = 500)
         composeRule.waitForIdle()
 
         composeRule.onNode(progressBar).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("Total Calls Routed, 500").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_total_calls), "500"),
+        ).assertIsDisplayed()
         // The tiles whose figures did not move still read the same.
-        composeRule.onNodeWithContentDescription("Weekly Call Volume, 19").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            str(R.string.overview_metric_description, str(R.string.overview_tile_weekly_calls), "19"),
+        ).assertIsDisplayed()
         composeRule.onNodeWithText("Alpha Agency").assertIsDisplayed()
     }
 
@@ -95,7 +106,7 @@ class OverviewScreenUpdatesTest {
         }
 
         composeRule.onNodeWithText("Bravo").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(OVERVIEW_SWITCHER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(OVERVIEW_SWITCHER_DESCRIPTION).performClick()
         composeRule.onNodeWithText("Bravo").performClick()
 
         assertEquals(listOf("ws-b"), picked)

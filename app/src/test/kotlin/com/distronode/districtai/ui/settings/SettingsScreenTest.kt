@@ -3,11 +3,13 @@ package com.distronode.districtai.ui.settings
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.R
+import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import org.junit.Assert.assertEquals
@@ -61,7 +63,7 @@ class SettingsScreenTest {
         var deletions = 0
         render(onDeleteAccount = { deletions += 1 })
 
-        composeRule.onNodeWithContentDescription(SETTINGS_DELETE_ACCOUNT_DESCRIPTION)
+        composeRule.onNodeWithTag(SETTINGS_DELETE_ACCOUNT_DESCRIPTION)
             .performScrollTo()
             .assertIsDisplayed()
             .performClick()
@@ -74,9 +76,9 @@ class SettingsScreenTest {
         // ⛔ The rejection guard: an upload missing either of these is refused, not niggled.
         render()
 
-        composeRule.onNodeWithContentDescription(SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SETTINGS_DELETE_ACCOUNT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SETTINGS_SIGN_OUT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SETTINGS_DELETE_ACCOUNT_DESCRIPTION).assertIsDisplayed()
     }
 
     @Test
@@ -88,8 +90,8 @@ class SettingsScreenTest {
         var opened = 0
         render(onOpenDevices = { opened += 1 })
 
-        composeRule.onNodeWithContentDescription(SETTINGS_DEVICES_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SETTINGS_DEVICES_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_DEVICES_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SETTINGS_DEVICES_DESCRIPTION).performClick()
 
         assertEquals(1, opened)
     }
@@ -99,7 +101,7 @@ class SettingsScreenTest {
         var signOuts = 0
         render(onSignOut = { signOuts += 1 })
 
-        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
 
         assertEquals(1, signOuts)
     }
@@ -112,7 +114,7 @@ class SettingsScreenTest {
         var deletions = 0
         render(onDeleteAccount = { deletions += 1 })
 
-        composeRule.onNodeWithContentDescription(SETTINGS_DELETE_ACCOUNT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_DELETE_ACCOUNT_DESCRIPTION).performClick()
 
         assertEquals(1, deletions)
     }
@@ -122,7 +124,7 @@ class SettingsScreenTest {
         var backs = 0
         render(onBack = { backs += 1 })
 
-        composeRule.onNodeWithText("Back").performClick()
+        composeRule.onNodeWithText(str(R.string.top_bar_back)).performClick()
 
         assertEquals(1, backs)
     }
@@ -133,7 +135,7 @@ class SettingsScreenTest {
         render()
 
         composeRule
-            .onNodeWithText("Request deletion of your account and its data. Opens in your browser.")
+            .onNodeWithText(str(R.string.settings_delete_account_caption))
             .assertIsDisplayed()
     }
 
@@ -166,8 +168,8 @@ class SettingsScreenTest {
 
         generation.intValue = 2
         composeRule.waitForIdle()
-        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
-        composeRule.onNodeWithContentDescription(SETTINGS_DEVICES_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_SIGN_OUT_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(SETTINGS_DEVICES_DESCRIPTION).performClick()
 
         assertEquals(listOf(2), signOuts)
         assertEquals(listOf(2), devices)
@@ -177,7 +179,7 @@ class SettingsScreenTest {
     fun `the design preview composes the whole screen`() {
         composeRule.setContent { SettingsScreenPreview() }
 
-        composeRule.onNodeWithContentDescription(SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription(SETTINGS_SIGN_OUT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SETTINGS_ROOT_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(SETTINGS_SIGN_OUT_DESCRIPTION).assertIsDisplayed()
     }
 }

@@ -15,9 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -60,7 +59,7 @@ fun SupportScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = SUPPORT_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(SUPPORT_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.support_title), onBack = onBack)
         },
@@ -110,7 +109,7 @@ private fun SupportLoaded(
                     onClick = onCompose,
                     modifier = Modifier
                         .padding(DistrictTheme.spacing.gutter)
-                        .semantics { contentDescription = SUPPORT_NEW_DESCRIPTION },
+                        .testTag(SUPPORT_NEW_DESCRIPTION),
                 )
             }
         }
@@ -135,7 +134,7 @@ private fun SupportLoaded(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(DistrictTheme.spacing.section)
-                            .semantics { contentDescription = SUPPORT_CAPPED_DESCRIPTION },
+                            .testTag(SUPPORT_CAPPED_DESCRIPTION),
                     )
                 }
             }
@@ -188,7 +187,7 @@ private fun RequestRow(request: SupportRequestSummary, onClick: () -> Unit) {
                 // another language.
                 text = request.statusName,
                 tone = if (request.isResolved) Tone.Success else Tone.District,
-                modifier = Modifier.semantics { contentDescription = SUPPORT_STATUS_DESCRIPTION },
+                modifier = Modifier.testTag(SUPPORT_STATUS_DESCRIPTION),
             )
         },
     )
@@ -201,7 +200,7 @@ private fun SupportEmpty() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(DistrictTheme.spacing.section)
-                .semantics { contentDescription = SUPPORT_EMPTY_DESCRIPTION },
+                .testTag(SUPPORT_EMPTY_DESCRIPTION),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             EmptyState(
@@ -228,7 +227,7 @@ private fun SupportLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = SUPPORT_LOADING_DESCRIPTION },
+                .testTag(SUPPORT_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_HEIGHT) }

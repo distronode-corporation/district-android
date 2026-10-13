@@ -16,9 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -73,7 +72,7 @@ fun DeskSettingsScreen(
 
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(DESK_SETTINGS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.desk_settings_title), onBack = guardedBack)
         },
@@ -130,14 +129,14 @@ private fun SettingsForm(
                     labelId = R.string.desk_settings_enabled,
                     checked = state.enabled,
                     enabled = !state.saving,
-                    modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_ENABLED_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_SETTINGS_ENABLED_DESCRIPTION),
                     onChange = onEnabled,
                 )
                 ToggleRow(
                     labelId = R.string.desk_settings_notify,
                     checked = state.notifyCustomersByEmail,
                     enabled = !state.saving,
-                    modifier = Modifier.semantics { contentDescription = DESK_SETTINGS_NOTIFY_DESCRIPTION },
+                    modifier = Modifier.testTag(DESK_SETTINGS_NOTIFY_DESCRIPTION),
                     onChange = onNotify,
                 )
 
@@ -151,7 +150,7 @@ private fun SettingsForm(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics { contentDescription = DESK_SETTINGS_BRAND_DESCRIPTION },
+                        .testTag(DESK_SETTINGS_BRAND_DESCRIPTION),
                 )
                 // ⛔ SAYS WHAT AN EMPTY BOX DOES. Clearing it is a real write with a real result —
                 // the tenant's customers then see the workspace's own name — and an operator who
@@ -163,7 +162,7 @@ private fun SettingsForm(
                 )
 
                 state.saveFailure?.let {
-                    InlineError(it, Modifier.semantics { contentDescription = DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION })
+                    InlineError(it, Modifier.testTag(DESK_SETTINGS_SAVE_FAILURE_DESCRIPTION))
                 }
 
                 DistrictButton(
@@ -180,7 +179,7 @@ private fun SettingsForm(
                     enabled = state.canSave,
                     modifier = Modifier
                         .padding(top = DistrictTheme.spacing.tight)
-                        .semantics { contentDescription = DESK_SETTINGS_SAVE_DESCRIPTION },
+                        .testTag(DESK_SETTINGS_SAVE_DESCRIPTION),
                 )
             }
 
@@ -195,7 +194,7 @@ private fun LogoCard(
     onPickLogo: () -> Unit,
     onRemoveLogo: () -> Unit,
 ) {
-    DistrictCard(modifier = Modifier.semantics { contentDescription = DESK_LOGO_DESCRIPTION }) {
+    DistrictCard(modifier = Modifier.testTag(DESK_LOGO_DESCRIPTION)) {
         Eyebrow(text = stringResource(R.string.desk_logo_title))
         Text(
             text = stringResource(R.string.desk_logo_help),
@@ -222,14 +221,12 @@ private fun LogoCard(
                 text = stringResource(R.string.desk_logo_object_retained),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.warning,
-                modifier = Modifier.semantics {
-                    contentDescription = DESK_LOGO_RETAINED_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DESK_LOGO_RETAINED_DESCRIPTION),
             )
         }
 
         state.logoFailure?.let {
-            InlineError(it, Modifier.semantics { contentDescription = DESK_LOGO_FAILURE_DESCRIPTION })
+            InlineError(it, Modifier.testTag(DESK_LOGO_FAILURE_DESCRIPTION))
         }
 
         Row(
@@ -246,9 +243,7 @@ private fun LogoCard(
                 ),
                 onClick = onPickLogo,
                 enabled = !state.logoBusy,
-                modifier = Modifier.semantics {
-                    contentDescription = DESK_LOGO_CHOOSE_DESCRIPTION
-                },
+                modifier = Modifier.testTag(DESK_LOGO_CHOOSE_DESCRIPTION),
             )
             if (published != null) {
                 DistrictButton(
@@ -256,9 +251,7 @@ private fun LogoCard(
                     onClick = onRemoveLogo,
                     variant = ButtonVariant.Danger,
                     enabled = !state.logoBusy,
-                    modifier = Modifier.semantics {
-                        contentDescription = DESK_LOGO_REMOVE_DESCRIPTION
-                    },
+                    modifier = Modifier.testTag(DESK_LOGO_REMOVE_DESCRIPTION),
                 )
             }
         }
@@ -312,7 +305,7 @@ private fun SettingsLoading() {
         Column(
             modifier = Modifier
                 .padding(DistrictTheme.spacing.gutter)
-                .semantics { contentDescription = DESK_SETTINGS_LOADING_DESCRIPTION },
+                .testTag(DESK_SETTINGS_LOADING_DESCRIPTION),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             repeat(SKELETON_ROWS) { SkeletonBlock(height = SKELETON_HEIGHT) }

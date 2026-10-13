@@ -10,8 +10,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
@@ -79,7 +79,7 @@ fun WorkspaceSettingsScreen(
     onBack: () -> Unit,
 ) {
     DistrictScaffold(
-        modifier = Modifier.semantics { contentDescription = WORKSPACE_SETTINGS_ROOT_DESCRIPTION },
+        modifier = Modifier.testTag(WORKSPACE_SETTINGS_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(title = stringResource(R.string.workspace_settings_title), onBack = onBack)
         },
@@ -127,7 +127,7 @@ fun WorkspaceSettingsScreen(
                             horizontal = DistrictTheme.spacing.gutter,
                             vertical = DistrictTheme.spacing.row,
                         )
-                        .semantics { contentDescription = WORKSPACE_SETTINGS_MORE_DESCRIPTION },
+                        .testTag(WORKSPACE_SETTINGS_MORE_DESCRIPTION),
                 )
             }
         }
@@ -166,18 +166,14 @@ private fun StudioRows(
             title = stringResource(R.string.studio_row_persona),
             subtitle = stringResource(R.string.workspace_settings_persona_subtitle),
             onClick = onOpenPersona,
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_PERSONA_ROW_DESCRIPTION),
         )
         DistrictRowDivider()
         DistrictListRow(
             title = stringResource(R.string.studio_row_voice),
             subtitle = stringResource(R.string.workspace_settings_voice_studio_subtitle),
             onClick = { onOpenSection(SECTION_VOICE_STUDIO) },
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_VOICE_STUDIO_ROW_DESCRIPTION),
         )
         DistrictRowDivider()
     }
@@ -185,9 +181,7 @@ private fun StudioRows(
         title = stringResource(R.string.call_handling_title),
         subtitle = stringResource(R.string.workspace_settings_calls_subtitle),
         onClick = { onOpenSection(SECTION_CALLS) },
-        modifier = Modifier.semantics {
-            contentDescription = WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION
-        },
+        modifier = Modifier.testTag(WORKSPACE_SETTINGS_CALLS_ROW_DESCRIPTION),
     )
     DistrictRowDivider()
     if (canMutate) {
@@ -195,9 +189,7 @@ private fun StudioRows(
             title = stringResource(R.string.studio_row_skills),
             subtitle = stringResource(R.string.workspace_settings_capabilities_subtitle),
             onClick = onOpenCapabilities,
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_CAPABILITIES_ROW_DESCRIPTION),
         )
         DistrictRowDivider()
     }
@@ -205,9 +197,7 @@ private fun StudioRows(
         title = stringResource(R.string.studio_row_knowledge),
         subtitle = stringResource(R.string.workspace_settings_knowledge_subtitle),
         onClick = { onOpenSection(SECTION_KNOWLEDGE) },
-        modifier = Modifier.semantics {
-            contentDescription = WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION
-        },
+        modifier = Modifier.testTag(WORKSPACE_SETTINGS_KNOWLEDGE_ROW_DESCRIPTION),
     )
 }
 
@@ -237,18 +227,14 @@ private fun WorkspaceRows(
             title = stringResource(R.string.directory_title),
             subtitle = stringResource(R.string.workspace_settings_directory_subtitle),
             onClick = { onOpenSection(SECTION_DIRECTORY) },
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_DIRECTORY_ROW_DESCRIPTION),
         )
         DistrictRowDivider()
         DistrictListRow(
             title = stringResource(R.string.routing_title),
             subtitle = stringResource(R.string.workspace_settings_routing_subtitle),
             onClick = { onOpenSection(SECTION_ROUTING) },
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_ROUTING_ROW_DESCRIPTION),
         )
         DistrictRowDivider()
     }
@@ -256,9 +242,7 @@ private fun WorkspaceRows(
         title = stringResource(R.string.messaging_title),
         subtitle = stringResource(R.string.workspace_settings_messaging_subtitle),
         onClick = { onOpenSection(SECTION_MESSAGING) },
-        modifier = Modifier.semantics {
-            contentDescription = WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION
-        },
+        modifier = Modifier.testTag(WORKSPACE_SETTINGS_MESSAGING_ROW_DESCRIPTION),
     )
     if (canMutate) {
         DistrictRowDivider()
@@ -266,18 +250,14 @@ private fun WorkspaceRows(
             title = stringResource(R.string.members_title),
             subtitle = stringResource(R.string.workspace_settings_members_subtitle),
             onClick = { onOpenSection(SECTION_MEMBERS) },
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_MEMBERS_ROW_DESCRIPTION),
         )
         DistrictRowDivider()
         DistrictListRow(
             title = stringResource(R.string.marketplace_title),
             subtitle = stringResource(R.string.workspace_settings_numbers_subtitle),
             onClick = onOpenNumbers,
-            modifier = Modifier.semantics {
-                contentDescription = WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION
-            },
+            modifier = Modifier.testTag(WORKSPACE_SETTINGS_NUMBERS_ROW_DESCRIPTION),
         )
     }
 }

@@ -1,7 +1,7 @@
 package com.distronode.districtai
 
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.model.SchedulingStatusResponse
@@ -57,7 +57,7 @@ class MainActivitySchedulingHandOffTest {
         // Every start throws from here on, as it does on a device with no browser. ⚠️ Not before
         // the launch, which starts activities of its own that have no handler under Robolectric.
         shadowOf(harness.app).checkActivities(true)
-        compose.onNodeWithContentDescription(SCHEDULING_DASHBOARD_DESCRIPTION).scrolledIntoView().performClick()
+        compose.onNodeWithTag(SCHEDULING_DASHBOARD_DESCRIPTION).scrolledIntoView().performClick()
 
         harness.recreate()
         gate.complete(Unit)

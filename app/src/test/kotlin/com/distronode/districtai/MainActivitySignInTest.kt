@@ -3,7 +3,7 @@ package com.distronode.districtai
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.auth.LoginStatus
@@ -52,7 +52,7 @@ class MainActivitySignInTest {
         harness.signedOut()
         harness.launch()
         harness.awaitDescription(SIGN_IN_ACTION_DESCRIPTION)
-        compose.onNodeWithContentDescription(SIGN_IN_ACTION_DESCRIPTION).performClick()
+        compose.onNodeWithTag(SIGN_IN_ACTION_DESCRIPTION).performClick()
         compose.waitForIdle()
         val opened = checkNotNull(harness.nextStarted()) { "sign-in opened nothing" }
         return checkNotNull(opened.data)
@@ -88,7 +88,7 @@ class MainActivitySignInTest {
         harness.launch()
         harness.awaitDescription(SIGN_IN_ACTION_DESCRIPTION)
 
-        compose.onNodeWithContentDescription(SIGN_IN_ACTION_DESCRIPTION).performClick()
+        compose.onNodeWithTag(SIGN_IN_ACTION_DESCRIPTION).performClick()
         compose.waitForIdle()
 
         assertEquals(LoginStatus.NoBrowser, harness.loginStatus)

@@ -60,6 +60,13 @@ jobs:
     outputs:
       version_code: ${{ steps.version.outputs.version_code }}
       version_name: ${{ steps.version.outputs.version_name }}
+    env:
+      # ⛔ FRENCH (fr-CA) IS OFF UNTIL THE 3.0 CUT, AND THIS LINE IS THE ONE SWITCH.
+      # scripts/release-build.sh passes -Pdistrict.l10n.fr=true only when it is "true", and the
+      # French guard below reads the same value: "false" fails a bundle in which any app key has
+      # French or the per-app language list names French; "true" fails one in which a
+      # translatable app key lacks fr-rCA or the list lacks fr-CA. At the cut it becomes "true".
+      DISTRICT_FRENCH: "false"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -131,13 +138,19 @@ jobs:
           DISTRICT_SENTRY_PROJECT: district-android
         run: scripts/release-build.sh
 
-      # ⛔ NO FRENCH BEFORE THE 3.0 CUT. French resources join the build only with
-      # -Pdistrict.l10n.fr, which release-build.sh does not pass; this proves it on the bundle
-      # itself, by the app's OWN keys (AndroidX ships its own fr-rCA strings in every build, so
-      # "any fr-rCA configuration" would always fail). At the cut, this step and the property
-      # change together.
-      - name: No French in the bundle
-        run: scripts/french-guard.sh absent app/build/outputs/bundle/release/app-release.aab
+      # ⛔ FRENCH EXACTLY WHEN DISTRICT_FRENCH SAYS. French resources join the build only with
+      # -Pdistrict.l10n.fr=true, which release-build.sh passes only when DISTRICT_FRENCH is
+      # "true"; this proves it on the bundle itself, by the app's OWN keys (AndroidX ships its own
+      # French strings in every build, so "any French configuration" would always fail) and by
+      # the per-app language list. "false" requires French absent, "true" requires it present.
+      - name: French in the bundle exactly when DISTRICT_FRENCH says
+        run: |
+          case "$DISTRICT_FRENCH" in
+            true) mode=present ;;
+            false) mode=absent ;;
+            *) echo "::error::DISTRICT_FRENCH is '$DISTRICT_FRENCH', not true or false."; exit 1 ;;
+          esac
+          scripts/french-guard.sh "$mode" app/build/outputs/bundle/release/app-release.aab
 
       # A second, fresh token: the build can take most of the first one's hour.
       - id: gcp_play

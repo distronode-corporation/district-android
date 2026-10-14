@@ -1,23 +1,40 @@
 #!/usr/bin/env bash
 #
-# Is French in this build? Checks an .aab or .apk for the app's OWN strings in fr-rCA.
+# Is French in this build? Checks an .aab or .apk for the app's OWN strings in French, and for
+# French in the locale list Android shows in the per-app language setting.
 #
-#   scripts/french-guard.sh absent  app/build/outputs/bundle/release/app-release.aab   (release.yml)
+#   scripts/french-guard.sh absent  app/build/outputs/bundle/release/app-release.aab   (release.yml, French off)
+#   scripts/french-guard.sh present app/build/outputs/bundle/release/app-release.aab   (release.yml, French on)
 #   scripts/french-guard.sh present app/build/outputs/apk/debug/app-debug.apk          (the French CI job)
 #
-# `absent` fails when ANY of the keys below has an fr-rCA value; `present` fails when NONE does.
-# (`present` asks only whether the French resources were built in at all: until W3 most app strings
-# have no French yet, while l10n_language and the error-code sentences already do.)
+# release.yml picks the mode from DISTRICT_FRENCH, the same variable that decides whether
+# release-build.sh passes -Pdistrict.l10n.fr=true, so the 3.0 cut flips both with one value.
 #
-# ⛔ "ANY fr-rCA CONFIGURATION" IS NOT THE TEST, AND WOULD FAIL EVERY BUILD THIS APP HAS EVER MADE.
-# AndroidX ships its own fr-rCA strings (119 of them when this was written), so the configuration is
-# in every bundle whether or not a word of OUR French is. The question is whether the app's own keys
-# resolve to French, so that is what is asked. French is built in only with -Pdistrict.l10n.fr (see
-# app/build.gradle.kts), which no release build passes until the 3.0 cut.
+# `absent` fails when ANY app-owned string, plural or array has a value in ANY French
+# configuration (fr, fr-rCA, fr-rFR, b+fr...), or when the locale list names any French.
+#
+# `present` fails unless EVERY translatable app-owned key in the table has an fr-rCA value, no
+# app-owned key has any other French configuration, and the locale list names fr-CA. (Keys marked
+# translatable="false" have no French by design and are not counted.)
+#
+# ⛔ "ANY FRENCH CONFIGURATION" IS NOT THE TEST, AND WOULD FAIL EVERY BUILD THIS APP HAS EVER MADE.
+# AndroidX ships its own French strings, so French configurations are in every bundle whether or
+# not a word of OUR French is. The question is whether the app's own keys resolve to French, so
+# that is what is asked. The app's keys are read from the English resources the catalogs generate
+# (app/src/main/res/values/*.xml carrying the l10n.py "@generated" header), so a key added to a
+# catalog is checked from the day it lands.
+#
+# ⚠️ A KEY MISSING FROM THE TABLE IS SKIPPED, NOT FAILED: release builds shrink resources, and a
+# string no code references can be removed. `string/app_name` must be there, or the table was not
+# read.
+#
+# ⛔ THE LOCALE LIST IS AGP'S GENERATED `xml/_generated_res_locale_config` (generateLocaleConfig in
+# app/build.gradle.kts), read with `aapt2 dump xmltree`. Its absence fails both modes, so an AGP
+# rename is caught here rather than read as "no French".
 #
 # Reads the resource table with aapt2 from build-tools 37.0.0 (installed by the workflow). A bundle
 # keeps its table as protobuf under base/, which aapt2 reads once that module is repacked as a zip
-# with the table at its root.
+# with the manifest at its root. Tested by scripts/release-scripts.test.sh against a stub aapt2.
 set -euo pipefail
 
 usage() {
@@ -31,10 +48,9 @@ artifact=$2
 case "$mode" in absent | present) ;; *) usage ;; esac
 [ -f "$artifact" ] || { echo "french-guard: $artifact does not exist" >&2; exit 1; }
 
-# App-owned keys, one per catalog and the first string every user sees. A key here must exist in
-# l10n/*.toml; one that is missing from the table altogether fails too, rather than reading as
-# "no French".
-KEYS="app_name sign_in_action failure_offline push_call_title l10n_language api_error_unknown"
+root=$(cd "$(dirname "$0")/.." && pwd)
+values="$root/app/src/main/res/values"
+[ -d "$values" ] || { echo "french-guard: $values does not exist" >&2; exit 1; }
 
 aapt2="${ANDROID_HOME:?ANDROID_HOME must be set}/build-tools/37.0.0/aapt2"
 [ -x "$aapt2" ] || { echo "french-guard: $aapt2 is not installed" >&2; exit 1; }
@@ -55,33 +71,107 @@ esac
 
 "$aapt2" dump resources "$table_source" > "$work/table.txt"
 
-status=0
-found=""
-for key in $KEYS; do
-    # The resource's block: its header line, then one line per configuration, until the next resource.
-    block=$(awk -v key="string/$key" '
-        $1 == "resource" { inside = ($3 == key) ; next }
-        inside && /^[[:space:]]*\(/ { print }
-    ' "$work/table.txt")
-    if [ -z "$block" ]; then
-        echo "french-guard: string/$key is not in $artifact" >&2
-        status=1
-        continue
-    fi
-    if grep -q '^[[:space:]]*(fr-rCA)' <<<"$block"; then
-        found="$found $key"
-    fi
+# The locale list's files, as the table names them, one per configuration (AGP 9 writes
+# res/xml/ and res/xml-v35/): `() (file) res/xml/<name>.xml type=...`, `(v35) (file) ...`.
+locale_files=$(awk '
+    $1 == "resource" { inside = ($3 == "xml/_generated_res_locale_config"); next }
+    inside && $2 == "(file)" { print $3 }
+' "$work/table.txt")
+: > "$work/locales.txt"
+for locale_file in $locale_files; do
+    "$aapt2" dump xmltree --file "$locale_file" "$table_source" >> "$work/locales.txt"
 done
 
-if [ "$mode" = absent ] && [ -n "$found" ]; then
-    echo "french-guard: these app strings have an fr-rCA value in $artifact:$found. French must not ship before the 3.0 cut." >&2
-    status=1
-elif [ "$mode" = present ] && [ -z "$found" ]; then
-    echo "french-guard: none of $KEYS has an fr-rCA value in $artifact; the French resources are not in this build." >&2
-    status=1
-fi
+python3 -I - "$mode" "$artifact" "$values" "$work/table.txt" "$work/locales.txt" "$locale_files" << 'PY'
+import re
+import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
 
-if [ $status -eq 0 ]; then
-    echo "french-guard: French is $mode in $artifact (fr-rCA among the app's own keys:${found:- none})"
-fi
-exit $status
+mode, artifact, values, table_path, locales_path, locale_files = sys.argv[1:7]
+
+# The app's own keys: every string, plurals and string-array in the English resources the
+# catalogs generate. aapt2 names a string-array "array".
+GENERATED = "@generated by i18n/tools/l10n.py"
+TYPES = {"string": "string", "plurals": "plurals", "string-array": "array"}
+keys = {}  # "type/name" -> translatable
+for path in sorted(Path(values).glob("*.xml")):
+    text = path.read_text(encoding="utf-8")
+    if GENERATED not in text:
+        continue
+    for element in ET.fromstring(text):
+        kind = TYPES.get(element.tag)
+        if kind and element.get("name"):
+            keys[f"{kind}/{element.get('name')}"] = element.get("translatable", "true") != "false"
+if not keys:
+    sys.exit(f"french-guard: no catalog-generated keys under {values}.")
+
+
+def french(config: str) -> bool:
+    """A configuration whose language is French: fr, fr-rCA, fr-rFR-v21, b+fr+CA."""
+    return re.match(r"^(fr|b\+fr)(?:$|[-+])", config) is not None
+
+
+configs = {}  # "type/name" -> the configurations of each app key in the table
+current = None
+for line in Path(table_path).read_text(encoding="utf-8", errors="replace").splitlines():
+    fields = line.split()
+    if fields[:1] == ["resource"] and len(fields) >= 3:
+        current = fields[2] if fields[2] in keys else None
+        if current:
+            configs.setdefault(current, set())
+        continue
+    if current:
+        match = re.match(r"^\s*\(([^)]*)\)", line)
+        if match:
+            configs[current].add(match.group(1))
+
+problems = []
+if "string/app_name" not in configs:
+    problems.append(f"string/app_name is not in {artifact}, so its resource table was not read")
+
+locale_text = Path(locales_path).read_text(encoding="utf-8", errors="replace")
+# Every file is read; a language named in any of them counts, once.
+locales = sorted(set(re.findall(r':name\([^)]*\)="([^"]*)"', locale_text)))
+if not locale_files.split():
+    problems.append(f"{artifact} has no xml/_generated_res_locale_config, the per-app language list")
+elif not locales:
+    problems.append(f"no locale was read from {' '.join(locale_files.split())}")
+french_locales = sorted(l for l in locales if re.match(r"^fr(?:$|[-_])", l, re.IGNORECASE))
+
+french_keys = sorted(k for k, c in configs.items() if any(french(x) for x in c))
+stray = sorted(k for k, c in configs.items() if any(french(x) and x != "fr-rCA" for x in c))
+untranslated = sorted(k for k, c in configs.items() if keys[k] and "fr-rCA" not in c)
+
+
+def some(names):
+    return " ".join(names[:10]) + (f" (and {len(names) - 10} more)" if len(names) > 10 else "")
+
+
+if mode == "absent":
+    if french_keys:
+        problems.append(
+            f"{len(french_keys)} app keys have a French value: {some(french_keys)}. "
+            "French must not ship before the 3.0 cut"
+        )
+    if french_locales:
+        problems.append(
+            f"the per-app language list names {' '.join(french_locales)}. French must not ship before the 3.0 cut"
+        )
+else:
+    if untranslated:
+        problems.append(f"{len(untranslated)} translatable app keys have no fr-rCA value: {some(untranslated)}")
+    if stray:
+        problems.append(f"{len(stray)} app keys have a French value other than fr-rCA: {some(stray)}")
+    if "fr-CA" not in locales:
+        problems.append(f"the per-app language list does not name fr-CA (it names: {' '.join(locales) or 'nothing'})")
+
+for problem in problems:
+    print(f"french-guard: {problem}.", file=sys.stderr)
+if problems:
+    sys.exit(1)
+print(
+    f"french-guard: French is {mode} in {artifact} ({len(configs)} of {len(keys)} app keys in the table, "
+    f"{len(french_keys)} with French; per-app languages: {' '.join(locales)})"
+)
+PY

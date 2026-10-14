@@ -130,8 +130,21 @@ if (districtSentryDsn.isEmpty()) {
     )
 }
 
-/** -Pdistrict.l10n.fr: build the French resources in. See "Languages" in the android block. */
-val districtL10nFr: Boolean = providers.gradleProperty("district.l10n.fr").isPresent
+/**
+ * -Pdistrict.l10n.fr=true: build the French resources in. See "Languages" in the android block.
+ *
+ * ⛔ THE VALUE DECIDES, NOT THE PRESENCE. Absent or `false` is off; `true`, or the bare flag
+ * (which Gradle reads as an empty value), is on; anything else stops the build here rather than
+ * guessing. Presence alone would read `-Pdistrict.l10n.fr=false` (or an
+ * `ORG_GRADLE_PROJECT_district.l10n.fr=false` environment) as French ON, the opposite of what it
+ * says. release.yml's French guard checks the bundle either way.
+ */
+val districtL10nFr: Boolean =
+    when (val value = providers.gradleProperty("district.l10n.fr").orNull?.trim()?.lowercase()) {
+        null, "false" -> false
+        "", "true" -> true
+        else -> throw GradleException("district.l10n.fr is '$value': use true or false.")
+    }
 
 android {
     namespace = "com.distronode.districtai"

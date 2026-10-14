@@ -47,12 +47,17 @@ region), not the portal's label: W1 changes no English. The portal's English is 
 
 ## `french-guard.sh`
 
-`absent` fails when any of the app's own strings has an fr-rCA value in an `.aab` or `.apk`
-(release.yml, on every bundle); `present` fails when none does (the French CI job, built with
-`-Pdistrict.l10n.fr`).
+`absent` fails when any of the app's own strings, plurals or arrays has a value in any French
+configuration (`fr`, `fr-rCA`, `fr-rFR`, `b+fr+CA`), or the per-app language list
+(`xml/_generated_res_locale_config`) names French. `present` fails unless every translatable app key
+has an `fr-rCA` value, no app key has another French one, and the list names `fr-CA`. release.yml
+picks the mode from `DISTRICT_FRENCH`, the variable that also decides whether `release-build.sh`
+passes `-Pdistrict.l10n.fr=true`; the French CI job runs `present` on its debug APK.
 
-⛔ **The app's own keys, not "any fr-rCA configuration".** AndroidX ships fr-rCA strings in every
-build, so the configuration is always there.
+⛔ **The app's own keys, not "any French configuration".** AndroidX ships French strings in every
+build, so the configuration is always there. The app's keys are the ones the catalogs generate into
+`app/src/main/res/values` (the l10n.py `@generated` header). A key that resource shrinking removed
+from the table is skipped; `string/app_name` must be there.
 
 ## `smoke-emulator.sh`
 

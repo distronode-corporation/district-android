@@ -1,0 +1,762 @@
+[meta]
+catalog = "numbers"
+platform = "android"
+
+[numbers.a2p_business_label]
+en = "Legal business name"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_caption]
+en = "Required before this workspace can send text messages to US numbers from a local number."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_confirm_action]
+en = "Submit it"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_confirm_body]
+en = "This registers a brand and a campaign on your carrier account. The carrier charges a one-off brand fee and a monthly campaign fee, and a repeated submission leaves duplicates somebody has to clear by hand."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+note = "Before a registration that the carrier bills for and that cannot be undone."
+
+[numbers.a2p_confirm_title]
+en = "Submit this registration?"
+ctx = "title"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_description_label]
+en = "What you will send"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+note = "The campaign description the carrier reviews."
+
+[numbers.a2p_ein_label]
+en = "EIN or company number (optional)"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+note = "EIN is the US Employer Identification Number."
+
+[numbers.a2p_sample_one_label]
+en = "Example message 1"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_sample_two_label]
+en = "Example message 2"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_submit_action]
+en = "Submit registration"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_submitted]
+en = "Submitted. The carrier reports {status}."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+args = { status = "str" }
+note = "{status} is the carrier's own status word, shown as sent."
+
+[numbers.a2p_title]
+en = "A2P 10DLC registration"
+ctx = "title"
+screen = "numbers carrier"
+tier = "T1"
+note = "A2P 10DLC is the US carrier registration for business texting from local numbers; keep the acronym."
+
+[numbers.a2p_vertical_label]
+en = "Industry (optional)"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.a2p_website_label]
+en = "Website (optional)"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.cancel]
+en = "Cancel"
+ctx = "button"
+screen = "numbers"
+tier = "T1"
+
+[numbers.carrier_balance_amount]
+en = "Balance {balance}"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+args = { balance = "str" }
+note = "The carrier account balance, as the carrier sends it."
+
+[numbers.carrier_balance_with_currency]
+en = "Balance {balance} {currency}"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+args = { balance = "str", currency = "str" }
+note = "The carrier account balance and its currency code, as the carrier sends them."
+
+[numbers.carrier_connected]
+en = "Connected"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.carrier_eyebrow]
+en = "Carrier accounts"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.carrier_managed]
+en = "Held by Distronode. Account details are not this workspace's to see."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.carrier_none_body]
+en = "This workspace has no carrier credentials, so numbers cannot be searched, configured or registered yet."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.carrier_none_title]
+en = "No carrier connected"
+ctx = "title"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.carrier_number_count]
+en.one = "{count} number on this account"
+en.other = "{count} numbers on this account"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+args = { count = "int" }
+
+[numbers.carrier_refused]
+en = "These credentials were refused. The account cannot be reconnected in this app."
+ctx = "error"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.carrier_refused_badge]
+en = "Credentials refused"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.close]
+en = "Close"
+ctx = "button"
+screen = "numbers"
+tier = "T1"
+
+[numbers.compliance_no_status]
+en = "Neither registration can be checked from the app. What you see here is what the carrier answered when it was submitted."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.configure_action]
+en = "Reapply call routing"
+ctx = "button"
+screen = "numbers"
+tier = "T1"
+note = "Re-points the number's call and message routing at this workspace."
+
+[numbers.configure_caption]
+en = "Points this number's calls and messages back at this workspace, and re-pins an EU number to its European bridge."
+ctx = "body"
+screen = "numbers"
+tier = "T1"
+
+[numbers.configure_done]
+en = "Routing reapplied."
+ctx = "toast"
+screen = "numbers"
+tier = "T1"
+
+[numbers.document_remove_action]
+en = "Remove"
+ctx = "button"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.lookup_action]
+en = "Look this number up"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.lookup_confirm_action]
+en = "Run it"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.lookup_confirm_body]
+en = "Your carrier charges for each lookup, including one that comes back invalid. One tap runs exactly one lookup."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+note = "The carrier bills each lookup."
+
+[numbers.lookup_confirm_title]
+en = "Run a paid lookup?"
+ctx = "title"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.lookup_eyebrow]
+en = "Number lookup"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.lookup_invalid]
+en = "The carrier could not recognise that number."
+ctx = "error"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.lookup_number_label]
+en = "Phone number, in full"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.managed_no_release]
+en = "This line is held on Distronode's carrier account, so it is yours to use and not to release or reconfigure."
+ctx = "body"
+screen = "numbers"
+tier = "T1"
+
+[numbers.read_only]
+en = "New numbers are bought on the web. Everything else about a number, including its paperwork and releasing it, is here."
+ctx = "body"
+screen = "numbers"
+tier = "T1"
+note = "Under the tabs, for a role that may change numbers. The web hand-off button sits below it."
+
+[numbers.read_only_viewer]
+en = "Changing a number needs an agency or client role. Ask someone on this workspace who has one."
+ctx = "body"
+screen = "numbers"
+tier = "T1"
+
+[numbers.ready_buy_today]
+en = "Ready to buy today"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+note = "Countries where numbers can be bought now without a filing of your own."
+
+[numbers.registration_country_label]
+en = "Country (two letters)"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+note = "An ISO 3166 two-letter country code, such as CA."
+
+[numbers.registration_document_filed]
+en = "Filed with the carrier"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_document_recorded]
+en = "Recorded, no file yet"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_document_stored]
+en = "Stored, not yet filed"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_documents_eyebrow]
+en = "Documents"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_name_label]
+en = "Name for your carrier console (optional)"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_reasons_eyebrow]
+en = "What the carrier objected to"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_start_action]
+en = "Start registration"
+ctx = "button"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_start_title]
+en = "Start a registration"
+ctx = "title"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_status_approved]
+en = "Approved"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_status_caption]
+en = "Statuses are refreshed when this list loads. A review can take a day or more."
+ctx = "body"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_status_draft]
+en = "Draft, not yet filed"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_status_in_review]
+en = "Under review"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_status_pending_review]
+en = "Filed, waiting for review"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_status_refused]
+en = "Refused"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registration_title]
+en = "{country} · {number_type}"
+ctx = "title"
+screen = "numbers registrations"
+tier = "T1"
+args = { country = "str", number_type = "str" }
+note = "{country} is a two-letter country code and {number_type} the number type as the carrier names it."
+
+[numbers.registrations_empty_body]
+en = "Some countries require a registration before a number there can be bought. Start one for the country you want."
+ctx = "body"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registrations_empty_title]
+en = "Nothing filed yet"
+ctx = "title"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registrations_eyebrow]
+en = "Regulatory registrations"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.registrations_failed]
+en = "Could not load this workspace's registrations."
+ctx = "error"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.release_action]
+en = "Release this number"
+ctx = "button"
+screen = "numbers"
+tier = "T2"
+
+[numbers.release_confirm_action]
+en = "Release it"
+ctx = "button"
+screen = "numbers"
+tier = "T2"
+
+[numbers.release_confirm_body]
+en = "{phone_number} goes back to the carrier's pool and generally cannot be reclaimed. Calls and messages to it stop immediately, so anyone dialling it reaches nothing. Its monthly charge ends."
+ctx = "body"
+screen = "numbers"
+tier = "T2"
+args = { phone_number = "str" }
+note = "Irreversible: the number goes back to the carrier."
+
+[numbers.release_confirm_title]
+en = "Release this number?"
+ctx = "title"
+screen = "numbers"
+tier = "T2"
+
+[numbers.release_done]
+en = "Released. Reload your numbers."
+ctx = "toast"
+screen = "numbers"
+tier = "T2"
+
+[numbers.release_warning_eyebrow]
+en = "Released, but"
+ctx = "label"
+screen = "numbers"
+tier = "T2"
+note = "Starts a sentence listing what could not be tidied after a release that worked."
+
+[numbers.requirement_kind_document]
+en = "Document"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.requirement_kind_field]
+en = "Detail"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.requirement_no_fields]
+en = "No fields"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.requirements_check_action]
+en = "Check requirements"
+ctx = "button"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.requirements_eyebrow]
+en = "What this country asks for"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.requirements_none_body]
+en = "This country publishes no regulation for this number type, so there is nothing to file."
+ctx = "body"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.requirements_none_heading]
+en = "{country} · No registration required"
+ctx = "title"
+screen = "numbers registrations"
+tier = "T1"
+args = { country = "str" }
+note = "{country} is a two-letter country code."
+
+[numbers.requirements_not_purchasable]
+en = "Numbers in this country are not purchasable through Distronode today, even with a registration."
+ctx = "body"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.sip_address_count]
+en.one = "{count} address"
+en.other = "{count} addresses"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+args = { count = "int" }
+
+[numbers.sip_create_action]
+en = "Create trunk"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.sip_domain_caption]
+en = "The carrier adds .sip.twilio.com, so enter the label only."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+note = ".sip.twilio.com is a domain suffix: keep it as is."
+
+[numbers.sip_domain_label]
+en = "Domain label"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.sip_empty_body]
+en = "A SIP trunk lets your own PBX send and receive calls on this workspace's numbers."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.sip_eyebrow]
+en = "SIP trunks"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.sip_ip_label]
+en = "Allowed IPs or ranges, one per line"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.sip_name_label]
+en = "Trunk name"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.sip_one_way]
+en = "Creating a trunk adds a $25 per month charge, and it cannot be removed in this app."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+note = "A recurring carrier charge, stated before the trunk is created."
+
+[numbers.sip_trunk_meta_line]
+en = "{status} · {addresses}"
+ctx = "format"
+screen = "numbers carrier"
+tier = "T1"
+args = { status = "str", addresses = "str" }
+note = "{status} is the trunk status as the server sends it; {addresses} is the already-worded address count."
+
+[numbers.sip_unprovisioned]
+en = "No carrier resources are recorded for this trunk."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.submit_confirm_action]
+en = "File it"
+ctx = "button"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.submit_confirm_body]
+en = "This uploads your documents to the carrier and files a regulatory application for {country} in your business's name. Review can take a day or more, and the filing cannot be edited while it is under review."
+ctx = "body"
+screen = "numbers registrations"
+tier = "T1"
+args = { country = "str" }
+note = "Files a regulated application in the business's name."
+
+[numbers.submit_confirm_title]
+en = "File this registration?"
+ctx = "title"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.submit_filed]
+en = "Filed. The carrier is reviewing it."
+ctx = "toast"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.submit_refused_because]
+en = "{reason} The carrier refused it. Reload the list to see what it objected to."
+ctx = "error"
+screen = "numbers registrations"
+tier = "T1"
+args = { reason = "str" }
+note = "{reason} is the carrier's or server's own sentence, which ends in a full stop."
+
+[numbers.submit_refused_reread]
+en = "The carrier refused it. Reload the list to see what it objected to."
+ctx = "body"
+screen = "numbers registrations"
+tier = "T1"
+
+[numbers.tab_carrier]
+en = "Carrier"
+ctx = "label"
+screen = "numbers"
+tier = "T1"
+
+[numbers.tab_registrations]
+en = "Registrations"
+ctx = "label"
+screen = "numbers"
+tier = "T1"
+
+[numbers.tfv_caption]
+en = "Required before a toll-free number can send text messages."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_confirm_action]
+en = "Submit it"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_confirm_body]
+en = "This files a verification with the carrier for a number that is already answering calls, and puts it into a manual review that takes days. Repeated submissions for one number can put your carrier account's standing in question."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_confirm_title]
+en = "Submit this verification?"
+ctx = "title"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_message_label]
+en = "Example message (optional)"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_opt_in_caption]
+en = "A reviewer opens this by hand. It must be publicly reachable and show your own consent wording."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_opt_in_label]
+en = "Link to your opt-in form or screenshot"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_submit_action]
+en = "Submit verification"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_submitted]
+en = "Submitted. The carrier reports {status}."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+args = { status = "str" }
+note = "{status} is the carrier's own status word, shown as sent."
+
+[numbers.tfv_title]
+en = "Toll-free verification"
+ctx = "title"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_use_case_customer_support]
+en = "Customer Support"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_use_case_label]
+en = "Use case"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_use_case_marketing]
+en = "Marketing"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_use_case_notifications]
+en = "Notifications"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.tfv_use_case_otp]
+en = "2FA / OTP"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+note = "2FA is two-factor authentication; OTP a one-time passcode."
+
+[numbers.verify_disable_action]
+en = "Stop using one-time passcodes"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.verify_disable_caption]
+en = "Turning this off stops Distronode using the service. The carrier keeps it, and its history, on your account."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.verify_enable_action]
+en = "Enable one-time passcodes"
+ctx = "button"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.verify_enable_caption]
+en = "Creates a one-time passcode sender on your carrier account. The carrier charges for the messages it sends."
+ctx = "body"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.verify_eyebrow]
+en = "One-time passcodes"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.verify_off]
+en = "Not enabled"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.verify_on]
+en = "Enabled"
+ctx = "label"
+screen = "numbers carrier"
+tier = "T1"
+
+[numbers.viewer_cannot_provision]
+en = "Registrations, carrier setup and number changes need an agency or client role. Ask someone on this workspace who has one."
+ctx = "body"
+screen = "numbers"
+tier = "T1"
+
+[numbers.write_unrepeatable]
+en = "We could not confirm whether that went through, so it is not offered again. Reload to see where things stand."
+ctx = "body"
+screen = "numbers"
+tier = "T1"
+note = "After a failure that may have gone through: the control is not offered again."
+
+[numbers.your_approvals]
+en = "Your approvals"
+ctx = "label"
+screen = "numbers registrations"
+tier = "T1"
+note = "Countries this workspace's own approved filings unlock."

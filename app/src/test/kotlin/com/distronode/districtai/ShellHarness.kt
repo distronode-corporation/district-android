@@ -35,6 +35,8 @@ import com.distronode.districtai.core.network.testing.FakeTelemetryApi
 import com.distronode.districtai.core.network.live.LiveDependencies
 import com.distronode.districtai.core.network.live.TelemetrySocketTransport
 import java.io.IOException
+import com.distronode.districtai.core.network.testing.FakeCarrierAccountApi
+import com.distronode.districtai.core.network.testing.FakeNumberProvisioningApi
 
 /**
  * The application every [MainActivity] test runs under.
@@ -72,6 +74,8 @@ internal class ShellTestApplication : Application(), AppContainerOwner {
                             throw IOException("no live socket in the shell tests")
                     },
                 ),
+                numberProvisioningApi = FakeNumberProvisioningApi(),
+                carrierAccountApi = FakeCarrierAccountApi(),
             ),
         )
     }

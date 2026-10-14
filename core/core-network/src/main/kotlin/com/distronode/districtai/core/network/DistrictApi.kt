@@ -621,18 +621,14 @@ data class EnrichRequest(val workspaceId: String, val contactId: String)
 data class ClearIntelRequest(val workspaceId: String, val contactId: String)
 
 /**
- * The phone-number marketplace — READ ONLY.
+ * The phone-number marketplace's two reads: what is for sale, and what the workspace has.
  *
- * ⛔ THERE IS NO PURCHASE, RELEASE OR CONFIGURE CALL HERE, AND THAT IS A DECISION RATHER THAN AN
- * OMISSION. Those routes exist server-side; this client deliberately does not reach them. Buying
- * a number creates a recurring carrier charge and releasing one takes a live line out of service,
- * neither of which should be one mis-tap away on a phone — and a released number cannot be
- * reclaimed. The app shows what the workspace has and what is available; the web dashboard is
- * where a number changes hands. Adding a write here is a product decision, not a gap to fill.
+ * ⚠️ THE WRITES ARE ON [NumberProvisioningApi] (configure, release, regulatory filings) AND
+ * [CarrierAccountApi] (SIP, one-time passcodes, A2P, toll-free, the billed lookup), as on iOS since
+ * 3.0. ⛔ BUYING A NUMBER STAYS ON THE WEB (Play's Payments policy): there is no purchase call on
+ * any interface, and the marketplace hands off to the web for it.
  *
- * ⚠️ BOTH READS ADMIT `viewer`, so nothing on this surface needs a role gate. The role still
- * travels with the screen, because the captions differ — a viewer is told changes happen on the
- * web dashboard for a different reason than an agency operator is.
+ * ⚠️ BOTH READS ADMIT `viewer`. The writes do not, and the screens gate them on the role.
  */
 interface NumbersApi {
     /**

@@ -77,6 +77,9 @@ import com.distronode.districtai.ui.contacts.BlockedContactsStore
 import com.distronode.districtai.core.network.HttpTelemetryApi
 import com.distronode.districtai.core.network.live.LiveDependencies
 import com.distronode.districtai.core.network.live.OkHttpTelemetryTransport
+import com.distronode.districtai.core.network.HttpCarrierAccountApi
+import com.distronode.districtai.core.network.HttpNumberProvisioningApi
+import com.distronode.districtai.core.data.NumberProvisioningRepository
 import com.distronode.districtai.telecom.AndroidTelecomBridge
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.inbox.AttachmentReader
@@ -327,6 +330,12 @@ class AppContainer(
      * was sold while they were reading about it. See [NumbersRepository].
      */
     val numbersRepository: NumbersRepository = NumbersRepository(districtApi)
+
+    /** Configuring and releasing numbers, the filings and the carrier account. Buying stays on the web. */
+    val numberProvisioningRepository: NumberProvisioningRepository = NumberProvisioningRepository(
+        numbers = seams.numberProvisioningApi ?: HttpNumberProvisioningApi(apiClient),
+        carrier = seams.carrierAccountApi ?: HttpCarrierAccountApi(apiClient),
+    )
 
     /**
      * The account's signed-in devices.

@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.marketplace
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
+import com.distronode.districtai.core.model.ListedNumber
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
@@ -29,13 +31,13 @@ import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.ui.InlineFailure
 
 /**
- * The phone-number marketplace: what the workspace has, and what a carrier has for sale.
+ * The phone-number marketplace: what the workspace has, what a carrier has for sale, the regulatory
+ * filings, and the carrier account (iOS `MarketplaceView`).
  *
- * ⛔ READ ONLY, AND THE SCREEN SAYS SO OUT LOUD. There is no buy, release or configure control
- * anywhere in this file or its siblings — a number is a recurring carrier charge and a live line,
- * and a released one cannot be reclaimed, so those changes happen on the web dashboard where
- * there is room to explain them. The caption is not decoration: without it, a list of purchasable
- * numbers with no button reads as a broken screen.
+ * ⛔ EVERYTHING BUT BUYING IS HERE SINCE 3.0: a number's routing and release (an owned row opens its
+ * actions), the filings, SIP, one-time passcodes, A2P, toll-free and the billed lookup. The writes
+ * are [NumberProvisioningViewModel]'s, gated on the role and confirmed where billed, filed or
+ * irreversible. ⛔ BUYING STAYS ON THE WEB, and the caption says so.
  *
  * ⛔ THE ONE AFFORDANCE THAT LEAVES IS A LINK, NOT A PURCHASE. Buying stays off the phone by an
  * owner decision recorded on [marketplaceWebUrl] — Play's Payments policy — so [PurchaseHandOff]
@@ -64,6 +66,8 @@ fun MarketplaceScreen(
      */
     onOpenWeb: () -> Unit,
     onBack: () -> Unit,
+    /** Number management; null where it is not wired (a test about the reads). */
+    provisioning: ProvisioningUi? = null,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(MARKETPLACE_ROOT_DESCRIPTION),
@@ -80,8 +84,12 @@ fun MarketplaceScreen(
             ContentContainer { Segments(state.tab, onSelectTab) }
 
             when (state.tab) {
-                MarketplaceTab.OWNED -> OwnedTab(state.owned, onRetryOwned)
+                MarketplaceTab.OWNED -> OwnedTab(state.owned, onRetryOwned, provisioning?.onOpenNumber)
                 MarketplaceTab.SEARCH -> SearchTab(state, onUpdateForm, onSearch)
+                MarketplaceTab.REGISTRATIONS -> provisioning?.let {
+                    RegistrationsTab(it.state, it.canProvision, it.handlers)
+                }
+                MarketplaceTab.CARRIER -> provisioning?.let { CarrierTab(it.state, it.canProvision, it.handlers) }
             }
 
             ContentContainer { ReadOnlyCaption(role) }
@@ -92,6 +100,7 @@ fun MarketplaceScreen(
             Column(modifier = Modifier.height(DistrictTheme.spacing.header)) {}
         }
     }
+    provisioning?.let { ProvisioningDialogs(it) }
 }
 
 /**
@@ -102,39 +111,38 @@ fun MarketplaceScreen(
  */
 @Composable
 private fun Segments(selected: MarketplaceTab, onSelectTab: (MarketplaceTab) -> Unit) {
+    val tabs = listOf(
+        Triple(MarketplaceTab.OWNED, R.string.marketplace_tab_owned, MARKETPLACE_TAB_OWNED_DESCRIPTION),
+        Triple(MarketplaceTab.SEARCH, R.string.marketplace_tab_search, MARKETPLACE_TAB_SEARCH_DESCRIPTION),
+        Triple(
+            MarketplaceTab.REGISTRATIONS,
+            R.string.numbers_tab_registrations,
+            MARKETPLACE_TAB_REGISTRATIONS_DESCRIPTION
+        ),
+        Triple(MarketplaceTab.CARRIER, R.string.numbers_tab_carrier, MARKETPLACE_TAB_CARRIER_DESCRIPTION),
+    )
+    // ⚠️ SCROLLS SIDEWAYS: four segments do not fit a phone's width in every language.
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
             .padding(horizontal = DistrictTheme.spacing.gutter),
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
-        DistrictButton(
-            text = stringResource(R.string.marketplace_tab_owned),
-            onClick = { onSelectTab(MarketplaceTab.OWNED) },
-            variant = if (selected == MarketplaceTab.OWNED) {
-                ButtonVariant.Primary
-            } else {
-                ButtonVariant.Secondary
-            },
-            size = ButtonSize.Sm,
-            modifier = Modifier.testTag(MARKETPLACE_TAB_OWNED_DESCRIPTION),
-        )
-        DistrictButton(
-            text = stringResource(R.string.marketplace_tab_search),
-            onClick = { onSelectTab(MarketplaceTab.SEARCH) },
-            variant = if (selected == MarketplaceTab.SEARCH) {
-                ButtonVariant.Primary
-            } else {
-                ButtonVariant.Secondary
-            },
-            size = ButtonSize.Sm,
-            modifier = Modifier.testTag(MARKETPLACE_TAB_SEARCH_DESCRIPTION),
-        )
+        tabs.forEach { (tab, label, tag) ->
+            DistrictButton(
+                text = stringResource(label),
+                onClick = { onSelectTab(tab) },
+                variant = if (selected == tab) ButtonVariant.Primary else ButtonVariant.Secondary,
+                size = ButtonSize.Sm,
+                modifier = Modifier.testTag(tag),
+            )
+        }
     }
 }
 
 @Composable
-private fun OwnedTab(state: OwnedState, onRetry: () -> Unit) {
+private fun OwnedTab(state: OwnedState, onRetry: () -> Unit, onOpenNumber: ((ListedNumber) -> Unit)?) {
     when (state) {
         OwnedState.Loading -> ContentContainer {
             Column(
@@ -146,7 +154,7 @@ private fun OwnedTab(state: OwnedState, onRetry: () -> Unit) {
                 repeat(SKELETON_ROWS) { SkeletonBlock(height = DistrictTheme.spacing.header) }
             }
         }
-        is OwnedState.Ready -> OwnedList(state)
+        is OwnedState.Ready -> OwnedList(state, onOpenNumber)
         is OwnedState.Failed -> ContentContainer {
             InlineFailure(
                 title = stringResource(R.string.marketplace_owned_failed),
@@ -202,18 +210,16 @@ private fun SearchTab(
 }
 
 /**
- * ⛔ THE CAPTION THAT MAKES THE ABSENCE OF BUTTONS LEGIBLE. A list of purchasable numbers with
- * nothing to tap on reads as a half-built screen; saying where the change happens turns it into
- * a deliberate boundary. Worded per role, because "use the web dashboard" is unhelpful advice to
- * someone the web dashboard will also refuse.
+ * ⛔ THE CAPTION THAT SAYS WHERE A NUMBER IS BOUGHT: on the web, while everything else about a
+ * number is on these tabs. Worded per role, because a viewer may change nothing at all.
  */
 @Composable
 private fun ReadOnlyCaption(role: WorkspaceRole?) {
     Text(
         text = if (role.allowsMutation()) {
-            stringResource(R.string.marketplace_read_only)
+            stringResource(R.string.numbers_read_only)
         } else {
-            stringResource(R.string.marketplace_read_only_viewer)
+            stringResource(R.string.numbers_read_only_viewer)
         },
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
@@ -273,6 +279,8 @@ private const val SKELETON_ROWS = 4
 const val MARKETPLACE_ROOT_DESCRIPTION: String = "district-marketplace-root"
 const val MARKETPLACE_TAB_OWNED_DESCRIPTION: String = "district-marketplace-tab-owned"
 const val MARKETPLACE_TAB_SEARCH_DESCRIPTION: String = "district-marketplace-tab-search"
+const val MARKETPLACE_TAB_REGISTRATIONS_DESCRIPTION: String = "district-marketplace-tab-registrations"
+const val MARKETPLACE_TAB_CARRIER_DESCRIPTION: String = "district-marketplace-tab-carrier"
 const val MARKETPLACE_LOADING_DESCRIPTION: String = "district-marketplace-loading"
 const val MARKETPLACE_SEARCHING_DESCRIPTION: String = "district-marketplace-searching"
 const val MARKETPLACE_READ_ONLY_DESCRIPTION: String = "district-marketplace-read-only"

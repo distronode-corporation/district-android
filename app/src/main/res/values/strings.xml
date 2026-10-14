@@ -461,8 +461,6 @@
     <string name="marketplace_owned_failed">Could not load this workspace\'s numbers.</string>
     <string name="marketplace_partial">Could not reach %1$s, so this list may be missing numbers.</string>
     <string name="marketplace_provider">Carrier: %1$s</string>
-    <string name="marketplace_read_only">Numbers cannot be added, released or reconfigured in this app, so this screen is read-only.</string>
-    <string name="marketplace_read_only_viewer">This screen is read-only. Ask an agency or client member of this workspace to add or release a number.</string>
     <string name="marketplace_search_action">Search available numbers</string>
     <string name="marketplace_search_empty">The carrier has no numbers matching these filters. Try a different area code or number type.</string>
     <string name="marketplace_search_empty_title">No matches</string>

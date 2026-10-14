@@ -57,7 +57,8 @@ class KnowledgeViewModelTest {
     private fun viewModel(
         api: FakeDistrictApi,
         role: WorkspaceRole? = WorkspaceRole.CLIENT,
-    ) = KnowledgeViewModel(KnowledgeRepository(api), "ws-1", role)
+        fileReader: KnowledgeFileReader = KnowledgeFileReader { null },
+    ) = KnowledgeViewModel(KnowledgeRepository(api), "ws-1", role, fileReader)
 
     // ── Loading ──────────────────────────────────────────────────────────────
 
@@ -319,6 +320,7 @@ class KnowledgeViewModelTest {
         // ⚠️ `canAdd` IS FALSE FOR A VIEWER EVEN WITH BOTH FIELDS FILLED, so the button is honest
         // and the guard is real.
         assertFalse(model.state.value.canAdd)
+        assertFalse("a viewer is offered no file pick", model.state.value.canPickFile)
 
         model.addDocument()
         model.deleteDocument("doc-1")
@@ -383,7 +385,7 @@ class KnowledgeViewModelTest {
         runTest {
             val api = api()
             val vm = KnowledgeViewModel
-                .factory(KnowledgeRepository(api), "ws-1", WorkspaceRole.VIEWER)
+                .factory(KnowledgeRepository(api), "ws-1", WorkspaceRole.VIEWER) { null }
                 .create(KnowledgeViewModel::class.java, CreationExtras.Empty)
             advanceUntilIdle()
 

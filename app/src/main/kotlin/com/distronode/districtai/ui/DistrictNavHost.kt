@@ -102,6 +102,7 @@ import com.distronode.districtai.ui.settings.workspace.CapabilitiesScreen
 import com.distronode.districtai.ui.settings.workspace.CapabilitiesViewModel
 import com.distronode.districtai.ui.settings.workspace.DirectoryEditorScreen
 import com.distronode.districtai.ui.settings.workspace.DirectoryEditorViewModel
+import com.distronode.districtai.ui.settings.workspace.KNOWLEDGE_FILE_MIME_TYPES
 import com.distronode.districtai.ui.settings.workspace.KnowledgeScreen
 import com.distronode.districtai.ui.settings.workspace.KnowledgeViewModel
 import com.distronode.districtai.ui.settings.workspace.MembersScreen
@@ -1035,9 +1036,17 @@ fun DistrictNavHost(
                             container.knowledgeRepository,
                             workspaceId,
                             role,
+                            container.knowledgeFileReader(context),
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
+                    // ⛔ THE LAUNCHER LIVES HERE, NOT IN KnowledgeScreen, for the thread screen's
+                    // reason: it needs an ActivityResultRegistryOwner a test host lacks.
+                    // ⚠️ OpenDocument (the Storage Access Framework) REQUESTS NO PERMISSION: it
+                    // returns a read grant for exactly the document chosen.
+                    val filePicker = rememberLauncherForActivityResult(
+                        ActivityResultContracts.OpenDocument(),
+                    ) { uri -> uri?.let { viewModel.readFile(it.toString()) } }
 
                     // ⛔ THE LOAD IS TWO IDEMPOTENT GETs, so replaying it is safe — but it must
                     // never replay the ADD, which buys an embedding run per call.
@@ -1052,6 +1061,7 @@ fun DistrictNavHost(
                         onSelectMode = viewModel::setMode,
                         onRetry = viewModel::load,
                         onBack = { navController.popBackStack() },
+                        onReadFile = { filePicker.launch(KNOWLEDGE_FILE_MIME_TYPES) },
                     )
                 }
 

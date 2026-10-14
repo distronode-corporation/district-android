@@ -313,6 +313,7 @@ class SettingsDialogCallbacksTest {
                     onSelectMode = { calls += "mode:$it:$g" },
                     onRetry = {},
                     onBack = {},
+                    onReadFile = {},
                 )
             }
         }

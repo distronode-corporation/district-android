@@ -50,6 +50,7 @@ class KnowledgeViewModel(
      * compiler complaint. Every caller states the role it resolved.
      */
     role: WorkspaceRole?,
+    private val fileReader: KnowledgeFileReader,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(KnowledgeUiState(canWrite = role.allowsMutation()))
@@ -70,11 +71,39 @@ class KnowledgeViewModel(
     }
 
     fun editTitle(value: String) {
-        _state.value = _state.value.copy(draftTitle = value, addRejected = false)
+        _state.value = _state.value.copy(draftTitle = value, addRejected = false, fileRefusal = null)
     }
 
     fun editContent(value: String) {
-        _state.value = _state.value.copy(draftContent = value, addRejected = false)
+        _state.value = _state.value.copy(draftContent = value, addRejected = false, fileRefusal = null)
+    }
+
+    /**
+     * The document the file chooser returned, read off the main thread into the form.
+     *
+     * ⛔ IT FILLS THE DRAFT AND SENDS NOTHING. The operator reviews the text and presses Add, which
+     * is the billed call, as on Windows. The text replaces the draft's; the file's name becomes
+     * the title only when the title box is empty, so a title already typed is kept.
+     *
+     * ⚠️ A refusal leaves the draft exactly as it was. The result is applied even if a delete or a
+     * mode change started meanwhile: neither touches the draft, and the add waits for the read.
+     */
+    fun readFile(uri: String) {
+        if (!_state.value.canPickFile) return
+        _state.value = _state.value.copy(fileReading = true, fileRefusal = null)
+        viewModelScope.launch {
+            val read = fileReader.read(uri)?.let(::readKnowledgeFile)
+                ?: KnowledgeFileRead.Refused(KnowledgeFileRefusal.UNREADABLE)
+            val current = _state.value.copy(fileReading = false)
+            _state.value = when (read) {
+                is KnowledgeFileRead.Text -> current.copy(
+                    draftTitle = current.draftTitle.ifBlank { read.title },
+                    draftContent = read.content,
+                    addRejected = false,
+                )
+                is KnowledgeFileRead.Refused -> current.copy(fileRefusal = read.reason)
+            }
+        }
     }
 
     /**
@@ -92,7 +121,7 @@ class KnowledgeViewModel(
             return
         }
 
-        _state.value = current.copy(addSave = SaveState.Saving)
+        _state.value = current.copy(addSave = SaveState.Saving, fileRefusal = null)
         viewModelScope.launch {
             val result = repository.addDocument(
                 KnowledgeCreateRequest(
@@ -199,8 +228,9 @@ class KnowledgeViewModel(
             repository: KnowledgeRepository,
             workspaceId: String,
             role: WorkspaceRole?,
+            fileReader: KnowledgeFileReader,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { KnowledgeViewModel(repository, workspaceId, role) }
+            initializer { KnowledgeViewModel(repository, workspaceId, role, fileReader) }
         }
     }
 }

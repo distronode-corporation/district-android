@@ -34,6 +34,7 @@ import com.distronode.districtai.ui.scheduling.admin.bookings.SCHEDULING_BOOKING
 import com.distronode.districtai.ui.scheduling.admin.bookings.SCHEDULING_BOOKING_DETAIL_CANCEL_TAG
 import com.distronode.districtai.ui.scheduling.admin.bookings.SCHEDULING_BOOKINGS_ROW_TAG
 import com.distronode.districtai.ui.scheduling.admin.bookings.SCHEDULING_BOOKING_DETAIL_ROOT_TAG
+import com.distronode.districtai.ui.scheduling.admin.eventtypes.SCHEDULING_EVENT_TYPE_ROOT_TAG
 import com.distronode.districtai.ui.scheduling.admin.overview.SCHEDULING_OVERVIEW_ROOT_TAG
 import com.distronode.districtai.ui.scheduling.schedulingDestination
 import org.junit.Assert.assertEquals
@@ -110,11 +111,11 @@ class SchedulingAdminNavigationTest {
         composeRule.onNodeWithTag(SCHEDULING_OVERVIEW_ROOT_TAG).assertExists()
 
         composeRule.runOnIdle { navController.navigate(SchedulingAdminRoutes.eventType("ws-1", "intro")) }
-        composeRule.onNodeWithTag(SCHEDULING_PENDING_SECTION_TAG).assertExists()
+        composeRule.onNodeWithTag(SCHEDULING_EVENT_TYPE_ROOT_TAG).assertExists()
 
         composeRule.runOnIdle { navController.navigate("workspace/ws-1/scheduling/section/nope") }
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag(SCHEDULING_PENDING_SECTION_TAG).assertExists()
+        composeRule.onNodeWithTag(SCHEDULING_EVENT_TYPE_ROOT_TAG).assertExists()
     }
 
     @Test

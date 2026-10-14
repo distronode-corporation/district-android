@@ -725,6 +725,845 @@ args = { value = "str" }
 same_ok = true
 note = "A status, role or type the server sent that this version of the app does not know, shown as the server spelled it."
 
+[scheduling_admin.event_types.active_toggle]
+en = "Active"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+note = "Switch: whether the event type takes bookings."
+
+[scheduling_admin.event_types.add_host]
+en = "Add"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Above the scheduler users who can be added as hosts; tapping one adds them."
+
+[scheduling_admin.event_types.address]
+en = "Address"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+note = "A street address, for an in-person event type."
+
+[scheduling_admin.event_types.archive]
+en = "Archive"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Hides the event type; its bookings are kept. Undone with Restore."
+
+[scheduling_admin.event_types.archived_done]
+en = "Event type archived"
+ctx = "toast"
+screen = "scheduling event type actions"
+tier = "T3"
+
+[scheduling_admin.event_types.at_least_one_minute]
+en = "Has to be a whole number of minutes, at least 1."
+ctx = "error"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.at_least_zero]
+en = "Has to be a whole number, 0 or more."
+ctx = "error"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.booking_page_hint]
+en = "The address customers use. It cannot be changed: links you have already shared point at it."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.booking_page_label]
+en = "Booking page"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.buffer_after_hint]
+en = "Minutes kept free after a booking."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.buffer_after_label]
+en = "Buffer after"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.buffer_before_hint]
+en = "Minutes kept free before a booking."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.buffer_before_label]
+en = "Buffer before"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.create_duration_invalid]
+en = "The duration has to be a whole number of minutes, at least 1."
+ctx = "error"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.create_title]
+en = "Create event type"
+ctx = "button"
+screen = "scheduling event types"
+tier = "T3"
+note = "Button on the event type list, and the title of the dialog it opens."
+
+[scheduling_admin.event_types.days_ahead]
+en.one = "{count} day ahead"
+en.other = "{count} days ahead"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+args = { count = "int" }
+note = "How far ahead a customer may book."
+
+[scheduling_admin.event_types.delete_body]
+en = "Its booking page stops working. Existing bookings keep their times."
+ctx = "body"
+screen = "scheduling event type actions"
+tier = "T2"
+
+[scheduling_admin.event_types.delete_confirm]
+en = "Delete event type"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T2"
+note = "Destructive: removes the event type and stops its booking page."
+
+[scheduling_admin.event_types.delete_title]
+en = "Delete event type?"
+ctx = "title"
+screen = "scheduling event type actions"
+tier = "T2"
+
+[scheduling_admin.event_types.description_hint]
+en = "Shown on the booking page."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.description_label]
+en = "Description"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.details_eyebrow]
+en = "Details"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.duration_hint]
+en = "How long the meeting runs, in minutes."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.duration_label]
+en = "Duration"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.edit]
+en = "Edit"
+ctx = "button"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.edit_title]
+en = "Edit event type"
+ctx = "title"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.email_cancellation]
+en = "Cancellation"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Sends the member a test of the cancellation email."
+
+[scheduling_admin.event_types.email_confirmation]
+en = "Confirmation"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Sends the member a test of the booking confirmation email."
+
+[scheduling_admin.event_types.email_reminder]
+en = "Reminder"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Sends the member a test of the reminder email."
+
+[scheduling_admin.event_types.email_reschedule]
+en = "Reschedule"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Sends the member a test of the email sent when a booking moves."
+
+[scheduling_admin.event_types.empty_body]
+en = "An event type is a page a customer can book. Create one and its booking page goes live."
+ctx = "body"
+screen = "scheduling event types"
+tier = "T3"
+
+[scheduling_admin.event_types.empty_title]
+en = "No event types yet"
+ctx = "title"
+screen = "scheduling event types"
+tier = "T3"
+
+[scheduling_admin.event_types.fact_buffer_after]
+en = "Buffer after"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.fact_buffer_before]
+en = "Buffer before"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.fact_duration]
+en = "Duration"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.fact_horizon]
+en = "Bookable up to"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+note = "How far ahead a customer may book, e.g. \"Bookable up to 30 days ahead\"."
+
+[scheduling_admin.event_types.fact_interval]
+en = "Starts every"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+note = "How often a booking may start, e.g. \"Starts every 30 min\"."
+
+[scheduling_admin.event_types.fact_location]
+en = "Location"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.fact_location_value]
+en = "Address"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+note = "The event type's meeting address, phone number or link."
+
+[scheduling_admin.event_types.fact_notice]
+en = "Minimum notice"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.fact_state]
+en = "State"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+note = "Whether the event type is active, inactive or archived."
+
+[scheduling_admin.event_types.host_archived]
+en = "{role} · archived"
+ctx = "format"
+screen = "scheduling event type"
+tier = "T3"
+args = { role = "str" }
+note = "A host whose scheduler account is archived but still on the event type. {role} is the host's role, e.g. \"Required\"."
+
+[scheduling_admin.event_types.host_priority_invalid]
+en = "A host's priority has to be a whole number, 0 or more."
+ctx = "error"
+screen = "scheduling event type hosts"
+tier = "T3"
+
+[scheduling_admin.event_types.hosts_empty]
+en = "No hosts yet. Add at least one or nobody can be booked."
+ctx = "body"
+screen = "scheduling event type hosts"
+tier = "T3"
+
+[scheduling_admin.event_types.hosts_eyebrow]
+en = "Hosts"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+note = "Eyebrow above the people who can be booked on an event type."
+
+[scheduling_admin.event_types.hosts_need_one]
+en = "An event type needs at least one host."
+ctx = "error"
+screen = "scheduling event type hosts"
+tier = "T3"
+
+[scheduling_admin.event_types.hosts_title]
+en = "Hosts"
+ctx = "button"
+screen = "scheduling event type"
+tier = "T3"
+note = "Opens the dialog that changes who can be booked on the event type, and that dialog's title."
+
+[scheduling_admin.event_types.interval_hint]
+en = "How often a booking may start. Independent of the duration."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.interval_label]
+en = "Starts every"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.listed_toggle]
+en = "Listed on your booking page"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+note = "Switch: whether the event type is public."
+
+[scheduling_admin.event_types.location_custom_video]
+en = "Video link"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Location type: a video call at a link the host gives."
+
+[scheduling_admin.event_types.location_google_meet]
+en = "Google Meet"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+same_ok = true
+note = "Location type. Product name, not translated."
+
+[scheduling_admin.event_types.location_in_person]
+en = "In person"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Location type: a meeting at a street address."
+
+[scheduling_admin.event_types.location_label]
+en = "Location"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.location_link]
+en = "Link"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Location type: any web address the host gives."
+
+[scheduling_admin.event_types.location_livekit]
+en = "Built-in video"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Location type: a video call the app hosts itself."
+
+[scheduling_admin.event_types.location_not_set]
+en = "Not set"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "An event type with no location."
+
+[scheduling_admin.event_types.location_phone]
+en = "Phone"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Location type: a phone call."
+
+[scheduling_admin.event_types.location_teams]
+en = "Microsoft Teams"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+same_ok = true
+note = "Location type. Product name, not translated."
+
+[scheduling_admin.event_types.max_active_label]
+en = "Active bookings per attendee"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.max_future_label]
+en = "Bookable ahead"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+note = "How many days ahead a customer may book."
+
+[scheduling_admin.event_types.meeting_link]
+en = "Meeting link"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.min_notice_hint]
+en = "Minutes. How soon from now a customer may book."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.min_notice_label]
+en = "Minimum notice"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.name_label]
+en = "Name"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.name_missing]
+en = "Give the event type a name."
+ctx = "error"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.no_hosts]
+en = "No hosts are assigned, so this event type cannot be booked."
+ctx = "body"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.no_limit_hint]
+en = "0 means no limit."
+ctx = "body"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.no_questions]
+en = "This event type asks no questions."
+ctx = "body"
+screen = "scheduling event type"
+tier = "T3"
+
+[scheduling_admin.event_types.not_public]
+en = "Not public"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Shown in place of an event type's booking page address when no customer can reach it."
+
+[scheduling_admin.event_types.phone_number]
+en = "Phone number"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+
+[scheduling_admin.event_types.priority_label]
+en = "Priority"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "A host's priority, a whole number. Read only under the Priority rotation."
+
+[scheduling_admin.event_types.question_add]
+en = "Add question"
+ctx = "button"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Opens the form for a new booking question, and that form's title and save button."
+
+[scheduling_admin.event_types.question_add_option]
+en = "Add option"
+ctx = "button"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_added]
+en = "Question added"
+ctx = "toast"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_delete]
+en = "Delete"
+ctx = "button"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Next to a question: asks whether to delete it."
+
+[scheduling_admin.event_types.question_delete_body]
+en = "Customers stop being asked it. Answers already given stay on their bookings."
+ctx = "body"
+screen = "scheduling event type questions"
+tier = "T2"
+
+[scheduling_admin.event_types.question_delete_confirm]
+en = "Delete question"
+ctx = "button"
+screen = "scheduling event type questions"
+tier = "T2"
+note = "Destructive: deletes the booking question."
+
+[scheduling_admin.event_types.question_delete_title]
+en = "Delete question?"
+ctx = "title"
+screen = "scheduling event type questions"
+tier = "T2"
+
+[scheduling_admin.event_types.question_deleted]
+en = "Question deleted"
+ctx = "toast"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_edit_title]
+en = "Edit question"
+ctx = "title"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_label_label]
+en = "Label"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "The question as the customer reads it."
+
+[scheduling_admin.event_types.question_label_missing]
+en = "Give the question a label."
+ctx = "error"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_needs_option]
+en = "A Select question needs at least one option."
+ctx = "error"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_option_new]
+en = "Add an option"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Label of the field where a new option for a Select question is typed."
+
+[scheduling_admin.event_types.question_options_hint]
+en = "What the customer can choose from."
+ctx = "body"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_options_label]
+en = "Options"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_position_hint]
+en = "Lower numbers are asked first."
+ctx = "body"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_position_invalid]
+en = "Position has to be a whole number, 0 or more."
+ctx = "error"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_position_label]
+en = "Position"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_required]
+en = "{type} · required"
+ctx = "format"
+screen = "scheduling event type"
+tier = "T3"
+args = { type = "str" }
+note = "A booking question the customer must answer. {type} is the question type, e.g. \"Text\"."
+
+[scheduling_admin.event_types.question_required_toggle]
+en = "Required"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Switch: the customer must answer this question."
+
+[scheduling_admin.event_types.question_save]
+en = "Save question"
+ctx = "button"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_saved]
+en = "Question saved"
+ctx = "toast"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_type_checkbox]
+en = "Checkbox"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Question type: the customer ticks a box."
+
+[scheduling_admin.event_types.question_type_label]
+en = "Type"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.question_type_select]
+en = "Select"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Question type: the customer picks one of the options."
+
+[scheduling_admin.event_types.question_type_text]
+en = "Text"
+ctx = "label"
+screen = "scheduling event type questions"
+tier = "T3"
+note = "Question type: the customer types an answer."
+
+[scheduling_admin.event_types.questions_empty]
+en = "No questions yet. Customers give their name, email and nothing else."
+ctx = "body"
+screen = "scheduling event type questions"
+tier = "T3"
+
+[scheduling_admin.event_types.questions_eyebrow]
+en = "Questions"
+ctx = "label"
+screen = "scheduling event type"
+tier = "T3"
+note = "Eyebrow above the questions a customer answers when booking."
+
+[scheduling_admin.event_types.questions_title]
+en = "Questions"
+ctx = "button"
+screen = "scheduling event type"
+tier = "T3"
+note = "Opens the dialog that changes the booking questions, and that dialog's title."
+
+[scheduling_admin.event_types.remove]
+en = "Remove"
+ctx = "button"
+screen = "scheduling event type"
+tier = "T3"
+note = "Takes a host off the list, or an option off a question, before saving."
+
+[scheduling_admin.event_types.restore]
+en = "Restore"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Brings an archived event type back."
+
+[scheduling_admin.event_types.restored]
+en = "Event type restored"
+ctx = "toast"
+screen = "scheduling event type actions"
+tier = "T3"
+
+[scheduling_admin.event_types.role_optional]
+en = "Optional"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Host role: invited, not needed for a time to be offered."
+
+[scheduling_admin.event_types.role_required]
+en = "Required"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Host role: always attends."
+
+[scheduling_admin.event_types.role_rotation]
+en = "Rotation"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Host role: takes bookings in turn with the other rotation hosts."
+
+[scheduling_admin.event_types.rotation_even]
+en = "Even"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Rotation strategy: spread bookings evenly among the hosts."
+
+[scheduling_admin.event_types.rotation_hint]
+en = "Which host the next booking goes to."
+ctx = "body"
+screen = "scheduling event type hosts"
+tier = "T3"
+
+[scheduling_admin.event_types.rotation_label]
+en = "Rotation"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+
+[scheduling_admin.event_types.rotation_priority]
+en = "Priority"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Rotation strategy: hosts are offered bookings in priority order."
+
+[scheduling_admin.event_types.rotation_soonest]
+en = "Soonest"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Rotation strategy: the host free soonest gets the booking."
+
+[scheduling_admin.event_types.routing_collective]
+en = "Collective"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Routing mode: every host attends every booking."
+
+[scheduling_admin.event_types.routing_fixed]
+en = "Fixed"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Routing mode: every booking goes to the same hosts."
+
+[scheduling_admin.event_types.routing_mode_label]
+en = "Routing"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "How a booking is given to the hosts."
+
+[scheduling_admin.event_types.routing_round_robin]
+en = "Round robin"
+ctx = "label"
+screen = "scheduling event type hosts"
+tier = "T3"
+note = "Routing mode: bookings take turns among the hosts."
+
+[scheduling_admin.event_types.send_test_email]
+en = "Send test email"
+ctx = "label"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Above four buttons, one per email the customer gets; each sends that email to the member."
+
+[scheduling_admin.event_types.show_taken_toggle]
+en = "Show taken times as taken"
+ctx = "label"
+screen = "scheduling event type editor"
+tier = "T3"
+note = "Switch: whether the booking page greys out times already booked rather than hiding them."
+
+[scheduling_admin.event_types.state_active]
+en = "Active"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Badge on an event type that takes bookings."
+
+[scheduling_admin.event_types.state_archived]
+en = "Archived"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Badge on an event type that is archived: hidden, its bookings kept."
+
+[scheduling_admin.event_types.state_inactive]
+en = "Inactive"
+ctx = "label"
+screen = "scheduling event types"
+tier = "T3"
+note = "Badge on an event type that is turned off and takes no bookings."
+
+[scheduling_admin.event_types.subtitle]
+en = "{duration} · {location}"
+ctx = "format"
+screen = "scheduling event types"
+tier = "T3"
+args = { duration = "str", location = "str" }
+note = "Under an event type's name: how long it runs and where, e.g. \"30 min · Built-in video\"."
+
+[scheduling_admin.event_types.test_email_not_sent]
+en = "The booking system did not send the test email."
+ctx = "error"
+screen = "scheduling event type actions"
+tier = "T3"
+
+[scheduling_admin.event_types.test_email_sent]
+en = "Test email sent to {address}"
+ctx = "toast"
+screen = "scheduling event type actions"
+tier = "T3"
+args = { address = "str" }
+note = "{address} is the email address the scheduler sent it to."
+
+[scheduling_admin.event_types.turn_off]
+en = "Turn off"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Stops the event type taking bookings."
+
+[scheduling_admin.event_types.turn_on]
+en = "Turn on"
+ctx = "button"
+screen = "scheduling event type actions"
+tier = "T3"
+note = "Makes the event type take bookings again."
+
+[scheduling_admin.event_types.turned_off]
+en = "Event type turned off"
+ctx = "toast"
+screen = "scheduling event type actions"
+tier = "T3"
+
+[scheduling_admin.event_types.turned_on]
+en = "Event type turned on"
+ctx = "toast"
+screen = "scheduling event type actions"
+tier = "T3"
+
 [scheduling_admin.failure.forbidden]
 en = "You can view this but not change it."
 ctx = "error"

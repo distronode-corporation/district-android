@@ -48,6 +48,8 @@ import com.distronode.districtai.ui.resolve
 fun ContactDetailScreen(
     state: ContactDetailUiState,
     canMutate: Boolean,
+    /** The video-call row; null for a role that may not start one. See ContactVideoCallUi.kt. */
+    videoCall: ContactVideoCallUi? = null,
     onBack: () -> Unit,
     onRetry: () -> Unit,
     onSignIn: () -> Unit,
@@ -95,6 +97,7 @@ fun ContactDetailScreen(
                 is ContactDetailUiState.Content -> Content(
                     state = state,
                     canMutate = canMutate,
+                    videoCall = videoCall,
                     onRename = onRename,
                     onDelete = onDelete,
                     onDismissMutationFailure = onDismissMutationFailure,
@@ -112,6 +115,7 @@ fun ContactDetailScreen(
 private fun Content(
     state: ContactDetailUiState.Content,
     canMutate: Boolean,
+    videoCall: ContactVideoCallUi?,
     onRename: (String) -> Unit,
     onDelete: () -> Unit,
     onDismissMutationFailure: () -> Unit,
@@ -147,6 +151,7 @@ private fun Content(
         )
 
         state.pollFailure?.let { PollFailure(it, onCheckDossierAgain) }
+        videoCall?.let { ContactVideoCallRow(it, contact, busy = state.saving) }
 
         state.mutationFailure?.let { MutationFailure(it, onDismissMutationFailure) }
         block?.failure?.let { BlockFailureNotice(it, block.onDismissFailure) }

@@ -206,6 +206,15 @@
     <string name="contact_detail_timeline">Timeline</string>
     <string name="contact_detail_title">Contact</string>
     <string name="contact_detail_website">Website</string>
+    <string name="contact_video_action">Video call</string>
+    <string name="contact_video_could_not_start">Could not start a video call for this workspace.</string>
+    <string name="contact_video_dismiss">Dismiss</string>
+    <string name="contact_video_email_subject">Video call invitation</string>
+    <string name="contact_video_invitation">Join me on a video call: %1$s (the link works for the next 12 hours)</string>
+    <string name="contact_video_no_address">This contact has no phone number or email address, so there is nowhere to send a video call link.</string>
+    <string name="contact_video_no_invite">That room was created without a shareable link, so the contact cannot be invited to it.</string>
+    <string name="contact_video_send_failed">The room is ready but the invitation could not be sent.</string>
+    <string name="contact_video_starting">Setting up…</string>
     <string name="contacts_create_action">Add a contact</string>
     <string name="contacts_empty">Callers are added automatically as they come in.</string>
     <string name="contacts_empty_title">No contacts yet</string>

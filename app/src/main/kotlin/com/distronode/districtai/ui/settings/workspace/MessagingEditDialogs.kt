@@ -26,6 +26,7 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.model.MESSAGING_CHANNELS
 import com.distronode.districtai.core.model.MessagingAccount
+import com.distronode.districtai.l10n.messagingChannelLabel
 
 /**
  * The consequential half of messaging editing: the delete confirmation, the channel picker and the
@@ -116,7 +117,7 @@ internal fun ChannelDefaultDialog(
         containerColor = DistrictTheme.colors.card,
         titleContentColor = DistrictTheme.colors.foreground,
         textContentColor = DistrictTheme.colors.foreground,
-        title = { Text(stringResource(R.string.messaging_channel_title, channel)) },
+        title = { Text(stringResource(R.string.messaging_channel_title, messagingChannelLabel(channel))) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
                 accounts.forEach { account ->
@@ -173,7 +174,7 @@ internal fun ChannelPickerLauncher(state: MessagingUiState, onRequestChannel: (S
     ) {
         MESSAGING_CHANNELS.forEach { channel ->
             DistrictButton(
-                text = stringResource(R.string.messaging_channel_title, channel),
+                text = stringResource(R.string.messaging_channel_title, messagingChannelLabel(channel)),
                 onClick = { onRequestChannel(channel) },
                 variant = ButtonVariant.Ghost,
                 size = ButtonSize.Sm,

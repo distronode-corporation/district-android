@@ -28,6 +28,8 @@ import com.distronode.districtai.core.model.SUBSCRIPTION_STATUS_CANCELED
 import com.distronode.districtai.core.model.SUBSCRIPTION_STATUS_PAST_DUE
 import com.distronode.districtai.core.model.UsageData
 import com.distronode.districtai.core.model.WorkspaceBilling
+import com.distronode.districtai.l10n.countText
+import com.distronode.districtai.l10n.yearMonthText
 import com.distronode.districtai.ui.analytics.formatUsageAmount
 
 /**
@@ -229,7 +231,12 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
             text = if (included == null) {
                 stringResource(R.string.billing_meter_used, formatUsageAmount(used, appLanguage()))
             } else {
-                stringResource(R.string.billing_meter_used_of, formatUsageAmount(used, appLanguage()), included)
+                // ⚠️ `included` as text (`%2$s`): "1500" in English as always, "1 500" in French.
+                stringResource(
+                    R.string.billing_meter_used_of,
+                    formatUsageAmount(used, appLanguage()),
+                    countText(included.toLong()),
+                )
             },
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
@@ -251,7 +258,7 @@ internal fun UsageMeterCard(usage: UsageData?, included: Int?) {
         }
         usage.month.takeIf { it.isNotBlank() }?.let {
             Text(
-                text = stringResource(R.string.billing_meter_month, it),
+                text = stringResource(R.string.billing_meter_month, yearMonthText(it)),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
                 modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),

@@ -110,4 +110,35 @@ class ReadingsTest {
         assertEquals("Aug 15, 10:30 a.m.", DistrictFormat.monthDayTime(at, ZoneId.of("America/New_York"), en))
         assertEquals("Aug 15, 14:30", DistrictFormat.monthDayTime(at, utc, en))
     }
+
+    @Test
+    fun `raw stamps, months and clock times keep today's English and read French in French`() {
+        val iso = "2026-08-15T14:30:00.000Z"
+        assertRendered(
+            iso to { stampText(iso, en, utc) },
+            "15 août, 14 h 30" to { stampText(iso, fr, utc) },
+            "yesterday" to { stampText("yesterday", fr, utc) },
+            iso to { stampText(iso) },
+            iso to { stampDateTimeText(iso, en, utc) },
+            "15 août 2026, 14 h 30" to { stampDateTimeText(iso, fr, utc) },
+            "soon" to { stampDateTimeText("soon", fr, utc) },
+            iso to { stampDateTimeText(iso) },
+            "2026-08" to { yearMonthText("2026-08", en) },
+            "août 2026" to { yearMonthText("2026-08", fr) },
+            "2026-13" to { yearMonthText("2026-13", fr) },
+            "2026-00" to { yearMonthText("2026-00", fr) },
+            "August" to { yearMonthText("August", fr) },
+            "2026-08" to { yearMonthText("2026-08") },
+            "10:30" to { clockText("10:30", en) },
+            "10 h 30" to { clockText("10:30", fr) },
+            "15 h" to { clockText("15:00", fr) },
+            "9 h" to { clockText("9:00", fr) },
+            "24:00" to { clockText("24:00", fr) },
+            "9:75" to { clockText("9:75", fr) },
+            "noon" to { clockText("noon", fr) },
+            "10:30" to { clockText("10:30") },
+        )
+        assertEquals("15 h 04", DistrictFormat.frenchClock(15, 4))
+        assertEquals("9 h", DistrictFormat.frenchClock(9, 0))
+    }
 }

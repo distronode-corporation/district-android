@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.WireCategory
 import com.distronode.districtai.l10n.appLanguage
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -26,6 +27,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.BillingInvoice
 import com.distronode.districtai.core.model.BillingSubscription
 import com.distronode.districtai.core.model.StripeBilling
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.analytics.formatUsageAmount
 
 /**
@@ -228,7 +230,7 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
             verticalAlignment = Alignment.CenterVertically,
         ) {
             invoice.status?.takeIf { it.isNotBlank() }?.let {
-                DistrictBadge(text = it, tone = invoiceTone(it))
+                DistrictBadge(text = wireLabel(WireCategory.BILLING_INVOICE_STATUS, it), tone = invoiceTone(it))
             }
             // ⚠️ Tax is SUMMED server-side, so a zero here is measured rather than absent. Shown
             // only when non-zero: an "incl. $0.00 tax" line is noise on every untaxed invoice.

@@ -65,7 +65,7 @@
     <string name="billing_meter_title">Call minutes this month</string>
     <string name="billing_meter_unmetered">No call minutes have been recorded this month yet.</string>
     <string name="billing_meter_used">%1$s minutes used</string>
-    <string name="billing_meter_used_of">%1$s of %2$d included minutes used</string>
+    <string name="billing_meter_used_of">%1$s of %2$s included minutes used</string>
     <string name="billing_open">Billing</string>
     <string name="billing_overage_auto_bill">Extra minutes beyond your plan are billed automatically.</string>
     <string name="billing_overage_blocked">Calls are being declined — your included minutes are used up</string>
@@ -290,6 +290,11 @@
     <string name="devices_last_active">Last active %1$s</string>
     <string name="devices_last_active_never">Signed in recently</string>
     <string name="devices_nothing_revoked">That device was already signed out. The list has been refreshed.</string>
+    <string name="devices_platform_android" translatable="false">Android</string>
+    <string name="devices_platform_ios" translatable="false">iOS</string>
+    <string name="devices_platform_linux" translatable="false">Linux</string>
+    <string name="devices_platform_macos" translatable="false">macOS</string>
+    <string name="devices_platform_windows" translatable="false">Windows</string>
     <string name="devices_sign_out_all">Sign out everywhere</string>
     <string name="devices_sign_out_device">Sign out this device</string>
     <string name="devices_this_device">This device</string>
@@ -355,6 +360,8 @@
     <string name="hq_send">Send</string>
     <string name="hq_thinking">Thinking…</string>
     <string name="hq_title">District HQ</string>
+    <string name="inbox_channel_email">EMAIL</string>
+    <string name="inbox_channel_sms">SMS</string>
     <string name="inbox_compose_cancel">Cancel</string>
     <string name="inbox_compose_change">Change</string>
     <string name="inbox_compose_channel_email">Email</string>
@@ -424,6 +431,7 @@
     <string name="knowledge_status_unknown">unknown status</string>
     <string name="knowledge_title">Knowledge base</string>
     <string name="l10n_language">en</string>
+    <string name="labels_unknown_value">%1$s</string>
     <string name="live_transcript_connecting">Connecting…</string>
     <string name="live_transcript_ended">Call ended</string>
     <string name="live_transcript_full_transcript">Transcript</string>
@@ -506,7 +514,10 @@
     <string name="messaging_add">Add carrier account</string>
     <string name="messaging_add_title">Add a carrier account</string>
     <string name="messaging_cancel">Cancel</string>
+    <string name="messaging_channel_sms">sms</string>
     <string name="messaging_channel_title">Send %1$s from</string>
+    <string name="messaging_channel_voice">voice</string>
+    <string name="messaging_channel_whatsapp">whatsapp</string>
     <string name="messaging_creator_cell_help">Where the AI transfers a call it cannot handle. We cannot show the saved number here, so typing one replaces it.</string>
     <string name="messaging_creator_cell_label">Mobile number</string>
     <string name="messaging_creator_cell_save">Save number</string>
@@ -725,10 +736,18 @@
     <string name="routing_empty_body">Every caller gets the workspace persona. Add a rule to give a segment of callers a different voice or instruction.</string>
     <string name="routing_empty_title">No routing rules</string>
     <string name="routing_field">If this contact field</string>
+    <string name="routing_field_caller_type">callerType</string>
+    <string name="routing_field_estimated_value">estimatedValue</string>
+    <string name="routing_field_industry">industry</string>
+    <string name="routing_field_is_decision_maker">isDecisionMaker</string>
+    <string name="routing_field_line_type">lineType</string>
+    <string name="routing_field_seniority">seniority</string>
     <string name="routing_instruction">Extra instruction for these callers</string>
     <string name="routing_model_none">none</string>
     <string name="routing_model_read_only">Engine override: %1$s (cannot be changed in this app)</string>
     <string name="routing_operator">Matches how</string>
+    <string name="routing_operator_contains">contains</string>
+    <string name="routing_operator_equals">equals</string>
     <string name="routing_option_unset">not set</string>
     <string name="routing_remove">Remove this rule</string>
     <string name="routing_rule_number">Rule %1$d</string>
@@ -816,6 +835,7 @@
     <string name="support_request_title">Request</string>
     <string name="support_section_open">Open</string>
     <string name="support_section_resolved">Resolved</string>
+    <string name="support_status_received">Received</string>
     <string name="support_title">Support</string>
     <string name="support_unfiled">Being opened</string>
     <string name="support_viewer_body">Support requests are correspondence with Distronode, so they are limited to agency and client seats. Ask someone on your team to change your role if you need it.</string>
@@ -833,6 +853,7 @@
         <item quantity="other">%1$d attachments</item>
     </plurals>
     <string name="thread_call">Call</string>
+    <string name="thread_call_event">Call</string>
     <string name="thread_call_missed">Missed call</string>
     <string name="thread_dismiss">Dismiss</string>
     <string name="thread_empty">Messages and calls with this contact will appear here.</string>

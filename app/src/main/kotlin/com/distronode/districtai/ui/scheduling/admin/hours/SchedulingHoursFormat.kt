@@ -7,6 +7,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.model.SchedulingAvailabilityRule
 import com.distronode.districtai.l10n.DistrictFormat
 import com.distronode.districtai.l10n.appLanguage
+import com.distronode.districtai.l10n.clockText
 import com.distronode.districtai.ui.scheduling.admin.overview.schedulingDisplayTime
 import com.distronode.districtai.ui.scheduling.admin.schedulingUnknownValue
 import java.time.LocalDate
@@ -94,7 +95,11 @@ fun schedulingIsoDateOrNull(value: String): LocalDate? = try {
 @Composable
 @ReadOnlyComposable
 private fun schedulingTimeRange(start: String, end: String): String =
-    stringResource(R.string.scheduling_admin_common_range, schedulingDisplayTime(start), schedulingDisplayTime(end))
+    stringResource(
+        R.string.scheduling_admin_common_range,
+        clockText(schedulingDisplayTime(start)),
+        clockText(schedulingDisplayTime(end)),
+    )
 
 private const val OUT_OF_OFFICE = "out_of_office"
 private val UNAVAILABLE_REASONS = setOf("day_off", "custom_hours")

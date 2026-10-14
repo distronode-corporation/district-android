@@ -36,6 +36,8 @@ import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.model.KB_MODE_INTERNAL
 import com.distronode.districtai.core.model.KB_MODE_LINKED
 import com.distronode.districtai.core.model.KnowledgeDocument
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 
 /**
  * What the agent can answer from, and where the answer is composed.
@@ -339,7 +341,8 @@ private fun DocumentRow(
         title = document.title.orEmpty().ifBlank { document.id },
         subtitle = stringResource(
             R.string.knowledge_doc_subtitle,
-            document.status ?: stringResource(R.string.knowledge_status_unknown),
+            document.status?.let { wireLabel(WireCategory.KNOWLEDGE_DOCUMENT_STATUS, it) }
+                ?: stringResource(R.string.knowledge_status_unknown),
             document.chunkCount ?: 0,
         ),
         trailing = {

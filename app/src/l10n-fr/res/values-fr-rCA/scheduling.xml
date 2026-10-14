@@ -453,6 +453,8 @@
     <string name="scheduling_admin_settings_image_too_large">Cette image dépasse 5 Mo. Choisissez-en une plus petite.</string>
     <string name="scheduling_admin_settings_image_unreadable">Cette image n\'a pas pu être lue. Choisissez-en une autre.</string>
     <string name="scheduling_admin_settings_image_wrong_type">Ce fichier n\'est pas une image utilisable. Choisissez un fichier JPEG, PNG, GIF ou WebP.</string>
+    <string name="scheduling_admin_settings_language_en">Anglais</string>
+    <string name="scheduling_admin_settings_language_fr">Français</string>
     <string name="scheduling_admin_settings_legal_url_hint">Affiché en lien au pied de la page de réservation. Laissez vide pour n\'en afficher aucun.</string>
     <string name="scheduling_admin_settings_logo">Logo</string>
     <string name="scheduling_admin_settings_logo_height">Hauteur du logo</string>

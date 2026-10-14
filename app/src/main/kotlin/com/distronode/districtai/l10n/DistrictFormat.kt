@@ -185,9 +185,7 @@ internal object DistrictFormat {
     private fun time(at: ZonedDateTime, language: AppLanguage): String {
         val hour = at.hour
         val minute = at.minute
-        if (language == AppLanguage.FR) {
-            return if (minute == 0) "$hour h" else "$hour h %02d".format(Locale.ROOT, minute)
-        }
+        if (language == AppLanguage.FR) return frenchClock(hour, minute)
         val zone = at.zone.id
         if (!zone.startsWith("America/") && !zone.startsWith("Australia/")) {
             return "%02d:%02d".format(Locale.ROOT, hour, minute)
@@ -195,6 +193,10 @@ internal object DistrictFormat {
         val twelve = if (hour % HALF_DAY == 0) HALF_DAY else hour % HALF_DAY
         return "%d:%02d %s".format(Locale.ROOT, twelve, minute, if (hour < HALF_DAY) "a.m." else "p.m.")
     }
+
+    /** A French time of day: "15 h 04", and "9 h" on the hour. */
+    fun frenchClock(hour: Int, minute: Int): String =
+        if (minute == 0) "$hour h" else "$hour h %02d".format(Locale.ROOT, minute)
 
     // ── Durations ───────────────────────────────────────────────────────────────────────────────
 

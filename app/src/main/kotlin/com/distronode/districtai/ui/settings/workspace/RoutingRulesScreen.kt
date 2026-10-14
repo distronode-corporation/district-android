@@ -39,6 +39,9 @@ import com.distronode.districtai.core.model.ROUTING_OPERATORS
 import com.distronode.districtai.core.model.ROUTING_VOICES
 import com.distronode.districtai.core.model.RoutingRule
 import com.distronode.districtai.core.model.RoutingRuleField
+import com.distronode.districtai.l10n.ROUTING_FIELD_LABELS
+import com.distronode.districtai.l10n.ROUTING_OPERATOR_LABELS
+import com.distronode.districtai.l10n.valueLabel
 
 /**
  * Which callers get which voice, and what extra instruction the agent is given for them.
@@ -180,6 +183,7 @@ private fun RuleCard(
             options = ROUTING_FIELDS,
             description = routingFieldDescription(index, RoutingRuleField.FIELD),
             enabled = enabled,
+            optionLabel = { valueLabel(ROUTING_FIELD_LABELS, it) },
         ) { onEdit(index, RoutingRuleField.FIELD, it) }
         OptionPicker(
             label = stringResource(R.string.routing_operator),
@@ -187,6 +191,7 @@ private fun RuleCard(
             options = ROUTING_OPERATORS,
             description = routingFieldDescription(index, RoutingRuleField.OPERATOR),
             enabled = enabled,
+            optionLabel = { valueLabel(ROUTING_OPERATOR_LABELS, it) },
         ) { onEdit(index, RoutingRuleField.OPERATOR, it) }
         SettingsTextField(
             value = rule.value(RoutingRuleField.VALUE),
@@ -338,6 +343,7 @@ private fun OptionPicker(
     options: List<String>,
     description: String,
     enabled: Boolean,
+    optionLabel: @Composable (String) -> String = { it },
     onSelect: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -345,7 +351,7 @@ private fun OptionPicker(
     Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
         Eyebrow(label)
         DistrictButton(
-            text = value.ifBlank { stringResource(R.string.routing_option_unset) },
+            text = if (value.isBlank()) stringResource(R.string.routing_option_unset) else optionLabel(value),
             onClick = { expanded = true },
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Sm,
@@ -357,7 +363,7 @@ private fun OptionPicker(
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             shown.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(optionLabel(option)) },
                     onClick = {
                         expanded = false
                         onSelect(option)

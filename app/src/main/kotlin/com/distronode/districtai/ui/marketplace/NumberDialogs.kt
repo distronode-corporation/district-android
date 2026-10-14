@@ -16,6 +16,8 @@ import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.ListedNumber
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -44,7 +46,13 @@ fun NumberActionsDialog(
                 modifier = Modifier.fillMaxWidth().testTag(NUMBER_ACTIONS_TAG),
                 verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
             ) {
-                Muted(stringResource(R.string.marketplace_number_meta, number.provider, number.status))
+                Muted(
+                    stringResource(
+                        R.string.marketplace_number_meta,
+                        wireLabel(WireCategory.NUMBER_PROVIDER, number.provider),
+                        wireLabel(WireCategory.NUMBER_STATUS, number.status),
+                    ),
+                )
                 NumberWriteNotice(write)
                 when {
                     number.managed -> Muted(stringResource(R.string.numbers_managed_no_release))

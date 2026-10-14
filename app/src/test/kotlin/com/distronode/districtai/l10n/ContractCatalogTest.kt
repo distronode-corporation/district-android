@@ -57,16 +57,11 @@ class ContractCatalogTest {
     @Test
     fun `every vocabulary value of a displayed category has a label`() {
         val categories = contract("wire-vocabulary.json").getValue("categories").jsonObject
-        val byName = mapOf(
-            "callStatus" to WireCategory.CALL_STATUS,
-            "sentiment" to WireCategory.SENTIMENT,
-            "disposition" to WireCategory.DISPOSITION,
-            "transferStatus" to WireCategory.TRANSFER_STATUS,
-            "transferReason" to WireCategory.TRANSFER_REASON,
-            "funnelStage" to WireCategory.FUNNEL_STAGE,
-            "analyticsSentiment" to WireCategory.ANALYTICS_SENTIMENT,
-            "region" to WireCategory.REGION,
-        )
+        // ⚠️ EVERY CATEGORY, BY ITS NAME: `callStatus` is CALL_STATUS. A category the vocabulary adds and
+        // the generator does not fails here as a missing enum entry.
+        val byName = categories.keys.associateWith { name ->
+            WireCategory.valueOf(name.replace(Regex("([a-z0-9])([A-Z])"), "$1_$2").uppercase())
+        }
         assertEquals(WireCategory.entries.toSet(), byName.values.toSet())
         for ((name, category) in byName) {
             val values = categories.getValue(name).jsonObject.getValue("values").jsonArray

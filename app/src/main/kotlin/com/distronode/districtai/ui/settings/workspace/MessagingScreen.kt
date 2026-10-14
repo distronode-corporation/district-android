@@ -32,6 +32,9 @@ import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.model.ManagedAccount
 import com.distronode.districtai.core.model.MessagingAccount
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.messagingChannelLabel
+import com.distronode.districtai.l10n.wireLabel
 
 /**
  * Which carrier accounts this workspace sends through, and — for agency and client — how to change
@@ -254,8 +257,10 @@ private fun AccountRow(
         title = account.label.orEmpty().ifBlank { account.provider.orEmpty() },
         subtitle = stringResource(
             R.string.messaging_account_subtitle,
-            account.provider ?: stringResource(R.string.messaging_provider_unknown),
-            account.credentialSource ?: stringResource(R.string.messaging_provider_unknown),
+            account.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }
+                ?: stringResource(R.string.messaging_provider_unknown),
+            account.credentialSource?.let { wireLabel(WireCategory.MESSAGING_CREDENTIAL_SOURCE, it) }
+                ?: stringResource(R.string.messaging_provider_unknown),
             account.phoneNumbers.size,
         ),
         trailing = {
@@ -347,7 +352,8 @@ private fun ManagedSection(managed: ManagedAccount) {
             modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter),
         )
         DistrictListRow(
-            title = managed.provider ?: stringResource(R.string.messaging_provider_unknown),
+            title = managed.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }
+                ?: stringResource(R.string.messaging_provider_unknown),
             subtitle = stringResource(
                 R.string.messaging_managed_subtitle,
                 managed.phoneNumbers.size,
@@ -384,7 +390,7 @@ private fun ChannelDefaultsSection(state: MessagingUiState, onRequestChannel: (S
         defaults.entries.forEachIndexed { index, (channel, accountId) ->
             if (index > 0) DistrictRowDivider()
             DistrictListRow(
-                title = channel,
+                title = messagingChannelLabel(channel),
                 // ⚠️ The account's LABEL when it resolves, else the raw id. A channel default can
                 // legitimately name an account that was deleted, and hiding that would make a
                 // broken override look like no override.

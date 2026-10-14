@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import com.distronode.districtai.l10n.WireCategory
 import com.distronode.districtai.l10n.appLanguage
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -28,6 +29,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.CampaignStatus
 import com.distronode.districtai.core.model.WorkflowListItem
 import com.distronode.districtai.core.model.WorkflowRun
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
 
@@ -236,7 +238,7 @@ private fun LatestRunBadge(workflow: WorkflowListItem) {
     }
     Column(horizontalAlignment = Alignment.End) {
         DistrictBadge(
-            text = run.status,
+            text = wireLabel(WireCategory.WORKFLOW_RUN_STATUS, run.status),
             tone = runTone(run.status),
             modifier = Modifier.testTag(workflowLatestRunDescription(workflow.id)),
         )
@@ -325,7 +327,7 @@ internal fun RunHistoryPanel(history: RunHistory?, onLoadMore: () -> Unit) {
 private fun RunCard(run: WorkflowRun) {
     DistrictCard(modifier = Modifier.testTag(runCardDescription(run.id))) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            DistrictBadge(text = run.status, tone = runTone(run.status))
+            DistrictBadge(text = wireLabel(WireCategory.WORKFLOW_RUN_STATUS, run.status), tone = runTone(run.status))
             Text(
                 text = formatRunTimestamp(run.startedAt, language = appLanguage()),
                 style = MaterialTheme.typography.labelSmall,

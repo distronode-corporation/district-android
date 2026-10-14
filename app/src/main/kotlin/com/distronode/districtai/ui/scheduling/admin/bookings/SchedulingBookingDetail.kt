@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.scheduling.admin.bookings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -116,7 +117,7 @@ fun SchedulingBookingDetailRoute(deps: SchedulingAdminDeps, bookingId: String) {
         onCancel = viewModel::cancel,
     )
     (dialog as? BookingDialog.Cancel)?.let {
-        SchedulingBookingCancelDialog(it, viewModel.cancelFlow, viewModel::closeDialog)
+        SchedulingBookingCancelDialog(it, viewModel.cancelFlow, @DontMemoize { viewModel.closeDialog() })
     }
 }
 
@@ -147,7 +148,6 @@ fun SchedulingBookingDetailScreen(
         }
         SchedulingCard(eyebrow = stringResource(R.string.scheduling_admin_bookings_answers_eyebrow)) {
             when (val answers = state.answers) {
-                SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKING_DETAIL_LOADING_TAG, rows = 1)
                 is SectionState.Failed ->
                     SchedulingSectionFailure(answers.failure, onRefresh, SCHEDULING_BOOKING_DETAIL_FAILURE_TAG)
                 is SectionState.Ready -> if (answers.value.isEmpty()) {
@@ -160,6 +160,7 @@ fun SchedulingBookingDetailScreen(
                         )
                     }
                 }
+                else -> SchedulingSectionLoading(SCHEDULING_BOOKING_DETAIL_LOADING_TAG, rows = 1)
             }
         }
     }

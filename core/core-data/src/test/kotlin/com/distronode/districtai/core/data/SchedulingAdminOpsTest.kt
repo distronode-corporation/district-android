@@ -93,6 +93,8 @@ class SchedulingAdminOpsTest {
             """{"date":"2026-10-02","reason":"custom_hours","end_date":"2026-10-04","start_time":"09:00",
                "end_time":"12:00"}""",
         )
+        repository.createAvailabilityOverride("ws", SchedulingOverrideDraft("2026-10-05", "day_off"))
+        assertSent(SchedulingAdminOp.AVAILABILITY_OVERRIDES_CREATE, """{"date":"2026-10-05","reason":"day_off"}""")
         repository.deleteAvailabilityOverride("ws", "o1")
         assertSent(SchedulingAdminOp.AVAILABILITY_OVERRIDES_DELETE, """{"id":"o1"}""")
         repository.deleteAvailabilityOverrideGroup("ws", "g1")
@@ -254,6 +256,16 @@ class SchedulingAdminOpsTest {
         assertSent(SchedulingAdminOp.CALENDAR_CONNECTIONS_DELETE, """{"id":"k1","provider":"google"}""")
         repository.zoomStatus("ws")
         assertSent(SchedulingAdminOp.ZOOM_STATUS, "{}")
+        // The account is optional on the read and both writes.
+        repository.connectionCalendars("ws", "k1", "caldav")
+        assertSent(SchedulingAdminOp.CALENDAR_CONNECTIONS_CALENDARS_GET, """{"id":"k1","provider":"caldav"}""")
+        repository.setConnectionCalendars("ws", "k1", "caldav", emptyList())
+        assertSent(
+            SchedulingAdminOp.CALENDAR_CONNECTIONS_CALENDARS_PUT,
+            """{"id":"k1","provider":"caldav","calendars":[]}""",
+        )
+        repository.setDestinationConnection("ws", "k1", "caldav")
+        assertSent(SchedulingAdminOp.CALENDAR_CONNECTIONS_DESTINATION, """{"id":"k1","provider":"caldav"}""")
     }
 
     @Test
@@ -278,6 +290,8 @@ class SchedulingAdminOpsTest {
         assertSent(SchedulingAdminOp.TEAMS_CREATE, """{"name":"Sales"}""")
         repository.patchTeam("ws", "t1", "S", "s")
         assertSent(SchedulingAdminOp.TEAMS_PATCH, """{"id":"t1","name":"S","slug":"s"}""")
+        repository.patchTeam("ws", "t1")
+        assertSent(SchedulingAdminOp.TEAMS_PATCH, """{"id":"t1"}""")
         repository.deleteTeam("ws", "t1")
         assertSent(SchedulingAdminOp.TEAMS_DELETE, """{"id":"t1"}""")
         repository.addTeamMember("ws", "t1", "u1", 3)

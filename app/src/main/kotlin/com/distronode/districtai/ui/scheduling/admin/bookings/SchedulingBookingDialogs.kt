@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -36,10 +37,11 @@ import java.time.ZoneOffset
 @Composable
 fun SchedulingBookingDialogs(dialog: BookingDialog?, writes: SchedulingBookingWrites, timezone: String) {
     when (dialog) {
-        is BookingDialog.Cancel -> SchedulingBookingCancelDialog(dialog, writes.cancel, writes::close)
-        is BookingDialog.Reschedule -> RescheduleDialog(dialog, writes.reschedule, writes::close, timezone)
-        is BookingDialog.Reassign -> ReassignDialog(dialog, writes.reassign, writes::close)
-        null -> Unit
+        is BookingDialog.Cancel -> SchedulingBookingCancelDialog(dialog, writes.cancel, @DontMemoize { writes.close() })
+        is BookingDialog.Reschedule ->
+            RescheduleDialog(dialog, writes.reschedule, @DontMemoize { writes.close() }, timezone)
+        is BookingDialog.Reassign -> ReassignDialog(dialog, writes.reassign, @DontMemoize { writes.close() })
+        else -> Unit
     }
 }
 
@@ -52,7 +54,7 @@ fun SchedulingBookingCancelDialog(dialog: BookingDialog.Cancel, cancel: BookingC
         confirmLabel = stringResource(R.string.scheduling_admin_bookings_cancel_confirm),
         cancelLabel = stringResource(R.string.scheduling_admin_bookings_cancel_keep),
         state = dialog.state,
-        onConfirm = cancel::submit,
+        onConfirm = @DontMemoize { cancel.submit() },
         onCancel = onClose,
         tag = SCHEDULING_BOOKING_CANCEL_DIALOG_TAG,
         confirmTag = SCHEDULING_BOOKING_CANCEL_CONFIRM_TAG,
@@ -61,7 +63,7 @@ fun SchedulingBookingCancelDialog(dialog: BookingDialog.Cancel, cancel: BookingC
         SchedulingTextField(
             label = stringResource(R.string.scheduling_admin_bookings_cancel_reason_label),
             value = dialog.reason,
-            onValueChange = cancel::editReason,
+            onValueChange = @DontMemoize { value -> cancel.editReason(value) },
             tag = SCHEDULING_BOOKING_CANCEL_REASON_TAG,
             enabled = dialog.state != WriteState.Working,
             hint = stringResource(R.string.scheduling_admin_bookings_cancel_reason_hint),
@@ -94,12 +96,12 @@ private fun RescheduleDialog(
         cancelLabel = stringResource(R.string.scheduling_admin_common_cancel),
         // ⚠️ "Booking moved to …" names the new time, so it is drawn here rather than as a plain notice.
         state = if (dialog.state is WriteState.Done) WriteState.Idle else dialog.state,
-        onConfirm = reschedule::submit,
+        onConfirm = @DontMemoize { reschedule.submit() },
         onCancel = onClose,
         tag = SCHEDULING_BOOKING_RESCHEDULE_DIALOG_TAG,
         confirmTag = SCHEDULING_BOOKING_RESCHEDULE_CONFIRM_TAG,
         confirmEnabled = dialog.selectedStart != null,
-        onRetry = reschedule::loadSlots,
+        onRetry = @DontMemoize { reschedule.loadSlots() },
     ) {
         Text(
             text = stringResource(R.string.scheduling_admin_bookings_reschedule_day_label),
@@ -112,7 +114,7 @@ private fun RescheduleDialog(
         ) {
             DistrictButton(
                 text = stringResource(R.string.scheduling_admin_bookings_reschedule_previous_day),
-                onClick = reschedule::previousDay,
+                onClick = @DontMemoize { reschedule.previousDay() },
                 variant = ButtonVariant.Secondary,
                 size = ButtonSize.Sm,
                 enabled = !working && dialog.day > dialog.earliest,
@@ -130,7 +132,7 @@ private fun RescheduleDialog(
             )
             DistrictButton(
                 text = stringResource(R.string.scheduling_admin_bookings_reschedule_next_day),
-                onClick = reschedule::nextDay,
+                onClick = @DontMemoize { reschedule.nextDay() },
                 variant = ButtonVariant.Secondary,
                 size = ButtonSize.Sm,
                 enabled = !working,
@@ -138,10 +140,9 @@ private fun RescheduleDialog(
             )
         }
         when (val slots = dialog.slots) {
-            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKING_RESCHEDULE_LOADING_TAG, rows = 1)
             is SectionState.Failed -> SchedulingSectionFailure(
                 slots.failure,
-                reschedule::loadSlots,
+                @DontMemoize { reschedule.loadSlots() },
                 SCHEDULING_BOOKING_RESCHEDULE_FAILURE_TAG,
             )
             is SectionState.Ready -> if (slots.value.isEmpty()) {
@@ -150,12 +151,13 @@ private fun RescheduleDialog(
                 SchedulingChoiceRow(
                     options = slots.value.map { it.start to schedulingTime(it.start, timezone) },
                     selected = dialog.selectedStart,
-                    onSelect = reschedule::select,
+                    onSelect = @DontMemoize { start -> reschedule.select(start) },
                     tagPrefix = SCHEDULING_BOOKING_RESCHEDULE_SLOT_TAG,
                     enabled = !working,
                     label = stringResource(R.string.scheduling_admin_bookings_reschedule_time_label),
                 )
             }
+            else -> SchedulingSectionLoading(SCHEDULING_BOOKING_RESCHEDULE_LOADING_TAG, rows = 1)
         }
         if (dialog.pickRejected) {
             SchedulingRejection(stringResource(R.string.scheduling_admin_bookings_reschedule_pick_time))
@@ -182,17 +184,16 @@ private fun ReassignDialog(dialog: BookingDialog.Reassign, reassign: BookingReas
         confirmLabel = stringResource(R.string.scheduling_admin_bookings_reassign_confirm),
         cancelLabel = stringResource(R.string.scheduling_admin_common_cancel),
         state = dialog.state,
-        onConfirm = reassign::submit,
+        onConfirm = @DontMemoize { reassign.submit() },
         onCancel = onClose,
         tag = SCHEDULING_BOOKING_REASSIGN_DIALOG_TAG,
         confirmTag = SCHEDULING_BOOKING_REASSIGN_CONFIRM_TAG,
         confirmEnabled = dialog.selectedHostId != null,
     ) {
         when (val hosts = dialog.hosts) {
-            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKING_REASSIGN_LOADING_TAG, rows = 1)
             is SectionState.Failed -> SchedulingSectionFailure(
                 hosts.failure,
-                reassign::loadHosts,
+                @DontMemoize { reassign.loadHosts() },
                 SCHEDULING_BOOKING_REASSIGN_FAILURE_TAG,
             )
             is SectionState.Ready -> if (hosts.value.isEmpty()) {
@@ -201,12 +202,13 @@ private fun ReassignDialog(dialog: BookingDialog.Reassign, reassign: BookingReas
                 SchedulingChoiceRow(
                     options = hosts.value.map { it.id to it.name.ifEmpty { it.email } },
                     selected = dialog.selectedHostId,
-                    onSelect = reassign::select,
+                    onSelect = @DontMemoize { id -> reassign.select(id) },
                     tagPrefix = SCHEDULING_BOOKING_REASSIGN_HOST_TAG,
                     enabled = dialog.state != WriteState.Working,
                     label = stringResource(R.string.scheduling_admin_bookings_reassign_host_label),
                 )
             }
+            else -> SchedulingSectionLoading(SCHEDULING_BOOKING_REASSIGN_LOADING_TAG, rows = 1)
         }
     }
 }

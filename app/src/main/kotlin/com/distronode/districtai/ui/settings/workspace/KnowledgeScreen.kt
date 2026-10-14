@@ -68,6 +68,15 @@ fun KnowledgeScreen(
     onSelectMode: (String) -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
+    /**
+     * Opens the system file chooser for one text document.
+     *
+     * ⛔ A PLAIN CALLBACK, NOT A LAUNCHER: `rememberLauncherForActivityResult` needs an
+     * ActivityResultRegistryOwner, which a `createComposeRule` test host lacks, so the launcher
+     * lives in the nav host (as the thread screen's photo picker does) and this screen stays
+     * testable.
+     */
+    onReadFile: () -> Unit,
 ) {
     var pendingDelete by remember { mutableStateOf<KnowledgeDocument?>(null) }
     var pendingLinkedMode by remember { mutableStateOf(false) }
@@ -109,7 +118,9 @@ fun KnowledgeScreen(
                 }
             }
             if (state.canWrite) {
-                ContentContainer { KnowledgeAddSection(state, onEditTitle, onEditContent, onAdd) }
+                ContentContainer {
+                    KnowledgeAddSection(state, onEditTitle, onEditContent, onAdd, onReadFile)
+                }
             }
             ContentContainer {
                 KnowledgeDocuments(state, onRetry) { document -> pendingDelete = document }
@@ -181,10 +192,13 @@ private fun KnowledgeModeSection(state: KnowledgeUiState, onSelectMode: (String)
 }
 
 /**
- * Paste a document.
+ * Paste a document, or read one in from a text file.
  *
  * ⛔ THE BUTTON IS DISABLED FOR THE WHOLE ROUND TRIP, and that is a spending control rather than a
  * loading affordance: each tap buys one embedding run over every chunk the content produced.
+ *
+ * ⛔ "READ A TEXT FILE" ONLY FILLS THE TWO BOXES. Add is still the one billed action, and the hint
+ * says so, so a pick never spends without the operator having seen the text.
  */
 @Composable
 private fun KnowledgeAddSection(
@@ -192,6 +206,7 @@ private fun KnowledgeAddSection(
     onEditTitle: (String) -> Unit,
     onEditContent: (String) -> Unit,
     onAdd: () -> Unit,
+    onReadFile: () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(DistrictTheme.spacing.gutter),
@@ -214,6 +229,28 @@ private fun KnowledgeAddSection(
             singleLine = false,
             onValueChange = onEditContent,
         )
+        DistrictButton(
+            text = stringResource(R.string.knowledge_file_action),
+            onClick = onReadFile,
+            variant = ButtonVariant.Secondary,
+            enabled = state.canPickFile,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(KNOWLEDGE_FILE_DESCRIPTION),
+        )
+        Text(
+            text = stringResource(R.string.knowledge_file_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = DistrictTheme.colors.mutedForeground,
+        )
+        state.fileRefusal?.let { refusal ->
+            Text(
+                text = stringResource(refusal.message),
+                style = MaterialTheme.typography.bodySmall,
+                color = DistrictTheme.colors.destructive,
+                modifier = Modifier.testTag(KNOWLEDGE_FILE_REFUSAL_DESCRIPTION),
+            )
+        }
         if (state.addRejected) {
             Text(
                 text = stringResource(R.string.knowledge_add_rejected),
@@ -401,6 +438,8 @@ const val KNOWLEDGE_ROOT_DESCRIPTION: String = "district-knowledge-root"
 const val KNOWLEDGE_TITLE_DESCRIPTION: String = "district-knowledge-title"
 const val KNOWLEDGE_CONTENT_DESCRIPTION: String = "district-knowledge-content"
 const val KNOWLEDGE_ADD_DESCRIPTION: String = "district-knowledge-add"
+const val KNOWLEDGE_FILE_DESCRIPTION: String = "district-knowledge-file"
+const val KNOWLEDGE_FILE_REFUSAL_DESCRIPTION: String = "district-knowledge-file-refusal"
 const val KNOWLEDGE_ADD_REJECTED_DESCRIPTION: String = "district-knowledge-add-rejected"
 const val KNOWLEDGE_ADD_NOTICE_DESCRIPTION: String = "district-knowledge-add-notice"
 const val KNOWLEDGE_DELETE_NOTICE_DESCRIPTION: String = "district-knowledge-delete-notice"

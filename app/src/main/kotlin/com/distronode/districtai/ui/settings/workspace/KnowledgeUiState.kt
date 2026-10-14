@@ -47,6 +47,10 @@ data class KnowledgeUiState(
     val addRejected: Boolean = false,
     val addSave: SaveState = SaveState.Idle,
     val deleteSave: SaveState = SaveState.Idle,
+    /** ⚠️ True while a picked text file is being read; the pick and the add wait for it. */
+    val fileReading: Boolean = false,
+    /** Why the last picked file was not put in the form; cleared by the next edit, pick or add. */
+    val fileRefusal: KnowledgeFileRefusal? = null,
 ) {
 
     val documents: List<KnowledgeDocument>
@@ -60,7 +64,14 @@ data class KnowledgeUiState(
      * operator is not charged a round trip to be told, and so the button is honest.
      */
     val canAdd: Boolean
-        get() = canWrite && !busy && draftTitle.isNotBlank() && draftContent.isNotBlank()
+        get() = canWrite && !busy && !fileReading && draftTitle.isNotBlank() && draftContent.isNotBlank()
+
+    /**
+     * Whether "Read a text file" may open the chooser: whoever may add, while the form is editable
+     * (Windows' `MayPickFile`). ⚠️ Not while a pick is still being read, so two reads never race to
+     * fill the same form.
+     */
+    val canPickFile: Boolean get() = canWrite && !busy && !fileReading
 
     /**
      * ⛔ Gated on a successful mode READ — see the ⛔ on the class — AND on the role. A viewer sees

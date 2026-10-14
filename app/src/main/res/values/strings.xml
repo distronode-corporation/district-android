@@ -377,6 +377,13 @@
     <string name="knowledge_doc_title">Title</string>
     <string name="knowledge_empty_body">The agent has nothing of your own to answer from. Add a document above.</string>
     <string name="knowledge_empty_title">No documents yet</string>
+    <string name="knowledge_file_action">Read a text file</string>
+    <string name="knowledge_file_empty">This file is empty.</string>
+    <string name="knowledge_file_hint">A plain text file (.txt or .md) of up to 1 MB fills the title and the text. Nothing is added until you press Add document.</string>
+    <string name="knowledge_file_no_text">This file has no text to add.</string>
+    <string name="knowledge_file_not_text">Only a plain text file (.txt or .md) can be read in. Copy the text of another kind of document into the box instead.</string>
+    <string name="knowledge_file_too_large">The file must be 1 MB or smaller.</string>
+    <string name="knowledge_file_unreadable">This file could not be read.</string>
     <string name="knowledge_linked_confirm_action">Send questions to Atlassian</string>
     <string name="knowledge_linked_confirm_body">Answers will be composed by our support desk\'s assistant, which means each caller question is sent to Atlassian. Your uploaded documents stay where they are and stop being used to answer.</string>
     <string name="knowledge_linked_confirm_title">Send questions to Atlassian?</string>

@@ -75,6 +75,7 @@ class KnowledgeScreenTest {
         onSelectMode: (String) -> Unit = {},
         onRetry: () -> Unit = {},
         onBack: () -> Unit = {},
+        onReadFile: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -87,6 +88,7 @@ class KnowledgeScreenTest {
                     onSelectMode = onSelectMode,
                     onRetry = onRetry,
                     onBack = onBack,
+                    onReadFile = onReadFile,
                 )
             }
         }
@@ -391,6 +393,7 @@ class KnowledgeScreenTest {
                     onSelectMode = onSelectMode,
                     onRetry = {},
                     onBack = {},
+                    onReadFile = {},
                 )
             }
         }
@@ -407,5 +410,57 @@ class KnowledgeScreenTest {
 
         assertEquals(listOf("doc-2"), deleted)
         assertEquals(listOf(KB_MODE_LINKED), modes)
+    }
+    // ── Read a text file ─────────────────────────────────────────────────────
+
+    @Test
+    fun `read a text file asks the host for the chooser and says nothing is added until Add`() {
+        var picks = 0
+        render(ready(), onReadFile = { picks++ })
+
+        composeRule.onNodeWithText(str(R.string.knowledge_file_hint)).assertIsDisplayed()
+        composeRule.onNodeWithTag(KNOWLEDGE_FILE_DESCRIPTION).performClick()
+
+        assertEquals(1, picks)
+        composeRule.onNodeWithTag(KNOWLEDGE_FILE_REFUSAL_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a refused file says why in its own words`() {
+        val state = mutableStateOf(ready())
+        composeRule.setContent {
+            DistrictTheme {
+                KnowledgeScreen(
+                    state = state.value,
+                    onEditTitle = {},
+                    onEditContent = {},
+                    onAdd = {},
+                    onDelete = {},
+                    onSelectMode = {},
+                    onRetry = {},
+                    onBack = {},
+                    onReadFile = {},
+                )
+            }
+        }
+
+        KnowledgeFileRefusal.entries.forEach { refusal ->
+            state.value = ready().copy(fileRefusal = refusal)
+            composeRule.waitForIdle()
+            composeRule.onNodeWithTag(KNOWLEDGE_FILE_REFUSAL_DESCRIPTION).assertIsDisplayed()
+            composeRule.onNodeWithText(str(refusal.message)).assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun `the file button waits while a file is read`() {
+        render(ready().copy(fileReading = true))
+        composeRule.onNodeWithTag(KNOWLEDGE_FILE_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a viewer is offered no file button`() {
+        render(ready(canWrite = false))
+        composeRule.onNodeWithTag(KNOWLEDGE_FILE_DESCRIPTION).assertDoesNotExist()
     }
 }

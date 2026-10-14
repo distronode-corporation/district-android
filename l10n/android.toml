@@ -2588,6 +2588,54 @@ screen = "knowledge"
 tier = "T3"
 note = "── Knowledge base ──────────────────────────────────────────────────── ⛔ THE MODE IS A DATA-RESIDENCY CONTROL. `linked` sends this workspace's questions to Atlassian to be answered; the wording says so rather than selling coverage."
 
+[knowledge.file_action]
+en = "Read a text file"
+ctx = "button"
+screen = "knowledge"
+tier = "T3"
+note = "Opens the system file chooser for one plain text file, whose text then fills the add form. Nothing is uploaded by this button."
+
+[knowledge.file_empty]
+en = "This file is empty."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "Shown under the add form when the picked file has no bytes at all."
+
+[knowledge.file_hint]
+en = "A plain text file (.txt or .md) of up to 1 MB fills the title and the text. Nothing is added until you press Add document."
+ctx = "body"
+screen = "knowledge"
+tier = "T3"
+note = "Under the Read a text file button. \"Add document\" is the add button's own label (knowledge.add) and must match it."
+
+[knowledge.file_no_text]
+en = "This file has no text to add."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "The picked file holds only spaces and line breaks."
+
+[knowledge.file_not_text]
+en = "Only a plain text file (.txt or .md) can be read in. Copy the text of another kind of document into the box instead."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "The picked file is not plain text (a PDF, an image, a Word file, or text in an unsupported encoding). \"The box\" is the document text field."
+
+[knowledge.file_too_large]
+en = "The file must be 1 MB or smaller."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+
+[knowledge.file_unreadable]
+en = "This file could not be read."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "The phone could not open the picked file (for example a cloud file that failed to download, or access was withdrawn)."
+
 [knowledge.linked_confirm_action]
 en = "Send questions to Atlassian"
 ctx = "button"

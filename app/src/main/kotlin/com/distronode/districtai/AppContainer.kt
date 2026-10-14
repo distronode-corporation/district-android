@@ -75,6 +75,8 @@ import com.distronode.districtai.telecom.AndroidTelecomBridge
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.inbox.AttachmentReader
 import com.distronode.districtai.ui.inbox.ContentResolverAttachmentReader
+import com.distronode.districtai.ui.settings.workspace.ContentResolverKnowledgeFileReader
+import com.distronode.districtai.ui.settings.workspace.KnowledgeFileReader
 import com.distronode.districtai.ui.inbox.MediaImageLoader
 import com.distronode.districtai.ui.inbox.OkHttpMediaImageLoader
 import kotlinx.coroutines.CoroutineScope
@@ -243,6 +245,10 @@ class AppContainer(
      */
     fun attachmentReader(context: Context): AttachmentReader =
         ContentResolverAttachmentReader(context.contentResolver)
+
+    /** Reads a text document picked for the knowledge base; a function for [attachmentReader]'s reason. */
+    fun knowledgeFileReader(context: Context): KnowledgeFileReader =
+        ContentResolverKnowledgeFileReader(context.contentResolver)
 
     /**
      * District Desk: the tenant's own customers' tickets.

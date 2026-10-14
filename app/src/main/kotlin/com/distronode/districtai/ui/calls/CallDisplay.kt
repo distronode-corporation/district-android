@@ -68,7 +68,16 @@ internal data class CallDisplay(
     val createdAt: String = "",
     /** [durationLabel]'s seconds, so French can rebuild it. */
     val durationSeconds: Int? = null,
-)
+) {
+    /**
+     * Whether a live transcript can be followed: the call is connected and in progress.
+     *
+     * ⚠️ NOT WHILE RINGING, which [live] includes: nothing has been said yet, and the server holds a
+     * subscribe until the assistant's first line, answering `not_live` after 30 s without one.
+     */
+    val transcribesLive: Boolean
+        get() = status == STATUS_IN_PROGRESS
+}
 
 /** Map a wire row to its display rules. The only place these comparisons should appear in `app`. */
 internal fun CallSummary.toDisplay(): CallDisplay = CallDisplay(

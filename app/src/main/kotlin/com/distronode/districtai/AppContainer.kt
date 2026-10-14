@@ -71,10 +71,15 @@ import com.distronode.districtai.core.network.HttpSupportApi
 import com.distronode.districtai.core.network.HttpContactBlockingApi
 import com.distronode.districtai.core.data.ContactBlockingRepository
 import com.distronode.districtai.ui.contacts.BlockedContactsStore
+import com.distronode.districtai.core.network.HttpTelemetryApi
+import com.distronode.districtai.core.network.live.LiveDependencies
+import com.distronode.districtai.core.network.live.OkHttpTelemetryTransport
 import com.distronode.districtai.telecom.AndroidTelecomBridge
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.inbox.AttachmentReader
 import com.distronode.districtai.ui.inbox.ContentResolverAttachmentReader
+import com.distronode.districtai.ui.settings.workspace.ContentResolverKnowledgeFileReader
+import com.distronode.districtai.ui.settings.workspace.KnowledgeFileReader
 import com.distronode.districtai.ui.inbox.MediaImageLoader
 import com.distronode.districtai.ui.inbox.OkHttpMediaImageLoader
 import kotlinx.coroutines.CoroutineScope
@@ -184,6 +189,15 @@ class AppContainer(
     private val inboxExtrasApi: InboxExtrasApi = seams.inboxExtrasApi ?: HttpInboxExtrasApi(apiClient)
     private val callControlApi = HttpCallControlApi(apiClient)
 
+    /**
+     * What a call's live transcript is built from: the socket credential, over [apiClient] like
+     * every read, and the socket, on a clone of the shared [httpClient].
+     */
+    val liveDependencies: LiveDependencies = seams.liveDependencies ?: LiveDependencies(
+        minter = HttpTelemetryApi(apiClient),
+        transport = OkHttpTelemetryTransport(httpClient),
+    )
+
     val workspaceRepository: WorkspaceRepository = WorkspaceRepository(
         api = districtApi,
         selectionStore = PreferencesWorkspaceSelectionStore(appContext),
@@ -243,6 +257,10 @@ class AppContainer(
      */
     fun attachmentReader(context: Context): AttachmentReader =
         ContentResolverAttachmentReader(context.contentResolver)
+
+    /** Reads a text document picked for the knowledge base; a function for [attachmentReader]'s reason. */
+    fun knowledgeFileReader(context: Context): KnowledgeFileReader =
+        ContentResolverKnowledgeFileReader(context.contentResolver)
 
     /**
      * District Desk: the tenant's own customers' tickets.

@@ -49,6 +49,7 @@ import com.distronode.districtai.ui.contacts.BlockedContactsScreen
 import com.distronode.districtai.ui.contacts.BlockedContactsViewModel
 import com.distronode.districtai.ui.report.ReportTarget
 import com.distronode.districtai.core.data.BlockSubject
+import com.distronode.districtai.ui.calls.LiveTranscriptController
 import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
@@ -104,6 +105,7 @@ import com.distronode.districtai.ui.settings.workspace.CapabilitiesScreen
 import com.distronode.districtai.ui.settings.workspace.CapabilitiesViewModel
 import com.distronode.districtai.ui.settings.workspace.DirectoryEditorScreen
 import com.distronode.districtai.ui.settings.workspace.DirectoryEditorViewModel
+import com.distronode.districtai.ui.settings.workspace.KNOWLEDGE_FILE_MIME_TYPES
 import com.distronode.districtai.ui.settings.workspace.KnowledgeScreen
 import com.distronode.districtai.ui.settings.workspace.KnowledgeViewModel
 import com.distronode.districtai.ui.settings.workspace.MembersScreen
@@ -1071,9 +1073,17 @@ fun DistrictNavHost(
                             container.knowledgeRepository,
                             workspaceId,
                             role,
+                            container.knowledgeFileReader(context),
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
+                    // ⛔ THE LAUNCHER LIVES HERE, NOT IN KnowledgeScreen, for the thread screen's
+                    // reason: it needs an ActivityResultRegistryOwner a test host lacks.
+                    // ⚠️ OpenDocument (the Storage Access Framework) REQUESTS NO PERMISSION: it
+                    // returns a read grant for exactly the document chosen.
+                    val filePicker = rememberLauncherForActivityResult(
+                        ActivityResultContracts.OpenDocument(),
+                    ) { uri -> uri?.let { viewModel.readFile(it.toString()) } }
 
                     // ⛔ THE LOAD IS TWO IDEMPOTENT GETs, so replaying it is safe — but it must
                     // never replay the ADD, which buys an embedding run per call.
@@ -1088,6 +1098,7 @@ fun DistrictNavHost(
                         onSelectMode = viewModel::setMode,
                         onRetry = viewModel::load,
                         onBack = { navController.popBackStack() },
+                        onReadFile = { filePicker.launch(KNOWLEDGE_FILE_MIME_TYPES) },
                     )
                 }
 
@@ -1363,11 +1374,28 @@ fun DistrictNavHost(
                             repository = container.callsRepository,
                             workspaceId = workspaceId,
                             callId = callId,
+                            liveTranscript = { scope ->
+                                LiveTranscriptController(
+                                    workspaceId = workspaceId,
+                                    callId = callId,
+                                    dependencies = container.liveDependencies,
+                                    fetchTranscript = { container.callsRepository.transcript(workspaceId, callId) },
+                                    scope = scope,
+                                )
+                            },
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
+                    val live by viewModel.liveState.collectAsStateWithLifecycle()
 
                     OnSessionChanged(sessionEpoch, viewModel::load)
+
+                    // ⛔ THE LIVE TRANSCRIPT'S SOCKET FOLLOWS THIS ENTRY'S LIFECYCLE: it stops when the
+                    // app goes to the background or another destination is pushed on top.
+                    LifecycleStartEffect(viewModel) {
+                        viewModel.onScreenStarted(true)
+                        onStopOrDispose { viewModel.onScreenStarted(false) }
+                    }
 
                     CallDetailScreen(
                         state = state,
@@ -1381,6 +1409,7 @@ fun DistrictNavHost(
                             workspaceId = workspaceId,
                             support = container.supportRepository,
                         ),
+                        live = live,
                     )
                 }
 

@@ -2709,6 +2709,54 @@ screen = "knowledge"
 tier = "T3"
 note = "── Knowledge base ──────────────────────────────────────────────────── ⛔ THE MODE IS A DATA-RESIDENCY CONTROL. `linked` sends this workspace's questions to Atlassian to be answered; the wording says so rather than selling coverage."
 
+[knowledge.file_action]
+en = "Read a text file"
+ctx = "button"
+screen = "knowledge"
+tier = "T3"
+note = "Opens the system file chooser for one plain text file, whose text then fills the add form. Nothing is uploaded by this button."
+
+[knowledge.file_empty]
+en = "This file is empty."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "Shown under the add form when the picked file has no bytes at all."
+
+[knowledge.file_hint]
+en = "A plain text file (.txt or .md) of up to 1 MB fills the title and the text. Nothing is added until you press Add document."
+ctx = "body"
+screen = "knowledge"
+tier = "T3"
+note = "Under the Read a text file button. \"Add document\" is the add button's own label (knowledge.add) and must match it."
+
+[knowledge.file_no_text]
+en = "This file has no text to add."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "The picked file holds only spaces and line breaks."
+
+[knowledge.file_not_text]
+en = "Only a plain text file (.txt or .md) can be read in. Copy the text of another kind of document into the box instead."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "The picked file is not plain text (a PDF, an image, a Word file, or text in an unsupported encoding). \"The box\" is the document text field."
+
+[knowledge.file_too_large]
+en = "The file must be 1 MB or smaller."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+
+[knowledge.file_unreadable]
+en = "This file could not be read."
+ctx = "error"
+screen = "knowledge"
+tier = "T2"
+note = "The phone could not open the picked file (for example a cloud file that failed to download, or access was withdrawn)."
+
 [knowledge.linked_confirm_action]
 en = "Send questions to Atlassian"
 ctx = "button"
@@ -2808,6 +2856,103 @@ screen = "(none: read by code)"
 tier = "T3"
 state = "draft"
 note = "Not shown to anyone, and not a translation: the language this resource set is written in. The app reads it to know whether the French resources are the ones in use, and shows the server's own English wording only while it says en."
+
+[live_transcript.connecting]
+en = "Connecting…"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Under the live transcript's heading while the socket opens or reopens."
+
+[live_transcript.ended]
+en = "Call ended"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Under the live transcript's heading once the assistant stopped transcribing or the call ended."
+
+[live_transcript.full_transcript]
+en = "Transcript"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Heading of the full transcript, fetched once the live one ended."
+
+[live_transcript.heading]
+en = "Live transcript"
+ctx = "title"
+screen = "call detail"
+tier = "T3"
+note = "Heading of the transcript that updates while the call is in progress."
+
+[live_transcript.incomplete]
+en = "Earlier lines will appear in the full transcript after the call."
+ctx = "body"
+screen = "call detail"
+tier = "T3"
+note = "The server's memory did not reach back to the call's first line (it restarted, or the call is long). Saying so keeps a partial transcript from reading as the whole call."
+
+[live_transcript.interrupted]
+en = "Interrupted"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Under an assistant line that was cut off: what it says is what was actually played."
+
+[live_transcript.live]
+en = "Live"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Under the live transcript's heading while lines arrive as they are spoken."
+
+[live_transcript.loading_full]
+en = "Loading the full transcript…"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+
+[live_transcript.no_transcript]
+en = "No transcript for this call."
+ctx = "body"
+screen = "call detail"
+tier = "T3"
+note = "The full transcript was still empty after every attempt."
+
+[live_transcript.reconnecting]
+en = "Reconnecting…"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "The assistant failed and the call may be handed to a fresh one, so it is not over."
+
+[live_transcript.speaker_assistant]
+en = "Assistant"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Speaker of an AI agent line when the server sends no persona name for it."
+
+[live_transcript.speaker_caller]
+en = "Caller"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Speaker of a line said by the person on the call."
+
+[live_transcript.speaker_other]
+en = "Other speaker"
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Speaker of a line from a role this app does not know yet (a colleague who joined, say)."
+
+[live_transcript.waiting]
+en = "Nothing has been said yet."
+ctx = "body"
+screen = "call detail"
+tier = "T3"
+note = "The live transcript is live and has no line yet."
 
 [login_status.completing]
 en = "Completing sign-in…"

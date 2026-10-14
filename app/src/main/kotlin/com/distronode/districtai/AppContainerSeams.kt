@@ -11,6 +11,7 @@ import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.SupportApi
+import com.distronode.districtai.core.network.live.LiveDependencies
 import com.distronode.districtai.push.PushTokenSource
 import com.distronode.districtai.telecom.TelecomBridge
 
@@ -69,6 +70,13 @@ data class AppContainerSeams(
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,
     val contactBlockingApi: ContactBlockingApi? = null,
+    /**
+     * The live transcript's credential, socket and clock.
+     *
+     * ⚠️ NEEDED FOR THE SAME REASON [revokeApi] IS: the real ones mint against production and dial
+     * the broadcaster it names.
+     */
+    val liveDependencies: LiveDependencies? = null,
     /** The media engine a room, the dialler and the persona audition connect through. */
     val callEngineFactory: CallEngineFactory? = null,
     /** What the softphone tells the OS; Robolectric does not model `TelecomManager`. */

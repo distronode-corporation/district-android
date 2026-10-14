@@ -89,7 +89,7 @@ fun InboxScreen(
                     if (compose != null && !searchState.active) {
                         DistrictButton(
                             text = stringResource(R.string.inbox_compose_open),
-                            onClick = compose.actions::open,
+                            onClick = compose.actions.open,
                             variant = ButtonVariant.Ghost,
                             modifier = Modifier.testTag(COMPOSE_OPEN_DESCRIPTION),
                         )

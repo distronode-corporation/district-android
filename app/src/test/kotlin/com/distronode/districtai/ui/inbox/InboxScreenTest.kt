@@ -343,18 +343,20 @@ class InboxScreenTest {
 
     // ── Starting a conversation ──────────────────────────────────────────────
 
-    private class OpenCounter : ComposeActions {
+    private class OpenCounter {
         var opened = 0
-        override fun open() { opened++ }
-        override fun dismiss() = Unit
-        override fun onQueryChange(query: String) = Unit
-        override fun choose(contact: com.distronode.districtai.core.model.Contact) = Unit
-        override fun useTypedAddress() = Unit
-        override fun clearRecipient() = Unit
-        override fun selectChannel(index: Int) = Unit
-        override fun onBodyChange(body: String) = Unit
-        override fun onSubjectChange(subject: String) = Unit
-        override fun send() = Unit
+        val bound = ComposeActions(
+            open = { opened++ },
+            dismiss = {},
+            onQueryChange = {},
+            choose = {},
+            useTypedAddress = {},
+            clearRecipient = {},
+            selectChannel = {},
+            onBodyChange = {},
+            onSubjectChange = {},
+            send = {},
+        )
     }
 
     private fun renderWithCompose(compose: InboxCompose?, search: InboxSearchState = InboxSearchState()) {
@@ -378,7 +380,7 @@ class InboxScreenTest {
     @Test
     fun `a role that can send is offered a new message, and the tap opens the form`() {
         val actions = OpenCounter()
-        renderWithCompose(InboxCompose(ComposeUiState(), actions) {})
+        renderWithCompose(InboxCompose(ComposeUiState(), actions.bound) {})
 
         composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertIsDisplayed().performClick()
 
@@ -388,7 +390,7 @@ class InboxScreenTest {
 
     @Test
     fun `an open form is drawn over the list`() {
-        renderWithCompose(InboxCompose(ComposeUiState(open = true), OpenCounter()) {})
+        renderWithCompose(InboxCompose(ComposeUiState(open = true), OpenCounter().bound) {})
 
         composeRule.onNodeWithTag(COMPOSE_ROOT_DESCRIPTION).assertExists()
     }
@@ -402,7 +404,7 @@ class InboxScreenTest {
 
     @Test
     fun `the control steps aside while a search replaces the list`() {
-        renderWithCompose(InboxCompose(ComposeUiState(), OpenCounter()) {}, InboxSearchState(query = "refund"))
+        renderWithCompose(InboxCompose(ComposeUiState(), OpenCounter().bound) {}, InboxSearchState(query = "refund"))
 
         composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertDoesNotExist()
     }

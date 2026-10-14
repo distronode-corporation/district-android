@@ -166,21 +166,23 @@ data class ComposeUiState(
 /**
  * The form's controls, as the screen sees them.
  *
- * ⚠️ AN INTERFACE SO THE SCREEN TAKES ONE VALUE RATHER THAN TEN LAMBDAS, and a screen test can drive
- * it with a recording fake. [ComposeViewModel] is the one real implementation.
+ * ⚠️ FUNCTION VALUES BUILT ONCE, OUTSIDE COMPOSITION (see [ComposeViewModel.actions]), so the screen
+ * hands each control an existing value rather than a method reference that Compose would wrap and
+ * re-remember on every redraw. One value rather than ten parameters, and a screen test builds its own
+ * with recording lambdas.
  */
-interface ComposeActions {
-    fun open()
-    fun dismiss()
-    fun onQueryChange(query: String)
-    fun choose(contact: Contact)
-    fun useTypedAddress()
-    fun clearRecipient()
-    fun selectChannel(index: Int)
-    fun onBodyChange(body: String)
-    fun onSubjectChange(subject: String)
-    fun send()
-}
+data class ComposeActions(
+    val open: () -> Unit,
+    val dismiss: () -> Unit,
+    val onQueryChange: (String) -> Unit,
+    val choose: (Contact) -> Unit,
+    val useTypedAddress: () -> Unit,
+    val clearRecipient: () -> Unit,
+    val selectChannel: (Int) -> Unit,
+    val onBodyChange: (String) -> Unit,
+    val onSubjectChange: (String) -> Unit,
+    val send: () -> Unit,
+)
 
 /**
  * The name a suggestion row and the "To" line show.

@@ -50,18 +50,20 @@ class ComposeDialogTest {
     val rules: RuleChain = RuleChain.outerRule(MainLooperDrain()).around(composeRule)
 
     /** Every call the form made, by name, in order. */
-    private class RecordingActions : ComposeActions {
+    private class RecordingActions {
         val calls = mutableListOf<String>()
-        override fun open() { calls += "open" }
-        override fun dismiss() { calls += "dismiss" }
-        override fun onQueryChange(query: String) { calls += "query:$query" }
-        override fun choose(contact: Contact) { calls += "choose:${contact.id}" }
-        override fun useTypedAddress() { calls += "typed" }
-        override fun clearRecipient() { calls += "clear" }
-        override fun selectChannel(index: Int) { calls += "channel:$index" }
-        override fun onBodyChange(body: String) { calls += "body:$body" }
-        override fun onSubjectChange(subject: String) { calls += "subject:$subject" }
-        override fun send() { calls += "send" }
+        val bound = ComposeActions(
+            open = { calls += "open" },
+            dismiss = { calls += "dismiss" },
+            onQueryChange = { calls += "query:$it" },
+            choose = { calls += "choose:${it.id}" },
+            useTypedAddress = { calls += "typed" },
+            clearRecipient = { calls += "clear" },
+            selectChannel = { calls += "channel:$it" },
+            onBodyChange = { calls += "body:$it" },
+            onSubjectChange = { calls += "subject:$it" },
+            send = { calls += "send" },
+        )
     }
 
     private val actions = RecordingActions()
@@ -83,7 +85,7 @@ class ComposeDialogTest {
 
     private fun render(state: ComposeUiState) {
         composeRule.setContent {
-            DistrictTheme { ComposeDialog(state = state, actions = actions) }
+            DistrictTheme { ComposeDialog(state = state, actions = actions.bound) }
         }
     }
 
@@ -279,7 +281,7 @@ class ComposeDialogTest {
             ComposeUiState(open = true, contacts = ComposeContacts.Ready(listOf(ada, blankColumns)), query = "a"),
         )
         composeRule.setContent {
-            DistrictTheme { ComposeHost(InboxCompose(state, actions) {}) }
+            DistrictTheme { ComposeHost(InboxCompose(state, actions.bound) {}) }
         }
 
         state = state.copy(query = "la")
@@ -334,7 +336,7 @@ class ComposeDialogTest {
     @Test
     fun `controls follow a replaced actions instance`() {
         val later = RecordingActions()
-        var current: ComposeActions by mutableStateOf(actions)
+        var current: ComposeActions by mutableStateOf(actions.bound)
         var state by mutableStateOf(
             ComposeUiState(open = true, contacts = ComposeContacts.Ready(listOf(ada)), query = "ada"),
         )
@@ -342,7 +344,7 @@ class ComposeDialogTest {
             DistrictTheme { ComposeHost(InboxCompose(state, current) {}) }
         }
 
-        current = later
+        current = later.bound
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Ada Lovelace").performClick()
         composeRule.onNodeWithText(str(R.string.inbox_compose_message_address, "ada")).performClick()
@@ -350,12 +352,12 @@ class ComposeDialogTest {
 
         state = state.copy(contacts = ComposeContacts.Failed(FailureText(UiText.Literal("Down."))))
         composeRule.waitForIdle()
-        current = actions
+        current = actions.bound
         composeRule.waitForIdle()
 
         state = state.copy(recipient = ComposeRecipient.Picked(ada), selectedChannel = 1, body = "Hi", subject = "Q")
         composeRule.waitForIdle()
-        current = later
+        current = later.bound
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("$COMPOSE_CHANNEL_DESCRIPTION-sms").performClick()
         composeRule.onNodeWithTag(COMPOSE_SUBJECT_DESCRIPTION).performTextInput("!")
@@ -379,7 +381,7 @@ class ComposeDialogTest {
         val landed = mutableListOf<MessageThreadTarget?>()
         var state by mutableStateOf(ComposeUiState(open = true))
         composeRule.setContent {
-            DistrictTheme { ComposeHost(InboxCompose(state, actions) { landed += it }) }
+            DistrictTheme { ComposeHost(InboxCompose(state, actions.bound) { landed += it }) }
         }
         composeRule.onNodeWithTag(COMPOSE_ROOT_DESCRIPTION).assertExists()
 

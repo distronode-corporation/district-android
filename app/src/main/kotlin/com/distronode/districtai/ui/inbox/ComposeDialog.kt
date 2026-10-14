@@ -105,7 +105,7 @@ fun ComposeDialog(state: ComposeUiState, actions: ComposeActions) {
                 text = stringResource(
                     if (state.sending) R.string.inbox_compose_sending else R.string.inbox_compose_send
                 ),
-                onClick = actions::send,
+                onClick = actions.send,
                 enabled = state.submittable,
                 modifier = Modifier.testTag(COMPOSE_SEND_DESCRIPTION),
             )
@@ -113,7 +113,7 @@ fun ComposeDialog(state: ComposeUiState, actions: ComposeActions) {
         dismissButton = {
             DistrictButton(
                 text = stringResource(R.string.inbox_compose_cancel),
-                onClick = actions::dismiss,
+                onClick = actions.dismiss,
                 variant = ButtonVariant.Ghost,
                 enabled = !state.sending,
                 modifier = Modifier.testTag(COMPOSE_CANCEL_DESCRIPTION),
@@ -131,7 +131,7 @@ fun ComposeDialog(state: ComposeUiState, actions: ComposeActions) {
 private fun RecipientPicker(state: ComposeUiState, actions: ComposeActions) {
     OutlinedTextField(
         value = state.query,
-        onValueChange = actions::onQueryChange,
+        onValueChange = actions.onQueryChange,
         label = { Eyebrow(stringResource(R.string.inbox_compose_to)) },
         singleLine = true,
         colors = districtFieldColors(),
@@ -143,7 +143,7 @@ private fun RecipientPicker(state: ComposeUiState, actions: ComposeActions) {
     if (typed.isNotEmpty()) {
         DistrictButton(
             text = stringResource(R.string.inbox_compose_message_address, typed),
-            onClick = actions::useTypedAddress,
+            onClick = actions.useTypedAddress,
             variant = ButtonVariant.Ghost,
             modifier = Modifier.testTag(COMPOSE_USE_TYPED_DESCRIPTION),
         )
@@ -190,7 +190,7 @@ private fun ChosenRecipient(label: String, sending: Boolean, actions: ComposeAct
         }
         DistrictButton(
             text = stringResource(R.string.inbox_compose_change),
-            onClick = actions::clearRecipient,
+            onClick = actions.clearRecipient,
             variant = ButtonVariant.Ghost,
             enabled = !sending,
             modifier = Modifier.testTag(COMPOSE_CHANGE_DESCRIPTION),
@@ -267,7 +267,7 @@ private fun MessageSection(state: ComposeUiState, actions: ComposeActions) {
     if (state.requiresSubject) {
         OutlinedTextField(
             value = state.subject,
-            onValueChange = actions::onSubjectChange,
+            onValueChange = actions.onSubjectChange,
             label = { Eyebrow(stringResource(R.string.inbox_compose_subject)) },
             singleLine = true,
             enabled = !state.sending,
@@ -279,7 +279,7 @@ private fun MessageSection(state: ComposeUiState, actions: ComposeActions) {
     }
     OutlinedTextField(
         value = state.body,
-        onValueChange = actions::onBodyChange,
+        onValueChange = actions.onBodyChange,
         label = { Eyebrow(stringResource(R.string.inbox_compose_message)) },
         minLines = MESSAGE_MIN_LINES,
         enabled = !state.sending,

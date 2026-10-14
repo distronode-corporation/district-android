@@ -423,6 +423,31 @@ class ComposeViewModelTest {
     }
 
     @Test
+    fun `the prebuilt actions reach the same methods`() = runTest(dispatcher) {
+        withContacts(ada)
+        sentWithId("msg-6")
+        val vm = viewModel()
+        val actions = vm.actions
+
+        actions.open()
+        advanceUntilIdle()
+        actions.onQueryChange("+14165550123")
+        actions.useTypedAddress()
+        actions.clearRecipient()
+        actions.choose(ada)
+        actions.selectChannel(1)
+        actions.onSubjectChange("Quote")
+        actions.onBodyChange("Hello")
+        actions.send()
+        advanceUntilIdle()
+        assertEquals("ada@example.com", api.sends.single().to)
+        assertEquals("Quote", api.sends.single().subject)
+
+        actions.dismiss()
+        assertEquals(ComposeUiState(), vm.state.value)
+    }
+
+    @Test
     fun `the factory builds a view model for the workspace`() {
         val vm = ComposeViewModel.Factory(
             ContactsRepository(api),

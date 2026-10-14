@@ -524,7 +524,7 @@ fun DistrictNavHost(
                         },
                         compose = InboxCompose(
                             state = composeState,
-                            actions = compose,
+                            actions = compose.actions,
                             // ⛔ THE LIST IS RE-READ ON EVERY SENT MESSAGE, INCLUDING ONE WITH NO
                             // THREAD: that refresh is the whole fallback, because the new
                             // conversation is at the top of it. ⚠️ A resolved thread opens on the

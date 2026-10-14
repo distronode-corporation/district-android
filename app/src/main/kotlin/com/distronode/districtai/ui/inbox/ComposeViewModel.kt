@@ -41,7 +41,7 @@ class ComposeViewModel(
     private val threads: MessageSearchRepository,
     val workspaceId: String,
     role: WorkspaceRole?,
-) : ViewModel(), ComposeActions {
+) : ViewModel() {
 
     /**
      * ⛔ `messages/send` and the message resolver both exclude `viewer` server-side, so the form is
@@ -53,6 +53,20 @@ class ComposeViewModel(
     private val _state = MutableStateFlow(ComposeUiState())
     val state: StateFlow<ComposeUiState> = _state.asStateFlow()
 
+    /** The form's controls as one value, built once so a redraw never rebuilds them. */
+    val actions: ComposeActions = ComposeActions(
+        open = ::open,
+        dismiss = ::dismiss,
+        onQueryChange = ::onQueryChange,
+        choose = ::choose,
+        useTypedAddress = ::useTypedAddress,
+        clearRecipient = ::clearRecipient,
+        selectChannel = ::selectChannel,
+        onBodyChange = ::onBodyChange,
+        onSubjectChange = ::onSubjectChange,
+        send = ::send,
+    )
+
     /** The contact window read, cancelled on close so a late answer cannot land in the next form. */
     private var contactsJob: Job? = null
 
@@ -63,7 +77,7 @@ class ComposeViewModel(
      * operator, on another device, or by the voice agent from an inbound call) has to be in the list.
      * ⚠️ FAIL-SOFT: a failure is a caption, because typing an address needs no CRM read.
      */
-    override fun open() {
+    fun open() {
         if (!canSend) return
         contactsJob?.cancel()
         _state.value = ComposeUiState(open = true)
@@ -82,18 +96,18 @@ class ComposeViewModel(
      * ⛔ REFUSED WHILE A SEND IS IN FLIGHT. Closing then would lose whether the message went out, and
      * an operator who cannot tell will send it again.
      */
-    override fun dismiss() {
+    fun dismiss() {
         if (_state.value.sending) return
         contactsJob?.cancel()
         _state.value = ComposeUiState()
     }
 
-    override fun onQueryChange(query: String) {
+    fun onQueryChange(query: String) {
         _state.update { it.copy(query = query) }
     }
 
     /** ⚠️ Resets the channel to the first choice: the old index may point past this contact's list. */
-    override fun choose(contact: Contact) {
+    fun choose(contact: Contact) {
         _state.update { it.copy(recipient = ComposeRecipient.Picked(contact), selectedChannel = 0).withoutFailure() }
     }
 
@@ -104,26 +118,26 @@ class ComposeViewModel(
      * its refusals are specific; a client-side pattern would refuse international formats it had not
      * been taught and tell the operator their customer's number is wrong.
      */
-    override fun useTypedAddress() {
+    fun useTypedAddress() {
         val typed = _state.value.query.trim()
         if (typed.isEmpty()) return
         _state.update { it.copy(recipient = ComposeRecipient.Typed(typed), selectedChannel = 0).withoutFailure() }
     }
 
-    override fun clearRecipient() {
+    fun clearRecipient() {
         _state.update { it.copy(recipient = null, selectedChannel = 0).withoutFailure() }
     }
 
     /** ⚠️ Bounds-checked against the ARMED recipient's choices, which change when the recipient does. */
-    override fun selectChannel(index: Int) {
+    fun selectChannel(index: Int) {
         _state.update { if (index in it.channelChoices.indices) it.copy(selectedChannel = index) else it }
     }
 
-    override fun onBodyChange(body: String) {
+    fun onBodyChange(body: String) {
         _state.update { it.copy(body = body) }
     }
 
-    override fun onSubjectChange(subject: String) {
+    fun onSubjectChange(subject: String) {
         _state.update { it.copy(subject = subject) }
     }
 
@@ -136,7 +150,7 @@ class ComposeViewModel(
      * ⚠️ THE SUBJECT IS SENT ONLY ON EMAIL, and never as `""`: the route treats an empty subject and
      * an absent one the same, so a blank string would look like a fix and be none.
      */
-    override fun send() {
+    fun send() {
         val current = _state.value
         val target = current.target
         if (!canSend || target == null || !current.submittable) return

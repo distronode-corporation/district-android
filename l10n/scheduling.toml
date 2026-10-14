@@ -423,6 +423,281 @@ ctx = "error"
 screen = "scheduling"
 tier = "T2"
 
+[scheduling_admin.hours.add_range]
+en = "Add range"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Adds another bookable window (by default 9:00 to 17:00) to one weekday."
+
+[scheduling_admin.hours.clear_date]
+en = "Clear"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Empties the optional last day, making the override a single day."
+
+[scheduling_admin.hours.copy_to_weekdays]
+en = "Copy to all weekdays"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Copies this day's hours onto Monday to Friday, replacing what those days had."
+
+[scheduling_admin.hours.date_label]
+en = "Date"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "The day a custom-hours override applies to."
+
+[scheduling_admin.hours.date_missing]
+en = "Pick a date."
+ctx = "error"
+screen = "scheduling working hours"
+tier = "T2"
+
+[scheduling_admin.hours.day_not_bookable]
+en = "Not bookable"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Beside a weekday that has no bookable hours."
+
+[scheduling_admin.hours.edit_title]
+en = "Your working hours"
+ctx = "title"
+screen = "scheduling working hours"
+tier = "T3"
+note = "The button that opens the weekly hours editor, and that editor's title."
+
+[scheduling_admin.hours.end_before_start]
+en = "The last day has to be on or after the first."
+ctx = "error"
+screen = "scheduling working hours"
+tier = "T2"
+
+[scheduling_admin.hours.end_label]
+en = "End"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Field for the end of a bookable window, typed as HH:MM."
+
+[scheduling_admin.hours.first_day_label]
+en = "First day"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "The first day of an unavailable override, which may span several days."
+
+[scheduling_admin.hours.hours_label]
+en = "Hours that day"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.kind_custom_hours]
+en = "Custom hours"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Override kind: bookable only during the hours given, on one day (wire value custom_hours)."
+
+[scheduling_admin.hours.kind_label]
+en = "What happens that day"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Choice between being unavailable and working custom hours on the chosen date."
+
+[scheduling_admin.hours.kind_unavailable]
+en = "Unavailable"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Override kind: not bookable at all on the chosen day or days (wire value day_off)."
+
+[scheduling_admin.hours.last_day_hint]
+en = "Leave blank for a single day."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.last_day_label]
+en = "Last day"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.none_at_all]
+en = "Not bookable on any day yet."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T3"
+note = "In place of the weekly hours summary when no day has any bookable hours."
+
+[scheduling_admin.hours.nothing_to_save]
+en = "Nothing to save."
+ctx = "toast"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Save was pressed but the week is unchanged, so nothing was sent."
+
+[scheduling_admin.hours.out_of_office]
+en = "Out of office"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "A date override whose reason is out of office: not bookable that day."
+
+[scheduling_admin.hours.override_add]
+en = "Add override"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Opens the form for a dated exception to the weekly hours, and submits it."
+
+[scheduling_admin.hours.override_add_title]
+en = "Add an override"
+ctx = "title"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.override_added]
+en = "Override added"
+ctx = "toast"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.override_delete]
+en = "Delete"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T2"
+note = "On one date override (a day or a range): asks before deleting it."
+
+[scheduling_admin.hours.override_delete_confirm]
+en = "Delete override"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T2"
+note = "Destructive: the day or days go back to the weekly hours."
+
+[scheduling_admin.hours.override_delete_group_body]
+en.one = "{days} day goes back to your weekly hours."
+en.other = "All {days} days go back to your weekly hours."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T2"
+args = { days = "int" }
+note = "Deleting an override that covers a range of days. Only used for two days or more."
+
+[scheduling_admin.hours.override_delete_single_body]
+en = "That day goes back to your weekly hours."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T2"
+
+[scheduling_admin.hours.override_delete_title]
+en = "Delete this override?"
+ctx = "title"
+screen = "scheduling working hours"
+tier = "T2"
+
+[scheduling_admin.hours.override_deleted]
+en = "Override deleted"
+ctx = "toast"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.overrides_empty]
+en = "No overrides ahead."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T3"
+note = "The date overrides list is empty, for a member who may only read it."
+
+[scheduling_admin.hours.overrides_empty_manage]
+en = "No overrides ahead. Add one for a day off or different hours."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T3"
+note = "The date overrides list is empty, for a member who may add one."
+
+[scheduling_admin.hours.overrides_eyebrow]
+en = "Date overrides"
+ctx = "title"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Heading of the list of dated exceptions to the weekly hours."
+
+[scheduling_admin.hours.overrides_subtitle]
+en = "Days you are away, or working different hours from usual."
+ctx = "body"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.pick_date]
+en = "Choose date"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Opens a calendar to pick the override's day."
+
+[scheduling_admin.hours.pick_date_confirm]
+en = "OK"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Confirms the day picked in the calendar."
+
+[scheduling_admin.hours.remove_range]
+en = "Remove"
+ctx = "button"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Removes one window from a day in the editor; nothing is deleted until Save."
+
+[scheduling_admin.hours.saved]
+en = "Working hours saved"
+ctx = "toast"
+screen = "scheduling working hours"
+tier = "T3"
+
+[scheduling_admin.hours.start_label]
+en = "Start"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "Field for the start of a bookable window, typed as HH:MM."
+
+[scheduling_admin.hours.time_format_error]
+en = "Enter a time as HH:MM."
+ctx = "error"
+screen = "scheduling working hours"
+tier = "T2"
+note = "HH:MM is the required shape (two-digit hour, colon, two-digit minutes), e.g. 09:00. Keep HH:MM as is."
+
+[scheduling_admin.hours.time_order_error]
+en = "The end has to be after the start."
+ctx = "error"
+screen = "scheduling working hours"
+tier = "T2"
+
+[scheduling_admin.hours.time_overlap_error]
+en = "These hours overlap another range on this day."
+ctx = "error"
+screen = "scheduling working hours"
+tier = "T2"
+
+[scheduling_admin.hours.unavailable]
+en = "Unavailable"
+ctx = "label"
+screen = "scheduling working hours"
+tier = "T3"
+note = "A date override on which the member is not bookable (a day off)."
+
 [scheduling_admin.overview.booking]
 en = "Booking"
 ctx = "label"

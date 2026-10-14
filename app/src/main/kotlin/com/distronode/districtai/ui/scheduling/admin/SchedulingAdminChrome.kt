@@ -89,8 +89,8 @@ fun SchedulingCard(
 
 /** A label over its value, as a read-only fact. */
 @Composable
-fun SchedulingReadOnlyRow(label: String, value: String) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun SchedulingReadOnlyRow(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
@@ -150,12 +150,12 @@ fun SchedulingStatusBadge(label: String, kind: SchedulingStatusKind) {
 
 /** A muted line under a field or a list. */
 @Composable
-fun SchedulingHint(text: String) {
+fun SchedulingHint(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     )
 }
 

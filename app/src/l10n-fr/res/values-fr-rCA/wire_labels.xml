@@ -53,9 +53,9 @@
     <string name="wire_desk_ticket_source_manual">Saisie manuelle</string>
     <string name="wire_desk_ticket_source_unknown">Valeur inconnue\u00A0: %1$s</string>
     <string name="wire_desk_ticket_source_voice_call">Depuis un appel téléphonique</string>
-    <string name="wire_desk_ticket_status_open">Ouverte</string>
-    <string name="wire_desk_ticket_status_resolved">Réglée</string>
-    <string name="wire_desk_ticket_status_unknown">Inconnue</string>
+    <string name="wire_desk_ticket_status_open">Ouvert</string>
+    <string name="wire_desk_ticket_status_resolved">Réglé</string>
+    <string name="wire_desk_ticket_status_unknown">Inconnu</string>
     <string name="wire_desk_ticket_status_waiting">En attente</string>
     <string name="wire_disposition_booked">rendez-vous pris</string>
     <string name="wire_disposition_callback">à rappeler</string>
@@ -69,7 +69,7 @@
     <string name="wire_disposition_wrong_number">mauvais numéro</string>
     <string name="wire_funnel_stage_connected_calls">Appels connectés</string>
     <string name="wire_funnel_stage_successful_leads">Clients potentiels obtenus</string>
-    <string name="wire_funnel_stage_total_dials">Composions totales</string>
+    <string name="wire_funnel_stage_total_dials">Appels composés au total</string>
     <string name="wire_funnel_stage_unknown">Valeur inconnue\u00A0: %1$s</string>
     <string name="wire_knowledge_document_status_failed">Échec</string>
     <string name="wire_knowledge_document_status_processing">Indexation</string>

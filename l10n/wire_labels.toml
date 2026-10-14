@@ -482,7 +482,7 @@ note = "The deskTicketSource value `voice-call` as the server sends it. This app
 
 [wire.desk_ticket_status_open]
 en = "open"
-fr = "Ouverte"
+fr = "Ouvert"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
@@ -491,7 +491,7 @@ note = "The deskTicketStatus value `open` as the server sends it. This app has a
 
 [wire.desk_ticket_status_resolved]
 en = "resolved"
-fr = "Réglée"
+fr = "Réglé"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
@@ -500,7 +500,7 @@ note = "The deskTicketStatus value `resolved` as the server sends it. This app h
 
 [wire.desk_ticket_status_unknown]
 en = "Unknown"
-fr = "Inconnue"
+fr = "Inconnu"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
@@ -627,7 +627,7 @@ note = "The funnelStage value `Successful Leads` as the server sends it. This ap
 
 [wire.funnel_stage_total_dials]
 en = "Total Dials"
-fr = "Composions totales"
+fr = "Appels composés au total"
 ctx = "label"
 screen = "analytics"
 tier = "T3"

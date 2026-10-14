@@ -210,15 +210,25 @@ def wire_labels() -> tuple[dict, str]:
                 note += f" Its long French name is \"{long}\"."
             table[seg] = entry(display(v["value"], rule), v.get("fr"), "label", screen, "T3", note)
             pairs.append((v["value"], f"wire_{seg}"))
-        table[f"{prefix}_unknown"] = entry(
-            "{value}", None, "label", screen, "T3",
-            f"A {cat} value this app does not know, passed through as {{value}}"
-            + {"upper": " (upper-cased)", "humanize": " (as a heading, split into words)"}.get(rule, "")
-            + ". English shows it as sent, as it always has."
-            " In French, name it generically and keep {value} in it, e.g. a status this app does not know.",
-            {"value": "str"},
-        )
-        enums.append((enum_name, rule, pairs, f"wire_{prefix}_unknown"))
+        fallback = spec.get("fallback")
+        if fallback:
+            # ⛔ THE CATEGORY'S OWN FALLBACK WINS OVER THE GENERIC LABEL, in both languages, as the cores
+            # do: a number status this app does not know reads "Active" / « Actif », not the raw value.
+            table[f"{prefix}_unknown"] = entry(
+                fallback["en"], fallback.get("fr"), "label", screen, "T3",
+                f"What a {cat} value this app does not know reads as: the category's own `fallback` in"
+                " contracts/i18n/wire-vocabulary.json, in both languages.",
+            )
+        else:
+            table[f"{prefix}_unknown"] = entry(
+                "{value}", None, "label", screen, "T3",
+                f"A {cat} value this app does not know, passed through as {{value}}"
+                + {"upper": " (upper-cased)", "humanize": " (as a heading, split into words)"}.get(rule, "")
+                + ". English shows it as sent, as it always has."
+                " In French, name it generically and keep {value} in it, e.g. a status this app does not know.",
+                {"value": "str"},
+            )
+        enums.append((enum_name, rule, pairs, f"wire_{prefix}_unknown", not fallback))
     data = {"meta": {"catalog": "wire_labels", "platform": "android"}, "wire": table}
     lines = [
         f"// {HEADER.format(src='wire-vocabulary.json')}",
@@ -229,16 +239,25 @@ def wire_labels() -> tuple[dict, str]:
         "/**",
         " * Every wire-vocabulary category: each known value to its label, the label for an",
         " * unknown value (which takes the value as its one argument), and whether the value is upper-cased first.",
+        " *",
+        " * [unknownTakesValue] is false for a category with its own `fallback`, whose unknown label is a fixed",
+        " * word (\"Active\") rather than one that names the value.",
         " */",
-        "internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int, val upperCase: Boolean) {",
+        "internal enum class WireCategory(",
+        "    val labels: Map<String, Int>,",
+        "    val unknown: Int,",
+        "    val upperCase: Boolean,",
+        "    val unknownTakesValue: Boolean,",
+        ") {",
     ]
-    for enum_name, rule, pairs, unknown in enums:
+    for enum_name, rule, pairs, unknown, takes_value in enums:
         lines.append(f"    {enum_name}(")
         lines.append("        labels = mapOf(")
         lines += [f'            "{v}" to R.string.{n},' for v, n in pairs]
         lines.append("        ),")
         lines.append(f"        unknown = R.string.{unknown},")
         lines.append(f"        upperCase = {'true' if rule == 'upper' else 'false'},")
+        lines.append(f"        unknownTakesValue = {'true' if takes_value else 'false'},")
         lines.append("    ),")
     lines += ["}", ""]
     lines += placeholder_tables(src["placeholders"])

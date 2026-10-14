@@ -136,3 +136,13 @@ class WireLabelsTest(unittest.TestCase):
         self.assertEqual(gen.humanize("_"), "_")
         self.assertEqual(gen.display("ca", "upper"), "CA")
         self.assertEqual(self.table["contact_research_key_caller_intel"]["en"], "Caller intel")
+
+    def test_a_category_fallback_is_its_unknown_label_in_both_languages(self) -> None:
+        unknown = self.table["number_status_unknown"]
+        self.assertEqual((unknown["en"], unknown["fr"]), ("Active", "Actif"))
+        self.assertNotIn("args", unknown)
+        self.assertEqual(self.table["transfer_reason_unknown"]["en"], "Transfer attempted but not connected")
+        self.assertEqual(self.table["desk_ticket_status_unknown"]["fr"], "Inconnue")
+        self.assertEqual(self.table["knowledge_document_status_unknown"]["fr"], "Inconnu")
+        self.assertEqual(self.table["meeting_status_unknown"]["en"], "{value}")
+        self.assertIn("unknownTakesValue = false", self.kotlin)

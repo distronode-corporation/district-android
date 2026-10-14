@@ -176,8 +176,9 @@ class CallDetailScreenTest {
 
         composeRule.onNodeWithText("Positive").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Booked").performScrollTo().assertIsDisplayed()
-        // ⚠️ Status and reason are joined, so a transfer that failed says why on the same card.
-        composeRule.onNodeWithText("completed · asked for a human").performScrollTo()
+        // ⚠️ Status and reason are joined, so a transfer that failed says why on the same card. A reason
+        // the vocabulary does not list reads as transferReason's own fallback.
+        composeRule.onNodeWithText("completed · ${str(R.string.wire_transfer_reason_unknown)}").performScrollTo()
             .assertIsDisplayed()
         composeRule.onNodeWithText("• Wants a Tuesday slot").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("• Price").performScrollTo().assertIsDisplayed()

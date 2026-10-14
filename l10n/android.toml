@@ -3177,7 +3177,7 @@ fr = "Courriel"
 ctx = "label"
 screen = "inbox"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The chip on a conversation that has email in it. English is the value upper-cased, as the app has always shown it."
 
 [inbox.channel_sms]
@@ -3186,7 +3186,7 @@ fr = "SMS"
 ctx = "label"
 screen = "inbox"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 same_ok = true
 note = "The chip on a conversation that has text messages in it. English is the value upper-cased, as the app has always shown it."
 
@@ -3825,7 +3825,7 @@ ctx = "label"
 screen = "devices, inbox, messaging accounts, routing rules"
 tier = "T3"
 args = { value = "str" }
-state = "draft"
+state = "reviewed"
 note = "A value this app has no label for (a device platform, a message channel, a routing field), passed through as {value}. English shows it as sent, as it always has. The French is the wire labels' reviewed unknown-value label (unit 0dc1e2805156)."
 
 [live_transcript.connecting]
@@ -4573,7 +4573,7 @@ fr = "SMS"
 ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The channel `sms`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeSms)."
 
 [messaging.channel_title]
@@ -4592,7 +4592,7 @@ fr = "Voix"
 ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The channel `voice`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeVoice)."
 
 [messaging.channel_whatsapp]
@@ -4601,7 +4601,7 @@ fr = "WhatsApp"
 ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The channel `whatsapp`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeWhatsApp)."
 
 [messaging.creator_cell_help]
@@ -6505,7 +6505,7 @@ fr = "Type d'appelant (business/consumer)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contact field `callerType` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.field_estimated_value]
@@ -6514,7 +6514,7 @@ fr = "Valeur estimée"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contact field `estimatedValue` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
 
 [routing.field_industry]
@@ -6523,7 +6523,7 @@ fr = "Secteur d'activité"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contact field `industry` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
 
 [routing.field_is_decision_maker]
@@ -6532,7 +6532,7 @@ fr = "Décideur (true/false)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contact field `isDecisionMaker` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.field_line_type]
@@ -6541,7 +6541,7 @@ fr = "Type de ligne (mobile/landline/voip)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contact field `lineType` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.field_seniority]
@@ -6550,7 +6550,7 @@ fr = "Niveau hiérarchique (p. ex. vp, c-suite)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contact field `seniority` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.instruction]
@@ -6596,7 +6596,7 @@ fr = "Contient"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The comparison `contains`. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
 
 [routing.operator_equals]
@@ -6605,7 +6605,7 @@ fr = "Égal à"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The comparison `equals`. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
 
 [routing.option_unset]
@@ -7403,7 +7403,7 @@ fr = "Reçue"
 ctx = "label"
 screen = "support, support request"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The status the server sends for a request the desk has not synced yet (helpdesk.ts writes \"Received\"). Every other status is the desk's own word and is shown as sent, as the portal does. The French is the portal's statusUnsynced (lib/i18n/pages/support.ts)."
 
 [support.title]
@@ -7541,7 +7541,7 @@ fr = "Appel"
 ctx = "label"
 screen = "message thread"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The chip on a call in a conversation thread: the event, not the action. thread.call is the button."
 
 [thread.call_missed]

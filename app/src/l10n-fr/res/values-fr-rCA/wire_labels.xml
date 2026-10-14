@@ -55,7 +55,7 @@
     <string name="wire_desk_ticket_source_voice_call">Depuis un appel téléphonique</string>
     <string name="wire_desk_ticket_status_open">Ouverte</string>
     <string name="wire_desk_ticket_status_resolved">Réglée</string>
-    <string name="wire_desk_ticket_status_unknown">Valeur inconnue\u00A0: %1$s</string>
+    <string name="wire_desk_ticket_status_unknown">Inconnue</string>
     <string name="wire_desk_ticket_status_waiting">En attente</string>
     <string name="wire_disposition_booked">rendez-vous pris</string>
     <string name="wire_disposition_callback">à rappeler</string>
@@ -74,7 +74,7 @@
     <string name="wire_knowledge_document_status_failed">Échec</string>
     <string name="wire_knowledge_document_status_processing">Indexation</string>
     <string name="wire_knowledge_document_status_ready">Prêt</string>
-    <string name="wire_knowledge_document_status_unknown">Valeur inconnue\u00A0: %1$s</string>
+    <string name="wire_knowledge_document_status_unknown">Inconnu</string>
     <string name="wire_line_type_landline">Ligne résidentielle ou de bureau</string>
     <string name="wire_line_type_mobile">Téléphone mobile</string>
     <string name="wire_line_type_unknown">Valeur inconnue\u00A0: %1$s</string>
@@ -112,7 +112,7 @@
     <string name="wire_number_status_pending_verification">Vérification en attente</string>
     <string name="wire_number_status_released">Libéré</string>
     <string name="wire_number_status_suspended">Suspendu</string>
-    <string name="wire_number_status_unknown">Valeur inconnue\u00A0: %1$s</string>
+    <string name="wire_number_status_unknown">Actif</string>
     <string name="wire_number_type_local">Local</string>
     <string name="wire_number_type_mobile">Mobile</string>
     <string name="wire_number_type_toll_free">Sans frais</string>
@@ -158,7 +158,7 @@
     <string name="wire_transfer_reason_ring_timeout">Le poste n\'a pas répondu (sonnerie expirée)</string>
     <string name="wire_transfer_reason_room_not_found">Transfert tenté, sans connexion</string>
     <string name="wire_transfer_reason_trunk_not_configured">Voie de transfert non configurée</string>
-    <string name="wire_transfer_reason_unknown">Valeur inconnue\u00A0: %1$s</string>
+    <string name="wire_transfer_reason_unknown">Transfert tenté, sans connexion</string>
     <string name="wire_transfer_status_completed">Terminé</string>
     <string name="wire_transfer_status_failed">Échec du transfert</string>
     <string name="wire_transfer_status_success">Transféré</string>

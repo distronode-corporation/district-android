@@ -55,7 +55,7 @@
     <string name="wire_desk_ticket_source_voice_call">voice-call</string>
     <string name="wire_desk_ticket_status_open">open</string>
     <string name="wire_desk_ticket_status_resolved">resolved</string>
-    <string name="wire_desk_ticket_status_unknown">%1$s</string>
+    <string name="wire_desk_ticket_status_unknown">Unknown</string>
     <string name="wire_desk_ticket_status_waiting">waiting</string>
     <string name="wire_disposition_booked">booked</string>
     <string name="wire_disposition_callback">callback</string>
@@ -74,7 +74,7 @@
     <string name="wire_knowledge_document_status_failed">failed</string>
     <string name="wire_knowledge_document_status_processing">processing</string>
     <string name="wire_knowledge_document_status_ready">ready</string>
-    <string name="wire_knowledge_document_status_unknown">%1$s</string>
+    <string name="wire_knowledge_document_status_unknown">Unknown</string>
     <string name="wire_line_type_landline">landline</string>
     <string name="wire_line_type_mobile">mobile</string>
     <string name="wire_line_type_unknown">%1$s</string>
@@ -112,7 +112,7 @@
     <string name="wire_number_status_pending_verification">pending_verification</string>
     <string name="wire_number_status_released">released</string>
     <string name="wire_number_status_suspended">suspended</string>
-    <string name="wire_number_status_unknown">%1$s</string>
+    <string name="wire_number_status_unknown">Active</string>
     <string name="wire_number_type_local">local</string>
     <string name="wire_number_type_mobile">mobile</string>
     <string name="wire_number_type_toll_free">tollFree</string>
@@ -158,7 +158,7 @@
     <string name="wire_transfer_reason_ring_timeout">ring_timeout</string>
     <string name="wire_transfer_reason_room_not_found">room_not_found</string>
     <string name="wire_transfer_reason_trunk_not_configured">trunk_not_configured</string>
-    <string name="wire_transfer_reason_unknown">%1$s</string>
+    <string name="wire_transfer_reason_unknown">Transfer attempted but not connected</string>
     <string name="wire_transfer_status_completed">completed</string>
     <string name="wire_transfer_status_failed">failed</string>
     <string name="wire_transfer_status_success">success</string>

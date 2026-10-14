@@ -6,8 +6,16 @@ import com.distronode.districtai.R
 /**
  * Every wire-vocabulary category: each known value to its label, the label for an
  * unknown value (which takes the value as its one argument), and whether the value is upper-cased first.
+ *
+ * [unknownTakesValue] is false for a category with its own `fallback`, whose unknown label is a fixed
+ * word ("Active") rather than one that names the value.
  */
-internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int, val upperCase: Boolean) {
+internal enum class WireCategory(
+    val labels: Map<String, Int>,
+    val unknown: Int,
+    val upperCase: Boolean,
+    val unknownTakesValue: Boolean,
+) {
     CALL_STATUS(
         labels = mapOf(
             "completed" to R.string.wire_call_status_completed,
@@ -22,6 +30,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_call_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     CALL_DIRECTION(
         labels = mapOf(
@@ -30,6 +39,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_call_direction_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     CALL_TYPE(
         labels = mapOf(
@@ -39,6 +49,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_call_type_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     SENTIMENT(
         labels = mapOf(
@@ -48,6 +59,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_sentiment_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     DISPOSITION(
         labels = mapOf(
@@ -63,6 +75,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_disposition_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     TRANSFER_STATUS(
         labels = mapOf(
@@ -72,6 +85,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_transfer_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     TRANSFER_REASON(
         labels = mapOf(
@@ -86,6 +100,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_transfer_reason_unknown,
         upperCase = false,
+        unknownTakesValue = false,
     ),
     FUNNEL_STAGE(
         labels = mapOf(
@@ -95,6 +110,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_funnel_stage_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     ANALYTICS_SENTIMENT(
         labels = mapOf(
@@ -104,6 +120,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_analytics_sentiment_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     MEMBER_ROLE(
         labels = mapOf(
@@ -113,6 +130,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_member_role_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     REGION(
         labels = mapOf(
@@ -123,6 +141,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_region_unknown,
         upperCase = true,
+        unknownTakesValue = true,
     ),
     DESK_TICKET_STATUS(
         labels = mapOf(
@@ -132,6 +151,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_desk_ticket_status_unknown,
         upperCase = false,
+        unknownTakesValue = false,
     ),
     DESK_TICKET_SOURCE(
         labels = mapOf(
@@ -140,6 +160,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_desk_ticket_source_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     KNOWLEDGE_DOCUMENT_STATUS(
         labels = mapOf(
@@ -149,6 +170,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_knowledge_document_status_unknown,
         upperCase = false,
+        unknownTakesValue = false,
     ),
     WORKFLOW_TRIGGER(
         labels = mapOf(
@@ -169,6 +191,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_workflow_trigger_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     WORKFLOW_RUN_STATUS(
         labels = mapOf(
@@ -179,6 +202,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_workflow_run_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     WORKFLOW_ACTION(
         labels = mapOf(
@@ -191,6 +215,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_workflow_action_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     WORKFLOW_ACTION_OUTCOME(
         labels = mapOf(
@@ -200,6 +225,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_workflow_action_outcome_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     WORKFLOW_ACTION_REASON(
         labels = mapOf(
@@ -225,6 +251,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_workflow_action_reason_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     NUMBER_TYPE(
         labels = mapOf(
@@ -234,6 +261,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_number_type_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     NUMBER_CAPABILITY(
         labels = mapOf(
@@ -243,6 +271,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_number_capability_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     NUMBER_PROVIDER(
         labels = mapOf(
@@ -253,6 +282,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_number_provider_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     MEETING_STATUS(
         labels = mapOf(
@@ -261,6 +291,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_meeting_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     MESSAGE_DELIVERY_STATUS(
         labels = mapOf(
@@ -272,6 +303,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_message_delivery_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     RESEARCH_STATUS(
         labels = mapOf(
@@ -282,6 +314,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_research_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     CONTACT_RESEARCH_KEY(
         labels = mapOf(
@@ -295,6 +328,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_contact_research_key_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     LINE_TYPE(
         labels = mapOf(
@@ -304,6 +338,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_line_type_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     BILLING_SUBSCRIPTION_STATUS(
         labels = mapOf(
@@ -314,6 +349,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_billing_subscription_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     BILLING_INVOICE_STATUS(
         labels = mapOf(
@@ -325,6 +361,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_billing_invoice_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     MESSAGING_CARRIER(
         labels = mapOf(
@@ -334,6 +371,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_messaging_carrier_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     MESSAGING_CREDENTIAL_SOURCE(
         labels = mapOf(
@@ -342,6 +380,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_messaging_credential_source_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     NUMBER_STATUS(
         labels = mapOf(
@@ -352,6 +391,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_number_status_unknown,
         upperCase = false,
+        unknownTakesValue = false,
     ),
     A2P_CAMPAIGN_TYPE(
         labels = mapOf(
@@ -362,6 +402,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_a2p_campaign_type_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     A2P_REGISTRATION_STATUS(
         labels = mapOf(
@@ -371,6 +412,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_a2p_registration_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     TOLL_FREE_VERIFICATION_STATUS(
         labels = mapOf(
@@ -381,6 +423,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_toll_free_verification_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     SIP_TRUNK_STATUS(
         labels = mapOf(
@@ -388,6 +431,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_sip_trunk_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     SCHEDULING_WEBHOOK_DELIVERY_STATUS(
         labels = mapOf(
@@ -397,6 +441,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_scheduling_webhook_delivery_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     SCHEDULING_HOST_ROLE(
         labels = mapOf(
@@ -406,6 +451,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_scheduling_host_role_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     SCHEDULING_QUESTION_TYPE(
         labels = mapOf(
@@ -415,6 +461,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_scheduling_question_type_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
 }
 

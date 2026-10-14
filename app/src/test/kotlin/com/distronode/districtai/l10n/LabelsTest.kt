@@ -68,10 +68,7 @@ class LabelsTest {
             },
             str(R.string.wire_number_provider_twilio) to { wireLabel(WireCategory.NUMBER_PROVIDER, "twilio") },
             str(R.string.wire_number_status_active) to { wireLabel(WireCategory.NUMBER_STATUS, "active") },
-            // Telnyx passes its own status through, so the vocabulary cannot list them all.
-            str(R.string.wire_number_status_unknown, "in-use") to {
-                wireLabel(WireCategory.NUMBER_STATUS, "in-use")
-            },
+
             str(R.string.wire_messaging_carrier_telnyx) to { wireLabel(WireCategory.MESSAGING_CARRIER, "telnyx") },
             str(R.string.wire_messaging_credential_source_byok) to {
                 wireLabel(WireCategory.MESSAGING_CREDENTIAL_SOURCE, "byok")
@@ -153,6 +150,38 @@ class LabelsTest {
         assertEquals(
             R.string.wire_contact_research_key_executive_summary,
             WireCategory.CONTACT_RESEARCH_KEY.labels["executiveSummary"],
+        )
+    }
+
+    @Test
+    fun `a category with its own fallback reads that word for a value it does not list, in both languages`() {
+        // ⛔ The vocabulary's `fallback`, before the generic label: four categories carry one.
+        assertRendered(
+            "Transfer attempted but not connected" to { wireLabel(WireCategory.TRANSFER_REASON, "asked for a human") },
+            "Unknown" to { wireLabel(WireCategory.DESK_TICKET_STATUS, "archived") },
+            "Unknown" to { wireLabel(WireCategory.KNOWLEDGE_DOCUMENT_STATUS, "queued") },
+            // Telnyx passes its own status through ("in-use"), so the vocabulary cannot list them all.
+            "Active" to { wireLabel(WireCategory.NUMBER_STATUS, "in-use") },
+            // A listed value still reads as itself.
+            str(R.string.wire_number_status_suspended) to { wireLabel(WireCategory.NUMBER_STATUS, "suspended") },
+        )
+        val withFallback = WireCategory.entries.filter { !it.unknownTakesValue }.toSet()
+        assertEquals(
+            setOf(
+                WireCategory.TRANSFER_REASON,
+                WireCategory.DESK_TICKET_STATUS,
+                WireCategory.KNOWLEDGE_DOCUMENT_STATUS,
+                WireCategory.NUMBER_STATUS,
+            ),
+            withFallback,
+        )
+    }
+
+    @Test
+    fun `a category without a fallback names the value it does not know`() {
+        assertRendered(
+            str(R.string.wire_meeting_status_unknown, "paused") to { wireLabel(WireCategory.MEETING_STATUS, "paused") },
+            "paused" to { wireLabel(WireCategory.MEETING_STATUS, "paused") },
         )
     }
 }

@@ -499,14 +499,13 @@ state = "reviewed"
 note = "The deskTicketStatus value `resolved` as the server sends it. This app has always shown it as sent. The portal's English label is \"Resolved\"."
 
 [wire.desk_ticket_status_unknown]
-en = "{value}"
-fr = "Valeur inconnue\u00A0: {value}"
+en = "Unknown"
+fr = "Inconnue"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-args = { value = "str" }
 state = "reviewed"
-note = "A deskTicketStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+note = "What a deskTicketStatus value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
 
 [wire.desk_ticket_status_waiting]
 en = "waiting"
@@ -673,14 +672,13 @@ state = "reviewed"
 note = "The knowledgeDocumentStatus value `ready` as the server sends it. This app has always shown it as sent. The portal's English label is \"Ready\"."
 
 [wire.knowledge_document_status_unknown]
-en = "{value}"
-fr = "Valeur inconnue\u00A0: {value}"
+en = "Unknown"
+fr = "Inconnu"
 ctx = "label"
 screen = "workspace settings, knowledge"
 tier = "T3"
-args = { value = "str" }
 state = "reviewed"
-note = "A knowledgeDocumentStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+note = "What a knowledgeDocumentStatus value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
 
 [wire.line_type_landline]
 en = "landline"
@@ -1024,14 +1022,13 @@ state = "reviewed"
 note = "The numberStatus value `suspended` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.number_status_unknown]
-en = "{value}"
-fr = "Valeur inconnue\u00A0: {value}"
+en = "Active"
+fr = "Actif"
 ctx = "label"
 screen = "phone numbers"
 tier = "T3"
-args = { value = "str" }
 state = "reviewed"
-note = "A numberStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+note = "What a numberStatus value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
 
 [wire.number_type_local]
 en = "local"
@@ -1448,14 +1445,13 @@ state = "reviewed"
 note = "The transferReason value `trunk_not_configured` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer route not configured\"."
 
 [wire.transfer_reason_unknown]
-en = "{value}"
-fr = "Valeur inconnue\u00A0: {value}"
+en = "Transfer attempted but not connected"
+fr = "Transfert tenté, sans connexion"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-args = { value = "str" }
 state = "reviewed"
-note = "A transferReason value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+note = "What a transferReason value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
 
 [wire.transfer_status_completed]
 en = "completed"

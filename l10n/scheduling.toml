@@ -3822,7 +3822,7 @@ fr = "Anglais"
 ctx = "label"
 screen = "scheduling settings"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The booking page language `en`. The portal's language names (setupI18n.ts languageEn)."
 
 [scheduling_admin.settings.language_fr]
@@ -3831,7 +3831,7 @@ fr = "Français"
 ctx = "label"
 screen = "scheduling settings"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The booking page language `fr`. The portal's language names (setupI18n.ts languageFr)."
 
 [scheduling_admin.settings.legal_url_hint]

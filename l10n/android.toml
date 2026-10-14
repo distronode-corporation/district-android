@@ -2421,6 +2421,127 @@ screen = "district hq"
 tier = "T3"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ── District HQ (Task A7) ───────────────────────────────────────────── The agentic console. One route, two turns: a prompt runs the model, and a confirm applies a change the operator explicitly approved."
 
+[inbox.compose_cancel]
+en = "Cancel"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+note = "Closes the form and discards what was typed."
+
+[inbox.compose_change]
+en = "Change"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+note = "Goes back to choosing a different recipient."
+
+[inbox.compose_channel_email]
+en = "Email"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+note = "The email channel choice."
+
+[inbox.compose_channel_sms]
+en = "SMS"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+note = "The text-message channel choice. Sending by SMS costs carrier segments."
+
+[inbox.compose_contact_detail]
+en = "{phone} · {email}"
+ctx = "format"
+screen = "inbox compose"
+tier = "T3"
+args = { phone = "str", email = "str" }
+note = "Second line of a contact suggestion when the contact has both a phone number and an email address. Keep the separator unless French typography needs another."
+
+[inbox.compose_message]
+en = "Message"
+ctx = "label"
+screen = "inbox compose"
+tier = "T3"
+note = "Label of the message body field. 'Message' is a noun here."
+
+[inbox.compose_message_address]
+en = "Message {address}"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+args = { address = "str" }
+note = "Button that uses exactly what was typed in the To field as the recipient. {address} is the typed phone number or email address. 'Message' is a verb here."
+
+[inbox.compose_no_address]
+en = "This contact has no phone number or email address on file."
+ctx = "error"
+screen = "inbox compose"
+tier = "T2"
+note = "Shown instead of the channel choice when the chosen contact has neither a phone number nor an email address, so there is nowhere to send."
+
+[inbox.compose_open]
+en = "New message"
+ctx = "button"
+screen = "inbox"
+tier = "T3"
+note = "Inbox top-bar button that opens the form for starting a conversation with someone the Inbox has no thread for yet. Hidden for read-only (viewer) members."
+
+[inbox.compose_recent_contacts]
+en = "Showing your most recent contacts. For anyone else, type their number or email."
+ctx = "body"
+screen = "inbox compose"
+tier = "T3"
+note = "Caption under the contact suggestions. The list is only the newest window of contacts (the server cannot search), so the caption says how to reach anyone else."
+
+[inbox.compose_send]
+en = "Send"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+note = "Sends the first message of the new conversation. Billable (SMS segments or an email)."
+
+[inbox.compose_send_on]
+en = "Send on"
+ctx = "label"
+screen = "inbox compose"
+tier = "T3"
+note = "Label above the SMS / Email choice, shown when the contact has both a phone number and an email address."
+
+[inbox.compose_sending]
+en = "Sending…"
+ctx = "button"
+screen = "inbox compose"
+tier = "T3"
+note = "Send button label while the message is in flight. The button is disabled so a second tap cannot send a second, billed message."
+
+[inbox.compose_subject]
+en = "Subject"
+ctx = "label"
+screen = "inbox compose"
+tier = "T3"
+note = "Email subject field. Required on email, absent on SMS."
+
+[inbox.compose_suggestions_failed]
+en = "You can still enter a number or an email address above."
+ctx = "body"
+screen = "inbox compose"
+tier = "T2"
+note = "Shown under the error sentence when the contact suggestions could not be loaded. The form still works, because a typed number or address needs no contact list."
+
+[inbox.compose_title]
+en = "New message"
+ctx = "title"
+screen = "inbox compose"
+tier = "T3"
+note = "Title of the form for starting a new conversation (first SMS or email to a customer)."
+
+[inbox.compose_to]
+en = "To"
+ctx = "label"
+screen = "inbox compose"
+tier = "T3"
+note = "Recipient field label. The field both filters the recent contacts and accepts a phone number or email address typed by hand."
+
 [inbox.draft_badge]
 en = "Draft"
 ctx = "label"

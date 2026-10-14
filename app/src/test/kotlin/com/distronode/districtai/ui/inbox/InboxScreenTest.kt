@@ -341,6 +341,74 @@ class InboxScreenTest {
         composeRule.onNodeWithText("Refunds take 5 days.").assertIsDisplayed()
     }
 
+    // ── Starting a conversation ──────────────────────────────────────────────
+
+    private class OpenCounter {
+        var opened = 0
+        val bound = ComposeActions(
+            open = { opened++ },
+            dismiss = {},
+            onQueryChange = {},
+            choose = {},
+            useTypedAddress = {},
+            clearRecipient = {},
+            selectChannel = {},
+            onBodyChange = {},
+            onSubjectChange = {},
+            send = {},
+        )
+    }
+
+    private fun renderWithCompose(compose: InboxCompose?, search: InboxSearchState = InboxSearchState()) {
+        composeRule.setContent {
+            DistrictTheme {
+                InboxScreen(
+                    state = InboxUiState.Content(conversations = listOf(thread()), partial = false),
+                    onOpenThread = {},
+                    onRetry = {},
+                    onSignIn = {},
+                    onBack = {},
+                    searchState = search,
+                    onSearchQueryChanged = {},
+                    onOpenHit = {},
+                    compose = compose,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `a role that can send is offered a new message, and the tap opens the form`() {
+        val actions = OpenCounter()
+        renderWithCompose(InboxCompose(ComposeUiState(), actions.bound) {})
+
+        composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertIsDisplayed().performClick()
+
+        assertEquals(1, actions.opened)
+        composeRule.onNodeWithTag(COMPOSE_ROOT_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `an open form is drawn over the list`() {
+        renderWithCompose(InboxCompose(ComposeUiState(open = true), OpenCounter().bound) {})
+
+        composeRule.onNodeWithTag(COMPOSE_ROOT_DESCRIPTION).assertExists()
+    }
+
+    @Test
+    fun `a role that cannot send sees no new message control at all`() {
+        renderWithCompose(compose = null)
+
+        composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the control steps aside while a search replaces the list`() {
+        renderWithCompose(InboxCompose(ComposeUiState(), OpenCounter().bound) {}, InboxSearchState(query = "refund"))
+
+        composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertDoesNotExist()
+    }
+
     private fun hit(id: String, body: String = "Our refund policy is 30 days.") = MessageSearchHit(
         messageId = id,
         threadKey = "contact:c1",

@@ -74,7 +74,9 @@ import com.distronode.districtai.ui.support.SupportSubmitOutcome
 import com.distronode.districtai.ui.support.SupportViewModel
 import com.distronode.districtai.ui.hq.HqScreen
 import com.distronode.districtai.ui.hq.HqViewModel
+import com.distronode.districtai.ui.inbox.ComposeViewModel
 import com.distronode.districtai.ui.inbox.ComposerHandlers
+import com.distronode.districtai.ui.inbox.InboxCompose
 import com.distronode.districtai.ui.inbox.InboxScreen
 import com.distronode.districtai.ui.inbox.InboxViewModel
 import com.distronode.districtai.ui.marketplace.MarketplaceScreen
@@ -457,6 +459,18 @@ fun DistrictNavHost(
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
                     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
+                    // ⚠️ SCOPED TO THIS DESTINATION, so a rotation keeps an open form and its draft;
+                    // `open()` resets it, which is what makes a reopen start clean.
+                    val compose: ComposeViewModel = viewModel(
+                        factory = ComposeViewModel.Factory(
+                            contacts = container.contactsRepository,
+                            inbox = container.inboxRepository,
+                            threads = container.messageSearchRepository,
+                            workspaceId = workspaceId,
+                            role = role,
+                        ),
+                    )
+                    val composeState by compose.state.collectAsStateWithLifecycle()
                     val blockedSnapshot by container.blockedContactsStore.state.collectAsStateWithLifecycle()
                     OnSessionChanged(sessionEpoch) { viewModel.load() }
                     InboxScreen(
@@ -509,6 +523,28 @@ fun DistrictNavHost(
                                 ),
                             )
                         },
+                        compose = InboxCompose(
+                            state = composeState,
+                            actions = compose.actions,
+                            // ⛔ THE LIST IS RE-READ ON EVERY SENT MESSAGE, INCLUDING ONE WITH NO
+                            // THREAD: that refresh is the whole fallback, because the new
+                            // conversation is at the top of it. ⚠️ A resolved thread opens on the
+                            // RESOLVER's counterpart and channel, as a push does, with no title.
+                            onSent = { landing ->
+                                viewModel.load(refreshing = true)
+                                landing?.let { thread ->
+                                    navController.navigate(
+                                        Routes.thread(
+                                            workspaceId = workspaceId,
+                                            role = role,
+                                            threadKey = thread.threadKey,
+                                            replyTo = thread.counterpart,
+                                            replyChannel = thread.channel,
+                                        ),
+                                    )
+                                }
+                            },
+                        ).takeIf { compose.canSend },
                         blockedContactIds = blockedSnapshot.idsFor(workspaceId),
                     )
                 }

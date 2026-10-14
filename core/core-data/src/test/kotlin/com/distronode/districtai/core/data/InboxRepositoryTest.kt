@@ -4,6 +4,7 @@ import com.distronode.districtai.core.model.ConversationLastMessage
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.ConversationsResponse
 import com.distronode.districtai.core.model.SendMessageResponse
+import com.distronode.districtai.core.model.SentMessage
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.TimelinePageInfo
 import com.distronode.districtai.core.model.TimelineResponse
@@ -288,16 +289,30 @@ class InboxRepositoryTest {
     @Test
     fun `a genuine send succeeds and carries the request through verbatim`() = runTest {
         val api = FakeDistrictApi().apply {
-            sendResult = ApiResult.Success(SendMessageResponse(success = true))
+            sendResult = ApiResult.Success(
+                SendMessageResponse(success = true, message = SentMessage(id = "msg-1")),
+            )
         }
 
         val result = InboxRepository(api).send("ws-1", "+14165550142", "on our way", "sms")
 
-        assertTrue(result is ApiResult.Success)
+        // ⚠️ The echoed row's id: starting a conversation resolves its thread from it.
+        assertEquals(ApiResult.Success("msg-1"), result)
         assertEquals(1, api.sends.size)
         assertEquals("+14165550142", api.sends.single().to)
         assertEquals("on our way", api.sends.single().body)
         assertEquals("sms", api.sends.single().channel)
+    }
+
+    @Test
+    fun `a send with no echoed row is still a send, with a blank id`() = runTest {
+        // ⛔ The route echoes the unsaved row when its record write fails after the provider took
+        // the message. That is a SENT message; a blank id only means there is no thread to look up.
+        val api = FakeDistrictApi().apply {
+            sendResult = ApiResult.Success(SendMessageResponse(success = true))
+        }
+
+        assertEquals(ApiResult.Success(""), InboxRepository(api).send("ws-1", "+1416", "hi", "sms"))
     }
 
     @Test

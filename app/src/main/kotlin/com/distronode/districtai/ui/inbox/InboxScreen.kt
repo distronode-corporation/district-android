@@ -22,8 +22,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
+import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
+import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
@@ -51,6 +53,10 @@ import com.distronode.districtai.ui.resolve
  * ⚠️ NO PAGING, BY DESIGN. The server scans a bounded window and groups it, so there is no offset to
  * page on. When the window is exhausted the screen SAYS the list is partial rather than implying it is
  * everything — see [InboxUiState.Content.partial].
+ *
+ * @param compose the "new message" form, or null for a role that may not send. ⛔ NULL HIDES THE
+ *   CONTROL rather than drawing it disabled: `messages/send` excludes `viewer`, and a greyed-out button
+ *   invites a read-only seat to work out why. It is the same gate the thread's reply box sits behind.
  */
 @Composable
 fun InboxScreen(
@@ -62,16 +68,35 @@ fun InboxScreen(
     searchState: InboxSearchState,
     onSearchQueryChanged: (String) -> Unit,
     onOpenHit: (MessageSearchHit) -> Unit,
+    compose: InboxCompose? = null,
     /**
      * Blocked contacts, whose threads leave the list at once. ⚠️ The server's conversations route
      * already drops them; this is what makes a block made a moment ago take effect without a read.
      */
     blockedContactIds: Set<String> = emptySet(),
 ) {
+    compose?.let { ComposeHost(it) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
         modifier = Modifier.testTag(INBOX_ROOT_DESCRIPTION),
-        topBar = { DistrictTopBar(title = stringResource(R.string.inbox_title), onBack = onBack) },
+        topBar = {
+            DistrictTopBar(
+                title = stringResource(R.string.inbox_title),
+                onBack = onBack,
+                actions = {
+                    // ⚠️ NOT DRAWN WHILE A SEARCH IS ON SCREEN, as on iOS: the search replaces the
+                    // list, and the write controls belong to the list.
+                    if (compose != null && !searchState.active) {
+                        DistrictButton(
+                            text = stringResource(R.string.inbox_compose_open),
+                            onClick = compose.actions.open,
+                            variant = ButtonVariant.Ghost,
+                            modifier = Modifier.testTag(COMPOSE_OPEN_DESCRIPTION),
+                        )
+                    }
+                },
+            )
+        },
     ) { inset ->
         Column(modifier = inset.fillMaxSize()) {
             SearchField(searchState, onSearchQueryChanged)

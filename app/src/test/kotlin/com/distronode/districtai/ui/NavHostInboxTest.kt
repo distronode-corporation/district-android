@@ -14,6 +14,16 @@ import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.ConversationsResponse
 import com.distronode.districtai.core.model.MessageSearchHit
 import com.distronode.districtai.core.model.MessageSearchResponse
+import com.distronode.districtai.core.model.MessageThreadResponse
+import com.distronode.districtai.core.model.MessageThreadTarget
+import com.distronode.districtai.core.model.SendMessageResponse
+import com.distronode.districtai.core.model.SentMessage
+import com.distronode.districtai.ui.inbox.COMPOSE_MESSAGE_DESCRIPTION
+import com.distronode.districtai.ui.inbox.COMPOSE_OPEN_DESCRIPTION
+import com.distronode.districtai.ui.inbox.COMPOSE_ROOT_DESCRIPTION
+import com.distronode.districtai.ui.inbox.COMPOSE_SEND_DESCRIPTION
+import com.distronode.districtai.ui.inbox.COMPOSE_TO_DESCRIPTION
+import com.distronode.districtai.ui.inbox.COMPOSE_USE_TYPED_DESCRIPTION
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.TimelineResponse
 import com.distronode.districtai.core.model.WorkspaceRole
@@ -177,6 +187,72 @@ class NavHostInboxTest {
         assertEquals("addr:+14165550999", harness.argument(ARG_THREAD_KEY))
         assertNull(harness.argument(ARG_REPLY_TO))
         assertNull(harness.argument(ARG_REPLY_CHANNEL))
+    }
+
+    // ── Starting a conversation ────────────────────────────────────────────────────────────
+
+    /** Open the form, type a number by hand, use it, and send [body]. */
+    private fun sendToTypedNumber(body: String) {
+        harness.tap(COMPOSE_OPEN_DESCRIPTION)
+        composeRule.onNodeWithTag(COMPOSE_TO_DESCRIPTION).performTextInput("+14165550777")
+        harness.tap(COMPOSE_USE_TYPED_DESCRIPTION)
+        composeRule.onNodeWithTag(COMPOSE_MESSAGE_DESCRIPTION).performTextInput(body)
+        harness.tap(COMPOSE_SEND_DESCRIPTION)
+        harness.awaitMain { harness.api.sends.isNotEmpty() }
+    }
+
+    @Test
+    fun `a first message opens the thread the server resolved, on the resolver's address`() {
+        openInbox()
+        harness.api.sendResult = ApiResult.Success(
+            SendMessageResponse(success = true, message = SentMessage(id = "msg-new")),
+        )
+        harness.search.threadResult = ApiResult.Success(
+            MessageThreadResponse(
+                success = true,
+                thread = MessageThreadTarget(
+                    threadKey = "addr:+14165550777",
+                    counterpart = "+14165550777",
+                    channel = "sms",
+                ),
+            ),
+        )
+        val listReads = harness.api.conversationsReads
+
+        sendToTypedNumber("Hello from the shop")
+        harness.awaitMain { harness.route() == Routes.THREAD }
+
+        val sent = harness.api.sends.single()
+        assertEquals("+14165550777", sent.to)
+        assertEquals("sms", sent.channel)
+        assertEquals(listOf("ws-1" to "msg-new"), harness.search.threadRequests)
+        assertEquals("addr:+14165550777", harness.argument(ARG_THREAD_KEY))
+        assertEquals("+14165550777", harness.argument(ARG_REPLY_TO))
+        assertEquals("sms", harness.argument(ARG_REPLY_CHANNEL))
+        assertNull(harness.argument(ARG_THREAD_TITLE))
+        assertTrue(harness.api.conversationsReads > listReads)
+    }
+
+    @Test
+    fun `a first message whose thread cannot be resolved closes the form and refreshes the list`() {
+        openInbox()
+        harness.api.sendResult = ApiResult.Success(SendMessageResponse(success = true))
+        val listReads = harness.api.conversationsReads
+
+        sendToTypedNumber("Hello")
+        harness.awaitMain { harness.api.conversationsReads > listReads }
+        composeRule.waitForIdle()
+
+        assertEquals(Routes.INBOX, harness.route())
+        composeRule.onNodeWithTag(COMPOSE_ROOT_DESCRIPTION).assertDoesNotExist()
+        assertTrue(harness.search.threadRequests.isEmpty())
+    }
+
+    @Test
+    fun `a viewer is offered no way to start a conversation`() {
+        openInbox(WorkspaceRole.VIEWER)
+
+        composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertDoesNotExist()
     }
 
     // ── The thread destination ─────────────────────────────────────────────────────────────

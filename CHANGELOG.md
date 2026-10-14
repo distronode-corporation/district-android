@@ -8,6 +8,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Added
+
+- Start a new conversation from the Inbox: New message lets you pick a recent contact or type a
+  number or email address, choose SMS or email, and send. The new thread opens once it is sent.
+
 ## [2.2] - 2026-10-13
 
 ### Changed

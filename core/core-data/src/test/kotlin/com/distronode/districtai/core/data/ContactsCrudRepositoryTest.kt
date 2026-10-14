@@ -2,6 +2,7 @@ package com.distronode.districtai.core.data
 
 import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactDetailResponse
+import com.distronode.districtai.core.model.ContactListResponse
 import com.distronode.districtai.core.model.ContactMutationResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.CreateContactRequest
@@ -69,6 +70,32 @@ class ContactsCrudRepositoryTest {
 
         api.mutationResult = offline
         assertEquals(offline, repository.create("ws-1", "Ada", "+14165550142", null))
+    }
+
+    @Test
+    fun `the recent window asks for the first page only, and a refusal or a failure is not an empty CRM`() = runTest {
+        val asked = mutableListOf<Pair<Int, Int>>()
+        val windowed = object : FakeDistrictApi() {
+            override suspend fun contacts(
+                workspaceId: String,
+                limit: Int,
+                offset: Int
+            ): ApiResult<ContactListResponse> {
+                asked += limit to offset
+                return contactsResult
+            }
+        }
+        val recent = ContactsRepository(windowed)
+
+        windowed.contactsResult = ApiResult.Success(ContactListResponse(success = true, contacts = listOf(contact)))
+        assertEquals(ApiResult.Success(listOf(contact)), recent.recent("ws-1", 50))
+        assertEquals(listOf(50 to 0), asked)
+
+        windowed.contactsResult = ApiResult.Success(ContactListResponse(success = false))
+        assertTrue(recent.recent("ws-1", 50) is ApiResult.DecodeFailure)
+
+        windowed.contactsResult = offline
+        assertEquals(offline, recent.recent("ws-1", 50))
     }
 
     @Test

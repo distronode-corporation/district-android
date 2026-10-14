@@ -50,6 +50,24 @@ class ContactsRepository(private val api: DistrictApi) {
     ).flow
 
     /**
+     * The newest [limit] contacts, as one window and not a pager.
+     *
+     * ⛔ ONE WINDOW, BECAUSE THE ROUTE CANNOT SEARCH. `GET /api/district/contacts` takes `limit` and
+     * `offset` and nothing else, so the Inbox's "new message" recipient field filters this window
+     * locally and lets the operator type any other number or address by hand. A pager here would
+     * read the whole CRM to filter it, one page per keystroke-sized hope.
+     *
+     * ⚠️ THE ENVELOPE IS CHECKED, as [ContactsPagingSource] checks it: a `{}` body would otherwise
+     * read as an empty CRM with no error.
+     */
+    suspend fun recent(workspaceId: String, limit: Int): ApiResult<List<Contact>> =
+        when (val result = api.contacts(workspaceId, limit = limit, offset = 0)) {
+            is ApiResult.Success -> rejectedEnvelope(LIST_ENVELOPE, result.value.success)
+                ?: ApiResult.Success(result.value.contacts)
+            is ApiResult.Failure -> result
+        }
+
+    /**
      * One contact by id.
      *
      * ⚠️ Fetched rather than carried from the list so the detail screen survives process death and can
@@ -292,6 +310,7 @@ class ContactsRepository(private val api: DistrictApi) {
          */
         const val DOSSIER_POLL_INTERVAL_MS = 2_500L
 
+        const val LIST_ENVELOPE = "ContactListResponse"
         const val DETAIL_ENVELOPE = "ContactDetailResponse"
         const val MUTATION_ENVELOPE = "ContactMutationResponse"
         const val ENRICH_ENVELOPE = "EnrichResponse"

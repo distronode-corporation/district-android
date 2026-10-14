@@ -112,6 +112,13 @@ class InboxRepository(private val api: DistrictApi) {
      * message went out when it did not. The server's own text is carried through verbatim: its
      * refusals are specific (unverified sender, exhausted A2P registration, rate limit) and "could not
      * send" discards all of it.
+     *
+     * ⚠️ THE ANSWER IS THE ECHOED ROW'S ID, AND IT CAN BE BLANK ON A REAL SEND. Starting a
+     * conversation needs it: the thread a first message lands in is resolved from this id (see
+     * [MessageSearchRepository.threadFor]), because only the server knows whether the counterpart
+     * resolved to a `Contact` row. The route falls back to echoing the unsaved row when its own
+     * record write fails after the provider accepted the message, and that row has no id, so blank
+     * means "sent, and nothing to resolve", never "not sent". A reply ignores the value.
      */
     suspend fun send(
         workspaceId: String,
@@ -127,7 +134,7 @@ class InboxRepository(private val api: DistrictApi) {
          * "Missing required parameters" rather than a message. The caller refuses locally instead.
          */
         mediaUrls: List<String> = emptyList(),
-    ): ApiResult<Unit> {
+    ): ApiResult<String> {
         val request = SendMessageRequest(
             workspaceId = workspaceId,
             to = to,
@@ -139,7 +146,7 @@ class InboxRepository(private val api: DistrictApi) {
         return when (val result = api.sendMessage(request)) {
             is ApiResult.Success ->
                 if (result.value.success) {
-                    ApiResult.Success(Unit)
+                    ApiResult.Success(result.value.message?.id.orEmpty())
                 } else {
                     refusedEnvelope(result.value.error)
                 }

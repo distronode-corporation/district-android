@@ -54,6 +54,7 @@ import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
 import com.distronode.districtai.ui.contacts.ContactDetailViewModel
+import com.distronode.districtai.ui.contacts.contactVideoCallUi
 import com.distronode.districtai.ui.contacts.ContactsScreen
 import com.distronode.districtai.ui.contacts.ContactsViewModel
 import com.distronode.districtai.ui.devices.DevicesScreen
@@ -1291,6 +1292,18 @@ fun DistrictNavHost(
 
                     OnSessionChanged(sessionEpoch, viewModel::load)
 
+                    // ⚠️ ITS OWN ViewModel: starting a room is not editing a contact. The room opens
+                    // only after the invitation went, on the operator's tap. See ContactVideoCallViewModel.
+                    val videoCall = contactVideoCallUi(
+                        meetings = container.meetingsRepository,
+                        inbox = container.inboxRepository,
+                        workspaceId = workspaceId,
+                        contactId = contactId,
+                        role = role,
+                        webOrigin = ApiEnvironment.baseUrl,
+                        onJoin = { navController.navigate(Routes.activeRoom(workspaceId, role, it)) },
+                    )
+
                     // ⛔ THE DOSSIER POLL FOLLOWS THIS ENTRY'S LIFECYCLE, NOT THE ACTIVITY'S. Inside a
                     // destination the lifecycle owner is the back stack entry, which stops both when
                     // the app goes to the background and when another destination is pushed on top;
@@ -1303,6 +1316,7 @@ fun DistrictNavHost(
                     ContactDetailScreen(
                         state = state,
                         canMutate = viewModel.canMutate,
+                        videoCall = videoCall,
                         onBack = { navController.popBackStack() },
                         onRetry = viewModel::load,
                         onSignIn = onSignIn,

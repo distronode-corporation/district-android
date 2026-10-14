@@ -30,18 +30,20 @@ internal fun languageOf(tag: String): AppLanguage = if (tag == "fr") AppLanguage
  * The label for a wire value: a call status, a sentiment, a region.
  *
  * ⚠️ AN UNKNOWN VALUE IS NOT AN ERROR. The server can add a value before this build knows it, so it
- * gets the category's own "unknown" label, which takes the value as its argument. In English both
- * read exactly as the app always showed the value (as sent, or upper-cased for a region); see
- * scripts/l10n-contracts.py.
+ * gets the category's own "unknown" label. For most categories that label takes the value as its
+ * argument and reads in English exactly as the app always showed the value (as sent, or upper-cased
+ * for a region); a category with its own `fallback` in the vocabulary reads that word instead, in
+ * both languages. See scripts/l10n-contracts.py.
  */
 @Composable
 @ReadOnlyComposable
 internal fun wireLabel(category: WireCategory, value: String): String {
     val id = category.labels[value]
-    return if (id != null) {
-        stringResource(id)
-    } else {
-        stringResource(category.unknown, if (category.upperCase) value.uppercase(Locale.ROOT) else value)
+    return when {
+        id != null -> stringResource(id)
+        // ⚠️ The category's own fallback ("Active" for a number status), a fixed word in both languages.
+        !category.unknownTakesValue -> stringResource(category.unknown)
+        else -> stringResource(category.unknown, if (category.upperCase) value.uppercase(Locale.ROOT) else value)
     }
 }
 

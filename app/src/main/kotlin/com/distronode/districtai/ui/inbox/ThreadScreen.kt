@@ -43,6 +43,9 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.stampText
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.contacts.BlockConfirmDialog
 import com.distronode.districtai.ui.contacts.BlockFailureNotice
@@ -475,8 +478,8 @@ private fun MessageBubble(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    // Server-formatted in the OPERATOR's timezone; never reformatted locally.
-                    text = event.timestamp,
+                    // As sent in English, as always; read in the device's zone in French.
+                    text = stampText(event.timestamp),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
                 )
@@ -484,7 +487,10 @@ private fun MessageBubble(
                 // means nothing to the operator; on an outbound one it is the delivery answer they are
                 // actually looking for after sending.
                 if (outbound && event.status.isNotBlank()) {
-                    DistrictBadge(text = event.status, tone = toneForMessageStatus(event.status))
+                    DistrictBadge(
+                        text = wireLabel(WireCategory.MESSAGE_DELIVERY_STATUS, event.status),
+                        tone = toneForMessageStatus(event.status),
+                    )
                 }
                 if (event.mediaUrls.isNotEmpty()) {
                     DistrictBadge(
@@ -537,13 +543,14 @@ private fun CallEvent(event: TimelineEvent) {
     ) {
         DistrictBadge(
             text = stringResource(
-                if (event.isMissedCall) R.string.thread_call_missed else R.string.thread_call,
+                // ⚠️ `thread_call_event` ("Appel"), the event; `thread_call` is the action ("Appeler").
+                if (event.isMissedCall) R.string.thread_call_missed else R.string.thread_call_event,
             ),
             tone = if (event.isMissedCall) Tone.Danger else Tone.Neutral,
             modifier = Modifier.testTag(THREAD_CALL_DESCRIPTION),
         )
         Text(
-            text = event.timestamp,
+            text = stampText(event.timestamp),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),

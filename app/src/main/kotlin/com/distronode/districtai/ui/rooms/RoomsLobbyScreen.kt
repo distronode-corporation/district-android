@@ -32,6 +32,8 @@ import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.MeetRoomName
 import com.distronode.districtai.core.model.MeetingSummary
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.InlineFailure
 
 /**
@@ -143,7 +145,7 @@ private fun MeetingCard(
                 modifier = Modifier.weight(1f),
             )
             DistrictBadge(
-                text = meeting.status,
+                text = wireLabel(WireCategory.MEETING_STATUS, meeting.status),
                 tone = if (live) Tone.District else Tone.Neutral,
             )
         }

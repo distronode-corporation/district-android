@@ -116,13 +116,23 @@ class SchedulingSettingsScreenTest {
     }
 
     @Test
+    fun `English and French are named in the app's language, not by code or by the server's endonym`() {
+        state = state.copy(branding = SectionState.Ready(schedulingBranding().copy(fallbackLocale = "fr")))
+        show()
+        composeRule.onNodeWithText(str(R.string.scheduling_admin_settings_language_fr)).assertIsDisplayed()
+        state = state.copy(branding = SectionState.Ready(schedulingBranding().copy(fallbackLocale = "en")))
+        composeRule.onNodeWithText(str(R.string.scheduling_admin_settings_language_en)).assertIsDisplayed()
+    }
+
+    @Test
     fun `the booking page reads as published, and only a manager may edit it`() {
-        val unnamed = schedulingBranding().copy(businessName = "", fallbackLocale = "fr")
+        // ⚠️ A language the app does not name itself and the server's list does not name either: its code.
+        val unnamed = schedulingBranding().copy(businessName = "", fallbackLocale = "de")
         state = state.copy(branding = SectionState.Ready(unnamed))
         show()
         composeRule.onNodeWithText("https://www.contract.test/terms").assertIsDisplayed()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_settings_set)).assertIsDisplayed()
-        composeRule.onNodeWithText("fr").assertIsDisplayed()
+        composeRule.onNodeWithText("de").assertIsDisplayed()
         composeRule.onNodeWithTag(SETTINGS_BRANDING_EDIT_TAG).performClick()
         composeRule.onNodeWithTag(SETTINGS_BRANDING_DIALOG_TAG).assertIsDisplayed()
         writes.close()

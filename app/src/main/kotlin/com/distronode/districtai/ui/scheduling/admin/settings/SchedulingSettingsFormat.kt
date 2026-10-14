@@ -84,9 +84,18 @@ fun schedulingWeekStartLabel(value: Int): String =
 fun schedulingLocaleLabel(code: String, supported: List<SchedulingLocaleOption>?): String {
     val trimmed = code.trim()
     if (trimmed.isEmpty()) return stringResource(R.string.scheduling_admin_common_not_set)
+    // ⚠️ The two languages District speaks are named in the app's language ("Anglais" on a French
+    // screen); any other comes from the server's list, which names each language in itself.
+    SCHEDULING_LANGUAGE_NAMES[trimmed]?.let { return stringResource(it) }
     val name = supported.orEmpty().firstOrNull { it.code == trimmed }?.name.orEmpty()
     return name.ifEmpty { trimmed }
 }
+
+/** The booking page languages the app names itself, by code. */
+internal val SCHEDULING_LANGUAGE_NAMES: Map<String, Int> = mapOf(
+    "en" to R.string.scheduling_admin_settings_language_en,
+    "fr" to R.string.scheduling_admin_settings_language_fr,
+)
 
 /** Whose meeting a notification switch is about. */
 enum class SchedulingNotifyGroup(@get:StringRes val heading: Int, @get:StringRes val description: Int) {

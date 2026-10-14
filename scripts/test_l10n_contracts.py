@@ -109,3 +109,40 @@ class KeepTranslationsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WireLabelsTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.data, self.kotlin = gen.wire_labels()
+        self.table = self.data["wire"]
+
+    def test_every_vocabulary_category_is_generated(self) -> None:
+        src = gen.json.loads((gen.CONTRACTS / "wire-vocabulary.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(src["categories"]), set(gen.WIRE_CATEGORIES))
+
+    def test_a_value_spelled_unknown_does_not_take_the_unknown_value_key(self) -> None:
+        self.assertEqual(self.table["call_status_value_unknown"]["en"], "unknown")
+        self.assertEqual(self.table["call_status_unknown"]["en"], "{value}")
+        self.assertIn('"unknown" to R.string.wire_call_status_value_unknown,', self.kotlin)
+
+    def test_a_brace_in_a_value_is_literal(self) -> None:
+        self.assertEqual(gen.display("http-{status}", "raw"), "http-{{status}}")
+        self.assertEqual(self.table["workflow_action_reason_http_status"]["en"], "http-{{status}}")
+        self.assertIn('"http-{status}" to R.string.wire_workflow_action_reason_http_status,', self.kotlin)
+
+    def test_a_dossier_key_reads_as_the_app_shows_its_heading(self) -> None:
+        self.assertEqual(gen.humanize("executiveSummary"), "Executive summary")
+        self.assertEqual(gen.humanize("next_best_action"), "Next best action")
+        self.assertEqual(gen.humanize("_"), "_")
+        self.assertEqual(gen.display("ca", "upper"), "CA")
+        self.assertEqual(self.table["contact_research_key_caller_intel"]["en"], "Caller intel")
+
+    def test_a_category_fallback_is_its_unknown_label_in_both_languages(self) -> None:
+        unknown = self.table["number_status_unknown"]
+        self.assertEqual((unknown["en"], unknown["fr"]), ("Active", "Actif"))
+        self.assertNotIn("args", unknown)
+        self.assertEqual(self.table["transfer_reason_unknown"]["en"], "Transfer attempted but not connected")
+        self.assertEqual(self.table["desk_ticket_status_unknown"]["fr"], "Inconnue")
+        self.assertEqual(self.table["knowledge_document_status_unknown"]["fr"], "Inconnu")
+        self.assertEqual(self.table["meeting_status_unknown"]["en"], "{value}")
+        self.assertIn("unknownTakesValue = false", self.kotlin)

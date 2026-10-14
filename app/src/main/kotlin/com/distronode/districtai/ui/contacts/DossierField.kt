@@ -28,12 +28,15 @@ import kotlinx.serialization.json.JsonPrimitive
  * @param raw true when [value] is formatted JSON rather than prose, so the renderer can pick a
  *   monospace-ish presentation and the reader can tell "this is a shape we did not recognise"
  *   from "this is what the model wrote".
+ * @param key the dossier key a top-level field came from, so the renderer can name it in the app's
+ *   language (contactResearchKey); null for a heading the app built itself, such as the company card.
  */
 internal data class DossierField(
     val label: String,
     val value: String? = null,
     val children: List<DossierEntry> = emptyList(),
     val raw: Boolean = false,
+    val key: String? = null,
 )
 
 /**
@@ -69,9 +72,9 @@ private fun topLevelField(key: String, element: JsonElement): DossierField? {
     val label = humanizeKey(key)
     return when (element) {
         is JsonNull -> null
-        is JsonPrimitive -> element.contentOrNullIfBlank()?.let { DossierField(label, it) }
-        is JsonArray -> arrayField(label, element)?.let { DossierField(it.label, it.value, raw = it.raw) }
-        is JsonObject -> objectField(label, element)
+        is JsonPrimitive -> element.contentOrNullIfBlank()?.let { DossierField(label, it, key = key) }
+        is JsonArray -> arrayField(label, element)?.let { DossierField(it.label, it.value, raw = it.raw, key = key) }
+        is JsonObject -> objectField(label, element)?.copy(key = key)
     }
 }
 
@@ -132,7 +135,7 @@ private fun JsonPrimitive.contentOrNullIfBlank(): String? = content.takeIf { it.
  * matches neither is returned with only its first letter capitalised rather than mangled — the
  * point is legibility, not a guarantee of prose.
  */
-private fun humanizeKey(key: String): String {
+internal fun humanizeKey(key: String): String {
     val spaced = key
         .replace('_', ' ')
         .replace(CAMEL_BOUNDARY) { "${it.groupValues[1]} ${it.groupValues[2]}" }

@@ -585,7 +585,7 @@ fr = "Minutes utilisées\u00A0: {minutes} sur {included} incluses"
 ctx = "label"
 screen = "billing"
 tier = "T1"
-args = { minutes = "str", included = "int" }
+args = { minutes = "str", included = "str" }
 state = "reviewed"
 note = "⚠️ The real numbers, even past the allowance. The BAR clamps; this label must not."
 
@@ -2594,6 +2594,46 @@ tier = "T2"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. revoked:0 is a SUCCESS, not an error. It comes back for a device id the account does not own (the route refuses to be a membership oracle over an opaque id space), for a row another device already revoked, and for a chain that rotated between the list read and the tap. The client cannot tell those apart and neither can the server, so the honest thing to say is that the list has moved on."
 
+[devices.platform_android]
+en = "Android"
+ctx = "label"
+screen = "devices"
+tier = "T3"
+fixed = true
+note = "The device platform `android`. A product name, the same in every language."
+
+[devices.platform_ios]
+en = "iOS"
+ctx = "label"
+screen = "devices"
+tier = "T3"
+fixed = true
+note = "The device platform `ios`. A product name, the same in every language."
+
+[devices.platform_linux]
+en = "Linux"
+ctx = "label"
+screen = "devices"
+tier = "T3"
+fixed = true
+note = "The device platform `linux`. A product name, the same in every language."
+
+[devices.platform_macos]
+en = "macOS"
+ctx = "label"
+screen = "devices"
+tier = "T3"
+fixed = true
+note = "The device platform `macos`. A product name, the same in every language."
+
+[devices.platform_windows]
+en = "Windows"
+ctx = "label"
+screen = "devices"
+tier = "T3"
+fixed = true
+note = "The device platform `windows`. A product name, the same in every language."
+
 [devices.sign_out_all]
 en = "Sign out everywhere"
 fr = "Se déconnecter partout"
@@ -3130,6 +3170,25 @@ tier = "T3"
 state = "reviewed"
 same_ok = true
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ── District HQ (Task A7) ───────────────────────────────────────────── The agentic console. One route, two turns: a prompt runs the model, and a confirm applies a change the operator explicitly approved."
+
+[inbox.channel_email]
+en = "EMAIL"
+fr = "Courriel"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+note = "The chip on a conversation that has email in it. English is the value upper-cased, as the app has always shown it."
+
+[inbox.channel_sms]
+en = "SMS"
+fr = "SMS"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+same_ok = true
+note = "The chip on a conversation that has text messages in it. English is the value upper-cased, as the app has always shown it."
 
 [inbox.compose_cancel]
 en = "Cancel"
@@ -3758,6 +3817,16 @@ screen = "(none: read by code)"
 tier = "T3"
 state = "reviewed"
 note = "Not shown to anyone, and not a translation: the language this resource set is written in. The app reads it to know whether the French resources are the ones in use, and shows the server's own English wording only while it says en."
+
+[labels.unknown_value]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "devices, inbox, messaging accounts, routing rules"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A value this app has no label for (a device platform, a message channel, a routing field), passed through as {value}. English shows it as sent, as it always has. The French is the wire labels' reviewed unknown-value label (unit 0dc1e2805156)."
 
 [live_transcript.connecting]
 en = "Connecting…"
@@ -4498,6 +4567,15 @@ tier = "T3"
 state = "reviewed"
 note = "Dismisses the carrier account form without saving."
 
+[messaging.channel_sms]
+en = "sms"
+fr = "SMS"
+ctx = "label"
+screen = "messaging accounts"
+tier = "T3"
+state = "reviewed"
+note = "The channel `sms`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeSms)."
+
 [messaging.channel_title]
 en = "Send {channel} from"
 fr = "Compte d'envoi {channel}"
@@ -4507,6 +4585,24 @@ tier = "T3"
 args = { channel = "str" }
 state = "reviewed"
 note = "{channel} is a channel name such as SMS or WhatsApp; the line heads a picker of which carrier account sends it."
+
+[messaging.channel_voice]
+en = "voice"
+fr = "Voix"
+ctx = "label"
+screen = "messaging accounts"
+tier = "T3"
+state = "reviewed"
+note = "The channel `voice`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeVoice)."
+
+[messaging.channel_whatsapp]
+en = "whatsapp"
+fr = "WhatsApp"
+ctx = "label"
+screen = "messaging accounts"
+tier = "T3"
+state = "reviewed"
+note = "The channel `whatsapp`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeWhatsApp)."
 
 [messaging.creator_cell_help]
 en = "Where the AI transfers a call it cannot handle. We cannot show the saved number here, so typing one replaces it."
@@ -6403,6 +6499,60 @@ tier = "T3"
 state = "reviewed"
 note = "── Call routing rules ──────────────────────────────────────────────── ⛔ ALSO REPLACED WHOLESALE. A rule decides which voice and which engine answer a segment of callers."
 
+[routing.field_caller_type]
+en = "callerType"
+fr = "Type d'appelant (business/consumer)"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The contact field `callerType` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+
+[routing.field_estimated_value]
+en = "estimatedValue"
+fr = "Valeur estimée"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The contact field `estimatedValue` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
+
+[routing.field_industry]
+en = "industry"
+fr = "Secteur d'activité"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The contact field `industry` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
+
+[routing.field_is_decision_maker]
+en = "isDecisionMaker"
+fr = "Décideur (true/false)"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The contact field `isDecisionMaker` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+
+[routing.field_line_type]
+en = "lineType"
+fr = "Type de ligne (mobile/landline/voip)"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The contact field `lineType` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+
+[routing.field_seniority]
+en = "seniority"
+fr = "Niveau hiérarchique (p. ex. vp, c-suite)"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The contact field `seniority` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+
 [routing.instruction]
 en = "Extra instruction for these callers"
 fr = "Consigne supplémentaire pour ces appelants"
@@ -6439,6 +6589,24 @@ screen = "routing rules"
 tier = "T3"
 state = "reviewed"
 note = "── Call routing rules ──────────────────────────────────────────────── ⛔ ALSO REPLACED WHOLESALE. A rule decides which voice and which engine answer a segment of callers."
+
+[routing.operator_contains]
+en = "contains"
+fr = "Contient"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The comparison `contains`. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
+
+[routing.operator_equals]
+en = "equals"
+fr = "Égal à"
+ctx = "label"
+screen = "routing rules"
+tier = "T3"
+state = "reviewed"
+note = "The comparison `equals`. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
 
 [routing.option_unset]
 en = "not set"
@@ -7229,6 +7397,15 @@ tier = "T3"
 state = "reviewed"
 note = "══ Support (this workspace's requests with Distronode) ════════════════ ⛔ NOT THE DESK. See the header above."
 
+[support.status_received]
+en = "Received"
+fr = "Reçue"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "reviewed"
+note = "The status the server sends for a request the desk has not synced yet (helpdesk.ts writes \"Received\"). Every other status is the desk's own word and is shown as sent, as the portal does. The French is the portal's statusUnsynced (lib/i18n/pages/support.ts)."
+
 [support.title]
 en = "Support"
 fr = "Soutien"
@@ -7357,6 +7534,15 @@ screen = "message thread"
 tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist."
+
+[thread.call_event]
+en = "Call"
+fr = "Appel"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "The chip on a call in a conversation thread: the event, not the action. thread.call is the button."
 
 [thread.call_missed]
 en = "Missed call"

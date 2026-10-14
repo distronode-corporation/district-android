@@ -35,6 +35,7 @@ import com.distronode.districtai.core.model.EngagementPoint
 import com.distronode.districtai.core.model.FunnelStage
 import com.distronode.districtai.core.model.SentimentSlice
 import com.distronode.districtai.core.model.UsageData
+import com.distronode.districtai.l10n.yearMonthText
 import kotlin.math.abs
 
 /**
@@ -371,7 +372,7 @@ internal fun UsageCard(usage: UsageData?) {
         }
 
         Text(
-            text = stringResource(R.string.analytics_usage_month, usage.month),
+            text = stringResource(R.string.analytics_usage_month, yearMonthText(usage.month)),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),

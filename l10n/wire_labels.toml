@@ -2,6 +2,89 @@
 catalog = "wire_labels"
 platform = "android"
 
+[wire.a2p_campaign_type_customer_care]
+en = "CUSTOMER_CARE"
+fr = "Service à la clientèle"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pCampaignType value `CUSTOMER_CARE` as the server sends it. This app has always shown it as sent. The portal's English label is \"Customer Care\"."
+
+[wire.a2p_campaign_type_low_volume]
+en = "LOW_VOLUME"
+fr = "Faible volume mixte (moins de 15 k messages/mois)"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pCampaignType value `LOW_VOLUME` as the server sends it. This app has always shown it as sent. The portal's English label is \"Low Volume Mixed (Under 15k msgs/mo)\"."
+
+[wire.a2p_campaign_type_marketing]
+en = "MARKETING"
+fr = "Marketing / promotions"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pCampaignType value `MARKETING` as the server sends it. This app has always shown it as sent. The portal's English label is \"Marketing / Promotions\"."
+
+[wire.a2p_campaign_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A a2pCampaignType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.a2p_campaign_type_v_2_fa]
+en = "2FA"
+fr = "Alertes 2FA / mot de passe à usage unique"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pCampaignType value `2FA` as the server sends it. This app has always shown it as sent. The portal's English label is \"2FA / OTP Alerts\"."
+
+[wire.a2p_registration_status_failed]
+en = "FAILED"
+fr = "ÉCHEC"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pRegistrationStatus value `FAILED` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.a2p_registration_status_in_progress]
+en = "IN_PROGRESS"
+fr = "EN COURS"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pRegistrationStatus value `IN_PROGRESS` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.a2p_registration_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A a2pRegistrationStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.a2p_registration_status_verified]
+en = "VERIFIED"
+fr = "VÉRIFIÉE"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The a2pRegistrationStatus value `VERIFIED` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
 [wire.analytics_sentiment_friction_sentiment]
 en = "Friction Sentiment"
 fr = "Sentiment de friction"
@@ -38,6 +121,135 @@ tier = "T3"
 args = { value = "str" }
 state = "reviewed"
 note = "A analyticsSentiment value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.billing_invoice_status_draft]
+en = "draft"
+fr = "Brouillon"
+ctx = "label"
+screen = "billing"
+tier = "T3"
+state = "reviewed"
+note = "The billingInvoiceStatus value `draft` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.billing_invoice_status_open]
+en = "open"
+fr = "Ouverte"
+ctx = "label"
+screen = "billing"
+tier = "T3"
+state = "reviewed"
+note = "The billingInvoiceStatus value `open` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.billing_invoice_status_paid]
+en = "paid"
+fr = "Payée"
+ctx = "label"
+screen = "billing"
+tier = "T3"
+state = "reviewed"
+note = "The billingInvoiceStatus value `paid` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.billing_invoice_status_uncollectible]
+en = "uncollectible"
+fr = "Irrécouvrable"
+ctx = "label"
+screen = "billing"
+tier = "T3"
+state = "reviewed"
+note = "The billingInvoiceStatus value `uncollectible` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.billing_invoice_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "billing"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A billingInvoiceStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.billing_invoice_status_void]
+en = "void"
+fr = "Annulée"
+ctx = "label"
+screen = "billing"
+tier = "T3"
+state = "reviewed"
+note = "The billingInvoiceStatus value `void` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.billing_subscription_status_active]
+en = "active"
+fr = "Actif"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The billingSubscriptionStatus value `active` as the server sends it. This app has always shown it as sent. The portal's English label is \"Active\"."
+
+[wire.billing_subscription_status_past_due]
+en = "past_due"
+fr = "Paiement en retard"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The billingSubscriptionStatus value `past_due` as the server sends it. This app has always shown it as sent. The portal's English label is \"Payment past due\"."
+
+[wire.billing_subscription_status_trialing]
+en = "trialing"
+fr = "Essai"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The billingSubscriptionStatus value `trialing` as the server sends it. This app has always shown it as sent. The portal's English label is \"Trial\"."
+
+[wire.billing_subscription_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A billingSubscriptionStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.billing_subscription_status_unpaid]
+en = "unpaid"
+fr = "Impayé"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The billingSubscriptionStatus value `unpaid` as the server sends it. This app has always shown it as sent. The portal's English label is \"Unpaid\"."
+
+[wire.call_direction_inbound]
+en = "inbound"
+fr = "Entrant"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The callDirection value `inbound` as the server sends it. This app has always shown it as sent. The portal's English label is \"Inbound\"."
+
+[wire.call_direction_outbound]
+en = "outbound"
+fr = "Sortant"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The callDirection value `outbound` as the server sends it. This app has always shown it as sent. The portal's English label is \"Outbound\"."
+
+[wire.call_direction_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A callDirection value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.call_status_abandoned]
 en = "abandoned"
@@ -120,6 +332,189 @@ tier = "T3"
 args = { value = "str" }
 state = "reviewed"
 note = "A callStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.call_status_value_unknown]
+en = "unknown"
+fr = "Inconnu"
+ctx = "label"
+screen = "call log, call detail, overview"
+tier = "T3"
+state = "reviewed"
+note = "The callStatus value `unknown` as the server sends it. This app has always shown it as sent. The portal's English label is \"Unknown\"."
+
+[wire.call_type_inbound]
+en = "inbound"
+fr = "Entrant"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The callType value `inbound` as the server sends it. This app has always shown it as sent. The portal's English label is \"Inbound\"."
+
+[wire.call_type_missed]
+en = "missed"
+fr = "Manqué"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The callType value `missed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Missed\"."
+
+[wire.call_type_outbound]
+en = "outbound"
+fr = "Sortant"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The callType value `outbound` as the server sends it. This app has always shown it as sent. The portal's English label is \"Outbound\"."
+
+[wire.call_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A callType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.contact_research_key_caller_intel]
+en = "Caller intel"
+fr = "Profil de l'appelant"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `callerIntel` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal has no label for it."
+
+[wire.contact_research_key_core_pain_points]
+en = "Core pain points"
+fr = "Enjeux CRM déduits"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `corePainPoints` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"Inferred CRM Key Challenges\"."
+
+[wire.contact_research_key_dynamic_icebreakers]
+en = "Dynamic icebreakers"
+fr = "Amorces de conversation pour la direction"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `dynamicIcebreakers` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"CTO/CEO Conversation Starters\"."
+
+[wire.contact_research_key_estimated_value]
+en = "Estimated value"
+fr = "Valeur estimée"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `estimatedValue` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal has no label for it."
+
+[wire.contact_research_key_executive_summary]
+en = "Executive summary"
+fr = "Résumé du dossier"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `executiveSummary` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"Executive Dossier Summary\"."
+
+[wire.contact_research_key_person]
+en = "Person"
+fr = "Identité"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `person` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal has no label for it."
+
+[wire.contact_research_key_recommended_greeting]
+en = "Recommended greeting"
+fr = "Accueil suggéré pour la réceptionniste"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+state = "reviewed"
+note = "The contactResearchKey value `recommendedGreeting` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"Suggested Receptionist Greeting\"."
+
+[wire.contact_research_key_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "contact dossier"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A contactResearchKey value this app does not know, passed through as {value} (as a heading, split into words). English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.desk_ticket_source_manual]
+en = "manual"
+fr = "Saisie manuelle"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The deskTicketSource value `manual` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.desk_ticket_source_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A deskTicketSource value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.desk_ticket_source_voice_call]
+en = "voice-call"
+fr = "Depuis un appel téléphonique"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The deskTicketSource value `voice-call` as the server sends it. This app has always shown it as sent. The portal's English label is \"From a phone call\"."
+
+[wire.desk_ticket_status_open]
+en = "open"
+fr = "Ouverte"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The deskTicketStatus value `open` as the server sends it. This app has always shown it as sent. The portal's English label is \"Open\"."
+
+[wire.desk_ticket_status_resolved]
+en = "resolved"
+fr = "Réglée"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The deskTicketStatus value `resolved` as the server sends it. This app has always shown it as sent. The portal's English label is \"Resolved\"."
+
+[wire.desk_ticket_status_unknown]
+en = "Unknown"
+fr = "Inconnue"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "What a deskTicketStatus value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
+
+[wire.desk_ticket_status_waiting]
+en = "waiting"
+fr = "En attente"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The deskTicketStatus value `waiting` as the server sends it. This app has always shown it as sent. The portal's English label is \"Waiting\"."
 
 [wire.disposition_booked]
 en = "booked"
@@ -249,6 +644,429 @@ args = { value = "str" }
 state = "reviewed"
 note = "A funnelStage value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
+[wire.knowledge_document_status_failed]
+en = "failed"
+fr = "Échec"
+ctx = "label"
+screen = "workspace settings, knowledge"
+tier = "T3"
+state = "reviewed"
+note = "The knowledgeDocumentStatus value `failed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Failed\"."
+
+[wire.knowledge_document_status_processing]
+en = "processing"
+fr = "Indexation"
+ctx = "label"
+screen = "workspace settings, knowledge"
+tier = "T3"
+state = "reviewed"
+note = "The knowledgeDocumentStatus value `processing` as the server sends it. This app has always shown it as sent. The portal's English label is \"Indexing\"."
+
+[wire.knowledge_document_status_ready]
+en = "ready"
+fr = "Prêt"
+ctx = "label"
+screen = "workspace settings, knowledge"
+tier = "T3"
+state = "reviewed"
+note = "The knowledgeDocumentStatus value `ready` as the server sends it. This app has always shown it as sent. The portal's English label is \"Ready\"."
+
+[wire.knowledge_document_status_unknown]
+en = "Unknown"
+fr = "Inconnu"
+ctx = "label"
+screen = "workspace settings, knowledge"
+tier = "T3"
+state = "reviewed"
+note = "What a knowledgeDocumentStatus value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
+
+[wire.line_type_landline]
+en = "landline"
+fr = "Ligne résidentielle ou de bureau"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The lineType value `landline` as the server sends it. This app has always shown it as sent. The portal's English label is \"Home or office line\"."
+
+[wire.line_type_mobile]
+en = "mobile"
+fr = "Téléphone mobile"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The lineType value `mobile` as the server sends it. This app has always shown it as sent. The portal's English label is \"Mobile phone\"."
+
+[wire.line_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A lineType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.line_type_voip]
+en = "voip"
+fr = "Système téléphonique IP ou hébergé"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The lineType value `voip` as the server sends it. This app has always shown it as sent. The portal's English label is \"VoIP or hosted phone system\"."
+
+[wire.meeting_status_completed]
+en = "completed"
+fr = "Terminée"
+ctx = "label"
+screen = "rooms"
+tier = "T3"
+state = "reviewed"
+note = "The meetingStatus value `completed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Completed\"."
+
+[wire.meeting_status_in_progress]
+en = "in-progress"
+fr = "En cours"
+ctx = "label"
+screen = "rooms"
+tier = "T3"
+state = "reviewed"
+note = "The meetingStatus value `in-progress` as the server sends it. This app has always shown it as sent. The portal's English label is \"In Progress\"."
+
+[wire.meeting_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "rooms"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A meetingStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.member_role_agency]
+en = "agency"
+fr = "Administrateur"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The memberRole value `agency` as the server sends it. This app has always shown it as sent. The portal's English label is \"Administrator\"."
+
+[wire.member_role_client]
+en = "client"
+fr = "Membre"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The memberRole value `client` as the server sends it. This app has always shown it as sent. The portal's English label is \"Member\"."
+
+[wire.member_role_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A memberRole value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.member_role_viewer]
+en = "viewer"
+fr = "Lecteur"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The memberRole value `viewer` as the server sends it. This app has always shown it as sent. The portal's English label is \"Viewer\"."
+
+[wire.message_delivery_status_delivered]
+en = "delivered"
+fr = "Livré"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "reviewed"
+note = "The messageDeliveryStatus value `delivered` as the server sends it. This app has always shown it as sent. The portal's English label is \"Delivered\"."
+
+[wire.message_delivery_status_failed]
+en = "failed"
+fr = "Échec"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "reviewed"
+note = "The messageDeliveryStatus value `failed` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.message_delivery_status_queued]
+en = "queued"
+fr = "Envoyé"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "reviewed"
+note = "The messageDeliveryStatus value `queued` as the server sends it. This app has always shown it as sent. The portal's English label is \"Sent\"."
+
+[wire.message_delivery_status_received]
+en = "received"
+fr = "Reçu"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "reviewed"
+note = "The messageDeliveryStatus value `received` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.message_delivery_status_sent]
+en = "sent"
+fr = "Envoyé"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "reviewed"
+note = "The messageDeliveryStatus value `sent` as the server sends it. This app has always shown it as sent. The portal's English label is \"Sent\"."
+
+[wire.message_delivery_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A messageDeliveryStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.messaging_carrier_sinch]
+en = "sinch"
+fr = "Sinch"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The messagingCarrier value `sinch` as the server sends it. This app has always shown it as sent. The portal's English label is \"Sinch\"."
+
+[wire.messaging_carrier_telnyx]
+en = "telnyx"
+fr = "Telnyx"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The messagingCarrier value `telnyx` as the server sends it. This app has always shown it as sent. The portal's English label is \"Telnyx\"."
+
+[wire.messaging_carrier_twilio]
+en = "twilio"
+fr = "Twilio"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The messagingCarrier value `twilio` as the server sends it. This app has always shown it as sent. The portal's English label is \"Twilio\"."
+
+[wire.messaging_carrier_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A messagingCarrier value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.messaging_credential_source_byok]
+en = "byok"
+fr = "Vos propres clés"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The messagingCredentialSource value `byok` as the server sends it. This app has always shown it as sent. The portal's English label is \"Bring Your Own Keys\"."
+
+[wire.messaging_credential_source_managed]
+en = "managed"
+fr = "Service géré"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The messagingCredentialSource value `managed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Managed Service\"."
+
+[wire.messaging_credential_source_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A messagingCredentialSource value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.number_capability_mms]
+en = "mms"
+fr = "MMS"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The numberCapability value `mms` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_capability_sms]
+en = "sms"
+fr = "Texto"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The numberCapability value `sms` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_capability_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A numberCapability value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.number_capability_voice]
+en = "voice"
+fr = "Voix"
+ctx = "label"
+screen = "workspace settings, messaging"
+tier = "T3"
+state = "reviewed"
+note = "The numberCapability value `voice` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_provider_sinch]
+en = "sinch"
+fr = "Sinch"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberProvider value `sinch` as the server sends it. This app has always shown it as sent. The portal's English label is \"Sinch\"."
+
+[wire.number_provider_telnyx]
+en = "telnyx"
+fr = "Telnyx"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberProvider value `telnyx` as the server sends it. This app has always shown it as sent. The portal's English label is \"Telnyx\"."
+
+[wire.number_provider_twilio]
+en = "twilio"
+fr = "Twilio"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberProvider value `twilio` as the server sends it. This app has always shown it as sent. The portal's English label is \"Twilio\"."
+
+[wire.number_provider_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A numberProvider value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.number_provider_value_unknown]
+en = "unknown"
+fr = "Inconnu"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberProvider value `unknown` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_status_active]
+en = "active"
+fr = "Actif"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberStatus value `active` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_status_pending_verification]
+en = "pending_verification"
+fr = "Vérification en attente"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberStatus value `pending_verification` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_status_released]
+en = "released"
+fr = "Libéré"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberStatus value `released` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_status_suspended]
+en = "suspended"
+fr = "Suspendu"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "The numberStatus value `suspended` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.number_status_unknown]
+en = "Active"
+fr = "Actif"
+ctx = "label"
+screen = "phone numbers"
+tier = "T3"
+state = "reviewed"
+note = "What a numberStatus value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
+
+[wire.number_type_local]
+en = "local"
+fr = "Local"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The numberType value `local` as the server sends it. This app has always shown it as sent. The portal's English label is \"Local\"."
+
+[wire.number_type_mobile]
+en = "mobile"
+fr = "Mobile"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The numberType value `mobile` as the server sends it. This app has always shown it as sent. The portal's English label is \"Mobile\"."
+
+[wire.number_type_toll_free]
+en = "tollFree"
+fr = "Sans frais"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The numberType value `tollFree` as the server sends it. This app has always shown it as sent. The portal's English label is \"Toll-Free\"."
+
+[wire.number_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A numberType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
 [wire.region_apac]
 en = "APAC"
 fr = "Asie-Pacifique"
@@ -295,6 +1113,163 @@ tier = "T3"
 state = "reviewed"
 note = "The region value `us` as the server sends it. This app has always shown it as sent (upper-cased). The portal's English label is \"United States\". Its long French name is \"États-Unis (us-east4)\"."
 
+[wire.research_status_complete]
+en = "complete"
+fr = "Terminé"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The researchStatus value `complete` as the server sends it. This app has always shown it as sent. The portal's English label is \"Complete\"."
+
+[wire.research_status_crawling]
+en = "crawling"
+fr = "Exploration du Web…"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The researchStatus value `crawling` as the server sends it. This app has always shown it as sent. The portal's English label is \"Crawling web…\"."
+
+[wire.research_status_failed]
+en = "failed"
+fr = "Échec de l'enrichissement"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The researchStatus value `failed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Enrichment failed\"."
+
+[wire.research_status_pending]
+en = "pending"
+fr = "En file d'attente"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The researchStatus value `pending` as the server sends it. This app has always shown it as sent. The portal's English label is \"Pending queue\"."
+
+[wire.research_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A researchStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.scheduling_host_role_optional]
+en = "optional"
+fr = "Facultatif"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingHostRole value `optional` as the server sends it. This app has always shown it as sent. The portal's English label is \"Optional\"."
+
+[wire.scheduling_host_role_required]
+en = "required"
+fr = "Obligatoire"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingHostRole value `required` as the server sends it. This app has always shown it as sent. The portal's English label is \"Required\"."
+
+[wire.scheduling_host_role_rotation]
+en = "rotation"
+fr = "Rotation"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingHostRole value `rotation` as the server sends it. This app has always shown it as sent. The portal's English label is \"Rotation\"."
+
+[wire.scheduling_host_role_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A schedulingHostRole value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.scheduling_question_type_checkbox]
+en = "checkbox"
+fr = "Case à cocher"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingQuestionType value `checkbox` as the server sends it. This app has always shown it as sent. The portal's English label is \"Checkbox\"."
+
+[wire.scheduling_question_type_select]
+en = "select"
+fr = "Liste déroulante"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingQuestionType value `select` as the server sends it. This app has always shown it as sent. The portal's English label is \"Select\"."
+
+[wire.scheduling_question_type_text]
+en = "text"
+fr = "Texte"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingQuestionType value `text` as the server sends it. This app has always shown it as sent. The portal's English label is \"Text\"."
+
+[wire.scheduling_question_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A schedulingQuestionType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.scheduling_webhook_delivery_status_failed]
+en = "failed"
+fr = "Échec"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingWebhookDeliveryStatus value `failed` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.scheduling_webhook_delivery_status_pending]
+en = "pending"
+fr = "En attente"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingWebhookDeliveryStatus value `pending` as the server sends it. This app has always shown it as sent. The portal's English label is \"Waiting\"."
+
+[wire.scheduling_webhook_delivery_status_success]
+en = "success"
+fr = "Livré"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The schedulingWebhookDeliveryStatus value `success` as the server sends it. This app has always shown it as sent. The portal's English label is \"Delivered\"."
+
+[wire.scheduling_webhook_delivery_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A schedulingWebhookDeliveryStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
 [wire.sentiment_negative]
 en = "negative"
 fr = "Friction"
@@ -331,6 +1306,71 @@ tier = "T3"
 args = { value = "str" }
 state = "reviewed"
 note = "A sentiment value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.sip_trunk_status_active]
+en = "active"
+fr = "Actif"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The sipTrunkStatus value `active` as the server sends it. This app has always shown it as sent. The portal's English label is \"Active\"."
+
+[wire.sip_trunk_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A sipTrunkStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.toll_free_verification_status_in_review]
+en = "IN_REVIEW"
+fr = "EN EXAMEN"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The tollFreeVerificationStatus value `IN_REVIEW` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.toll_free_verification_status_pending_review]
+en = "PENDING_REVIEW"
+fr = "EXAMEN EN ATTENTE"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The tollFreeVerificationStatus value `PENDING_REVIEW` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.toll_free_verification_status_twilio_approved]
+en = "TWILIO_APPROVED"
+fr = "APPROUVÉE PAR TWILIO"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The tollFreeVerificationStatus value `TWILIO_APPROVED` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.toll_free_verification_status_twilio_rejected]
+en = "TWILIO_REJECTED"
+fr = "REFUSÉE PAR TWILIO"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The tollFreeVerificationStatus value `TWILIO_REJECTED` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.toll_free_verification_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A tollFreeVerificationStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.transfer_reason_auth_error]
 en = "auth_error"
@@ -405,14 +1445,13 @@ state = "reviewed"
 note = "The transferReason value `trunk_not_configured` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer route not configured\"."
 
 [wire.transfer_reason_unknown]
-en = "{value}"
-fr = "Valeur inconnue\u00A0: {value}"
+en = "Transfer attempted but not connected"
+fr = "Transfert tenté, sans connexion"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-args = { value = "str" }
 state = "reviewed"
-note = "A transferReason value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+note = "What a transferReason value this app does not know reads as: the category's own `fallback` in contracts/i18n/wire-vocabulary.json, in both languages."
 
 [wire.transfer_status_completed]
 en = "completed"
@@ -451,3 +1490,467 @@ tier = "T3"
 args = { value = "str" }
 state = "reviewed"
 note = "A transferStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.workflow_action_add_crm_tag]
+en = "add_crm_tag"
+fr = "Ajouter une étiquette CRM"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowAction value `add_crm_tag` as the server sends it. This app has always shown it as sent. The portal's English label is \"Add CRM Tag\"."
+
+[wire.workflow_action_notify_ops]
+en = "notify_ops"
+fr = "Notifier le webhook des opérations"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowAction value `notify_ops` as the server sends it. This app has always shown it as sent. The portal's English label is \"Notify Ops Webhook\"."
+
+[wire.workflow_action_outcome_failed]
+en = "failed"
+fr = "Échec"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionOutcome value `failed` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_outcome_ok]
+en = "ok"
+fr = "OK"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionOutcome value `ok` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_outcome_skipped]
+en = "skipped"
+fr = "Ignoré"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionOutcome value `skipped` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_outcome_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A workflowActionOutcome value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.workflow_action_reason_contact_not_found]
+en = "contact-not-found"
+fr = "Contact introuvable"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `contact-not-found` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_dnc]
+en = "dnc"
+fr = "Liste d'exclusion"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `dnc` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_dormant]
+en = "dormant"
+fr = "Inactif"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `dormant` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_empty_body]
+en = "empty-body"
+fr = "Message vide"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `empty-body` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_empty_subject]
+en = "empty-subject"
+fr = "Objet vide"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `empty-subject` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_empty_tag]
+en = "empty-tag"
+fr = "Étiquette vide"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `empty-tag` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_http_status]
+en = "http-{{status}}"
+fr = "HTTP {{status}}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `http-{status}` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_invalid_recipient]
+en = "invalid-recipient"
+fr = "Destinataire invalide"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `invalid-recipient` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_missing_webhook_url]
+en = "missing-webhook-url"
+fr = "URL du webhook manquante"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `missing-webhook-url` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_no_provider_credentials]
+en = "no-provider-credentials"
+fr = "Aucun identifiant de fournisseur"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `no-provider-credentials` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_no_recipient]
+en = "no-recipient"
+fr = "Aucun destinataire"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `no-recipient` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_no_sending_number]
+en = "no-sending-number"
+fr = "Aucun numéro d'envoi"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `no-sending-number` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_postmark_missing]
+en = "postmark-missing"
+fr = "Postmark non configuré"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `postmark-missing` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_report_recipient_refused]
+en = "report-recipient-refused"
+fr = "Destinataire du rapport refusé"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `report-recipient-refused` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_report_unavailable]
+en = "report-unavailable"
+fr = "Rapport indisponible"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `report-unavailable` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_send_failed]
+en = "send-failed"
+fr = "Échec d'envoi"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `send-failed` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_tag_already_present]
+en = "tag-already-present"
+fr = "Étiquette déjà présente"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `tag-already-present` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_tag_not_present]
+en = "tag-not-present"
+fr = "Étiquette absente"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `tag-not-present` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_reason_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A workflowActionReason value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.workflow_action_reason_unknown_action_type]
+en = "unknown-action-type"
+fr = "Type d'action inconnu"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowActionReason value `unknown-action-type` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+
+[wire.workflow_action_register_compliance_dnc]
+en = "register_compliance_dnc"
+fr = "Inscrire à la liste d'exclusion"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowAction value `register_compliance_dnc` as the server sends it. This app has always shown it as sent. The portal's English label is \"Register Compliance DNC\"."
+
+[wire.workflow_action_remove_crm_tag]
+en = "remove_crm_tag"
+fr = "Retirer une étiquette CRM"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowAction value `remove_crm_tag` as the server sends it. This app has always shown it as sent. The portal's English label is \"Remove CRM Tag\"."
+
+[wire.workflow_action_send_email]
+en = "send_email"
+fr = "Envoyer un courriel"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowAction value `send_email` as the server sends it. This app has always shown it as sent. The portal's English label is \"Send Email\"."
+
+[wire.workflow_action_send_sms]
+en = "send_sms"
+fr = "Envoyer un texto"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowAction value `send_sms` as the server sends it. This app has always shown it as sent. The portal's English label is \"Send SMS\"."
+
+[wire.workflow_action_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A workflowAction value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.workflow_run_status_failed]
+en = "failed"
+fr = "Échec"
+ctx = "label"
+screen = "workflows"
+tier = "T3"
+state = "reviewed"
+note = "The workflowRunStatus value `failed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Failed\"."
+
+[wire.workflow_run_status_partial]
+en = "partial"
+fr = "Partiellement fait"
+ctx = "label"
+screen = "workflows"
+tier = "T3"
+state = "reviewed"
+note = "The workflowRunStatus value `partial` as the server sends it. This app has always shown it as sent. The portal's English label is \"Partly done\"."
+
+[wire.workflow_run_status_skipped]
+en = "skipped"
+fr = "Rien à faire"
+ctx = "label"
+screen = "workflows"
+tier = "T3"
+state = "reviewed"
+note = "The workflowRunStatus value `skipped` as the server sends it. This app has always shown it as sent. The portal's English label is \"Nothing to do\"."
+
+[wire.workflow_run_status_success]
+en = "success"
+fr = "Réussi"
+ctx = "label"
+screen = "workflows"
+tier = "T3"
+state = "reviewed"
+note = "The workflowRunStatus value `success` as the server sends it. This app has always shown it as sent. The portal's English label is \"Succeeded\"."
+
+[wire.workflow_run_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "workflows"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A workflowRunStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.workflow_trigger_booking_cancelled]
+en = "booking_cancelled"
+fr = "Quand une réservation est annulée"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `booking_cancelled` as the server sends it. This app has always shown it as sent. The portal's English label is \"When a Booking Is Cancelled\"."
+
+[wire.workflow_trigger_booking_created]
+en = "booking_created"
+fr = "Quand une réservation est faite"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `booking_created` as the server sends it. This app has always shown it as sent. The portal's English label is \"When a Booking Is Made\"."
+
+[wire.workflow_trigger_booking_reminder]
+en = "booking_reminder"
+fr = "Quand un rappel de réservation est envoyé"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `booking_reminder` as the server sends it. This app has always shown it as sent. The portal's English label is \"When a Booking Reminder Is Sent\"."
+
+[wire.workflow_trigger_booking_rescheduled]
+en = "booking_rescheduled"
+fr = "Quand une réservation est déplacée"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `booking_rescheduled` as the server sends it. This app has always shown it as sent. The portal's English label is \"When a Booking Is Rescheduled\"."
+
+[wire.workflow_trigger_call_ended]
+en = "call_ended"
+fr = "Quand un appel se termine (répondu ou non)"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `call_ended` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Any Call Ends (answered or not)\"."
+
+[wire.workflow_trigger_call_ended_answered]
+en = "call_ended_answered"
+fr = "Quand un appel répondu se termine"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `call_ended_answered` as the server sends it. This app has always shown it as sent. The portal's English label is \"When an Answered Call Ends\"."
+
+[wire.workflow_trigger_call_ended_unanswered]
+en = "call_ended_unanswered"
+fr = "Quand un appel reste sans réponse"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `call_ended_unanswered` as the server sends it. This app has always shown it as sent. The portal's English label is \"When a Call Goes Unanswered\"."
+
+[wire.workflow_trigger_contact_created]
+en = "contact_created"
+fr = "Quand un contact est créé"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `contact_created` as the server sends it. This app has always shown it as sent. The portal's English label is \"When New Contact Created\"."
+
+[wire.workflow_trigger_dnc_registered]
+en = "dnc_registered"
+fr = "Quand un contact s'inscrit à la liste d'exclusion"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `dnc_registered` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Contact Registered DNC\"."
+
+[wire.workflow_trigger_intent_detected]
+en = "intent_detected"
+fr = "Quand une intention précise est détectée"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `intent_detected` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Specific Intent Detected\"."
+
+[wire.workflow_trigger_negative_sentiment]
+en = "negative_sentiment"
+fr = "Quand le sentiment de l'appel est négatif"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `negative_sentiment` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Call Sentiment is Negative\"."
+
+[wire.workflow_trigger_neutral_sentiment]
+en = "neutral_sentiment"
+fr = "Quand le sentiment de l'appel est neutre"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `neutral_sentiment` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Call Sentiment is Neutral\"."
+
+[wire.workflow_trigger_positive_sentiment]
+en = "positive_sentiment"
+fr = "Quand le sentiment de l'appel est positif"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `positive_sentiment` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Call Sentiment is Positive\"."
+
+[wire.workflow_trigger_sms_received]
+en = "sms_received"
+fr = "Quand un texto entrant est reçu"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "reviewed"
+note = "The workflowTrigger value `sms_received` as the server sends it. This app has always shown it as sent. The portal's English label is \"When Inbound SMS Received\"."
+
+[wire.workflow_trigger_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "reviewed"
+note = "A workflowTrigger value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."

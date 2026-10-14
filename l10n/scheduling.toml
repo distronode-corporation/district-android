@@ -3816,6 +3816,24 @@ screen = "scheduling settings"
 tier = "T3"
 state = "reviewed"
 
+[scheduling_admin.settings.language_en]
+en = "English"
+fr = "Anglais"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+state = "reviewed"
+note = "The booking page language `en`. The portal's language names (setupI18n.ts languageEn)."
+
+[scheduling_admin.settings.language_fr]
+en = "French"
+fr = "Français"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+state = "reviewed"
+note = "The booking page language `fr`. The portal's language names (setupI18n.ts languageFr)."
+
 [scheduling_admin.settings.legal_url_hint]
 en = "Linked in the footer of the booking page. Leave it empty for none."
 fr = "Affiché en lien au pied de la page de réservation. Laissez vide pour n'en afficher aucun."

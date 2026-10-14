@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,7 @@ import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.Contact
+import com.distronode.districtai.l10n.WireCategory
 
 /**
  * The District Global Intelligence dossier, and the two controls that manage it.
@@ -136,7 +138,10 @@ private fun CompanyCard(contact: Contact) {
 private fun DossierFieldCard(field: DossierField, modifier: Modifier = Modifier) {
     DistrictCard {
         Column(modifier = modifier.padding(DistrictTheme.spacing.gutter)) {
-            Text(text = field.label, style = MaterialTheme.typography.labelSmall)
+            Text(
+                text = field.key?.let { dossierHeading(it) } ?: field.label,
+                style = MaterialTheme.typography.labelSmall,
+            )
             field.value?.let {
                 Text(
                     text = it,
@@ -167,6 +172,19 @@ private fun DossierFieldCard(field: DossierField, modifier: Modifier = Modifier)
             field.children.forEach { child -> DossierChildRow(child) }
         }
     }
+}
+
+/**
+ * A dossier key's heading: the contact drawer's label for a key the vocabulary lists
+ * (contactResearchKey), else the generic label carrying the key split into words. In English both read
+ * as the app has always shown them ("Executive summary", "Summary").
+ */
+@Composable
+@ReadOnlyComposable
+internal fun dossierHeading(key: String): String {
+    val category = WireCategory.CONTACT_RESEARCH_KEY
+    val id = category.labels[key]
+    return if (id != null) stringResource(id) else stringResource(category.unknown, humanizeKey(key))
 }
 
 /** ⚠️ One level deep only — see [dossierFields]. A grandchild arrives already flattened to JSON. */

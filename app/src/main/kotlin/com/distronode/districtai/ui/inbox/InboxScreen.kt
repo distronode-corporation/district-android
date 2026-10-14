@@ -38,6 +38,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.MessageSearchHit
+import com.distronode.districtai.l10n.inboxChannelLabel
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.resolve
 
@@ -306,7 +307,7 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
                 // the one badge that matters.
                 if (thread.channels.size > 1) {
                     thread.channels.forEach {
-                        DistrictBadge(text = it.uppercase(), tone = Tone.Neutral)
+                        DistrictBadge(text = inboxChannelLabel(it), tone = Tone.Neutral)
                     }
                 }
                 // ⚠️ BEFORE the unread count, so the unread badge keeps the rightmost position it

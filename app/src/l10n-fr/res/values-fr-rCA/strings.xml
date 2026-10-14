@@ -65,7 +65,7 @@
     <string name="billing_meter_title">Minutes d\'appel ce mois-ci</string>
     <string name="billing_meter_unmetered">Aucune minute d\'appel n\'a encore été comptabilisée ce mois-ci.</string>
     <string name="billing_meter_used">Minutes utilisées\u00A0: %1$s</string>
-    <string name="billing_meter_used_of">Minutes utilisées\u00A0: %1$s sur %2$d incluses</string>
+    <string name="billing_meter_used_of">Minutes utilisées\u00A0: %1$s sur %2$s incluses</string>
     <string name="billing_open">Facturation</string>
     <string name="billing_overage_auto_bill">Les minutes hors forfait sont facturées automatiquement.</string>
     <string name="billing_overage_blocked">Les appels sont refusés\u00A0: vos minutes incluses sont épuisées</string>
@@ -356,6 +356,8 @@
     <string name="hq_send">Envoyer</string>
     <string name="hq_thinking">Réflexion…</string>
     <string name="hq_title">District HQ</string>
+    <string name="inbox_channel_email">Courriel</string>
+    <string name="inbox_channel_sms">SMS</string>
     <string name="inbox_compose_cancel">Annuler</string>
     <string name="inbox_compose_change">Changer</string>
     <string name="inbox_compose_channel_email">Courriel</string>
@@ -425,6 +427,7 @@
     <string name="knowledge_status_unknown">statut inconnu</string>
     <string name="knowledge_title">Base de connaissances</string>
     <string name="l10n_language">fr</string>
+    <string name="labels_unknown_value">Valeur inconnue\u00A0: %1$s</string>
     <string name="live_transcript_connecting">Connexion…</string>
     <string name="live_transcript_ended">Appel terminé</string>
     <string name="live_transcript_full_transcript">Transcription</string>
@@ -507,7 +510,10 @@
     <string name="messaging_add">Ajouter un compte</string>
     <string name="messaging_add_title">Ajouter un compte de transporteur</string>
     <string name="messaging_cancel">Annuler</string>
+    <string name="messaging_channel_sms">SMS</string>
     <string name="messaging_channel_title">Compte d\'envoi %1$s</string>
+    <string name="messaging_channel_voice">Voix</string>
+    <string name="messaging_channel_whatsapp">WhatsApp</string>
     <string name="messaging_creator_cell_help">L\'IA transfère vers ce numéro les appels qu\'elle ne peut pas traiter. Le numéro enregistré ne peut pas s\'afficher ici\u00A0: en saisir un le remplace.</string>
     <string name="messaging_creator_cell_label">Cellulaire</string>
     <string name="messaging_creator_cell_save">Enregistrer</string>
@@ -721,10 +727,18 @@
     <string name="routing_empty_body">Chaque appelant obtient la persona de l\'espace de travail. Ajoutez une règle pour donner une autre voix ou consigne à un groupe d\'appelants.</string>
     <string name="routing_empty_title">Aucune règle d\'acheminement</string>
     <string name="routing_field">Si ce champ du contact</string>
+    <string name="routing_field_caller_type">Type d\'appelant (business/consumer)</string>
+    <string name="routing_field_estimated_value">Valeur estimée</string>
+    <string name="routing_field_industry">Secteur d\'activité</string>
+    <string name="routing_field_is_decision_maker">Décideur (true/false)</string>
+    <string name="routing_field_line_type">Type de ligne (mobile/landline/voip)</string>
+    <string name="routing_field_seniority">Niveau hiérarchique (p. ex. vp, c-suite)</string>
     <string name="routing_instruction">Consigne supplémentaire pour ces appelants</string>
     <string name="routing_model_none">aucun</string>
     <string name="routing_model_read_only">Remplacement du moteur\u00A0: %1$s (non modifiable dans cette application)</string>
     <string name="routing_operator">Comparaison</string>
+    <string name="routing_operator_contains">Contient</string>
+    <string name="routing_operator_equals">Égal à</string>
     <string name="routing_option_unset">aucun choix</string>
     <string name="routing_remove">Supprimer cette règle</string>
     <string name="routing_rule_number">Règle %1$d</string>
@@ -812,6 +826,7 @@
     <string name="support_request_title">Demande</string>
     <string name="support_section_open">Ouvertes</string>
     <string name="support_section_resolved">Réglée</string>
+    <string name="support_status_received">Reçue</string>
     <string name="support_title">Soutien</string>
     <string name="support_unfiled">En cours d\'ouverture</string>
     <string name="support_viewer_body">Les demandes de soutien sont des échanges avec Distronode\u00A0: elles sont donc réservées aux rôles Agence et Client. Au besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
@@ -830,6 +845,7 @@
         <item quantity="other">%1$d pièces jointes</item>
     </plurals>
     <string name="thread_call">Appeler</string>
+    <string name="thread_call_event">Appel</string>
     <string name="thread_call_missed">Appel manqué</string>
     <string name="thread_dismiss">Fermer</string>
     <string name="thread_empty">Les messages et les appels avec ce contact apparaîtront ici.</string>

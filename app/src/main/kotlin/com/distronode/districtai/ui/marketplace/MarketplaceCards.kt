@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
+import com.distronode.districtai.l10n.WireCategory
 import com.distronode.districtai.l10n.serverSentence
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -27,6 +28,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.AvailableNumber
 import com.distronode.districtai.core.model.ListedNumber
+import com.distronode.districtai.l10n.wireLabel
 
 /**
  * The marketplace's cards.
@@ -203,8 +205,8 @@ private fun ListedNumberRow(number: ListedNumber, onOpen: (() -> Unit)?) {
             Text(
                 text = stringResource(
                     R.string.marketplace_number_meta,
-                    number.provider,
-                    number.status,
+                    wireLabel(WireCategory.NUMBER_PROVIDER, number.provider),
+                    wireLabel(WireCategory.NUMBER_STATUS, number.status),
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,

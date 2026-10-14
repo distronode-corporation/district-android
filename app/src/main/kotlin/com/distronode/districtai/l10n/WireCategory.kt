@@ -4,10 +4,18 @@ package com.distronode.districtai.l10n
 import com.distronode.districtai.R
 
 /**
- * The wire-vocabulary categories this app displays: each known value to its label, the label for an
+ * Every wire-vocabulary category: each known value to its label, the label for an
  * unknown value (which takes the value as its one argument), and whether the value is upper-cased first.
+ *
+ * [unknownTakesValue] is false for a category with its own `fallback`, whose unknown label is a fixed
+ * word ("Active") rather than one that names the value.
  */
-internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int, val upperCase: Boolean) {
+internal enum class WireCategory(
+    val labels: Map<String, Int>,
+    val unknown: Int,
+    val upperCase: Boolean,
+    val unknownTakesValue: Boolean,
+) {
     CALL_STATUS(
         labels = mapOf(
             "completed" to R.string.wire_call_status_completed,
@@ -18,10 +26,30 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
             "busy" to R.string.wire_call_status_busy,
             "canceled" to R.string.wire_call_status_canceled,
             "abandoned" to R.string.wire_call_status_abandoned,
-            "unknown" to R.string.wire_call_status_unknown,
+            "unknown" to R.string.wire_call_status_value_unknown,
         ),
         unknown = R.string.wire_call_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
+    ),
+    CALL_DIRECTION(
+        labels = mapOf(
+            "inbound" to R.string.wire_call_direction_inbound,
+            "outbound" to R.string.wire_call_direction_outbound,
+        ),
+        unknown = R.string.wire_call_direction_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    CALL_TYPE(
+        labels = mapOf(
+            "inbound" to R.string.wire_call_type_inbound,
+            "outbound" to R.string.wire_call_type_outbound,
+            "missed" to R.string.wire_call_type_missed,
+        ),
+        unknown = R.string.wire_call_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
     ),
     SENTIMENT(
         labels = mapOf(
@@ -31,6 +59,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_sentiment_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     DISPOSITION(
         labels = mapOf(
@@ -46,6 +75,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_disposition_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     TRANSFER_STATUS(
         labels = mapOf(
@@ -55,6 +85,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_transfer_status_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     TRANSFER_REASON(
         labels = mapOf(
@@ -69,6 +100,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_transfer_reason_unknown,
         upperCase = false,
+        unknownTakesValue = false,
     ),
     FUNNEL_STAGE(
         labels = mapOf(
@@ -78,6 +110,7 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_funnel_stage_unknown,
         upperCase = false,
+        unknownTakesValue = true,
     ),
     ANALYTICS_SENTIMENT(
         labels = mapOf(
@@ -87,6 +120,17 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_analytics_sentiment_unknown,
         upperCase = false,
+        unknownTakesValue = true,
+    ),
+    MEMBER_ROLE(
+        labels = mapOf(
+            "agency" to R.string.wire_member_role_agency,
+            "client" to R.string.wire_member_role_client,
+            "viewer" to R.string.wire_member_role_viewer,
+        ),
+        unknown = R.string.wire_member_role_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
     ),
     REGION(
         labels = mapOf(
@@ -97,6 +141,327 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         ),
         unknown = R.string.wire_region_unknown,
         upperCase = true,
+        unknownTakesValue = true,
+    ),
+    DESK_TICKET_STATUS(
+        labels = mapOf(
+            "open" to R.string.wire_desk_ticket_status_open,
+            "waiting" to R.string.wire_desk_ticket_status_waiting,
+            "resolved" to R.string.wire_desk_ticket_status_resolved,
+        ),
+        unknown = R.string.wire_desk_ticket_status_unknown,
+        upperCase = false,
+        unknownTakesValue = false,
+    ),
+    DESK_TICKET_SOURCE(
+        labels = mapOf(
+            "voice-call" to R.string.wire_desk_ticket_source_voice_call,
+            "manual" to R.string.wire_desk_ticket_source_manual,
+        ),
+        unknown = R.string.wire_desk_ticket_source_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    KNOWLEDGE_DOCUMENT_STATUS(
+        labels = mapOf(
+            "processing" to R.string.wire_knowledge_document_status_processing,
+            "ready" to R.string.wire_knowledge_document_status_ready,
+            "failed" to R.string.wire_knowledge_document_status_failed,
+        ),
+        unknown = R.string.wire_knowledge_document_status_unknown,
+        upperCase = false,
+        unknownTakesValue = false,
+    ),
+    WORKFLOW_TRIGGER(
+        labels = mapOf(
+            "call_ended" to R.string.wire_workflow_trigger_call_ended,
+            "call_ended_answered" to R.string.wire_workflow_trigger_call_ended_answered,
+            "call_ended_unanswered" to R.string.wire_workflow_trigger_call_ended_unanswered,
+            "negative_sentiment" to R.string.wire_workflow_trigger_negative_sentiment,
+            "positive_sentiment" to R.string.wire_workflow_trigger_positive_sentiment,
+            "neutral_sentiment" to R.string.wire_workflow_trigger_neutral_sentiment,
+            "intent_detected" to R.string.wire_workflow_trigger_intent_detected,
+            "sms_received" to R.string.wire_workflow_trigger_sms_received,
+            "contact_created" to R.string.wire_workflow_trigger_contact_created,
+            "dnc_registered" to R.string.wire_workflow_trigger_dnc_registered,
+            "booking_created" to R.string.wire_workflow_trigger_booking_created,
+            "booking_cancelled" to R.string.wire_workflow_trigger_booking_cancelled,
+            "booking_rescheduled" to R.string.wire_workflow_trigger_booking_rescheduled,
+            "booking_reminder" to R.string.wire_workflow_trigger_booking_reminder,
+        ),
+        unknown = R.string.wire_workflow_trigger_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    WORKFLOW_RUN_STATUS(
+        labels = mapOf(
+            "success" to R.string.wire_workflow_run_status_success,
+            "partial" to R.string.wire_workflow_run_status_partial,
+            "failed" to R.string.wire_workflow_run_status_failed,
+            "skipped" to R.string.wire_workflow_run_status_skipped,
+        ),
+        unknown = R.string.wire_workflow_run_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    WORKFLOW_ACTION(
+        labels = mapOf(
+            "send_sms" to R.string.wire_workflow_action_send_sms,
+            "send_email" to R.string.wire_workflow_action_send_email,
+            "add_crm_tag" to R.string.wire_workflow_action_add_crm_tag,
+            "remove_crm_tag" to R.string.wire_workflow_action_remove_crm_tag,
+            "register_compliance_dnc" to R.string.wire_workflow_action_register_compliance_dnc,
+            "notify_ops" to R.string.wire_workflow_action_notify_ops,
+        ),
+        unknown = R.string.wire_workflow_action_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    WORKFLOW_ACTION_OUTCOME(
+        labels = mapOf(
+            "ok" to R.string.wire_workflow_action_outcome_ok,
+            "skipped" to R.string.wire_workflow_action_outcome_skipped,
+            "failed" to R.string.wire_workflow_action_outcome_failed,
+        ),
+        unknown = R.string.wire_workflow_action_outcome_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    WORKFLOW_ACTION_REASON(
+        labels = mapOf(
+            "contact-not-found" to R.string.wire_workflow_action_reason_contact_not_found,
+            "dnc" to R.string.wire_workflow_action_reason_dnc,
+            "dormant" to R.string.wire_workflow_action_reason_dormant,
+            "empty-body" to R.string.wire_workflow_action_reason_empty_body,
+            "empty-subject" to R.string.wire_workflow_action_reason_empty_subject,
+            "empty-tag" to R.string.wire_workflow_action_reason_empty_tag,
+            "http-{status}" to R.string.wire_workflow_action_reason_http_status,
+            "invalid-recipient" to R.string.wire_workflow_action_reason_invalid_recipient,
+            "missing-webhook-url" to R.string.wire_workflow_action_reason_missing_webhook_url,
+            "no-provider-credentials" to R.string.wire_workflow_action_reason_no_provider_credentials,
+            "no-recipient" to R.string.wire_workflow_action_reason_no_recipient,
+            "no-sending-number" to R.string.wire_workflow_action_reason_no_sending_number,
+            "postmark-missing" to R.string.wire_workflow_action_reason_postmark_missing,
+            "report-recipient-refused" to R.string.wire_workflow_action_reason_report_recipient_refused,
+            "report-unavailable" to R.string.wire_workflow_action_reason_report_unavailable,
+            "send-failed" to R.string.wire_workflow_action_reason_send_failed,
+            "tag-already-present" to R.string.wire_workflow_action_reason_tag_already_present,
+            "tag-not-present" to R.string.wire_workflow_action_reason_tag_not_present,
+            "unknown-action-type" to R.string.wire_workflow_action_reason_unknown_action_type,
+        ),
+        unknown = R.string.wire_workflow_action_reason_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_TYPE(
+        labels = mapOf(
+            "local" to R.string.wire_number_type_local,
+            "tollFree" to R.string.wire_number_type_toll_free,
+            "mobile" to R.string.wire_number_type_mobile,
+        ),
+        unknown = R.string.wire_number_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_CAPABILITY(
+        labels = mapOf(
+            "sms" to R.string.wire_number_capability_sms,
+            "voice" to R.string.wire_number_capability_voice,
+            "mms" to R.string.wire_number_capability_mms,
+        ),
+        unknown = R.string.wire_number_capability_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_PROVIDER(
+        labels = mapOf(
+            "twilio" to R.string.wire_number_provider_twilio,
+            "sinch" to R.string.wire_number_provider_sinch,
+            "telnyx" to R.string.wire_number_provider_telnyx,
+            "unknown" to R.string.wire_number_provider_value_unknown,
+        ),
+        unknown = R.string.wire_number_provider_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    MEETING_STATUS(
+        labels = mapOf(
+            "in-progress" to R.string.wire_meeting_status_in_progress,
+            "completed" to R.string.wire_meeting_status_completed,
+        ),
+        unknown = R.string.wire_meeting_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    MESSAGE_DELIVERY_STATUS(
+        labels = mapOf(
+            "queued" to R.string.wire_message_delivery_status_queued,
+            "sent" to R.string.wire_message_delivery_status_sent,
+            "delivered" to R.string.wire_message_delivery_status_delivered,
+            "failed" to R.string.wire_message_delivery_status_failed,
+            "received" to R.string.wire_message_delivery_status_received,
+        ),
+        unknown = R.string.wire_message_delivery_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    RESEARCH_STATUS(
+        labels = mapOf(
+            "pending" to R.string.wire_research_status_pending,
+            "crawling" to R.string.wire_research_status_crawling,
+            "complete" to R.string.wire_research_status_complete,
+            "failed" to R.string.wire_research_status_failed,
+        ),
+        unknown = R.string.wire_research_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    CONTACT_RESEARCH_KEY(
+        labels = mapOf(
+            "executiveSummary" to R.string.wire_contact_research_key_executive_summary,
+            "estimatedValue" to R.string.wire_contact_research_key_estimated_value,
+            "corePainPoints" to R.string.wire_contact_research_key_core_pain_points,
+            "recommendedGreeting" to R.string.wire_contact_research_key_recommended_greeting,
+            "dynamicIcebreakers" to R.string.wire_contact_research_key_dynamic_icebreakers,
+            "person" to R.string.wire_contact_research_key_person,
+            "callerIntel" to R.string.wire_contact_research_key_caller_intel,
+        ),
+        unknown = R.string.wire_contact_research_key_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    LINE_TYPE(
+        labels = mapOf(
+            "mobile" to R.string.wire_line_type_mobile,
+            "landline" to R.string.wire_line_type_landline,
+            "voip" to R.string.wire_line_type_voip,
+        ),
+        unknown = R.string.wire_line_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    BILLING_SUBSCRIPTION_STATUS(
+        labels = mapOf(
+            "active" to R.string.wire_billing_subscription_status_active,
+            "trialing" to R.string.wire_billing_subscription_status_trialing,
+            "past_due" to R.string.wire_billing_subscription_status_past_due,
+            "unpaid" to R.string.wire_billing_subscription_status_unpaid,
+        ),
+        unknown = R.string.wire_billing_subscription_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    BILLING_INVOICE_STATUS(
+        labels = mapOf(
+            "draft" to R.string.wire_billing_invoice_status_draft,
+            "open" to R.string.wire_billing_invoice_status_open,
+            "paid" to R.string.wire_billing_invoice_status_paid,
+            "uncollectible" to R.string.wire_billing_invoice_status_uncollectible,
+            "void" to R.string.wire_billing_invoice_status_void,
+        ),
+        unknown = R.string.wire_billing_invoice_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    MESSAGING_CARRIER(
+        labels = mapOf(
+            "twilio" to R.string.wire_messaging_carrier_twilio,
+            "sinch" to R.string.wire_messaging_carrier_sinch,
+            "telnyx" to R.string.wire_messaging_carrier_telnyx,
+        ),
+        unknown = R.string.wire_messaging_carrier_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    MESSAGING_CREDENTIAL_SOURCE(
+        labels = mapOf(
+            "byok" to R.string.wire_messaging_credential_source_byok,
+            "managed" to R.string.wire_messaging_credential_source_managed,
+        ),
+        unknown = R.string.wire_messaging_credential_source_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_STATUS(
+        labels = mapOf(
+            "active" to R.string.wire_number_status_active,
+            "released" to R.string.wire_number_status_released,
+            "suspended" to R.string.wire_number_status_suspended,
+            "pending_verification" to R.string.wire_number_status_pending_verification,
+        ),
+        unknown = R.string.wire_number_status_unknown,
+        upperCase = false,
+        unknownTakesValue = false,
+    ),
+    A2P_CAMPAIGN_TYPE(
+        labels = mapOf(
+            "LOW_VOLUME" to R.string.wire_a2p_campaign_type_low_volume,
+            "CUSTOMER_CARE" to R.string.wire_a2p_campaign_type_customer_care,
+            "MARKETING" to R.string.wire_a2p_campaign_type_marketing,
+            "2FA" to R.string.wire_a2p_campaign_type_v_2_fa,
+        ),
+        unknown = R.string.wire_a2p_campaign_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    A2P_REGISTRATION_STATUS(
+        labels = mapOf(
+            "IN_PROGRESS" to R.string.wire_a2p_registration_status_in_progress,
+            "VERIFIED" to R.string.wire_a2p_registration_status_verified,
+            "FAILED" to R.string.wire_a2p_registration_status_failed,
+        ),
+        unknown = R.string.wire_a2p_registration_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    TOLL_FREE_VERIFICATION_STATUS(
+        labels = mapOf(
+            "PENDING_REVIEW" to R.string.wire_toll_free_verification_status_pending_review,
+            "IN_REVIEW" to R.string.wire_toll_free_verification_status_in_review,
+            "TWILIO_APPROVED" to R.string.wire_toll_free_verification_status_twilio_approved,
+            "TWILIO_REJECTED" to R.string.wire_toll_free_verification_status_twilio_rejected,
+        ),
+        unknown = R.string.wire_toll_free_verification_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    SIP_TRUNK_STATUS(
+        labels = mapOf(
+            "active" to R.string.wire_sip_trunk_status_active,
+        ),
+        unknown = R.string.wire_sip_trunk_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    SCHEDULING_WEBHOOK_DELIVERY_STATUS(
+        labels = mapOf(
+            "success" to R.string.wire_scheduling_webhook_delivery_status_success,
+            "pending" to R.string.wire_scheduling_webhook_delivery_status_pending,
+            "failed" to R.string.wire_scheduling_webhook_delivery_status_failed,
+        ),
+        unknown = R.string.wire_scheduling_webhook_delivery_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    SCHEDULING_HOST_ROLE(
+        labels = mapOf(
+            "required" to R.string.wire_scheduling_host_role_required,
+            "rotation" to R.string.wire_scheduling_host_role_rotation,
+            "optional" to R.string.wire_scheduling_host_role_optional,
+        ),
+        unknown = R.string.wire_scheduling_host_role_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    SCHEDULING_QUESTION_TYPE(
+        labels = mapOf(
+            "text" to R.string.wire_scheduling_question_type_text,
+            "select" to R.string.wire_scheduling_question_type_select,
+            "checkbox" to R.string.wire_scheduling_question_type_checkbox,
+        ),
+        unknown = R.string.wire_scheduling_question_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
     ),
 }
 

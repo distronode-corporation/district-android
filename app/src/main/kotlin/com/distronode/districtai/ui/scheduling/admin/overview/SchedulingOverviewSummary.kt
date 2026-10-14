@@ -10,6 +10,7 @@ import com.distronode.districtai.core.model.SchedulingBooking
 import com.distronode.districtai.core.model.SchedulingEventType
 import com.distronode.districtai.l10n.DistrictFormat
 import com.distronode.districtai.l10n.appLanguage
+import com.distronode.districtai.l10n.clockText
 import com.distronode.districtai.ui.scheduling.admin.schedulingDisplayIndex
 import com.distronode.districtai.ui.scheduling.admin.schedulingInstantOrNull
 import com.distronode.districtai.ui.scheduling.admin.schedulingWeekdayShort
@@ -54,8 +55,8 @@ fun workingHoursSummary(rules: List<SchedulingAvailabilityRule>): String? {
             windows.sortedBy { it.startTime }.map { rule ->
                 stringResource(
                     R.string.scheduling_admin_common_range,
-                    schedulingDisplayTime(rule.startTime),
-                    schedulingDisplayTime(rule.endTime),
+                    clockText(schedulingDisplayTime(rule.startTime)),
+                    clockText(schedulingDisplayTime(rule.endTime)),
                 )
             },
             appLanguage(),

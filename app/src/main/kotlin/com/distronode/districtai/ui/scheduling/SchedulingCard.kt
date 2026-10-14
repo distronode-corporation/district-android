@@ -26,6 +26,7 @@ import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
+import com.distronode.districtai.l10n.stampDateTimeText
 
 /*
  * The booking-page card itself: the badge, the sentence, the per-state detail and the action row.
@@ -205,12 +206,11 @@ private fun LiveDetail(tenant: SchedulingTenant) {
             }
         }
         HostLine(tenant.publicHost)
-        // ⚠️ THE RAW ISO-8601 STRING, exactly as the devices screen shows `lastUsedAt`. This module
-        // owns no date parsing (see the DTO), and inventing one here for a single caption would be
-        // a second timestamp convention in the same app.
+        // ⚠️ THE RAW ISO-8601 STRING IN ENGLISH, as the app has always shown it and as the devices
+        // screen shows `lastUsedAt`; French reads it as a date and time (`stampDateTimeText`).
         tenant.lastReadyAt?.let {
             Text(
-                text = stringResource(R.string.scheduling_last_checked, it),
+                text = stringResource(R.string.scheduling_last_checked, stampDateTimeText(it)),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
             )

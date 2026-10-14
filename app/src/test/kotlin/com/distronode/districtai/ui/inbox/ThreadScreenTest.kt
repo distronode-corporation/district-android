@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
@@ -183,6 +184,9 @@ class ThreadScreenTest {
         render(ThreadUiState.Content(listOf(call(summary = "Asked about Thursday hours."))))
 
         composeRule.onNodeWithTag(THREAD_CALL_DESCRIPTION).assertIsDisplayed()
+        // ⚠️ The event's own label ("Appel" in French), not the action's ("Appeler").
+        composeRule.onNodeWithTag(THREAD_CALL_DESCRIPTION, useUnmergedTree = true)
+            .assertTextEquals(str(R.string.thread_call_event))
         composeRule.onNodeWithText("Asked about Thursday hours.").assertIsDisplayed()
     }
 

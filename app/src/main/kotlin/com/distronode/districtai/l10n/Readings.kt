@@ -54,6 +54,70 @@ internal fun chartDateText(serverText: String, isoDate: String, language: AppLan
     return DistrictFormat.monthDay(date.dayOfMonth, date.monthValue, language)
 }
 
+/**
+ * An ISO instant the app has always printed as sent (a thread message's stamp): unchanged in English,
+ * in French a day, month and time in the device's zone ("15 août, 14 h 30"), as a call row reads.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun stampText(
+    iso: String,
+    language: AppLanguage = appLanguage(),
+    zone: ZoneId = ZoneId.systemDefault(),
+): String {
+    if (language == AppLanguage.EN) return iso
+    val instant = instantOrNull(iso) ?: return iso
+    return DistrictFormat.monthDayTime(instant, zone, language)
+}
+
+/**
+ * An ISO instant shown as sent beside a label ("Last active …", "Last checked …"): unchanged in
+ * English, in French a medium date and a time in the device's zone ("15 août 2026, 14 h 30").
+ */
+@Composable
+@ReadOnlyComposable
+internal fun stampDateTimeText(
+    iso: String,
+    language: AppLanguage = appLanguage(),
+    zone: ZoneId = ZoneId.systemDefault(),
+): String {
+    if (language == AppLanguage.EN) return iso
+    val instant = instantOrNull(iso) ?: return iso
+    return DistrictFormat.dateTime(instant, zone, language)
+}
+
+/** A billing month the app has always printed as sent ("2026-08"): unchanged in English, "août 2026" in French. */
+@Composable
+@ReadOnlyComposable
+internal fun yearMonthText(raw: String, language: AppLanguage = appLanguage()): String {
+    if (language == AppLanguage.EN) return raw
+    val match = YEAR_MONTH.matchEntire(raw.trim()) ?: return raw
+    val month = match.groupValues[2].toInt()
+    if (month !in 1..MONTHS) return raw
+    return DistrictFormat.monthYear(month, match.groupValues[1].toInt(), language)
+}
+
+/**
+ * A wall-clock time the scheduler stores as "HH:mm" and the app shows as "9:00" or "10:30":
+ * unchanged in English, the French reading in French ("9 h", "10 h 30"). Anything else as sent.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun clockText(raw: String, language: AppLanguage = appLanguage()): String {
+    if (language == AppLanguage.EN) return raw
+    val match = CLOCK.matchEntire(raw.trim()) ?: return raw
+    val hour = match.groupValues[1].toInt()
+    val minute = match.groupValues[2].toInt()
+    if (hour > LAST_HOUR || minute > LAST_MINUTE) return raw
+    return DistrictFormat.frenchClock(hour, minute)
+}
+
+private val YEAR_MONTH = Regex("""(\d{4})-(\d{2})""")
+private val CLOCK = Regex("""(\d{1,2}):(\d{2})""")
+private const val LAST_HOUR = 23
+private const val LAST_MINUTE = 59
+private const val MONTHS = 12
+
 private fun instantOrNull(iso: String): Instant? = try {
     Instant.parse(iso)
 } catch (_: DateTimeParseException) {

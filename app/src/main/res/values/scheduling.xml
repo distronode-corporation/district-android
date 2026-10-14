@@ -453,6 +453,8 @@
     <string name="scheduling_admin_settings_image_too_large">That image is larger than 5 MB. Choose a smaller one.</string>
     <string name="scheduling_admin_settings_image_unreadable">That image could not be read. Choose another.</string>
     <string name="scheduling_admin_settings_image_wrong_type">That file is not an image we can use. Choose a JPEG, PNG, GIF or WebP.</string>
+    <string name="scheduling_admin_settings_language_en">English</string>
+    <string name="scheduling_admin_settings_language_fr">French</string>
     <string name="scheduling_admin_settings_legal_url_hint">Linked in the footer of the booking page. Leave it empty for none.</string>
     <string name="scheduling_admin_settings_logo">Logo</string>
     <string name="scheduling_admin_settings_logo_height">Logo height</string>

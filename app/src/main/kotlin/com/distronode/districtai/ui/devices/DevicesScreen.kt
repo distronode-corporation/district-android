@@ -32,6 +32,8 @@ import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.model.NativeDevice
+import com.distronode.districtai.l10n.devicePlatformLabel
+import com.distronode.districtai.l10n.stampDateTimeText
 import com.distronode.districtai.ui.InlineFailure
 import com.distronode.districtai.ui.resolve
 
@@ -234,7 +236,8 @@ private fun DeviceCard(
             color = DistrictTheme.colors.foreground,
         )
         Text(
-            text = device.platform.ifBlank { stringResource(R.string.devices_unknown_platform) },
+            text = device.platform.takeIf { it.isNotBlank() }?.let { devicePlatformLabel(it) }
+                ?: stringResource(R.string.devices_unknown_platform),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,
         )
@@ -242,7 +245,7 @@ private fun DeviceCard(
             // ⛔ "Last active", never "last used" — see the ⚠️ on the screen. A device that has
             // not refreshed yet has no value at all, which is every device for its first ten
             // minutes, so the absent case gets its own sentence rather than an empty line.
-            text = device.lastUsedAt?.let { stringResource(R.string.devices_last_active, it) }
+            text = device.lastUsedAt?.let { stringResource(R.string.devices_last_active, stampDateTimeText(it)) }
                 ?: stringResource(R.string.devices_last_active_never),
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.mutedForeground,

@@ -103,6 +103,8 @@
     <string name="call_detail_objections">Objections</string>
     <string name="call_detail_sentiment">Sentiment</string>
     <string name="call_detail_summary">AI summary</string>
+    <string name="call_detail_summary_absent">No AI summary for this call.</string>
+    <string name="call_detail_summary_failed">This call could not be summarised.</string>
     <string name="call_detail_title">Call</string>
     <string name="call_detail_topics">Topics</string>
     <string name="call_detail_transcript">Transcript</string>

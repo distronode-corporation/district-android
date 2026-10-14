@@ -132,7 +132,7 @@ private fun Content(
             style = MaterialTheme.typography.labelLarge,
         )
 
-        LabelledCard(stringResource(R.string.call_detail_summary), call.aiSummary)
+        SummarySection(call.aiSummary)
 
         call.sentiment?.let {
             LabelledCard(stringResource(R.string.call_detail_sentiment), wireLabel(WireCategory.SENTIMENT, it))
@@ -208,7 +208,7 @@ private fun TranscriptSection(state: CallDetailUiState.Content, onShowTranscript
 }
 
 @Composable
-private fun LabelledCard(label: String, value: String, description: String? = null) {
+internal fun LabelledCard(label: String, value: String, description: String? = null) {
     if (value.isBlank()) return
     DistrictCard {
         Column(

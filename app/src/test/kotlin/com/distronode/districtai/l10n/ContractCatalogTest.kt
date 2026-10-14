@@ -74,4 +74,16 @@ class ContractCatalogTest {
             assertEquals(name, values.toSet(), category.labels.keys)
         }
     }
+
+    @Test
+    fun `the placeholder tables are the vocabulary's placeholders and their earlier spellings`() {
+        val placeholders = contract("wire-vocabulary.json").getValue("placeholders").jsonArray.map { it.jsonObject }
+        assertEquals(placeholders.map { it.getValue("value").jsonPrimitive.content }.toSet(), WIRE_PLACEHOLDERS)
+        val aliases = placeholders.filter { "aliases" in it }.associate { placeholder ->
+            placeholder.getValue("value").jsonPrimitive.content to
+                placeholder.getValue("aliases").jsonArray.map { it.jsonPrimitive.content }
+        }
+        assertTrue(aliases.isNotEmpty())
+        assertEquals(aliases, WIRE_PLACEHOLDER_ALIASES)
+    }
 }

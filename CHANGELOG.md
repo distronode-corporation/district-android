@@ -8,6 +8,12 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Added
+
+- A call with no AI summary says so ("No AI summary for this call.") instead of showing the
+  service's stand-in text, such as "No summary available." or a live-session status, and a call
+  whose summary failed says that it could not be summarised.
+
 ## [2.2] - 2026-10-13
 
 ### Changed

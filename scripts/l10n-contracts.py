@@ -12,7 +12,9 @@ The inputs are the website's byte-pinned contract files, vendored unchanged unde
 - api-errors.json: every error code the server can send, in the body's `code` or in the
   `X-Distronode-Error-Code` header, with the web's English and French sentence. One catalog entry per code.
 - wire-vocabulary.json: the raw values the server sends for statuses, sentiments, regions and the like,
-  with the portal's labels. One catalog entry per value of each category this app displays.
+  with the portal's labels. One catalog entry per value of each category this app displays. Its
+  `placeholders` (English the server writes in place of a real value, with earlier spellings under
+  `aliases`) become two Kotlin tables and no catalog entry: a screen recognises one and shows its own copy.
 
 ⛔ THE ENGLISH OF A WIRE LABEL IS WHAT THIS APP SHOWS TODAY, NOT THE PORTAL'S LABEL. The app has always
 displayed these values raw (a call reads "completed", a region "CA"), and W1 changes no English, so `en`
@@ -177,7 +179,33 @@ def wire_labels() -> tuple[dict, str]:
         lines.append(f"        upperCase = {'true' if rule == 'upper' else 'false'},")
         lines.append("    ),")
     lines += ["}", ""]
+    lines += placeholder_tables(src["placeholders"])
     return data, "\n".join(lines)
+
+
+def placeholder_tables(placeholders: list) -> list[str]:
+    """The `placeholders` list as Kotlin: every value the server stores or sends in English in place of a
+    real one, and the earlier spellings (`aliases`) a stored row may still hold. json.dumps escapes any
+    non-ASCII character (`\\u2014`), which Kotlin reads the same way."""
+    aliased = [p for p in placeholders if p.get("aliases")]
+    return [
+        "/**",
+        " * Every placeholder the server stores or sends in English in place of a real value (`Unknown`,",
+        " * `No summary available.`), in its current spelling.",
+        " */",
+        "internal val WIRE_PLACEHOLDERS: Set<String> = setOf(",
+        *[f"    {json.dumps(p['value'])}," for p in placeholders],
+        ")",
+        "",
+        "/** Each placeholder that has earlier spellings, to those spellings: rows stored before the change keep them. */",
+        "internal val WIRE_PLACEHOLDER_ALIASES: Map<String, List<String>> = mapOf(",
+        *[
+            f"    {json.dumps(p['value'])} to listOf({', '.join(json.dumps(a) for a in p['aliases'])}),"
+            for p in aliased
+        ],
+        ")",
+        "",
+    ]
 
 
 def outputs() -> list[tuple[Path, str]]:

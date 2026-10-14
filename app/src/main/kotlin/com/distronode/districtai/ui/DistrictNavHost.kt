@@ -45,6 +45,10 @@ import com.distronode.districtai.ui.dialer.DialerHandlers
 import com.distronode.districtai.ui.dialer.DialerScreen
 import com.distronode.districtai.ui.dialer.DialerViewModel
 import com.distronode.districtai.ui.calls.CallDetailViewModel
+import com.distronode.districtai.ui.contacts.BlockedContactsScreen
+import com.distronode.districtai.ui.contacts.BlockedContactsViewModel
+import com.distronode.districtai.ui.report.ReportTarget
+import com.distronode.districtai.core.data.BlockSubject
 import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
@@ -247,7 +251,7 @@ fun DistrictNavHost(
                         onSelectWorkspace = overviewViewModel::selectWorkspace,
                         onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                         onOpenCallLog = { workspaceId ->
-                            navController.navigate(Routes.callLog(workspaceId))
+                            navController.navigate(Routes.callLog(workspaceId, role))
                         },
                         onOpenContacts = { workspaceId, role ->
                             // ⚠️ The role travels IN THE ROUTE so the destination stays self-describing after
@@ -410,8 +414,9 @@ fun DistrictNavHost(
                     )
                 }
 
-                composable(Routes.CALL_LOG) { entry ->
+                composable(Routes.CALL_LOG, arguments = listOf(optionalRoleArgument())) { entry ->
                     val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.routeArguments().getString(ARG_ROLE))
                     val viewModel: CallLogViewModel = viewModel(
                         // ⚠️ Keyed on the workspace so the ViewModelStore holds one instance per tenant.
                         // Without the key, switching workspace would reuse an instance whose cached pages
@@ -430,7 +435,7 @@ fun DistrictNavHost(
                     CallLogScreen(
                         calls = calls,
                         onOpenCall = { callId ->
-                            navController.navigate(Routes.callDetail(workspaceId, callId))
+                            navController.navigate(Routes.callDetail(workspaceId, callId, role))
                         },
                         onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
@@ -463,6 +468,7 @@ fun DistrictNavHost(
                         ),
                     )
                     val composeState by compose.state.collectAsStateWithLifecycle()
+                    val blockedSnapshot by container.blockedContactsStore.state.collectAsStateWithLifecycle()
                     OnSessionChanged(sessionEpoch) { viewModel.load() }
                     InboxScreen(
                         state = state,
@@ -536,6 +542,7 @@ fun DistrictNavHost(
                                 }
                             },
                         ).takeIf { compose.canSend },
+                        blockedContactIds = blockedSnapshot.idsFor(workspaceId),
                     )
                 }
 
@@ -637,6 +644,15 @@ fun DistrictNavHost(
                             // and the browser already does zoom, save and share correctly.
                             onOpenMedia = { url -> openAttachment(context, url) },
                         ),
+                        moderation = threadModeration(
+                            allowed = role.allowsMutation(),
+                            threadKey = threadKey,
+                            title = threadTitle,
+                            workspaceId = workspaceId,
+                            store = container.blockedContactsStore,
+                            support = container.supportRepository,
+                            onBlocked = { navController.popBackStack() },
+                        ),
                     )
                 }
 
@@ -657,6 +673,10 @@ fun DistrictNavHost(
                     // See the ⛔ on the call log: the same terminal-Paging-error trap.
                     OnSessionChanged(sessionEpoch, contacts::retry)
 
+                    val blockedSnapshot by container.blockedContactsStore.state.collectAsStateWithLifecycle()
+                    // ⚠️ A SILENT READ: a failure keeps whatever badges are known.
+                    LaunchedEffect(workspaceId) { container.blockedContactsStore.refresh(workspaceId) }
+
                     ContactsScreen(
                         contacts = contacts,
                         canMutate = viewModel.canMutate,
@@ -668,6 +688,28 @@ fun DistrictNavHost(
                         onCreate = viewModel::create,
                         onCreateHandled = viewModel::clearCreateState,
                         onBack = { navController.popBackStack() },
+                        blockedIds = blockedSnapshot.idsFor(workspaceId),
+                        onOpenBlocked = { navController.navigate(Routes.blocked(workspaceId, role)) },
+                    )
+                }
+
+                composable(Routes.BLOCKED) { entry ->
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
+                    val viewModel: BlockedContactsViewModel = viewModel(
+                        key = "blocked-$workspaceId",
+                        factory = BlockedContactsViewModel.factory(container.blockedContactsStore, workspaceId, role),
+                    )
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    OnSessionChanged(sessionEpoch, viewModel::load)
+                    BlockedContactsScreen(
+                        state = state,
+                        canMutate = viewModel.canMutate,
+                        onBack = { navController.popBackStack() },
+                        onRetry = viewModel::load,
+                        onSignIn = onSignIn,
+                        onUnblock = viewModel::unblock,
+                        onDismissFailure = viewModel::clearFailure,
                     )
                 }
 
@@ -701,6 +743,12 @@ fun DistrictNavHost(
                         onDismiss = viewModel::dismissPending,
                         onRetry = viewModel::retry,
                         onBack = { navController.popBackStack() },
+                        onReportAnswer = reportAction(
+                            allowed = role.allowsMutation(),
+                            target = ReportTarget.HqAnswer,
+                            workspaceId = workspaceId,
+                            support = container.supportRepository,
+                        ),
                     )
                 }
 
@@ -1297,12 +1345,18 @@ fun DistrictNavHost(
                         // ⚠️ The confirm dialog lives in the screen; this is what it calls.
                         onClearIntel = viewModel::clearIntel,
                         onCheckDossierAgain = viewModel::checkDossierAgain,
+                        block = blockUi(
+                            store = container.blockedContactsStore,
+                            workspaceId = workspaceId,
+                            subject = BlockSubject.Contact(contactId),
+                        ),
                     )
                 }
 
-                composable(Routes.CALL_DETAIL) { entry ->
+                composable(Routes.CALL_DETAIL, arguments = listOf(optionalRoleArgument())) { entry ->
                     val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
                     val callId = entry.pathArgument(ARG_CALL_ID)
+                    val role = WorkspaceRole.fromWire(entry.routeArguments().getString(ARG_ROLE))
                     val viewModel: CallDetailViewModel = viewModel(
                         key = "call-detail-$workspaceId-$callId",
                         factory = CallDetailViewModel.factory(
@@ -1321,6 +1375,12 @@ fun DistrictNavHost(
                         onRetry = viewModel::load,
                         onSignIn = onSignIn,
                         onShowTranscript = viewModel::loadTranscript,
+                        onReport = reportAction(
+                            allowed = role.allowsMutation(),
+                            target = ReportTarget.Call(callId),
+                            workspaceId = workspaceId,
+                            support = container.supportRepository,
+                        ),
                     )
                 }
 
@@ -1631,7 +1691,7 @@ fun DistrictNavHost(
                     label = stringResource(R.string.nav_calls),
                     selected = route == Routes.CALL_LOG,
                     description = NAV_CALLS_DESCRIPTION,
-                    onClick = { navController.navigateTopLevel(Routes.callLog(workspaceId)) },
+                    onClick = { navController.navigateTopLevel(Routes.callLog(workspaceId, role)) },
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_contacts),
@@ -2070,8 +2130,16 @@ object Routes {
      */
     const val DEVICES = "devices"
 
-    const val CALL_LOG = "workspace/{workspaceId}/calls"
-    const val CALL_DETAIL = "workspace/{workspaceId}/calls/{callId}"
+    /**
+     * ⚠️ THE ROLE IS AN OPTIONAL QUERY ARGUMENT HERE, NOT A PATH SEGMENT, because a call is opened
+     * from places that do not know it (a notification, an app link). Without one the screen fails
+     * CLOSED: no Report, which the support routes would refuse a viewer anyway.
+     */
+    const val CALL_LOG = "workspace/{workspaceId}/calls?$ARG_ROLE={$ARG_ROLE}"
+    const val CALL_DETAIL = "workspace/{workspaceId}/calls/{callId}?$ARG_ROLE={$ARG_ROLE}"
+
+    /** The blocked callers. ⚠️ Not under `contacts/{role}/`, where it would read as a contact id. */
+    const val BLOCKED = "workspace/{workspaceId}/blocked/{role}"
     const val INBOX = "workspace/{workspaceId}/inbox/{role}"
 
     /**
@@ -2355,7 +2423,16 @@ object Routes {
     const val SECTION_MEMBERS = "members"
     const val SECTION_CALLS = "calls"
 
-    fun callLog(workspaceId: String) = "workspace/${Uri.encode(workspaceId)}/calls"
+    fun callLog(workspaceId: String, role: WorkspaceRole? = null) =
+        "workspace/${Uri.encode(workspaceId)}/calls" + roleQuery(role)
+
+    /** `?role=<role>`, or nothing for an unknown role. */
+    private fun roleQuery(role: WorkspaceRole?): String =
+        role?.let { "?$ARG_ROLE=${Uri.encode(it.name.lowercase())}" }.orEmpty()
+
+    /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
+    fun blocked(workspaceId: String, role: WorkspaceRole?) =
+        "workspace/${Uri.encode(workspaceId)}/blocked/${Uri.encode(role?.name?.lowercase() ?: "none")}"
 
     /**
      * The hub, or one of its sections.
@@ -2434,8 +2511,8 @@ object Routes {
     fun hq(workspaceId: String, role: WorkspaceRole?) =
         "workspace/${Uri.encode(workspaceId)}/hq/${Uri.encode(role?.name?.lowercase() ?: "none")}"
 
-    fun callDetail(workspaceId: String, callId: String) =
-        "workspace/${Uri.encode(workspaceId)}/calls/${Uri.encode(callId)}"
+    fun callDetail(workspaceId: String, callId: String, role: WorkspaceRole? = null) =
+        "workspace/${Uri.encode(workspaceId)}/calls/${Uri.encode(callId)}" + roleQuery(role)
 
     /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
     fun rooms(workspaceId: String, role: WorkspaceRole?) =

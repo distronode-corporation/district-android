@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.hq
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -72,6 +74,7 @@ class HqScreenTest {
         messages: List<HqMessage> = transcript,
         canConfirm: Boolean = true,
         callbacks: Callbacks = Callbacks(),
+        onReportAnswer: (() -> Unit)? = null,
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -84,6 +87,7 @@ class HqScreenTest {
                     onDismiss = callbacks.onDismiss,
                     onRetry = callbacks.onRetry,
                     onBack = callbacks.onBack,
+                    onReportAnswer = onReportAnswer,
                 )
             }
         }
@@ -326,5 +330,26 @@ class HqScreenTest {
 
         composeRule.onNodeWithTag(HQ_LATEST_MESSAGE_DESCRIPTION).onChild()
             .assertTextEquals("You had 19 calls this week.")
+    }
+
+    // ── Report ───────────────────────────────────────────────────────────────
+
+    @Test
+    fun `only an AI answer offers Report, and only where reporting is wired`() {
+        var reports = 0
+        render(
+            HqUiState.Idle,
+            messages = transcript + HqMessage(HqRole.CONSOLE, UiText.Literal("19 calls."), aiGenerated = true),
+            onReportAnswer = { reports++ },
+        )
+        composeRule.onAllNodesWithTag(HQ_REPORT_ANSWER_DESCRIPTION).assertCountEquals(1)
+        composeRule.onNodeWithTag(HQ_REPORT_ANSWER_DESCRIPTION).performClick()
+        assertEquals(1, reports)
+    }
+
+    @Test
+    fun `a role that may not report sees no Report`() {
+        render(HqUiState.Idle, messages = listOf(HqMessage(HqRole.CONSOLE, UiText.Literal("x"), aiGenerated = true)))
+        composeRule.onNodeWithTag(HQ_REPORT_ANSWER_DESCRIPTION).assertDoesNotExist()
     }
 }

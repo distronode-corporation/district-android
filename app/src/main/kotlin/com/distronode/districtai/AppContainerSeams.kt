@@ -4,6 +4,7 @@ import com.distronode.districtai.core.auth.RevokeApi
 import com.distronode.districtai.core.auth.TokenStore
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.network.CallHandlingApi
+import com.distronode.districtai.core.network.ContactBlockingApi
 import com.distronode.districtai.core.network.DeskApi
 import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.core.network.InboxExtrasApi
@@ -67,6 +68,7 @@ data class AppContainerSeams(
     val personaApi: PersonaApi? = null,
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,
+    val contactBlockingApi: ContactBlockingApi? = null,
     /** The media engine a room, the dialler and the persona audition connect through. */
     val callEngineFactory: CallEngineFactory? = null,
     /** What the softphone tells the OS; Robolectric does not model `TelecomManager`. */

@@ -75,6 +75,7 @@ class ContactDetailScreenTest {
         onRename: (String) -> Unit = {},
         onDelete: () -> Unit = {},
         onRetry: () -> Unit = {},
+        block: BlockUi? = null,
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -90,6 +91,7 @@ class ContactDetailScreenTest {
                     onEnrich = {},
                     onClearIntel = {},
                     onCheckDossierAgain = {},
+                    block = block,
                 )
             }
         }
@@ -402,5 +404,62 @@ class ContactDetailScreenTest {
         render(ContactDetailUiState.Loading)
 
         composeRule.onNodeWithTag(CONTACT_DETAIL_LOADING_DESCRIPTION).assertIsDisplayed()
+    }
+
+    // ── Blocking ─────────────────────────────────────────────────────────────
+
+    private fun block(
+        blocked: Boolean = false,
+        busy: Boolean = false,
+        failure: com.distronode.districtai.ui.FailureText? = null,
+        onSetBlocked: (Boolean) -> Unit = {},
+        onDismissFailure: () -> Unit = {},
+    ) = BlockUi(blocked, busy, failure, onSetBlocked, onDismissFailure)
+
+    @Test
+    fun `a block is confirmed, then asked for`() {
+        val asked = mutableListOf<Boolean>()
+        render(ContactDetailUiState.Content(contact()), block = block(onSetBlocked = { asked += it }))
+        scrollTo(BLOCK_TAG).performClick()
+        composeRule.onNodeWithText(str(R.string.contact_block_block_prompt)).assertIsDisplayed()
+        composeRule.onNodeWithTag(BLOCK_CONFIRM_TAG).performClick()
+        assertEquals(listOf(true), asked)
+    }
+
+    @Test
+    fun `a blocked contact is badged and offers an unblock`() {
+        val asked = mutableListOf<Boolean>()
+        render(ContactDetailUiState.Content(contact()), block = block(blocked = true, onSetBlocked = { asked += it }))
+        scrollTo(BLOCKED_BADGE_TAG).assertIsDisplayed()
+        scrollTo(UNBLOCK_TAG).performClick()
+        composeRule.onNodeWithText(str(R.string.contact_block_unblock_prompt)).assertIsDisplayed()
+        composeRule.onNodeWithTag(BLOCK_CONFIRM_TAG).performClick()
+        assertEquals(listOf(false), asked)
+    }
+
+    @Test
+    fun `a viewer sees the badge and no control, and a failure can be dismissed`() {
+        var dismissed = 0
+        render(
+            ContactDetailUiState.Content(contact()),
+            canMutate = false,
+            block = block(
+                blocked = true,
+                failure = com.distronode.districtai.ui.FailureText(
+                    com.distronode.districtai.ui.UiText.Literal("Refused.")
+                ),
+                onDismissFailure = { dismissed++ },
+            ),
+        )
+        scrollTo(BLOCKED_BADGE_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(UNBLOCK_TAG).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.contact_block_dismiss)).performScrollTo().performClick()
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `the control is disabled while a write is in flight`() {
+        render(ContactDetailUiState.Content(contact()), block = block(busy = true))
+        scrollTo(BLOCK_TAG).assertIsNotEnabled()
     }
 }

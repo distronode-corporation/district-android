@@ -707,6 +707,20 @@ screen = "call detail"
 tier = "T3"
 note = "Call detail"
 
+[call_detail.summary_absent]
+en = "No AI summary for this call."
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Shown in place of the AI summary card when the call has none: the service sent a stand-in sentence (\"No summary available.\", a live-session or no-answer status) rather than a summary."
+
+[call_detail.summary_failed]
+en = "This call could not be summarised."
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Shown in place of the AI summary card when the service tried to summarise the call and failed. Not an error on this screen: nothing here can retry it."
+
 [call_detail.title]
 en = "Call"
 ctx = "title"
@@ -1141,6 +1155,89 @@ ctx = "button"
 screen = "contacts"
 tier = "T3"
 note = "Create contact"
+
+[contact_block.badge]
+en = "Blocked"
+ctx = "label"
+screen = "contacts"
+tier = "T2"
+note = "Badge on a caller this workspace blocked."
+
+[contact_block.block]
+en = "Block caller"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+
+[contact_block.block_prompt]
+en = "Block this caller? Their conversations and calls stop appearing in this workspace. You can unblock them here at any time."
+ctx = "body"
+screen = "contacts"
+tier = "T2"
+note = "Says what blocking does and that it can be undone. It does not claim the caller can no longer phone."
+
+[contact_block.blocked_callers]
+en = "Blocked callers"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+note = "Opens the list of blocked callers from Contacts."
+
+[contact_block.cancel]
+en = "Cancel"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+
+[contact_block.confirm_block]
+en = "Block"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+note = "The button inside the confirmation, not the control that opened it."
+
+[contact_block.confirm_unblock]
+en = "Unblock"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+
+[contact_block.dismiss]
+en = "Dismiss"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+
+[contact_block.empty]
+en = "No one is blocked."
+ctx = "body"
+screen = "blocked callers"
+tier = "T2"
+
+[contact_block.list_title]
+en = "Blocked callers"
+ctx = "title"
+screen = "blocked callers"
+tier = "T2"
+
+[contact_block.manage]
+en = "Manage"
+ctx = "button"
+screen = "inbox thread"
+tier = "T2"
+note = "Opens the conversation's Report and Block menu."
+
+[contact_block.unblock]
+en = "Unblock caller"
+ctx = "button"
+screen = "contacts"
+tier = "T2"
+
+[contact_block.unblock_prompt]
+en = "Unblock this caller? Their conversations and calls start appearing in this workspace again."
+ctx = "body"
+screen = "contacts"
+tier = "T2"
 
 [contact_detail.budget]
 en = "Budget"
@@ -4144,6 +4241,169 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+
+[report.accepted]
+en = "Reported. We'll review it."
+ctx = "body"
+screen = "report"
+tier = "T2"
+note = "The confirmation after a report was filed. The reviewer must see the flag accepted."
+
+[report.action_answer]
+en = "Report answer"
+ctx = "button"
+screen = "hq"
+tier = "T2"
+note = "Under a District HQ answer: flags that AI-generated answer to Distronode."
+
+[report.action_call]
+en = "Report call"
+ctx = "button"
+screen = "call detail"
+tier = "T2"
+note = "Flags the call's AI-generated content to Distronode. The control names the content, not the mechanism."
+
+[report.action_conversation]
+en = "Report conversation"
+ctx = "menu"
+screen = "inbox thread"
+tier = "T2"
+note = "Flags the conversation's AI-generated content to Distronode."
+
+[report.already_reported]
+en = "You have already reported this. We'll review it."
+ctx = "body"
+screen = "report"
+tier = "T2"
+note = "A repeat of a report the service already has. Still a success."
+
+[report.cancel]
+en = "Cancel"
+ctx = "button"
+screen = "report"
+tier = "T2"
+
+[report.done]
+en = "Done"
+ctx = "button"
+screen = "report"
+tier = "T2"
+
+[report.headline_call]
+en = "Report this call?"
+ctx = "title"
+screen = "report"
+tier = "T2"
+
+[report.headline_conversation]
+en = "Report this conversation?"
+ctx = "title"
+screen = "report"
+tier = "T2"
+
+[report.headline_conversation_with]
+en = "Report this conversation with {name}?"
+ctx = "title"
+screen = "report"
+tier = "T2"
+args = { name = "str" }
+note = "{name} is the contact's name or the conversation's address."
+
+[report.headline_hq]
+en = "Report this answer?"
+ctx = "title"
+screen = "report"
+tier = "T2"
+note = "A District HQ answer, written by the AI."
+
+[report.no_note]
+en = "No note was added."
+ctx = "body"
+screen = "report"
+tier = "T2"
+fixed = true
+note = "Sent to Distronode's support desk, which reads English: never translated."
+
+[report.note_label]
+en = "What is wrong with it?"
+ctx = "label"
+screen = "report"
+tier = "T2"
+
+[report.note_prompt]
+en = "Add a note (optional)"
+ctx = "placeholder"
+screen = "report"
+tier = "T2"
+
+[report.pending]
+en = "Reported. We have it and it is catching up."
+ctx = "body"
+screen = "report"
+tier = "T2"
+note = "The report was taken and is still being filed. Still a success."
+
+[report.preamble]
+en = "AI-generated content was reported from the District AI Android app."
+ctx = "body"
+screen = "report"
+tier = "T2"
+fixed = true
+note = "First line of the message to Distronode's support desk, which reads English: never translated."
+
+[report.reference_call]
+en = "Call: {call_id}"
+ctx = "label"
+screen = "report"
+tier = "T2"
+fixed = true
+args = { call_id = "str" }
+note = "Sent to Distronode's support desk: never translated."
+
+[report.reference_contact]
+en = "Contact: {contact_id}"
+ctx = "label"
+screen = "report"
+tier = "T2"
+fixed = true
+args = { contact_id = "str" }
+note = "Sent to Distronode's support desk: never translated."
+
+[report.reference_conversation]
+en = "Conversation"
+ctx = "label"
+screen = "report"
+tier = "T2"
+fixed = true
+note = "Sent to Distronode's support desk: never translated. The address of a conversation never goes with it."
+
+[report.reference_hq_answer]
+en = "District HQ answer"
+ctx = "label"
+screen = "report"
+tier = "T2"
+fixed = true
+note = "Sent to Distronode's support desk: never translated."
+
+[report.sending]
+en = "Reporting…"
+ctx = "button"
+screen = "report"
+tier = "T2"
+
+[report.subject]
+en = "Report: AI-generated content"
+ctx = "label"
+screen = "report"
+tier = "T2"
+fixed = true
+note = "The subject Distronode's support desk sorts reports on: never translated, and the same on Windows."
+
+[report.submit]
+en = "Report"
+ctx = "button"
+screen = "report"
+tier = "T2"
 
 [room.alone_body]
 en = "Share the invite, or wait for someone to join with the same room name."

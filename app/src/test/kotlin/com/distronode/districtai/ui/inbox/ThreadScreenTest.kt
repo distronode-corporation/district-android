@@ -113,6 +113,7 @@ class ThreadScreenTest {
         state: ThreadUiState,
         canReply: Boolean = true,
         wiring: Wiring = Wiring(),
+        moderation: ThreadModeration? = null,
     ) {
         composeRule.setContent {
             var text by remember { mutableStateOf("") }
@@ -137,6 +138,7 @@ class ThreadScreenTest {
                         imageLoader = wiring.imageLoader,
                         onOpenMedia = wiring.onOpenMedia,
                     ),
+                    moderation = moderation,
                 )
             }
         }
@@ -666,5 +668,63 @@ class ThreadScreenTest {
 
         assertEquals(emptyList<String>(), first)
         assertEquals(listOf("On my way"), second)
+    }
+
+    // ── Report and Block ─────────────────────────────────────────────────────
+
+    private fun moderation(
+        onReport: () -> Unit = {},
+        onBlock: () -> Unit = {},
+        busy: Boolean = false,
+        failure: FailureText? = null,
+        onDismissFailure: () -> Unit = {},
+    ) = ThreadModeration(onReport, onBlock, busy, failure, onDismissFailure)
+
+    @Test
+    fun `the menu reports the conversation`() {
+        var reports = 0
+        render(ThreadUiState.Content(emptyList()), moderation = moderation(onReport = { reports++ }))
+        composeRule.onNodeWithTag(THREAD_MANAGE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_REPORT_DESCRIPTION).performClick()
+        assertEquals(1, reports)
+    }
+
+    @Test
+    fun `a block from the menu is confirmed first, and a cancel blocks no one`() {
+        var blocks = 0
+        render(ThreadUiState.Content(emptyList()), moderation = moderation(onBlock = { blocks++ }))
+        composeRule.onNodeWithTag(THREAD_MANAGE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_BLOCK_DESCRIPTION).performClick()
+        composeRule.onNodeWithText(str(R.string.contact_block_cancel)).performClick()
+        assertEquals(0, blocks)
+
+        composeRule.onNodeWithTag(THREAD_MANAGE_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_BLOCK_DESCRIPTION).performClick()
+        composeRule.onNodeWithText(str(R.string.contact_block_block_prompt)).assertIsDisplayed()
+        composeRule.onNodeWithTag(com.distronode.districtai.ui.contacts.BLOCK_CONFIRM_TAG).performClick()
+        assertEquals(1, blocks)
+    }
+
+    @Test
+    fun `a failed block is shown above the thread, and the menu waits while one is in flight`() {
+        var dismissed = 0
+        render(
+            ThreadUiState.Content(emptyList()),
+            moderation = moderation(
+                busy = true,
+                failure = FailureText(UiText.Literal("Refused.")),
+                onDismissFailure = { dismissed++ },
+            ),
+        )
+        composeRule.onNodeWithTag(THREAD_MANAGE_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithText("Refused.").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.contact_block_dismiss)).performClick()
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `a role that may not write has no menu`() {
+        render(ThreadUiState.Content(emptyList()))
+        composeRule.onNodeWithTag(THREAD_MANAGE_DESCRIPTION).assertDoesNotExist()
     }
 }

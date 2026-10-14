@@ -1,6 +1,10 @@
 package com.distronode.districtai.ui.calls
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -50,6 +54,7 @@ class CallDetailScreenTest {
         onBack: () -> Unit = {},
         onRetry: () -> Unit = {},
         onShowTranscript: () -> Unit = {},
+        onReport: (() -> Unit)? = null,
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -59,6 +64,7 @@ class CallDetailScreenTest {
                     onRetry = onRetry,
                     onSignIn = {},
                     onShowTranscript = onShowTranscript,
+                    onReport = onReport,
                 )
             }
         }
@@ -192,12 +198,59 @@ class CallDetailScreenTest {
     }
 
     @Test
-    fun `a blank summary renders no summary card`() {
-        // LabelledCard returns early on a blank value, so a call the model never summarised does not
-        // get a card with a heading and nothing under it.
+    fun `a blank summary renders no summary card, and says there is none`() {
         render(content(testCall().copy(aiSummary = "")))
 
         composeRule.onNodeWithText(str(R.string.call_detail_summary)).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_DETAIL_SUMMARY_NOTE_DESCRIPTION)
+            .assertTextEquals(str(R.string.call_detail_summary_absent))
+    }
+
+    @Test
+    fun `a real summary is shown under its heading`() {
+        render(content(testCall().copy(aiSummary = "Booked an appointment.")))
+
+        composeRule.onNodeWithText(str(R.string.call_detail_summary)).assertIsDisplayed()
+        composeRule.onNodeWithText("Booked an appointment.").assertIsDisplayed()
+        composeRule.onNodeWithTag(CALL_DETAIL_SUMMARY_NOTE_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a summary placeholder is never printed, in either spelling`() {
+        // ⛔ The server sends these stand-ins in English in place of a summary. Each must read as the
+        // catalog's note, never verbatim under "AI summary".
+        var raw by mutableStateOf("")
+        composeRule.setContent {
+            DistrictTheme {
+                SummarySection(raw)
+            }
+        }
+        for (placeholder in SUMMARY_PLACEHOLDERS) {
+            raw = placeholder
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(placeholder).assertDoesNotExist()
+            composeRule.onNodeWithText(str(R.string.call_detail_summary)).assertDoesNotExist()
+            composeRule.onNodeWithTag(CALL_DETAIL_SUMMARY_NOTE_DESCRIPTION)
+                .assertTextEquals(str(R.string.call_detail_summary_absent))
+        }
+    }
+
+    @Test
+    fun `the no-answer sentence with a dash reads as no summary on the screen`() {
+        render(content(testCall().copy(aiSummary = "No answer \u2014 no conversation took place.")))
+
+        composeRule.onNodeWithText(str(R.string.call_detail_summary)).assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_DETAIL_SUMMARY_NOTE_DESCRIPTION)
+            .assertTextEquals(str(R.string.call_detail_summary_absent))
+    }
+
+    @Test
+    fun `a failed summary says so rather than that there is none`() {
+        render(content(testCall().copy(aiSummary = "AI analysis failed to execute.")))
+
+        composeRule.onNodeWithText("AI analysis failed to execute.").assertDoesNotExist()
+        composeRule.onNodeWithTag(CALL_DETAIL_SUMMARY_NOTE_DESCRIPTION)
+            .assertTextEquals(str(R.string.call_detail_summary_failed))
     }
 
     @Test
@@ -285,5 +338,19 @@ class CallDetailScreenTest {
         render(content(testCall().copy(direction = "outbound", type = "outbound")))
 
         composeRule.onNodeWithText("Outbound · Aug 15, 02:30 PM · 1m 5s").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a loaded call offers Report where it is wired`() {
+        var reports = 0
+        render(content(), onReport = { reports++ })
+        composeRule.onNodeWithTag(CALL_DETAIL_REPORT_DESCRIPTION).performClick()
+        assertEquals(1, reports)
+    }
+
+    @Test
+    fun `no Report before the call loaded, or for a role that may not`() {
+        render(CallDetailUiState.Loading, onReport = {})
+        composeRule.onNodeWithTag(CALL_DETAIL_REPORT_DESCRIPTION).assertDoesNotExist()
     }
 }

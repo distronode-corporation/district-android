@@ -21,7 +21,10 @@ import com.distronode.districtai.l10n.callTimeText
 import com.distronode.districtai.l10n.WireCategory
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
+import com.distronode.districtai.core.designsystem.ButtonSize
+import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
+import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -43,6 +46,8 @@ fun CallDetailScreen(
     onRetry: () -> Unit,
     onSignIn: () -> Unit,
     onShowTranscript: () -> Unit,
+    /** Report the call's AI content; null for a role that may not (the support routes exclude `viewer`). */
+    onReport: (() -> Unit)? = null,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(CALL_DETAIL_ROOT_DESCRIPTION),
@@ -50,7 +55,22 @@ fun CallDetailScreen(
             // ⚠️ The back affordance lives IN the app bar. A text button at the bottom of the
             // FAILURE state only would leave a call that loaded successfully with no visible way
             // back at all, only the system gesture.
-            DistrictTopBar(title = stringResource(R.string.call_detail_title), onBack = onBack)
+            DistrictTopBar(
+                title = stringResource(R.string.call_detail_title),
+                onBack = onBack,
+                // ⚠️ ONLY ONCE THE CALL LOADED: a report names a call the operator could see.
+                actions = onReport?.takeIf { state is CallDetailUiState.Content }?.let { report ->
+                    {
+                        DistrictButton(
+                            text = stringResource(R.string.report_action_call),
+                            onClick = report,
+                            variant = ButtonVariant.Ghost,
+                            size = ButtonSize.Sm,
+                            modifier = Modifier.testTag(CALL_DETAIL_REPORT_DESCRIPTION),
+                        )
+                    }
+                },
+            )
         },
     ) { inset ->
         // ⛔ THE INSET WRAPS *EVERY* STATE, NOT JUST THE LOADED ONE. `DistrictScaffold` hands back the
@@ -132,7 +152,7 @@ private fun Content(
             style = MaterialTheme.typography.labelLarge,
         )
 
-        LabelledCard(stringResource(R.string.call_detail_summary), call.aiSummary)
+        SummarySection(call.aiSummary)
 
         call.sentiment?.let {
             LabelledCard(stringResource(R.string.call_detail_sentiment), wireLabel(WireCategory.SENTIMENT, it))
@@ -208,7 +228,7 @@ private fun TranscriptSection(state: CallDetailUiState.Content, onShowTranscript
 }
 
 @Composable
-private fun LabelledCard(label: String, value: String, description: String? = null) {
+internal fun LabelledCard(label: String, value: String, description: String? = null) {
     if (value.isBlank()) return
     DistrictCard {
         Column(
@@ -236,6 +256,7 @@ private fun ListCard(label: String, values: List<String>) {
 
 /** Stable handles for tests. */
 const val CALL_DETAIL_ROOT_DESCRIPTION: String = "district-call-detail-root"
+const val CALL_DETAIL_REPORT_DESCRIPTION: String = "district-call-detail-report"
 const val CALL_DETAIL_LOADING_DESCRIPTION: String = "district-call-detail-loading"
 const val CALL_DETAIL_FAILURE_DESCRIPTION: String = "district-call-detail-failure"
 const val CALL_DETAIL_SHOW_TRANSCRIPT_DESCRIPTION: String = "district-call-detail-show-transcript"

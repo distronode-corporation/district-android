@@ -23,6 +23,8 @@ import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.ButtonVariant
+import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
@@ -60,6 +62,10 @@ fun ContactsScreen(
     onCreate: (name: String, phoneNumber: String, email: String) -> Unit,
     onCreateHandled: () -> Unit,
     onBack: () -> Unit,
+    /** The blocked contacts' ids, badged on their rows. */
+    blockedIds: Set<String> = emptySet(),
+    /** Opens the blocked-callers list; null where it is not wired. */
+    onOpenBlocked: (() -> Unit)? = null,
 ) {
     // ⛔ rememberSaveable, NOT remember. This is the only step in the app that holds user input, and
     // a plain `remember` meant a rotation — or a dark-mode toggle, or a font-size change — closed the
@@ -94,7 +100,21 @@ fun ContactsScreen(
     DistrictScaffold(
         modifier = Modifier.testTag(CONTACTS_ROOT_DESCRIPTION),
         topBar = {
-            DistrictTopBar(title = stringResource(R.string.contacts_title), onBack = onBack)
+            DistrictTopBar(
+                title = stringResource(R.string.contacts_title),
+                onBack = onBack,
+                actions = onOpenBlocked?.let { open ->
+                    {
+                        DistrictButton(
+                            text = stringResource(R.string.contact_block_blocked_callers),
+                            onClick = open,
+                            variant = ButtonVariant.Ghost,
+                            size = ButtonSize.Sm,
+                            modifier = Modifier.testTag(CONTACTS_BLOCKED_DESCRIPTION),
+                        )
+                    }
+                },
+            )
         },
     ) { inset ->
         Box(modifier = inset.fillMaxSize()) {
@@ -112,7 +132,7 @@ fun ContactsScreen(
                     if (contacts.itemCount == 0) {
                         ContactsEmpty(canMutate = canMutate, onCreate = { creating = true })
                     } else {
-                        Loaded(contacts, canMutate, onOpenContact, onSignIn)
+                        Loaded(contacts, canMutate, blockedIds, onOpenContact, onSignIn)
                     }
             }
 
@@ -143,6 +163,7 @@ fun ContactsScreen(
 private fun Loaded(
     contacts: LazyPagingItems<Contact>,
     canMutate: Boolean,
+    blockedIds: Set<String>,
     onOpenContact: (String) -> Unit,
     onSignIn: () -> Unit,
 ) {
@@ -169,7 +190,7 @@ private fun Loaded(
         ) { index ->
             contacts[index]?.let { contact ->
                 ContentContainer {
-                    ContactRow(contact, onClick = { onOpenContact(contact.id) })
+                    ContactRow(contact, blocked = contact.id in blockedIds, onClick = { onOpenContact(contact.id) })
                     DistrictRowDivider()
                 }
             }
@@ -216,7 +237,7 @@ private fun ContactsEmpty(canMutate: Boolean, onCreate: () -> Unit) {
 }
 
 @Composable
-private fun ContactRow(contact: Contact, onClick: () -> Unit) {
+private fun ContactRow(contact: Contact, blocked: Boolean, onClick: () -> Unit) {
     // ⚠️ `name` is non-null server-side but can be the literal "Unknown", which the voice agent
     // writes for an unidentified caller — printing it would read as a name.
     val name = contact.displayName
@@ -236,7 +257,9 @@ private fun ContactRow(contact: Contact, onClick: () -> Unit) {
             // none queued" — `clear-intel` resets it to NULL precisely so nothing re-crawls — so
             // rendering null as pending would promise a job that never finishes. See
             // Contact.dgiInProgress.
-            if (contact.dgiInProgress) {
+            if (blocked) {
+                BlockedBadge()
+            } else if (contact.dgiInProgress) {
                 DistrictBadge(
                     text = stringResource(R.string.contact_detail_dossier_pending),
                     tone = Tone.District,
@@ -257,3 +280,4 @@ const val CONTACTS_APPENDING_DESCRIPTION: String = "district-contacts-appending"
 const val CONTACTS_APPEND_FAILURE_DESCRIPTION: String = "district-contacts-append-failure"
 const val CONTACTS_READ_ONLY_DESCRIPTION: String = "district-contacts-read-only"
 const val CONTACTS_ADD_DESCRIPTION: String = "district-contacts-add"
+const val CONTACTS_BLOCKED_DESCRIPTION: String = "district-contacts-blocked"

@@ -69,6 +69,11 @@ fun InboxScreen(
     onSearchQueryChanged: (String) -> Unit,
     onOpenHit: (MessageSearchHit) -> Unit,
     compose: InboxCompose? = null,
+    /**
+     * Blocked contacts, whose threads leave the list at once. ⚠️ The server's conversations route
+     * already drops them; this is what makes a block made a moment ago take effect without a read.
+     */
+    blockedContactIds: Set<String> = emptySet(),
 ) {
     compose?.let { ComposeHost(it) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -112,12 +117,16 @@ fun InboxScreen(
                             description = INBOX_FAILURE_DESCRIPTION,
                             title = stringResource(R.string.inbox_title),
                         )
-                        is InboxUiState.Content ->
-                            if (state.conversations.isEmpty()) {
+                        is InboxUiState.Content -> {
+                            val visible = state.copy(
+                                conversations = state.conversations.filterNot { it.contactId in blockedContactIds },
+                            )
+                            if (visible.conversations.isEmpty()) {
                                 InboxEmpty()
                             } else {
-                                Loaded(state, onOpenThread)
+                                Loaded(visible, onOpenThread)
                             }
+                        }
                     }
                 }
             }

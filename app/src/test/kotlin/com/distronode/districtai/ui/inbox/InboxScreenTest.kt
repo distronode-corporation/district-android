@@ -74,6 +74,7 @@ class InboxScreenTest {
         state: InboxUiState,
         onOpenThread: (ConversationSummary) -> Unit = {},
         onRetry: () -> Unit = {},
+        blockedContactIds: Set<String> = emptySet(),
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -86,6 +87,7 @@ class InboxScreenTest {
                     searchState = InboxSearchState(),
                     onSearchQueryChanged = {},
                     onOpenHit = {},
+                    blockedContactIds = blockedContactIds,
                 )
             }
         }
@@ -415,4 +417,23 @@ class InboxScreenTest {
         direction = "inbound",
         createdAt = "2026-08-15T14:30:00.000Z",
     )
+
+    @Test
+    fun `a blocked contact's thread leaves the list at once`() {
+        render(
+            InboxUiState.Content(
+                listOf(thread(), thread(threadKey = "contact:c2", contactId = "c2", contactName = "Grace Hopper")),
+                partial = false,
+            ),
+            blockedContactIds = setOf("c1"),
+        )
+        composeRule.onNodeWithText("Ada Lovelace").assertDoesNotExist()
+        composeRule.onNodeWithText("Grace Hopper").assertIsDisplayed()
+    }
+
+    @Test
+    fun `when every thread is blocked the list is empty`() {
+        render(InboxUiState.Content(listOf(thread()), partial = false), blockedContactIds = setOf("c1"))
+        composeRule.onNodeWithText("Ada Lovelace").assertDoesNotExist()
+    }
 }

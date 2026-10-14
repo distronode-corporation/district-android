@@ -103,6 +103,8 @@
     <string name="call_detail_objections">Objections</string>
     <string name="call_detail_sentiment">Sentiment</string>
     <string name="call_detail_summary">AI summary</string>
+    <string name="call_detail_summary_absent">No AI summary for this call.</string>
+    <string name="call_detail_summary_failed">This call could not be summarised.</string>
     <string name="call_detail_title">Call</string>
     <string name="call_detail_topics">Topics</string>
     <string name="call_detail_transcript">Transcript</string>
@@ -165,6 +167,19 @@
     <string name="contact_create_phone">Phone number</string>
     <string name="contact_create_save">Add</string>
     <string name="contact_create_saving">Adding…</string>
+    <string name="contact_block_badge">Blocked</string>
+    <string name="contact_block_block">Block caller</string>
+    <string name="contact_block_block_prompt">Block this caller? Their conversations and calls stop appearing in this workspace. You can unblock them here at any time.</string>
+    <string name="contact_block_blocked_callers">Blocked callers</string>
+    <string name="contact_block_cancel">Cancel</string>
+    <string name="contact_block_confirm_block">Block</string>
+    <string name="contact_block_confirm_unblock">Unblock</string>
+    <string name="contact_block_dismiss">Dismiss</string>
+    <string name="contact_block_empty">No one is blocked.</string>
+    <string name="contact_block_list_title">Blocked callers</string>
+    <string name="contact_block_manage">Manage</string>
+    <string name="contact_block_unblock">Unblock caller</string>
+    <string name="contact_block_unblock_prompt">Unblock this caller? Their conversations and calls start appearing in this workspace again.</string>
     <string name="contact_detail_budget">Budget</string>
     <string name="contact_detail_cancel">Cancel</string>
     <string name="contact_detail_clear_intel_confirm">Clear this contact\'s Global Intelligence dossier? The contact, its phone number, email and timeline are kept. Getting the dossier back means running enrichment again.</string>
@@ -603,6 +618,29 @@
     <string name="push_message_title">New message</string>
     <string name="push_ongoing_call_body">District AI is connected to a call.</string>
     <string name="push_ongoing_call_title">Call in progress</string>
+    <string name="report_accepted">Reported. We\'ll review it.</string>
+    <string name="report_action_answer">Report answer</string>
+    <string name="report_action_call">Report call</string>
+    <string name="report_action_conversation">Report conversation</string>
+    <string name="report_already_reported">You have already reported this. We\'ll review it.</string>
+    <string name="report_cancel">Cancel</string>
+    <string name="report_done">Done</string>
+    <string name="report_headline_call">Report this call?</string>
+    <string name="report_headline_conversation">Report this conversation?</string>
+    <string name="report_headline_conversation_with">Report this conversation with %1$s?</string>
+    <string name="report_headline_hq">Report this answer?</string>
+    <string name="report_no_note" translatable="false">No note was added.</string>
+    <string name="report_note_label">What is wrong with it?</string>
+    <string name="report_note_prompt">Add a note (optional)</string>
+    <string name="report_pending">Reported. We have it and it is catching up.</string>
+    <string name="report_preamble" translatable="false">AI-generated content was reported from the District AI Android app.</string>
+    <string name="report_reference_call" translatable="false">Call: %1$s</string>
+    <string name="report_reference_contact" translatable="false">Contact: %1$s</string>
+    <string name="report_reference_conversation" translatable="false">Conversation</string>
+    <string name="report_reference_hq_answer" translatable="false">District HQ answer</string>
+    <string name="report_sending">Reporting…</string>
+    <string name="report_subject" translatable="false">Report: AI-generated content</string>
+    <string name="report_submit">Report</string>
     <string name="room_alone_body">Share the invite, or wait for someone to join with the same room name.</string>
     <string name="room_alone_title">Nobody else here yet</string>
     <string name="room_camera_off">Start video</string>

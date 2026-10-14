@@ -31,7 +31,7 @@ internal object EndpointParity {
      * ⚠️ KEPT EQUAL TO THE ENTRY COUNT, never above it. A baseline with slack is a budget rather
      * than a ratchet: it enforces nothing until the slack is used up.
      */
-    const val MISSING_ON_ANDROID_BASELINE: Int = 16
+    const val MISSING_ON_ANDROID_BASELINE: Int = 0
 
     /**
      * The places the clients spell the same endpoint differently, keyed by the KOTLIN function
@@ -83,32 +83,11 @@ internal object EndpointParity {
     /**
      * Endpoints iOS declares and this client does not, after normalisation.
      *
-     * ⚠️ IT IS ONE SURFACE, and what it records is a single coherent product decision: this client
-     * can SEARCH for and LIST numbers, and cannot buy, configure, register or release one. That is
-     * a screen nobody has written, not 16 oversights.
+     * ⚠️ EMPTY SINCE 3.0. The sixteen number, carrier and registration endpoints that sat here are
+     * on [NumberProvisioningApi] and [CarrierAccountApi]; buying a number stays on the web on both
+     * clients and has no case on either side.
      */
-    val MISSING_ON_ANDROID: Set<String> = setOf(
-        // ── Numbers, carrier and compliance (16) ──────────────────────────────────────────────
-        // Buying, configuring and releasing a number, plus the A2P/toll-free/registration
-        // paperwork and the Verify service toggle. `NumbersApi` here covers search and the owned
-        // list; everything that MUTATES carrier state is iOS-only.
-        "configureNumber",
-        "createNumberRegistration",
-        "createSipTrunk",
-        "deleteRegistrationDocument",
-        "lookupNumber",
-        "numberRegistrations",
-        "numberRequirements",
-        "providerStatus",
-        "releaseNumber",
-        "setVerifyServiceEnabled",
-        "sipTrunks",
-        "submitA2PRegistration",
-        "submitNumberRegistration",
-        "submitTollFreeVerification",
-        "uploadRegistrationDocument",
-        "verifyService",
-    )
+    val MISSING_ON_ANDROID: Set<String> = emptySet()
 
     /**
      * Endpoints this client declares and iOS does not.

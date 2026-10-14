@@ -32,7 +32,7 @@ data class MarketplaceUiState(
  * look up a line the workspace already runs; searching is the rarer, more deliberate act — and
  * opening on an empty search form would make the screen look like it had nothing in it.
  */
-enum class MarketplaceTab { OWNED, SEARCH }
+enum class MarketplaceTab { OWNED, SEARCH, REGISTRATIONS, CARRIER }
 
 /**
  * The search form's fields.

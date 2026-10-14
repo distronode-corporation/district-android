@@ -137,3 +137,11 @@
 # serializer until a caller (the nav-bar badge is the expected one) wires the endpoint up; if the
 # endpoint is removed instead, delete this rule in the same change.
 -keep class com.distronode.districtai.core.model.UnreadCountResponse$$serializer { *; }
+#
+# RegistrationDocumentResponse: NumberProvisioningApi declares the regulatory document upload (iOS
+# has it, and the endpoint parity gate holds the two clients' surfaces equal), but no screen uploads
+# yet: choosing a file is a picker screen of its own, as on iOS (see RegistrationsTab). R8 strips the
+# chain as unreachable and verify-release-minification fails on the referenced DTO. Keep the
+# serializer until the upload screen calls it; if the endpoint is removed instead, delete this rule
+# in the same change.
+-keep class com.distronode.districtai.core.model.RegistrationDocumentResponse$$serializer { *; }

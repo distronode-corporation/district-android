@@ -166,7 +166,7 @@ private fun AvailableNumberRow(number: AvailableNumber) {
 }
 
 @Composable
-internal fun OwnedList(state: OwnedState.Ready) {
+internal fun OwnedList(state: OwnedState.Ready, onOpen: ((ListedNumber) -> Unit)?) {
     ContentContainer {
         Column(
             modifier = Modifier
@@ -185,15 +185,16 @@ internal fun OwnedList(state: OwnedState.Ready) {
                     body = stringResource(R.string.marketplace_owned_empty),
                 )
             } else {
-                state.numbers.forEach { ListedNumberRow(it) }
+                state.numbers.forEach { number -> ListedNumberRow(number, onOpen?.let { { it(number) } }) }
             }
         }
     }
 }
 
 @Composable
-private fun ListedNumberRow(number: ListedNumber) {
-    DistrictCard {
+private fun ListedNumberRow(number: ListedNumber, onOpen: (() -> Unit)?) {
+    // ⚠️ THE ROW OPENS THE NUMBER'S ACTIONS where number management is wired.
+    DistrictCard(modifier = Modifier.testTag(ownedNumberTag(number.phoneNumber)), onClick = onOpen) {
         Column(modifier = Modifier.padding(DistrictTheme.spacing.gutter)) {
             Text(text = number.phoneNumber, style = MaterialTheme.typography.bodyLarge)
             number.friendlyName?.takeIf { it.isNotBlank() }?.let {

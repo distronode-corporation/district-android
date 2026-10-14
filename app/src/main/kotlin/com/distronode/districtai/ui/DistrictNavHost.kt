@@ -50,6 +50,7 @@ import com.distronode.districtai.ui.contacts.BlockedContactsViewModel
 import com.distronode.districtai.ui.report.ReportTarget
 import com.distronode.districtai.core.data.BlockSubject
 import com.distronode.districtai.ui.calls.LiveTranscriptController
+import com.distronode.districtai.ui.marketplace.numberProvisioningUi
 import com.distronode.districtai.ui.calls.CallLogScreen
 import com.distronode.districtai.ui.calls.CallLogViewModel
 import com.distronode.districtai.ui.contacts.ContactDetailScreen
@@ -786,8 +787,8 @@ fun DistrictNavHost(
 
                 composable(Routes.MARKETPLACE) { entry ->
                     val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
-                    // ⚠️ Not a gate — both routes admit viewers. The role only decides the
-                    // wording of the read-only caption. See the ⚠️ on Routes.MARKETPLACE.
+                    // ⚠️ The reads admit viewers; the number-management writes do not, and the role
+                    // gates them (and words the captions). See the ⚠️ on Routes.MARKETPLACE.
                     val role = WorkspaceRole.fromWire(entry.pathArgument(ARG_ROLE))
                     val viewModel: MarketplaceViewModel = viewModel(
                         // ⚠️ Keyed on the workspace: an unkeyed instance would show the previous
@@ -838,6 +839,12 @@ fun DistrictNavHost(
                             )
                         },
                         onBack = { navController.popBackStack() },
+                        provisioning = numberProvisioningUi(
+                            repository = container.numberProvisioningRepository,
+                            workspaceId = workspaceId,
+                            role = role,
+                            tab = state.tab,
+                        ),
                     )
                 }
 

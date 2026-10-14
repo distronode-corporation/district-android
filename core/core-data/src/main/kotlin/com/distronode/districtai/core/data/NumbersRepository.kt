@@ -8,10 +8,8 @@ import com.distronode.districtai.core.network.DistrictApi
 /**
  * The phone-number marketplace: what is for sale, and what the workspace already has.
  *
- * ⛔ READ ONLY, DELIBERATELY. There is no purchase, release or configure method here and adding
- * one is a product decision rather than a gap — see `NumbersApi`. A number is a recurring carrier
- * charge and a live line; neither belongs one mis-tap away on a phone, and a released number
- * cannot be reclaimed.
+ * ⚠️ THE READS ONLY. Configuring, releasing and the regulatory and carrier paperwork are
+ * [NumberProvisioningRepository]'s; buying stays on the web (see `NumbersApi`).
  *
  * ⛔ TWO UNRELATED ROUTES BEHIND ONE SCREEN, AND THEY FAIL FOR DIFFERENT REASONS. `search` hits
  * the carrier's inventory API; `owned` merges the carrier's account with the platform's hub

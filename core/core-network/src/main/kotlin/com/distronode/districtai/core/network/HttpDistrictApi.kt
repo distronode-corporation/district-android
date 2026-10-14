@@ -514,10 +514,10 @@ internal class HttpDgiApi(private val client: DistrictApiClient) : DgiApi {
 }
 
 /**
- * The read-only phone-number marketplace.
+ * The phone-number marketplace's two reads: search and the owned list.
  *
- * ⛔ NO PURCHASE, RELEASE OR CONFIGURE CALL EXISTS IN THIS CLASS BY DECISION — see [NumbersApi].
- * The server has those routes; adding one here is a product change, not a missing line.
+ * ⚠️ CONFIGURE, RELEASE AND THE PAPERWORK ARE ON [NumberProvisioningApi] AND [CarrierAccountApi].
+ * ⛔ Buying stays on the web, and no class here has a purchase call.
  *
  * ⚠️ THE OPTIONAL FILTERS ARE PASSED AS NULLS RATHER THAN OMITTED AT THE CALL SITE, because
  * [DistrictApiClient.get] DROPS a null-valued query entry. That keeps the request readable as

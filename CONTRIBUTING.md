@@ -61,6 +61,7 @@ This is exactly what CI's one job runs:
 python3 tools/l10n/l10n.py vendor --check --dest tools/l10n
 python3 scripts/l10n-contracts.py --check
 python3 tools/l10n/l10n.py check l10n/android.toml --gen android:l10n/res --opt name=strings
+python3 tools/l10n/l10n.py check l10n/numbers.toml --gen android:l10n/res --opt name=numbers
 python3 tools/l10n/l10n.py check l10n/api_errors.toml --gen android:l10n/res --opt name=api_errors
 python3 tools/l10n/l10n.py check l10n/wire_labels.toml --gen android:l10n/res --opt name=wire_labels
 python3 tools/l10n/l10n.py check l10n/scheduling.toml --gen android:l10n/res --opt name=scheduling
@@ -105,8 +106,10 @@ dependencies may resolve from, and JitPack is admitted for one module only; do n
 ## Strings
 
 Every user-visible string lives in `l10n/android.toml` (the native scheduling admin's in
-`l10n/scheduling.toml`, generated to `values/scheduling.xml` with `--opt name=scheduling`),
-English and (later) Canadian French side by side, with a context (`ctx`), the screen it appears on, a review tier and, where the
+`l10n/scheduling.toml`, generated to `values/scheduling.xml` with `--opt name=scheduling`, and the
+phone-number screens' in `l10n/numbers.toml`, generated to `values/numbers.xml` with
+`--opt name=numbers`), English and (later) Canadian French side by side, with a context (`ctx`),
+the screen it appears on, a review tier and, where the
 meaning is not obvious, a translator note. Placeholders are named (`{count}`) and declared in
 `args` in the order of their `%1$`, `%2$` positions; `l10n.py check` explains any rule a change
 breaks. `app/src/main/res/values/strings.xml` is

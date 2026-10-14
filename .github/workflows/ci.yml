@@ -57,8 +57,9 @@ jobs:
         run: |
           python3 tools/l10n/l10n.py vendor --check --dest tools/l10n
           python3 scripts/l10n-contracts.py --check
-          python3 tools/l10n/l10n.py check l10n/android.toml l10n/api_errors.toml l10n/wire_labels.toml l10n/scheduling.toml
+          python3 tools/l10n/l10n.py check l10n/android.toml l10n/numbers.toml l10n/api_errors.toml l10n/wire_labels.toml l10n/scheduling.toml
           python3 tools/l10n/l10n.py check l10n/android.toml --gen android:l10n/res --opt name=strings
+          python3 tools/l10n/l10n.py check l10n/numbers.toml --gen android:l10n/res --opt name=numbers
           python3 tools/l10n/l10n.py check l10n/api_errors.toml --gen android:l10n/res --opt name=api_errors
           python3 tools/l10n/l10n.py check l10n/wire_labels.toml --gen android:l10n/res --opt name=wire_labels
           python3 tools/l10n/l10n.py check l10n/scheduling.toml --gen android:l10n/res --opt name=scheduling

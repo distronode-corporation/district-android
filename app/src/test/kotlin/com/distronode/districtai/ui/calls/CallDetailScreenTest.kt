@@ -54,6 +54,7 @@ class CallDetailScreenTest {
         onBack: () -> Unit = {},
         onRetry: () -> Unit = {},
         onShowTranscript: () -> Unit = {},
+        onReport: (() -> Unit)? = null,
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -63,6 +64,7 @@ class CallDetailScreenTest {
                     onRetry = onRetry,
                     onSignIn = {},
                     onShowTranscript = onShowTranscript,
+                    onReport = onReport,
                 )
             }
         }
@@ -336,5 +338,19 @@ class CallDetailScreenTest {
         render(content(testCall().copy(direction = "outbound", type = "outbound")))
 
         composeRule.onNodeWithText("Outbound · Aug 15, 02:30 PM · 1m 5s").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a loaded call offers Report where it is wired`() {
+        var reports = 0
+        render(content(), onReport = { reports++ })
+        composeRule.onNodeWithTag(CALL_DETAIL_REPORT_DESCRIPTION).performClick()
+        assertEquals(1, reports)
+    }
+
+    @Test
+    fun `no Report before the call loaded, or for a role that may not`() {
+        render(CallDetailUiState.Loading, onReport = {})
+        composeRule.onNodeWithTag(CALL_DETAIL_REPORT_DESCRIPTION).assertDoesNotExist()
     }
 }

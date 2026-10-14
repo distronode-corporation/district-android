@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +64,8 @@ fun HqScreen(
     onDismiss: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
+    /** Report one AI answer; null for a role that may not (the support routes exclude `viewer`). */
+    onReportAnswer: (() -> Unit)? = null,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(HQ_ROOT_DESCRIPTION),
@@ -86,7 +89,7 @@ fun HqScreen(
                         }
                     }
                 } else {
-                    Transcript(messages)
+                    Transcript(messages, onReportAnswer)
                 }
             }
 
@@ -144,11 +147,11 @@ private fun HqUiState.pendingWrite() = when (this) {
  * the lifetime of every row.
  */
 @Composable
-private fun Transcript(messages: List<HqMessage>) {
+private fun Transcript(messages: List<HqMessage>, onReportAnswer: (() -> Unit)?) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         itemsIndexed(messages) { index, message ->
             ContentContainer {
-                MessageRow(message, isLast = index == messages.lastIndex)
+                MessageRow(message, isLast = index == messages.lastIndex, onReportAnswer = onReportAnswer)
             }
         }
     }
@@ -162,7 +165,7 @@ private fun Transcript(messages: List<HqMessage>) {
  * screen exists to state accurately.
  */
 @Composable
-private fun MessageRow(message: HqMessage, isLast: Boolean) {
+private fun MessageRow(message: HqMessage, isLast: Boolean, onReportAnswer: (() -> Unit)?) {
     val fromOperator = message.role == HqRole.OPERATOR
     Row(
         modifier = Modifier
@@ -194,6 +197,15 @@ private fun MessageRow(message: HqMessage, isLast: Boolean) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = DistrictTheme.colors.foreground,
             )
+            // ⚠️ UNDER EACH AI ANSWER, NOT ONCE PER SCREEN: a reviewer flags the answer they read.
+            if (message.aiGenerated && onReportAnswer != null) {
+                TextButton(
+                    onClick = onReportAnswer,
+                    modifier = Modifier.testTag(HQ_REPORT_ANSWER_DESCRIPTION),
+                ) {
+                    Text(stringResource(R.string.report_action_answer))
+                }
+            }
         }
     }
 }
@@ -354,6 +366,7 @@ private const val BUBBLE_ACCENT_ALPHA = 0.12f
 const val HQ_ROOT_DESCRIPTION: String = "district-hq-root"
 const val HQ_EMPTY_DESCRIPTION: String = "district-hq-empty"
 const val HQ_LATEST_MESSAGE_DESCRIPTION: String = "district-hq-latest-message"
+const val HQ_REPORT_ANSWER_DESCRIPTION: String = "district-hq-report-answer"
 const val HQ_THINKING_DESCRIPTION: String = "district-hq-thinking"
 const val HQ_CONFIRM_DESCRIPTION: String = "district-hq-confirm"
 const val HQ_CONFIRM_ACCEPT_DESCRIPTION: String = "district-hq-confirm-accept"

@@ -110,7 +110,8 @@ class HqViewModel(
         viewModelScope.launch {
             when (val result = repository.ask(workspaceId, text, history())) {
                 is ApiResult.Success -> {
-                    _messages.value += HqMessage(HqRole.CONSOLE, UiText.Literal(result.value.answer))
+                    _messages.value +=
+                        HqMessage(HqRole.CONSOLE, UiText.Literal(result.value.answer), aiGenerated = true)
                     _state.value = result.value.pendingWrite
                         ?.let { HqUiState.Confirming(it) }
                         ?: HqUiState.Idle
@@ -243,6 +244,11 @@ enum class HqRole(val wireRole: String) {
 data class HqMessage(
     val role: HqRole,
     val text: UiText,
+    /**
+     * An answer the model wrote, which may be reported as AI-generated content. ⚠️ False for the
+     * app's own lines (applied, not applied) and for the operator's.
+     */
+    val aiGenerated: Boolean = false,
 )
 
 /**

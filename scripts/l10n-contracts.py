@@ -22,7 +22,12 @@ reproduces that display and the portal's English is kept in the translator note.
 portal's French. A value the vocabulary does not list falls back to the category's `unknown` entry,
 whose English is the raw value again.
 
+An entry whose English is unchanged keeps the translation fields the committed catalog has (`fr`, `state`,
+`fr_variant` and the rest of KEPT), so French written by `tools/l10n/l10n.py import` survives a regeneration.
+A new entry, or one whose English changed, takes the contract's French as a draft.
+
 Python 3.11 or newer, standard library only. It imports tools/l10n/l10n.py for the canonical TOML writer.
+Tests: python3 -m unittest discover -s scripts -p 'test_*.py'.
 """
 
 from __future__ import annotations
@@ -208,6 +213,31 @@ def placeholder_tables(placeholders: list) -> list[str]:
     ]
 
 
+# The translation fields an entry keeps across a regeneration while its English is unchanged, so
+# `l10n.py import` writes French into these catalogs like into any other (as the cores' generators do).
+KEPT = ("fr", "state", "same_ok", "fr_variant", "waive", "max", "id")
+
+
+def keep_translations(data: dict, previous: Path) -> dict:
+    """`data` with the translation fields of `previous` (the committed catalog) put back on every
+    entry whose English is unchanged. A changed English, or an entry the catalog has no French for,
+    takes the contract's French."""
+    if not previous.is_file():
+        return data
+    old = {e.key: e.fields for e in l10n.load_catalog(previous).entries.values()}
+    for group, table in data.items():
+        if group == "meta":
+            continue
+        for seg, fields in table.items():
+            before = old.get(f"{group}.{seg}")
+            if before is None or before.get("en") != fields["en"]:
+                continue
+            for field in KEPT:
+                if field in before:
+                    fields[field] = before[field]
+    return data
+
+
 def outputs() -> list[tuple[Path, str]]:
     out = []
     for name, (data, kotlin), kt in (
@@ -215,6 +245,7 @@ def outputs() -> list[tuple[Path, str]]:
         ("wire_labels", wire_labels(), "WireCategory.kt"),
     ):
         path = ROOT / "l10n" / f"{name}.toml"
+        data = keep_translations(data, path)
         out.append((path, l10n.emit_catalog(l10n.catalog_from_data(path, data))))
         out.append((KOTLIN_DIR / kt, kotlin))
     return out

@@ -35,7 +35,7 @@ fun SchedulingTeamDialogs(dialog: TeamDialog?, writes: SchedulingTeamWrites, tim
         is TeamDialog.Members -> MembersDialog(dialog, writes.members, @DontMemoize { writes.close() })
         is TeamDialog.Archive -> ArchiveDialog(dialog, writes.archive, @DontMemoize { writes.close() }, timezone)
         // ⚠️ `else` is no dialog: an exhaustive dispatch in a composable leaves an unreachable branch.
-        else -> Unit
+        null -> Unit
     }
 }
 
@@ -139,7 +139,7 @@ private fun MembersDialog(dialog: TeamDialog.Members, flow: TeamMembersFlow, onC
                 )
             }
             // ⚠️ `else` IS LOADING: an exhaustive sealed `when` here leaves a branch no test reaches.
-            else -> SchedulingSectionLoading(SCHEDULING_TEAM_USERS_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_TEAM_USERS_LOADING_TAG, rows = 1)
         }
     }
     dialog.removing?.let {
@@ -245,7 +245,7 @@ private fun ArchiveDialog(dialog: TeamDialog.Archive, flow: UserArchiveFlow, onC
                 }
             }
             // ⚠️ `else` IS LOADING: an exhaustive sealed `when` here leaves a branch no test reaches.
-            else -> {
+            SectionState.Loading -> {
                 SchedulingHint(stringResource(R.string.scheduling_admin_team_archive_counting))
                 SchedulingSectionLoading(SCHEDULING_TEAM_UPCOMING_LOADING_TAG, rows = 1)
             }

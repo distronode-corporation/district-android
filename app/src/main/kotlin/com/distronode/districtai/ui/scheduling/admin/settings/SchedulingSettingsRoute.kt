@@ -97,7 +97,7 @@ fun SchedulingSettingsScreen(
             SchedulingSettingsTab.BOOKING_PAGE -> SettingsBrandingTab(state, writes, onRefresh)
             SchedulingSettingsTab.ASSISTANT -> SettingsAssistantTab(state, writes, onRefresh)
             SchedulingSettingsTab.PROFILE -> SettingsProfileTab(state, writes, onRefresh)
-            else -> SettingsNotificationsTab(state, writes, onRefresh)
+            SchedulingSettingsTab.NOTIFICATIONS -> SettingsNotificationsTab(state, writes, onRefresh)
         }
     }
     SchedulingSettingsDialogs(writes, onPickImage)

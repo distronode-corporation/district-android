@@ -120,7 +120,7 @@ private fun MembersCard(state: SchedulingTeamUiState, actions: SchedulingTeamAct
                 members.value.forEach { MemberRow(it, state, actions) }
             }
             // ⚠️ `else` IS LOADING: an exhaustive sealed `when` here leaves a branch no test reaches.
-            else -> SchedulingSectionLoading(SCHEDULING_TEAM_MEMBERS_LOADING_TAG)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_TEAM_MEMBERS_LOADING_TAG)
         }
     }
 }
@@ -183,7 +183,7 @@ private fun TeamsCard(state: SchedulingTeamUiState, actions: SchedulingTeamActio
                 }
             }
             // ⚠️ `else` IS LOADING: an exhaustive sealed `when` here leaves a branch no test reaches.
-            else -> SchedulingSectionLoading(SCHEDULING_TEAM_TEAMS_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_TEAM_TEAMS_LOADING_TAG, rows = 1)
         }
     }
 }

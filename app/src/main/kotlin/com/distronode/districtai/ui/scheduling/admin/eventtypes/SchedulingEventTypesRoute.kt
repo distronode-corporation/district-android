@@ -100,7 +100,7 @@ fun SchedulingEventTypesScreen(
                     EventTypeRows(list.value, state.access.publicHost, onOpen)
                 }
             }
-            else -> SchedulingSectionLoading(SCHEDULING_EVENT_TYPES_LOADING_TAG)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_EVENT_TYPES_LOADING_TAG)
         }
     }
 }

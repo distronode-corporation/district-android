@@ -123,7 +123,7 @@ fun SchedulingBookingsScreen(state: SchedulingBookingsUiState, actions: Scheduli
             } else {
                 BookingRows(state, actions)
             }
-            else -> SchedulingSectionLoading(SCHEDULING_BOOKINGS_LOADING_TAG)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKINGS_LOADING_TAG)
         }
     }
 }

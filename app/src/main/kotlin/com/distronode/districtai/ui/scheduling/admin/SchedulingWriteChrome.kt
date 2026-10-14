@@ -140,7 +140,7 @@ fun SchedulingWriteOutcome(state: WriteState, onRetry: (() -> Unit)? = null, onD
     when (state) {
         is WriteState.Done -> SchedulingNoticeLine(state.message, onDismiss)
         is WriteState.Failed -> SchedulingFailureLine(state.failure, onRetry, onDismiss)
-        else -> Unit
+        WriteState.Idle, WriteState.Working -> Unit
     }
 }
 

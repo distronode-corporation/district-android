@@ -265,7 +265,7 @@ private fun Deliveries(read: SectionState<List<SchedulingWebhookDelivery>>, time
                     }
                 }
             }
-            else -> SchedulingSectionLoading(DEVELOPER_DELIVERIES_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(DEVELOPER_DELIVERIES_LOADING_TAG, rows = 1)
         }
     }
 }

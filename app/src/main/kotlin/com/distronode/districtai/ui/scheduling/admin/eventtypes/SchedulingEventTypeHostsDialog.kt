@@ -57,7 +57,7 @@ fun SchedulingEventTypeHostsDialog(dialog: EventTypeDialog.Hosts, hosts: EventTy
                     @DontMemoize { hosts.load() },
                     SCHEDULING_EVENT_TYPE_HOSTS_DIALOG_FAILURE_TAG,
                 )
-            else -> SchedulingSectionLoading(SCHEDULING_EVENT_TYPE_HOSTS_DIALOG_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_EVENT_TYPE_HOSTS_DIALOG_LOADING_TAG, rows = 1)
         }
         SchedulingRejection(dialog.validation?.let { stringResource(it) })
     }

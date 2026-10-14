@@ -160,7 +160,7 @@ fun SchedulingBookingDetailScreen(
                         )
                     }
                 }
-                else -> SchedulingSectionLoading(SCHEDULING_BOOKING_DETAIL_LOADING_TAG, rows = 1)
+                SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKING_DETAIL_LOADING_TAG, rows = 1)
             }
         }
     }

@@ -150,7 +150,7 @@ private fun <T> SettingsRead(read: SectionState<T>?, onRetry: () -> Unit, conten
         is SectionState.Ready -> content(read.value)
         is SectionState.Failed -> SchedulingSectionFailure(read.failure, onRetry, SETTINGS_FAILURE_TAG)
         // ⚠️ Not yet read (null) or on its way: both draw as loading.
-        else -> SchedulingSectionLoading(SETTINGS_LOADING_TAG)
+        SectionState.Loading, null -> SchedulingSectionLoading(SETTINGS_LOADING_TAG)
     }
 }
 

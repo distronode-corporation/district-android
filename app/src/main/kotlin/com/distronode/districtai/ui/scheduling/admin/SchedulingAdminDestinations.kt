@@ -124,7 +124,7 @@ internal fun SchedulingSectionRoute(section: SchedulingSection?, deps: Schedulin
         SchedulingSection.TEAM -> SchedulingTeamRoute(deps)
         SchedulingSection.SETTINGS -> SchedulingSettingsRoute(deps)
         SchedulingSection.DEVELOPER -> SchedulingDeveloperRoute(deps)
-        else -> UnknownSection(deps.onBack)
+        null -> UnknownSection(deps.onBack)
     }
 }
 

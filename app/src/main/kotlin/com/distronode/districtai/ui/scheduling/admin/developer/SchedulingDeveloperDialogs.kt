@@ -188,7 +188,12 @@ private fun WebhookDialog(dialog: DeveloperDialog.Webhook, writes: SchedulingDev
     }
 }
 
-/** The event and field ticks, each named by its wire value as the receiving code knows it. */
+/**
+ * The event and field ticks, each named by its wire value as the receiving code knows it.
+ *
+ * ⚠️ Only the offered events have a tick; one the row already holds beyond them stays in the draft
+ * and is sent back unchanged (see [SchedulingWebhookDraft.from]).
+ */
 @Composable
 private fun WebhookChoices(dialog: DeveloperDialog.Webhook, writes: SchedulingDeveloperWrites) {
     val working = dialog.state.isWorking
@@ -196,7 +201,7 @@ private fun WebhookChoices(dialog: DeveloperDialog.Webhook, writes: SchedulingDe
         stringResource(R.string.scheduling_admin_developer_webhook_events_label),
         stringResource(R.string.scheduling_admin_developer_webhook_events_hint),
     )
-    SchedulingWebhookEvent.entries.forEach { event ->
+    SchedulingWebhookEvent.OFFERED.forEach { event ->
         SchedulingToggleRow(
             label = schedulingUnknownValue(event.wire),
             checked = event in dialog.draft.events,

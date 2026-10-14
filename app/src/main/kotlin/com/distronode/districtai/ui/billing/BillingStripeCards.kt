@@ -91,7 +91,9 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
             // free plan to someone who is paying.
             subscription.amount?.let {
                 Text(
-                    text = stringResource(R.string.billing_amount_monthly, formatCents(it, language)),
+                    text = frenchMoney(it, subscription.currency, language)
+                        ?.let { money -> stringResource(R.string.billing_money_monthly, money) }
+                        ?: stringResource(R.string.billing_amount_monthly, formatCents(it, language)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = DistrictTheme.colors.foreground,
                 )
@@ -123,11 +125,14 @@ private fun SubscriptionRow(subscription: BillingSubscription) {
                         formatUsageAmount(it, appLanguage()),
                     )
                 } ?: discount.amountOff?.let {
-                    stringResource(
-                        R.string.billing_discount_amount,
-                        discount.couponName,
-                        formatCents(it, language),
-                    )
+                    // ⚠️ The subscription's currency: Stripe applies an amount-off coupon only in it.
+                    frenchMoney(it, subscription.currency, language)
+                        ?.let { money -> stringResource(R.string.billing_money_discount, discount.couponName, money) }
+                        ?: stringResource(
+                            R.string.billing_discount_amount,
+                            discount.couponName,
+                            formatCents(it, language),
+                        )
                 } ?: discount.couponName,
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.success,
@@ -215,10 +220,8 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
             Text(
                 // ⛔ CENTS, and an OPEN invoice shows what is OWED rather than the zero it has been
                 // paid. See [invoiceAmountCents].
-                text = stringResource(
-                    R.string.billing_amount,
-                    formatCents(invoiceAmountCents(invoice), language),
-                ),
+                text = frenchMoney(invoiceAmountCents(invoice), invoice.currency, language)
+                    ?: stringResource(R.string.billing_amount, formatCents(invoiceAmountCents(invoice), language)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DistrictTheme.colors.foreground,
             )
@@ -236,7 +239,9 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
             // only when non-zero: an "incl. $0.00 tax" line is noise on every untaxed invoice.
             if (invoice.tax > 0) {
                 Text(
-                    text = stringResource(R.string.billing_invoice_tax, formatCents(invoice.tax, language)),
+                    text = frenchMoney(invoice.tax, invoice.currency, language)
+                        ?.let { money -> stringResource(R.string.billing_money_tax, money) }
+                        ?: stringResource(R.string.billing_invoice_tax, formatCents(invoice.tax, language)),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
                     modifier = Modifier.padding(start = DistrictTheme.spacing.tight),

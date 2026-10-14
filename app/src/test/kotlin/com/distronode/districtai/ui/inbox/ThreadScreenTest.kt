@@ -191,6 +191,17 @@ class ThreadScreenTest {
     }
 
     @Test
+    fun `a call's stored stand-in reads through its placeholder label, in its current spelling`() {
+        // ⚠️ A row stored before the respelling keeps the dash; it reads as the label, so in English it
+        // reads as the current spelling and in French as « Sans réponse, aucune conversation n'a eu lieu. ».
+        render(ThreadUiState.Content(listOf(call(summary = "No answer \u2014 no conversation took place."))))
+
+        composeRule.onNodeWithText(str(R.string.wire_placeholder_no_answer_no_conversation_took_place))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("No answer, no conversation took place.").assertIsDisplayed()
+    }
+
+    @Test
     fun `a missed call is labelled as missed`() {
         // ⛔ `direction` is three-state here. A missed call has no side, which is why it is not a bubble.
         render(ThreadUiState.Content(listOf(call(direction = "missed"))))

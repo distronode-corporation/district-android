@@ -56,7 +56,7 @@ data class SchedulingOAuthConnection(
 )
 
 /**
- * The seven events a webhook may subscribe to.
+ * The seven events the scheduler accepts on a webhook; a screen offers only [OFFERED].
  *
  * ⛔ AN ENUM FOR THE REQUEST AND A `String` ON THE RESPONSE, WHICH IS DELIBERATE ASYMMETRY. This
  * type is what a caller CHOOSES from, so a closed set stops a screen offering an event the fork
@@ -85,6 +85,20 @@ enum class SchedulingWebhookEvent(val wire: String) {
 
     @SerialName("notes.ready")
     NOTES_READY("notes.ready"),
+    ;
+
+    companion object {
+        /**
+         * The four booking events, the ones a screen offers; the web portal's `WEBHOOK_EVENTS`.
+         *
+         * ⛔ [RECORDING_COMPLETED], [TRANSCRIPT_READY] AND [NOTES_READY] ARE NOT OFFERED. Nothing
+         * records a meeting, and the scheduler's transcripts and notes come only from a recording,
+         * so a tick for one would subscribe to an event that never fires. They stay entries because
+         * a webhook may already hold one, and a save keeps it rather than dropping it.
+         */
+        val OFFERED: List<SchedulingWebhookEvent> =
+            listOf(BOOKING_CREATED, BOOKING_CANCELLED, BOOKING_RESCHEDULED, BOOKING_REMINDER)
+    }
 }
 
 /**

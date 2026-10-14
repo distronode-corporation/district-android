@@ -11,7 +11,9 @@ import com.distronode.districtai.core.model.ROUTING_OPERATORS
 import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.contacts.dossierHeading
+import com.distronode.districtai.ui.contacts.dossierHeadingLabel
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -140,17 +142,20 @@ class LabelsTest {
     }
 
     @Test
-    fun `a dossier heading is the drawer's label for a vocabulary key, and an unknown key is split into words`() {
+    fun `a dossier heading is the drawer's label for a vocabulary key, and any other key is shown as generated`() {
         assertRendered(
             "Executive summary" to { dossierHeading("executiveSummary") },
             "Caller intel" to { dossierHeading("callerIntel") },
-            str(R.string.wire_contact_research_key_unknown, "Summary") to { dossierHeading("summary") },
+            "Summary" to { dossierHeading("summary") },
             "Next best action" to { dossierHeading("next_best_action") },
+            "Buying signals" to { dossierHeading("buyingSignals") },
         )
-        assertEquals(
-            R.string.wire_contact_research_key_executive_summary,
-            WireCategory.CONTACT_RESEARCH_KEY.labels["executiveSummary"],
-        )
+        assertEquals(R.string.wire_contact_research_key_executive_summary, dossierHeadingLabel("executiveSummary"))
+        // ⛔ A key the model wrote has no label at all, so no language reads it as an unknown value
+        // (French: « Valeur inconnue : Summary »); a unit-test build has no French to show it, so the
+        // choice itself is pinned.
+        assertNull(dossierHeadingLabel("summary"))
+        assertNull(dossierHeadingLabel("buyingSignals"))
     }
 
     @Test

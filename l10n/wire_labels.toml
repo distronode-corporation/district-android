@@ -1067,6 +1067,151 @@ args = { value = "str" }
 state = "reviewed"
 note = "A numberType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
+[wire.placeholder_ai_call_completed]
+en = "AI call completed."
+fr = "Appel IA terminé."
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in events[].body of a call event (GET /api/district/timeline). Shown where that value is shown."
+
+[wire.placeholder_ai_outbound_voice_session_active]
+en = "AI Outbound Voice session active..."
+fr = "Session vocale IA sortante en cours…"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Call.summary while an outbound call is live. Shown where that value is shown."
+
+[wire.placeholder_ai_voice_session_active]
+en = "AI Voice session active..."
+fr = "Session vocale IA en cours…"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Call.summary while an inbound call is live. Shown where that value is shown."
+
+[wire.placeholder_consultation]
+en = "Consultation"
+fr = "Consultation"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+same_ok = true
+note = "Text the service stores or sends in English in place of a real value, in the booking name inside a scheduling timeline message. Shown where that value is shown."
+
+[wire.placeholder_customer]
+en = "Customer"
+fr = "Client"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Call.callerName (outbound campaign calls). Shown where that value is shown."
+
+[wire.placeholder_distronode_support]
+en = "Distronode Support"
+fr = "Soutien Distronode"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in request.messages[].author of an agent reply (GET /api/district/support/requests/{key}). Shown where that value is shown."
+
+[wire.placeholder_free]
+en = "Free"
+fr = "Gratuit"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in subscription.tier (GET /api/settings) when the workspace has none. Shown where that value is shown."
+
+[wire.placeholder_manual_edit_update]
+en = "Manual edit update."
+fr = "Mise à jour manuelle."
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Contact.latestContextSummary. Shown where that value is shown."
+
+[wire.placeholder_new_manually_added_contact]
+en = "New manually added contact."
+fr = "Nouveau contact ajouté à la main."
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Contact.latestContextSummary. Shown where that value is shown."
+
+[wire.placeholder_no_answer_no_conversation_took_place]
+en = "No answer, no conversation took place."
+fr = "Sans réponse, aucune conversation n'a eu lieu."
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Call.summary of an unanswered call. Shown where that value is shown."
+
+[wire.placeholder_no_summary_available]
+en = "No summary available."
+fr = "Aucun résumé disponible."
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in calls[].aiSummary (GET /api/district/calls, /overview recentCalls). Shown where that value is shown."
+
+[wire.placeholder_test_call]
+en = "Test call"
+fr = "Appel d'essai"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Call.callerName (setup test call). Shown where that value is shown."
+
+[wire.placeholder_unknown]
+en = "Unknown"
+fr = "Inconnu"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Contact.name; Call.callerName; Call.from; calls[].number and calls[].callerName (GET /api/district/calls, /overview recentCalls). Shown where that value is shown."
+
+[wire.placeholder_unknown_caller]
+en = "Unknown Caller"
+fr = "Appelant inconnu"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Contact.name. Shown where that value is shown."
+
+[wire.placeholder_voice_session_completed]
+en = "Voice session completed."
+fr = "Session vocale terminée."
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in Call.summary when the agent wrote none. Shown where that value is shown."
+
+[wire.placeholder_you]
+en = "You"
+fr = "Vous"
+ctx = "label"
+screen = "wire placeholder"
+tier = "T3"
+state = "reviewed"
+note = "Text the service stores or sends in English in place of a real value, in request.messages[].author of the customer's own message (GET /api/district/support/requests/{key}). Shown where that value is shown."
+
 [wire.region_apac]
 en = "APAC"
 fr = "Asie-Pacifique"

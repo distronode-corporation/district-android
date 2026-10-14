@@ -81,4 +81,21 @@ class ContractCatalogTest {
         assertTrue(aliases.isNotEmpty())
         assertEquals(aliases, WIRE_PLACEHOLDER_ALIASES)
     }
+
+    @Test
+    fun `every placeholder in every spelling has a label whose English is the placeholder as sent`() {
+        val placeholders = contract("wire-vocabulary.json").getValue("placeholders").jsonArray.map { it.jsonObject }
+        val spellings = placeholders.flatMap { placeholder ->
+            val value = placeholder.getValue("value").jsonPrimitive.content
+            val earlier = placeholder["aliases"]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty()
+            (listOf(value) + earlier).map { it to value }
+        }
+        assertEquals(spellings.map { it.first }.toSet(), WIRE_PLACEHOLDER_LABELS.keys)
+        for ((spelling, value) in spellings) {
+            // ⚠️ An earlier spelling reads as the current one: one label per placeholder.
+            assertEquals(spelling, value, str(WIRE_PLACEHOLDER_LABELS.getValue(spelling)))
+            assertEquals(spelling, WIRE_PLACEHOLDER_LABELS.getValue(value), placeholderLabel(" $spelling "))
+        }
+        assertEquals(null, placeholderLabel("Ada Lovelace"))
+    }
 }

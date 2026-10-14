@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.l10n.callTimeText
 import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.RecentActivity
@@ -40,7 +41,7 @@ internal fun ActivityRow(call: RecentActivity) {
     DistrictListRow(
         // ⚠️ The API sends the literal "Unknown" for an unresolved caller; the repository maps
         // that to null so it is never printed as if it were a name.
-        title = call.displayName ?: stringResource(R.string.overview_no_caller_id),
+        title = call.displayName?.let { serverText(it) } ?: stringResource(R.string.overview_no_caller_id),
         subtitle = stringResource(
             if (call.outbound) {
                 R.string.overview_direction_outbound
@@ -50,7 +51,7 @@ internal fun ActivityRow(call: RecentActivity) {
         ) + " · " + callTimeText(call.time, call.createdAt),
         leading = {
             Avatar(
-                name = call.displayName ?: "",
+                name = call.displayName?.let { serverText(it) } ?: "",
                 // ⚠️ A caller with no id gets the neutral tone, so an anonymous row does not wear
                 // the brand accent as if it were a known contact.
                 tone = if (call.displayName == null) Tone.Neutral else Tone.District,

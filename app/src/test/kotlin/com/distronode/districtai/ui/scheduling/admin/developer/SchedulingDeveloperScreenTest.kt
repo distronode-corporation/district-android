@@ -324,7 +324,7 @@ class SchedulingDeveloperScreenTest {
     }
 
     @Test
-    fun `a new webhook checks its URL, offers every event and field, and shows its secret once`() {
+    fun `a new webhook checks its URL, offers the four booking events and every field, and shows its secret once`() {
         rig.admin.value(
             SchedulingAdminOp.WEBHOOKS_CREATE,
             SchedulingWebhookCreated(
@@ -338,6 +338,11 @@ class SchedulingDeveloperScreenTest {
         show()
         composeRule.onNodeWithTag(DEVELOPER_WEBHOOK_ADD_TAG).performClick()
         composeRule.onNodeWithTag("$DEVELOPER_WEBHOOK_FIELD_TAG-attendee_email").assertExists()
+        // The web portal's four: nothing records a meeting, so the other three would never fire.
+        SchedulingWebhookEvent.entries.forEach { event ->
+            val tick = composeRule.onNodeWithTag("$DEVELOPER_WEBHOOK_EVENT_TAG-${event.wire}")
+            if (event in SchedulingWebhookEvent.OFFERED) tick.assertExists() else tick.assertDoesNotExist()
+        }
         composeRule.onNodeWithTag(DEVELOPER_WEBHOOK_SUBMIT_TAG).performClick()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_developer_webhook_url_missing)).assertIsDisplayed()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_developer_webhook_events_missing)).assertIsDisplayed()

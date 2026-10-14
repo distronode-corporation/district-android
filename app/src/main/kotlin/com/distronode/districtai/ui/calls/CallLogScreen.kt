@@ -15,6 +15,7 @@ import androidx.paging.compose.LazyPagingItems
 import com.distronode.districtai.l10n.callDurationText
 import com.distronode.districtai.l10n.callTimeText
 import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
@@ -156,7 +157,7 @@ private fun CallRow(call: CallSummary, onClick: () -> Unit) {
     val statusTone = if (display.live) Tone.District else toneForCallStatus(display.status)
 
     DistrictListRow(
-        title = display.displayName ?: stringResource(R.string.overview_no_caller_id),
+        title = display.displayName?.let { serverText(it) } ?: stringResource(R.string.overview_no_caller_id),
         subtitle = buildString {
             append(
                 stringResource(
@@ -180,7 +181,7 @@ private fun CallRow(call: CallSummary, onClick: () -> Unit) {
         onClick = onClick,
         leading = {
             Avatar(
-                name = display.displayName ?: "",
+                name = display.displayName?.let { serverText(it) } ?: "",
                 // ⚠️ An unidentified caller gets the neutral tone, so an anonymous row does not
                 // wear the brand accent as if it were a known contact.
                 tone = if (display.displayName == null) Tone.Neutral else Tone.District,

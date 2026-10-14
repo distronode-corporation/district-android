@@ -44,6 +44,7 @@ import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
 import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.l10n.stampText
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.FailureState
@@ -81,7 +82,7 @@ fun ThreadScreen(
         modifier = Modifier.testTag(THREAD_ROOT_DESCRIPTION),
         topBar = {
             DistrictTopBar(
-                title = title,
+                title = serverText(title),
                 onBack = onBack,
                 actions = moderation?.let { m -> { ModerationMenu(m, onBlock = { confirmingBlock = true }) } },
             )
@@ -559,7 +560,8 @@ private fun CallEvent(event: TimelineEvent) {
         // duration, and it is the reason a call belongs here at all.
         event.summary?.takeIf { it.isNotBlank() }?.let {
             Text(
-                text = it,
+                // ⚠️ A stand-in the service stored ("Voice session completed.") reads in the app's language.
+                text = serverText(it),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
                 textAlign = TextAlign.Center,

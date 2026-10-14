@@ -137,6 +137,18 @@ class WireLabelsTest(unittest.TestCase):
         self.assertEqual(gen.display("ca", "upper"), "CA")
         self.assertEqual(self.table["contact_research_key_caller_intel"]["en"], "Caller intel")
 
+    def test_every_placeholder_is_a_label_whose_english_is_the_value_and_every_spelling_maps_to_it(self) -> None:
+        caller = self.table["placeholder_unknown_caller"]
+        self.assertEqual((caller["en"], caller["ctx"], caller["screen"]), ("Unknown Caller", "label", "wire placeholder"))
+        self.assertNotIn("fr", caller)  # the contract has no French for it; the catalog's comes from an import
+        self.assertEqual(self.table["placeholder_distronode_support"]["fr"], "Soutien Distronode")
+        self.assertIn('"Unknown Caller" to R.string.wire_placeholder_unknown_caller,', self.kotlin)
+        self.assertIn(
+            '"No answer \\u2014 no conversation took place." to '
+            "R.string.wire_placeholder_no_answer_no_conversation_took_place,",
+            self.kotlin,
+        )
+
     def test_a_category_fallback_is_its_unknown_label_in_both_languages(self) -> None:
         unknown = self.table["number_status_unknown"]
         self.assertEqual((unknown["en"], unknown["fr"]), ("Active", "Actif"))

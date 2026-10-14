@@ -4,10 +4,19 @@ import com.distronode.districtai.core.model.BillingInvoice
 import com.distronode.districtai.core.model.BillingSubscription
 import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.UsageData
+import com.distronode.districtai.l10n.AppLanguage
+import java.io.File
 import java.time.ZoneId
 import java.util.Locale
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -18,6 +27,56 @@ import org.junit.Test
  * from the composables at all: the branches below are not reachable by rendering.
  */
 class BillingFormatTest {
+
+    // ── Money: French with a known currency ──────────────────────────────────
+
+    /** The `formatMoney` vectors in the default display, the one a billing amount uses. */
+    private fun symbolMoneyVectors(): List<JsonObject> {
+        val dir = System.getProperty("district.contracts.dir")
+        assertTrue("district.contracts.dir is not set", !dir.isNullOrBlank())
+        val root = Json.parseToJsonElement(File(dir, "i18n/format-vectors.json").readText()).jsonObject
+        return root.getValue("categories").jsonArray.map { it.jsonObject }
+            .single { it.getValue("category").jsonPrimitive.content == "money" }
+            .getValue("vectors").jsonArray.map { it.jsonObject }
+            .filter { v ->
+                val options = v["options"]?.jsonObject ?: JsonObject(emptyMap())
+                v.getValue("fn").jsonPrimitive.content == "formatMoney" &&
+                    (options["display"]?.jsonPrimitive?.content ?: "symbol") == "symbol" &&
+                    "disambiguateDollar" !in options
+            }
+    }
+
+    @Test
+    fun `in French a known currency reads as the web writes it, and English never changes`() {
+        val vectors = symbolMoneyVectors()
+        var french = 0
+        for (v in vectors) {
+            val cents = v.getValue("minorUnits").jsonPrimitive.long
+            val currency = v.getValue("currency").jsonPrimitive.content
+            if (v.getValue("locale").jsonPrimitive.content == "fr") {
+                french++
+                val shown = frenchMoney(cents, currency, AppLanguage.FR)
+                assertEquals(v.toString(), v.getValue("output").jsonPrimitive.content, shown)
+                // Stripe writes the code in lower case; any case reads the same.
+                assertEquals(v.toString(), shown, frenchMoney(cents, currency.uppercase(), AppLanguage.FR))
+            } else {
+                // ⛔ ENGLISH PRICES STAY AS THEY ARE ("$249.00"), currency or not: a plan decision.
+                assertNull(v.toString(), frenchMoney(cents, currency, AppLanguage.EN))
+            }
+        }
+        assertTrue("no French formatMoney vectors", french > 0)
+        assertEquals("249,00\u00A0$\u00A0CA", frenchMoney(24900, "cad", AppLanguage.FR))
+        assertEquals("249,00\u00A0$\u00A0US", frenchMoney(24900, "usd", AppLanguage.FR))
+    }
+
+    @Test
+    fun `French without a currency keeps the bare amount its resource puts the dollar beside`() {
+        assertNull(frenchMoney(24900, null, AppLanguage.FR))
+        assertNull(frenchMoney(24900, "", AppLanguage.FR))
+        assertNull(frenchMoney(24900, "  ", AppLanguage.FR))
+        assertEquals("249,00", formatCents(24900, AppLanguage.FR))
+        assertEquals("249.00", formatCents(24900, AppLanguage.EN))
+    }
 
     // ── Money: minor units ───────────────────────────────────────────────────
 

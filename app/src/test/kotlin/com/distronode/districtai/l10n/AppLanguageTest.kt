@@ -56,6 +56,29 @@ class AppLanguageTest {
     }
 
     @Test
+    fun `a server placeholder reads as its label, in English the words the app always showed, and real text as sent`() {
+        assertRendered(
+            str(R.string.wire_placeholder_unknown_caller) to { serverText("Unknown Caller") },
+            "Unknown Caller" to { serverText("Unknown Caller") },
+            "Voice session completed." to { serverText("Voice session completed.") },
+            "Test call" to { serverText("Test call") },
+            "Manual edit update." to { serverText("Manual edit update.") },
+            "Ada Lovelace" to { serverText("Ada Lovelace") },
+            "" to { serverText("") },
+        )
+        // ⛔ What French reads is chosen by the label, so each stand-in has one and real text has none.
+        assertEquals(R.string.wire_placeholder_unknown_caller, placeholderLabel("Unknown Caller"))
+        assertEquals(R.string.wire_placeholder_customer, placeholderLabel("Customer"))
+        assertEquals(R.string.wire_placeholder_no_summary_available, placeholderLabel("No summary available."))
+        assertEquals(R.string.wire_placeholder_ai_call_completed, placeholderLabel("AI call completed."))
+        assertEquals(R.string.wire_placeholder_unknown, placeholderLabel("Unknown"))
+        assertEquals(R.string.wire_placeholder_you, placeholderLabel("You"))
+        assertEquals(R.string.wire_placeholder_distronode_support, placeholderLabel("Distronode Support"))
+        assertEquals(null, placeholderLabel("Ada Lovelace"))
+        assertEquals(null, placeholderLabel("unknown caller"))
+    }
+
+    @Test
     fun `in English the server's own sentence is shown, code or no code`() {
         assertRendered(
             "Contact already exists" to { serverSentence("Contact already exists", "forbidden") },

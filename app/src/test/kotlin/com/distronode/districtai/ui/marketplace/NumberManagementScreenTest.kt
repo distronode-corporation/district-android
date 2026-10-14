@@ -152,7 +152,13 @@ class NumberManagementScreenTest {
     @Test
     fun `connected, managed and refused carriers each say what they are`() {
         val entries = mapOf(
-            "twilio" to ProviderStatusEntry(connected = true, accountName = "Acme", balance = "12.50", currency = "USD", numberCount = 3),
+            "twilio" to ProviderStatusEntry(
+                connected = true,
+                accountName = "Acme",
+                balance = "12.50",
+                currency = "USD",
+                numberCount = 3,
+            ),
             "telnyx" to ProviderStatusEntry(connected = true, balance = "4.00"),
             "managed" to ProviderStatusEntry(connected = true, managed = true),
             "sinch" to ProviderStatusEntry(connected = false),

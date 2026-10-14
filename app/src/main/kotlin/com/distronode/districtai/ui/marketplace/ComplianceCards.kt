@@ -77,12 +77,14 @@ private fun A2PCard(draft: A2PDraft, write: NumberWriteState, handlers: Provisio
 private fun TollFreeCard(draft: TollFreeDraft, write: NumberWriteState, handlers: ProvisioningHandlers) {
     val editable = write != NumberWriteState.Running
     val update = handlers.onTollFreeDraft
-    val useCases = mapOf(
-        TOLL_FREE_USE_CASES[0] to stringResource(R.string.numbers_tfv_use_case_customer_support),
-        TOLL_FREE_USE_CASES[1] to stringResource(R.string.numbers_tfv_use_case_marketing),
-        TOLL_FREE_USE_CASES[2] to stringResource(R.string.numbers_tfv_use_case_notifications),
-        TOLL_FREE_USE_CASES[3] to stringResource(R.string.numbers_tfv_use_case_otp),
-    )
+    val useCases = TOLL_FREE_USE_CASES.zip(
+        listOf(
+            stringResource(R.string.numbers_tfv_use_case_customer_support),
+            stringResource(R.string.numbers_tfv_use_case_marketing),
+            stringResource(R.string.numbers_tfv_use_case_notifications),
+            stringResource(R.string.numbers_tfv_use_case_otp),
+        ),
+    ).toMap()
     SectionCard(stringResource(R.string.numbers_tfv_title)) {
         Muted(stringResource(R.string.numbers_tfv_caption))
         NumberField(

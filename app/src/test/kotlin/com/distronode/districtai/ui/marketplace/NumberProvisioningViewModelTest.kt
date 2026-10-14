@@ -159,7 +159,8 @@ class NumberProvisioningViewModelTest {
 
     @Test
     fun `a release is confirmed, runs once, and reports its warnings`() = runTest(dispatcher) {
-        numbers.releaseResult = ApiResult.Success(NumberReleaseResponse(success = true, warnings = listOf("Rule kept.")))
+        numbers.releaseResult =
+            ApiResult.Success(NumberReleaseResponse(success = true, warnings = listOf("Rule kept.")))
         val vm = viewModel()
         vm.requestConfirmation(NumberConfirmation.Release("+1"))
         assertEquals(NumberConfirmation.Release("+1"), vm.now.confirmation)

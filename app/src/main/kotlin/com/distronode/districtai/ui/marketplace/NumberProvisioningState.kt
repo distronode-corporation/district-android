@@ -93,7 +93,9 @@ data class LookupSummary(val valid: Boolean, val lines: List<String>) {
                 LookupSummary(
                     valid = true,
                     lines = listOf(info.phoneNumber) +
-                        listOfNotNull(info.country, info.type, info.carrier).map(String::trim).filter(String::isNotEmpty),
+                        listOfNotNull(info.country, info.type, info.carrier)
+                            .map(String::trim)
+                            .filter(String::isNotEmpty),
                 )
             }
     }

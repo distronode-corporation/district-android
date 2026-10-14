@@ -2,12 +2,10 @@ package com.distronode.districtai.ui.marketplace
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,35 +18,13 @@ import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
-import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.EmptyState
-import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
-import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.ProviderStatusEntry
 import com.distronode.districtai.core.model.SipTrunk
 import com.distronode.districtai.ui.InlineFailure
-
-/** What the number-management tabs ask of their ViewModel, bundled. */
-data class ProvisioningHandlers(
-    val onRetryCarrier: () -> Unit = {},
-    val onRetryVerify: () -> Unit = {},
-    val onRetrySip: () -> Unit = {},
-    val onSetVerify: (Boolean) -> Unit = {},
-    val onSipDraft: (SipTrunkDraft) -> Unit = {},
-    val onCreateSip: () -> Unit = {},
-    val onLookupNumber: (String) -> Unit = {},
-    val onRequestConfirmation: (NumberConfirmation) -> Unit = {},
-    val onA2PDraft: (A2PDraft) -> Unit = {},
-    val onTollFreeDraft: (TollFreeDraft) -> Unit = {},
-    val onRegistrationDraft: (RegistrationDraft) -> Unit = {},
-    val onCheckRequirements: () -> Unit = {},
-    val onStartRegistration: () -> Unit = {},
-    val onRetryRegistrations: () -> Unit = {},
-    val onRemoveDocument: (bundleId: String, documentId: String) -> Unit = { _, _ -> },
-)
 
 /**
  * The Carrier tab (iOS `CarrierSection`, `NumberLookupCard`, `ComplianceSection`): the carrier
@@ -126,9 +102,13 @@ private fun CarrierRow(name: String, entry: ProviderStatusEntry) {
             else -> {
                 entry.accountName?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
                 entry.balance?.let { balance ->
+                    val currency = entry.currency
                     Muted(
-                        entry.currency?.let { stringResource(R.string.numbers_carrier_balance_with_currency, balance, it) }
-                            ?: stringResource(R.string.numbers_carrier_balance_amount, balance),
+                        if (currency != null) {
+                            stringResource(R.string.numbers_carrier_balance_with_currency, balance, currency)
+                        } else {
+                            stringResource(R.string.numbers_carrier_balance_amount, balance)
+                        },
                     )
                 }
                 entry.numberCount?.let { Muted(pluralStringResource(R.plurals.numbers_carrier_number_count, it, it)) }
@@ -275,46 +255,6 @@ private fun LookupCard(state: NumberProvisioningUiState, canProvision: Boolean, 
         }
     }
 }
-
-/** A card with an eyebrow, the shape every number-management card takes. */
-@Composable
-internal fun SectionCard(eyebrow: String, content: @Composable ColumnScope.() -> Unit) {
-    DistrictCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(DistrictTheme.spacing.gutter),
-            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-        ) {
-            Eyebrow(eyebrow)
-            content()
-        }
-    }
-}
-
-/** One labelled text field of a number-management form. */
-@Composable
-internal fun NumberField(
-    value: String,
-    onChange: (String) -> Unit,
-    label: Int,
-    enabled: Boolean,
-    singleLine: Boolean = true,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(stringResource(label)) },
-        enabled = enabled,
-        singleLine = singleLine,
-        minLines = if (singleLine) 1 else MULTILINE_ROWS,
-        colors = districtFieldColors(),
-        modifier = Modifier.fillMaxWidth().testTag(numberFieldTag(label)),
-    )
-}
-
-private const val MULTILINE_ROWS = 3
-
-/** A field's test handle, from its label resource. */
-fun numberFieldTag(label: Int): String = "district-number-field-$label"
 
 /** Stable handles for tests. */
 const val CARRIER_TAB_TAG: String = "district-number-carrier-tab"

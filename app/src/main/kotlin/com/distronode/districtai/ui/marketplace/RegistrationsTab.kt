@@ -132,7 +132,11 @@ private fun RequirementsCard(state: RequirementsState, onRetry: () -> Unit) {
                     val detail = requirement.kind == END_USER
                     DistrictBadge(
                         text = stringResource(
-                            if (detail) R.string.numbers_requirement_kind_field else R.string.numbers_requirement_kind_document,
+                            if (detail) {
+                                R.string.numbers_requirement_kind_field
+                            } else {
+                                R.string.numbers_requirement_kind_document
+                            },
                         ),
                         tone = if (detail) Tone.Info else Tone.District,
                     )
@@ -188,7 +192,11 @@ private fun RegistrationCard(
     SectionCard(stringResource(R.string.numbers_registration_title, registration.isoCountry, registration.numberType)) {
         registration.friendlyName?.trim()?.takeIf { it.isNotEmpty() }?.let { Muted(it) }
         val (label, tone) = registrationStatus(registration.status)
-        DistrictBadge(text = label, tone = tone, modifier = Modifier.testTag(registrationStatusTag(registration.id)))
+        DistrictBadge(
+            text = label,
+            tone = tone,
+            modifier = Modifier.testTag(registrationStatusTag(registration.id)),
+        )
         if (registration.rejectionReasons.isNotEmpty()) {
             Eyebrow(stringResource(R.string.numbers_registration_reasons_eyebrow))
             registration.rejectionReasons.forEach {
@@ -260,12 +268,6 @@ private fun registrationStatus(status: String): Pair<String, Tone> = when (statu
 }
 
 private const val END_USER = "end_user"
-
-fun registrationStatusTag(id: String): String = "district-number-registration-status-$id"
-
-fun registrationSubmitTag(id: String): String = "district-number-registration-submit-$id"
-
-fun documentRemoveTag(id: String): String = "district-number-document-remove-$id"
 
 /** Stable handles for tests. */
 const val REGISTRATIONS_TAB_TAG: String = "district-number-registrations-tab"

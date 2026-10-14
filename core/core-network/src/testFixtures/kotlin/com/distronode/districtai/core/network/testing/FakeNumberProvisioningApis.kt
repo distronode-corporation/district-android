@@ -67,7 +67,12 @@ class FakeNumberProvisioningApi : NumberProvisioningApi {
         calls += "providerStatus:$workspaceId"
     }
 
-    override suspend fun numberRequirements(workspaceId: String, country: String, numberType: String?, endUserType: String?) =
+    override suspend fun numberRequirements(
+        workspaceId: String,
+        country: String,
+        numberType: String?,
+        endUserType: String?,
+    ) =
         requirementsResult.also { calls += "numberRequirements:$workspaceId:$country:$numberType:$endUserType" }
 
     override suspend fun numberRegistrations(workspaceId: String) =
@@ -89,7 +94,11 @@ class FakeNumberProvisioningApi : NumberProvisioningApi {
     override suspend fun deleteRegistrationDocument(workspaceId: String, bundleId: String, documentId: String) =
         removeResult.also { calls += "deleteRegistrationDocument:$workspaceId:$bundleId:$documentId" }
 
-    override suspend fun submitNumberRegistration(workspaceId: String, bundleId: String, endUserAttributes: Map<String, String>) =
+    override suspend fun submitNumberRegistration(
+        workspaceId: String,
+        bundleId: String,
+        endUserAttributes: Map<String, String>,
+    ) =
         submitResult.also { calls += "submitNumberRegistration:$workspaceId:$bundleId:$endUserAttributes" }
 
     override suspend fun configureNumber(workspaceId: String, phoneNumber: String) =
@@ -124,10 +133,16 @@ class FakeCarrierAccountApi : CarrierAccountApi {
 
     override suspend fun sipTrunks(workspaceId: String) = sipResult.also { calls += "sipTrunks:$workspaceId" }
 
-    override suspend fun createSipTrunk(workspaceId: String, name: String, domain: String, ipAccessControlList: List<String>) =
+    override suspend fun createSipTrunk(
+        workspaceId: String,
+        name: String,
+        domain: String,
+        ipAccessControlList: List<String>,
+    ) =
         createSipResult.also { calls += "createSipTrunk:$workspaceId:$name:$domain:$ipAccessControlList" }
 
-    override suspend fun verifyService(workspaceId: String) = verifyResult.also { calls += "verifyService:$workspaceId" }
+    override suspend fun verifyService(workspaceId: String) =
+        verifyResult.also { calls += "verifyService:$workspaceId" }
 
     /** Answers [setVerifyResult], or by default the state asked for. */
     override suspend fun setVerifyServiceEnabled(

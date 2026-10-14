@@ -109,7 +109,10 @@ class HttpCarrierAccountApi(private val client: DistrictApiClient) : CarrierAcco
     override suspend fun verifyService(workspaceId: String): ApiResult<VerifyServiceResponse> =
         client.get(NumberPaths.VERIFY, VerifyServiceResponse.serializer(), workspaceQuery(workspaceId))
 
-    override suspend fun setVerifyServiceEnabled(workspaceId: String, enabled: Boolean): ApiResult<VerifyServiceResponse> =
+    override suspend fun setVerifyServiceEnabled(
+        workspaceId: String,
+        enabled: Boolean,
+    ): ApiResult<VerifyServiceResponse> =
         client.send(
             method = "POST",
             segments = NumberPaths.VERIFY,

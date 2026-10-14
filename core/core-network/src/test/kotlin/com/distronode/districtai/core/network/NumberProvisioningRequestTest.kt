@@ -60,7 +60,9 @@ class NumberProvisioningRequestTest {
     @Test
     fun `provider status is a GET that decodes its carriers`() = runTest {
         answer(
-            """{"connected":true,"provider":"twilio","providers":{"twilio":{"connected":true,"accountName":"Acme","balance":"12.50","currency":"USD","numberCount":3},"sinch":{"connected":false,"error":"refused"}}}"""
+            """{"connected":true,"provider":"twilio","providers":{"twilio":{"connected":true,""" +
+                """"accountName":"Acme","balance":"12.50","currency":"USD","numberCount":3},""" +
+                """"sinch":{"connected":false,"error":"refused"}}}"""
         )
         val result = numbers().providerStatus("ws_1") as ApiResult.Success
         assertEquals(listOf("twilio"), result.value.connectedProviders)
@@ -94,7 +96,11 @@ class NumberProvisioningRequestTest {
         assertEquals("CA", recorded.url.queryParameter("country"))
         assertEquals(null, recorded.url.queryParameter("type"))
         answer(
-            """{"success":true,"country":"DE","numberType":"mobile","purchasable":false,"requirements":{"isoCountry":"DE","numberType":"mobile","endUserType":"business","regulationSid":"RN1","friendlyName":"Germany mobile","requirements":[{"kind":"end_user","name":"Business","requirementName":"business_info","type":"business","fields":["business_name"]}]}}"""
+            """{"success":true,"country":"DE","numberType":"mobile","purchasable":false,""" +
+                """"requirements":{"isoCountry":"DE","numberType":"mobile","endUserType":"business",""" +
+                """"regulationSid":"RN1","friendlyName":"Germany mobile","requirements":[{"kind":"end_user",""" +
+                """"name":"Business","requirementName":"business_info","type":"business",""" +
+                """"fields":["business_name"]}]}}"""
         )
         val result = numbers().numberRequirements("ws_1", "DE", "mobile", "business") as ApiResult.Success
         assertEquals("Germany mobile", result.value.requirements!!.friendlyName)
@@ -104,14 +110,20 @@ class NumberProvisioningRequestTest {
     @Test
     fun `the registration routes take the workspace in the query`() = runTest {
         answer(
-            """{"success":true,"registrations":[{"id":"BU1","isoCountry":"DE","numberType":"local","endUserType":"business","friendlyName":null,"status":"draft","rejectionReasons":[],"submittedAt":null,"reviewedAt":null,"createdAt":"2026-10-01T00:00:00.000Z","documents":[{"id":"D1","requirementName":"proof","mimeType":"application/pdf","sizeBytes":100,"stored":true,"submitted":false,"updatedAt":"2026-10-01T00:00:00.000Z"}]}],"approvedCountries":["CA"],"platformCountries":["US"]}"""
+            """{"success":true,"registrations":[{"id":"BU1","isoCountry":"DE","numberType":"local",""" +
+                """"endUserType":"business","friendlyName":null,"status":"draft","rejectionReasons":[],""" +
+                """"submittedAt":null,"reviewedAt":null,"createdAt":"2026-10-01T00:00:00.000Z",""" +
+                """"documents":[{"id":"D1","requirementName":"proof","mimeType":"application/pdf","sizeBytes":100,""" +
+                """"stored":true,"submitted":false,"updatedAt":"2026-10-01T00:00:00.000Z"}]}],""" +
+                """"approvedCountries":["CA"],"platformCountries":["US"]}"""
         )
         val list = numbers().numberRegistrations("ws_1") as ApiResult.Success
         assertEquals("D1", list.value.registrations.single().documents.single().id)
         assertEquals("ws_1", server.takeRequest().url.queryParameter("workspaceId"))
 
         answer(
-            """{"success":true,"registration":{"id":"BU2","isoCountry":"DE","numberType":"local","endUserType":"business","status":"draft","rejectionReasons":[],"createdAt":"t","documents":[]}}"""
+            """{"success":true,"registration":{"id":"BU2","isoCountry":"DE","numberType":"local",""" +
+                """"endUserType":"business","status":"draft","rejectionReasons":[],"createdAt":"t","documents":[]}}"""
         )
         numbers().createNumberRegistration("ws_1", "DE", "local", endUserType = null, friendlyName = "Berlin")
         val created = server.takeRequest()
@@ -128,7 +140,8 @@ class NumberProvisioningRequestTest {
     @Test
     fun `a document upload is multipart with two fields, and a removal is a DELETE with a body`() = runTest {
         answer(
-            """{"success":true,"document":{"id":"D2","requirementName":"proof","mimeType":"application/pdf","sizeBytes":3,"createdAt":"t"}}"""
+            """{"success":true,"document":{"id":"D2","requirementName":"proof","mimeType":"application/pdf",""" +
+                """"sizeBytes":3,"createdAt":"t"}}"""
         )
         val upload = RegulatoryDocumentUpload("BU1", "proof", "proof.pdf", "application/pdf", byteArrayOf(1, 2, 3))
         numbers().uploadRegistrationDocument("ws_1", upload)
@@ -177,14 +190,16 @@ class NumberProvisioningRequestTest {
     @Test
     fun `SIP trunks read and create`() = runTest {
         answer(
-            """{"success":true,"trunks":[{"id":"T1","name":"PBX","domain":"acme","ipAccessControlList":["1.2.3.4"],"domainSid":null,"ipAclSid":null,"status":"active"}]}"""
+            """{"success":true,"trunks":[{"id":"T1","name":"PBX","domain":"acme",""" +
+                """"ipAccessControlList":["1.2.3.4"],"domainSid":null,"ipAclSid":null,"status":"active"}]}"""
         )
         val trunks = carrier().sipTrunks("ws_1") as ApiResult.Success
         assertEquals("acme", trunks.value.trunks.single().domain)
         assertEquals("/api/district/workspace/sip", server.takeRequest().url.encodedPath)
 
         answer(
-            """{"success":true,"trunk":{"id":"T2","name":"PBX","domain":"acme","ipAccessControlList":["1.2.3.4"],"status":"active"}}"""
+            """{"success":true,"trunk":{"id":"T2","name":"PBX","domain":"acme",""" +
+                """"ipAccessControlList":["1.2.3.4"],"status":"active"}}"""
         )
         carrier().createSipTrunk("ws_1", "PBX", "acme", listOf("1.2.3.4", "5.6.7.0/24"))
         val body = server.takeRequest().json()
@@ -256,7 +271,8 @@ class NumberProvisioningRequestTest {
     @Test
     fun `the lookup is a GET with the number in the query`() = runTest {
         answer(
-            """{"success":true,"info":{"valid":true,"phoneNumber":"+14165550142","country":"CA","type":"mobile","carrier":"Rogers"}}"""
+            """{"success":true,"info":{"valid":true,"phoneNumber":"+14165550142","country":"CA",""" +
+                """"type":"mobile","carrier":"Rogers"}}"""
         )
         val result = carrier().lookupNumber("ws_1", "+14165550142")
         assertEquals(

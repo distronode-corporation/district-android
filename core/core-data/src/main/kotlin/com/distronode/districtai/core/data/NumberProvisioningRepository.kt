@@ -69,7 +69,12 @@ object NumberWriteResubmit {
  *
  * ⛔ EVERY ANSWER THAT CARRIES `success` MUST AFFIRM IT: a 2xx that says `success:false` is drift,
  * never a quiet success. Provider status alone has no such key.
+ *
+ * ⚠️ `TooManyFunctions` IS SUPPRESSED: one method per route, as on `DistrictApi`'s sections. The
+ * two interfaces behind it are already split; splitting the repository too would split one screen's
+ * data layer in two for a lint count.
  */
+@Suppress("TooManyFunctions")
 class NumberProvisioningRepository(
     private val numbers: NumberProvisioningApi,
     private val carrier: CarrierAccountApi,

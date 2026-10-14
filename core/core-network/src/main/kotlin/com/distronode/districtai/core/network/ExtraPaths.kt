@@ -76,4 +76,10 @@ internal object ExtraPaths {
      * This one ENDS a call, `answer` takes one, and `dial` places one.
      */
     fun callHangUp(callId: String): List<String> = DistrictPaths.CALLS + callId + "hangup"
+
+    /** `api/district/contacts/block`: POST, the desired state. ⚠️ One letter from [CONTACTS_BLOCKED]. */
+    val CONTACTS_BLOCK: List<String> = DistrictPaths.CONTACTS + "block"
+
+    /** `api/district/contacts/blocked`: GET, everyone blocked. */
+    val CONTACTS_BLOCKED: List<String> = DistrictPaths.CONTACTS + "blocked"
 }

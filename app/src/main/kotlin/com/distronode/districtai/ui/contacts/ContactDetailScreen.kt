@@ -64,6 +64,8 @@ fun ContactDetailScreen(
     onClearIntel: () -> Unit,
     /** A READ: re-check a dossier whose poll stopped on a failure. Never re-sends the enrich. */
     onCheckDossierAgain: () -> Unit,
+    /** The caller's block state and control; null where blocking is not wired. */
+    block: BlockUi? = null,
 ) {
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
@@ -99,6 +101,7 @@ fun ContactDetailScreen(
                     onEnrich = onEnrich,
                     onClearIntel = onClearIntel,
                     onCheckDossierAgain = onCheckDossierAgain,
+                    block = block,
                 )
             }
         }
@@ -115,6 +118,7 @@ private fun Content(
     onEnrich: () -> Unit,
     onClearIntel: () -> Unit,
     onCheckDossierAgain: () -> Unit,
+    block: BlockUi?,
 ) {
     val contact = state.contact
     var renaming by remember(contact.id) { mutableStateOf(false) }
@@ -127,6 +131,9 @@ private fun Content(
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         Identity(contact)
+        // ⚠️ THE BADGE FOR EVERY ROLE, THE CONTROL ONLY FOR ONE THAT MAY WRITE: a viewer may know a
+        // caller is blocked, and the route refuses it the change.
+        if (block?.blocked == true) BlockedBadge(Modifier.testTag(BLOCKED_BADGE_TAG))
         Attributes(contact)
         DossierSection(
             contact = contact,
@@ -142,6 +149,7 @@ private fun Content(
         state.pollFailure?.let { PollFailure(it, onCheckDossierAgain) }
 
         state.mutationFailure?.let { MutationFailure(it, onDismissMutationFailure) }
+        block?.failure?.let { BlockFailureNotice(it, block.onDismissFailure) }
 
         if (canMutate) {
             MutationControls(
@@ -156,6 +164,8 @@ private fun Content(
                 onCancelRename = { renaming = false },
                 onRequestDelete = { confirmingDelete = true },
             )
+            // ⚠️ DISABLED WHILE ANY WRITE ON THIS CONTACT IS IN FLIGHT, the screen's or the block's.
+            block?.let { BlockControl(it.blocked, enabled = !state.saving && !it.busy, onSetBlocked = it.onSetBlocked) }
         } else {
             Text(
                 text = stringResource(R.string.contacts_read_only),

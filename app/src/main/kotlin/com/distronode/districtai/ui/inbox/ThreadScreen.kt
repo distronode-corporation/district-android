@@ -16,6 +16,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -40,6 +44,8 @@ import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
 import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.contacts.BlockConfirmDialog
+import com.distronode.districtai.ui.contacts.BlockFailureNotice
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -63,25 +69,66 @@ fun ThreadScreen(
     /** Expand the thread backwards by one page. See `ThreadViewModel.loadOlder`. */
     onLoadOlder: () -> Unit,
     composer: ComposerHandlers,
+    /** Report and Block; null for a role that may not write (the routes exclude `viewer`). */
+    moderation: ThreadModeration? = null,
 ) {
+    var confirmingBlock by rememberSaveable { mutableStateOf(false) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
     DistrictScaffold(
         modifier = Modifier.testTag(THREAD_ROOT_DESCRIPTION),
-        topBar = { DistrictTopBar(title = title, onBack = onBack) },
+        topBar = {
+            DistrictTopBar(
+                title = title,
+                onBack = onBack,
+                actions = moderation?.let { m -> { ModerationMenu(m, onBlock = { confirmingBlock = true }) } },
+            )
+        },
     ) { inset ->
-        Box(modifier = inset.fillMaxSize()) {
-            when (state) {
-                ThreadUiState.Loading -> ThreadLoading()
-                is ThreadUiState.Failed -> FailureState(
-                    failure = state.failure,
-                    onRetry = onRetry,
-                    onSignIn = onSignIn,
-                    description = THREAD_FAILURE_DESCRIPTION,
-                )
-                is ThreadUiState.Content ->
-                    Loaded(state, canReply, onSend, onDismissSendFailure, onLoadOlder, composer)
+        Column(modifier = inset.fillMaxSize()) {
+            moderation?.failure?.let { failure ->
+                ContentContainer(modifier = Modifier.padding(horizontal = DistrictTheme.spacing.gutter)) {
+                    BlockFailureNotice(failure, moderation.onDismissFailure)
+                }
+            }
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                ThreadBody(state, canReply, onSend, onRetry, onSignIn, onDismissSendFailure, onLoadOlder, composer)
             }
         }
+    }
+    if (confirmingBlock && moderation != null) {
+        BlockConfirmDialog(
+            blocked = false,
+            onConfirm = {
+                confirmingBlock = false
+                moderation.onBlock()
+            },
+            onDismiss = { confirmingBlock = false },
+        )
+    }
+}
+
+@Composable
+@Suppress("LongParameterList")
+private fun ThreadBody(
+    state: ThreadUiState,
+    canReply: Boolean,
+    onSend: (String) -> Unit,
+    onRetry: () -> Unit,
+    onSignIn: () -> Unit,
+    onDismissSendFailure: () -> Unit,
+    onLoadOlder: () -> Unit,
+    composer: ComposerHandlers,
+) {
+    when (state) {
+        ThreadUiState.Loading -> ThreadLoading()
+        is ThreadUiState.Failed -> FailureState(
+            failure = state.failure,
+            onRetry = onRetry,
+            onSignIn = onSignIn,
+            description = THREAD_FAILURE_DESCRIPTION,
+        )
+        is ThreadUiState.Content ->
+            Loaded(state, canReply, onSend, onDismissSendFailure, onLoadOlder, composer)
     }
 }
 
@@ -551,6 +598,9 @@ private const val BUBBLE_ACCENT_ALPHA = 0.12f
 
 /** Stable handles for tests. */
 const val THREAD_ROOT_DESCRIPTION: String = "district-thread-root"
+const val THREAD_MANAGE_DESCRIPTION: String = "district-thread-manage"
+const val THREAD_REPORT_DESCRIPTION: String = "district-thread-report"
+const val THREAD_BLOCK_DESCRIPTION: String = "district-thread-block"
 const val THREAD_LOADING_DESCRIPTION: String = "district-thread-loading"
 const val THREAD_FAILURE_DESCRIPTION: String = "district-thread-failure"
 const val THREAD_SEND_FAILURE_DESCRIPTION: String = "district-thread-send-failure"

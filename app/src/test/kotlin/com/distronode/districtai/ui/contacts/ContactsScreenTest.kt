@@ -100,6 +100,8 @@ class ContactsScreenTest {
         canMutate: Boolean = true,
         createState: CreateContactUiState = CreateContactUiState.Idle,
         callbacks: Callbacks = Callbacks(),
+        blockedIds: Set<String> = emptySet(),
+        onOpenBlocked: (() -> Unit)? = null,
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -116,6 +118,8 @@ class ContactsScreenTest {
                     onCreate = callbacks.onCreate,
                     onCreateHandled = callbacks.onCreateHandled,
                     onBack = callbacks.onBack,
+                    blockedIds = blockedIds,
+                    onOpenBlocked = onOpenBlocked,
                 )
             }
         }
@@ -373,5 +377,24 @@ class ContactsScreenTest {
         composeRule.onNodeWithTag(TOP_BAR_BACK_DESCRIPTION).performClick()
 
         assertEquals(1, backs)
+    }
+
+    @Test
+    fun `a blocked contact's row is badged, and the blocked list opens from the bar`() {
+        var opened = 0
+        render(
+            listOf(contact(), contact(id = "c2", name = "Grace Hopper", dgiStatus = "pending")),
+            blockedIds = setOf("c1"),
+            onOpenBlocked = { opened++ },
+        )
+        composeRule.onAllNodesWithText(str(R.string.contact_block_badge)).assertCountEquals(1)
+        composeRule.onNodeWithTag(CONTACTS_BLOCKED_DESCRIPTION).performClick()
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun `without the blocked list wired there is no entry to it`() {
+        render(listOf(contact()))
+        composeRule.onNodeWithTag(CONTACTS_BLOCKED_DESCRIPTION).assertDoesNotExist()
     }
 }

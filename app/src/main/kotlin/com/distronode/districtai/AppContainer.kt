@@ -68,6 +68,9 @@ import com.distronode.districtai.core.network.HttpInboxExtrasApi
 import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSupportApi
+import com.distronode.districtai.core.network.HttpContactBlockingApi
+import com.distronode.districtai.core.data.ContactBlockingRepository
+import com.distronode.districtai.ui.contacts.BlockedContactsStore
 import com.distronode.districtai.telecom.AndroidTelecomBridge
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.inbox.AttachmentReader
@@ -191,6 +194,14 @@ class AppContainer(
     val callsRepository: CallsRepository = CallsRepository(districtApi)
 
     val contactsRepository: ContactsRepository = ContactsRepository(districtApi)
+
+    /**
+     * Who this account has blocked. ⛔ ONE INSTANCE FOR THE APP, so a block from a thread badges the
+     * contact and empties the inbox row at once; see [BlockedContactsStore].
+     */
+    val blockedContactsStore: BlockedContactsStore = BlockedContactsStore(
+        ContactBlockingRepository(seams.contactBlockingApi ?: HttpContactBlockingApi(apiClient)),
+    )
 
     /**
      * The unified Inbox.

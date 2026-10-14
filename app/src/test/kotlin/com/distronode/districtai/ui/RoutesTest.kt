@@ -32,6 +32,8 @@ class RoutesTest {
         fun segments(route: String) = route.split("/").size
 
         assertEquals(segments(Routes.CALL_LOG), segments(Routes.callLog("ws1")))
+        assertEquals(segments(Routes.CALL_LOG), segments(Routes.callLog("ws1", WorkspaceRole.AGENCY)))
+        assertEquals(segments(Routes.BLOCKED), segments(Routes.blocked("ws1", WorkspaceRole.CLIENT)))
         assertEquals(segments(Routes.CALL_DETAIL), segments(Routes.callDetail("ws1", "call1")))
         assertEquals(segments(Routes.INBOX), segments(Routes.inbox("ws1", WorkspaceRole.CLIENT)))
         assertEquals(
@@ -559,6 +561,14 @@ class RoutesTest {
             Routes.WORKSPACE_SETTINGS.split("/").size,
             route.split("/").size,
         )
+    }
+
+    @Test
+    fun `a call's role travels as an optional query argument`() {
+        assertEquals("workspace/ws1/calls?role=agency", Routes.callLog("ws1", WorkspaceRole.AGENCY))
+        assertEquals("workspace/ws1/calls/c1?role=viewer", Routes.callDetail("ws1", "c1", WorkspaceRole.VIEWER))
+        assertEquals("workspace/ws1/calls/c1", Routes.callDetail("ws1", "c1"))
+        assertEquals("workspace/ws1/blocked/none", Routes.blocked("ws1", null))
     }
 }
 

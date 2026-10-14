@@ -1,7 +1,10 @@
 package com.distronode.districtai.ui
 
 import android.os.Bundle
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 /**
  * The arguments of a destination in [DistrictNavHost], which always has some.
@@ -25,3 +28,14 @@ internal fun NavBackStackEntry.routeArguments(): Bundle = arguments as Bundle
  * has one; see [routeArguments] for why this asserts rather than defaulting.
  */
 internal fun NavBackStackEntry.pathArgument(name: String): String = routeArguments().getString(name) as String
+
+/**
+ * The optional `role` query argument of a destination opened from places that may not know it (see
+ * `Routes.CALL_DETAIL`). Absent, it is null, and [com.distronode.districtai.core.model.WorkspaceRole.fromWire]
+ * fails closed on it.
+ */
+internal fun optionalRoleArgument(): NamedNavArgument = navArgument(ARG_ROLE) {
+    type = NavType.StringType
+    nullable = true
+    defaultValue = null
+}

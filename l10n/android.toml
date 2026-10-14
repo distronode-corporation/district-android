@@ -707,6 +707,20 @@ screen = "call detail"
 tier = "T3"
 note = "Call detail"
 
+[call_detail.summary_absent]
+en = "No AI summary for this call."
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Shown in place of the AI summary card when the call has none: the service sent a stand-in sentence (\"No summary available.\", a live-session or no-answer status) rather than a summary."
+
+[call_detail.summary_failed]
+en = "This call could not be summarised."
+ctx = "label"
+screen = "call detail"
+tier = "T3"
+note = "Shown in place of the AI summary card when the service tried to summarise the call and failed. Not an error on this screen: nothing here can retry it."
+
 [call_detail.title]
 en = "Call"
 ctx = "title"

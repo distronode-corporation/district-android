@@ -99,3 +99,31 @@ internal enum class WireCategory(val labels: Map<String, Int>, val unknown: Int,
         upperCase = true,
     ),
 }
+
+/**
+ * Every placeholder the server stores or sends in English in place of a real value (`Unknown`,
+ * `No summary available.`), in its current spelling.
+ */
+internal val WIRE_PLACEHOLDERS: Set<String> = setOf(
+    "Unknown",
+    "Unknown Caller",
+    "Customer",
+    "Test call",
+    "No summary available.",
+    "AI call completed.",
+    "AI Voice session active...",
+    "AI Outbound Voice session active...",
+    "Voice session completed.",
+    "No answer, no conversation took place.",
+    "New manually added contact.",
+    "Manual edit update.",
+    "Consultation",
+    "Distronode Support",
+    "You",
+    "Free",
+)
+
+/** Each placeholder that has earlier spellings, to those spellings: rows stored before the change keep them. */
+internal val WIRE_PLACEHOLDER_ALIASES: Map<String, List<String>> = mapOf(
+    "No answer, no conversation took place." to listOf("No answer \u2014 no conversation took place."),
+)

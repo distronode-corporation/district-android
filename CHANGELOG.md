@@ -36,6 +36,12 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
   matched by their code. What you see in English does not change.
 - The app reads the service's current list of call and transfer statuses, including four new
   transfer values.
+- The catalogs carry their reviewed Canadian French (fr-CA): 1,769 entries across
+  `l10n/*.toml`, regenerated into `app/src/l10n-fr/res/values-fr-rCA`. French stays switched
+  off: that source set still joins the build only with `-Pdistrict.l10n.fr`, and
+  `scripts/french-guard.sh` still holds every release bundle to no French. The English
+  resources lose their `tools:ignore="MissingTranslation"`, which the generator writes only
+  while a French entry is missing.
 
 ### Fixed
 

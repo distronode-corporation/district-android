@@ -4,759 +4,1007 @@ platform = "android"
 
 [numbers.a2p_business_label]
 en = "Legal business name"
+fr = "Dénomination sociale"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_caption]
 en = "Required before this workspace can send text messages to US numbers from a local number."
+fr = "Obligatoire pour que cet espace de travail envoie des textos aux numéros des États-Unis depuis un numéro local."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_confirm_action]
 en = "Submit it"
+fr = "Soumettre"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_confirm_body]
 en = "This registers a brand and a campaign on your carrier account. The carrier charges a one-off brand fee and a monthly campaign fee, and a repeated submission leaves duplicates somebody has to clear by hand."
+fr = "Cette action inscrit une marque et une campagne dans votre compte de transporteur. Le transporteur facture des frais uniques pour la marque et des frais mensuels pour la campagne, et une soumission répétée laisse des doublons que quelqu'un devra supprimer à la main."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "Before a registration that the carrier bills for and that cannot be undone."
 
 [numbers.a2p_confirm_title]
 en = "Submit this registration?"
+fr = "Soumettre cette inscription?"
 ctx = "title"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_description_label]
 en = "What you will send"
+fr = "Ce que vous enverrez"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "The campaign description the carrier reviews."
 
 [numbers.a2p_ein_label]
 en = "EIN or company number (optional)"
+fr = "EIN ou numéro d'entreprise (facultatif)"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "EIN is the US Employer Identification Number."
 
 [numbers.a2p_sample_one_label]
 en = "Example message 1"
+fr = "Exemple de message 1"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_sample_two_label]
 en = "Example message 2"
+fr = "Exemple de message 2"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_submit_action]
 en = "Submit registration"
+fr = "Soumettre l'inscription"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_submitted]
 en = "Submitted. The carrier reports {status}."
+fr = "Soumise. État selon le transporteur\u00A0: {status}."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
 args = { status = "str" }
+state = "reviewed"
 note = "{status} is the carrier's own status word, shown as sent."
 
 [numbers.a2p_title]
 en = "A2P 10DLC registration"
+fr = "Inscription A2P 10DLC"
 ctx = "title"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "A2P 10DLC is the US carrier registration for business texting from local numbers; keep the acronym."
 
 [numbers.a2p_vertical_label]
 en = "Industry (optional)"
+fr = "Secteur (facultatif)"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.a2p_website_label]
 en = "Website (optional)"
+fr = "Site Web (facultatif)"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.cancel]
 en = "Cancel"
+fr = "Annuler"
 ctx = "button"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_balance_amount]
 en = "Balance {balance}"
+fr = "Solde\u00A0: {balance}"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
 args = { balance = "str" }
+state = "reviewed"
 note = "The carrier account balance, as the carrier sends it."
 
 [numbers.carrier_balance_with_currency]
 en = "Balance {balance} {currency}"
+fr = "Solde\u00A0: {balance} {currency}"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
 args = { balance = "str", currency = "str" }
+state = "reviewed"
 note = "The carrier account balance and its currency code, as the carrier sends them."
 
 [numbers.carrier_connected]
 en = "Connected"
+fr = "Connecté"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_eyebrow]
 en = "Carrier accounts"
+fr = "Comptes de transporteur"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_managed]
 en = "Held by Distronode. Account details are not this workspace's to see."
+fr = "Détenu par Distronode. Cet espace de travail n'a pas accès aux détails du compte."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_none_body]
 en = "This workspace has no carrier credentials, so numbers cannot be searched, configured or registered yet."
+fr = "Sans identifiants de transporteur, cet espace de travail ne permet encore ni la recherche, ni la configuration, ni l'inscription de numéros."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_none_title]
 en = "No carrier connected"
+fr = "Aucun transporteur connecté"
 ctx = "title"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_number_count]
 en.one = "{count} number on this account"
 en.other = "{count} numbers on this account"
+fr.one = "{count} numéro dans ce compte"
+fr.other = "{count} numéros dans ce compte"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
 args = { count = "int" }
+state = "reviewed"
 
 [numbers.carrier_refused]
 en = "These credentials were refused. The account cannot be reconnected in this app."
+fr = "Ces identifiants ont été refusés. Le compte ne peut pas être reconnecté dans cette application."
 ctx = "error"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.carrier_refused_badge]
 en = "Credentials refused"
+fr = "Identifiants refusés"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.close]
 en = "Close"
+fr = "Fermer"
 ctx = "button"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.compliance_no_status]
 en = "Neither registration can be checked from the app. What you see here is what the carrier answered when it was submitted."
+fr = "Aucune des deux inscriptions ne peut être vérifiée dans l'application. Vous voyez ici la réponse du transporteur au moment de la soumission."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.configure_action]
 en = "Reapply call routing"
+fr = "Rétablir l'acheminement"
 ctx = "button"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 note = "Re-points the number's call and message routing at this workspace."
 
 [numbers.configure_caption]
 en = "Points this number's calls and messages back at this workspace, and re-pins an EU number to its European bridge."
+fr = "Cette action réachemine les appels et les messages de ce numéro vers cet espace de travail, et rattache un numéro de l'UE à la passerelle européenne."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.configure_done]
 en = "Routing reapplied."
+fr = "Acheminement rétabli."
 ctx = "toast"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.document_remove_action]
 en = "Remove"
+fr = "Retirer"
 ctx = "button"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.lookup_action]
 en = "Look this number up"
+fr = "Rechercher ce numéro"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.lookup_confirm_action]
 en = "Run it"
+fr = "Lancer"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.lookup_confirm_body]
 en = "Your carrier charges for each lookup, including one that comes back invalid. One tap runs exactly one lookup."
+fr = "Votre transporteur facture chaque recherche, y compris celles dont le résultat est invalide. Chaque appui lance une seule recherche."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "The carrier bills each lookup."
 
 [numbers.lookup_confirm_title]
 en = "Run a paid lookup?"
+fr = "Lancer une recherche payante?"
 ctx = "title"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.lookup_eyebrow]
 en = "Number lookup"
+fr = "Recherche de numéro"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.lookup_invalid]
 en = "The carrier could not recognise that number."
+fr = "Le transporteur n'a pas reconnu ce numéro."
 ctx = "error"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.lookup_number_label]
 en = "Phone number, in full"
+fr = "Numéro de téléphone complet"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.managed_no_release]
 en = "This line is held on Distronode's carrier account, so it is yours to use and not to release or reconfigure."
+fr = "Cette ligne est détenue sur le compte de transporteur de Distronode\u00A0: vous pouvez l'utiliser, mais pas la libérer ni la reconfigurer."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.read_only]
 en = "New numbers are bought on the web. Everything else about a number, including its paperwork and releasing it, is here."
+fr = "Les nouveaux numéros s'achètent sur le Web. Tout le reste concernant un numéro, y compris ses inscriptions et sa libération, se fait ici."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 note = "Under the tabs, for a role that may change numbers. The web hand-off button sits below it."
 
 [numbers.read_only_viewer]
 en = "Changing a number needs an agency or client role. Ask someone on this workspace who has one."
+fr = "Modifier un numéro exige un rôle Agence ou Client. Demandez à un membre de cet espace de travail qui en a un."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.ready_buy_today]
 en = "Ready to buy today"
+fr = "Achat immédiat"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 note = "Countries where numbers can be bought now without a filing of your own."
 
 [numbers.registration_country_label]
 en = "Country (two letters)"
+fr = "Pays (deux lettres)"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 note = "An ISO 3166 two-letter country code, such as CA."
 
 [numbers.registration_document_filed]
 en = "Filed with the carrier"
+fr = "Déposé chez le transporteur"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_document_recorded]
 en = "Recorded, no file yet"
+fr = "Consigné, aucun fichier pour l'instant"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_document_stored]
 en = "Stored, not yet filed"
+fr = "Stocké, pas encore déposé"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_documents_eyebrow]
 en = "Documents"
+fr = "Documents"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
+same_ok = true
 
 [numbers.registration_name_label]
 en = "Name for your carrier console (optional)"
+fr = "Nom dans votre console de transporteur (facultatif)"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_reasons_eyebrow]
 en = "What the carrier objected to"
+fr = "Objections du transporteur"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_start_action]
 en = "Start registration"
+fr = "Commencer l'inscription"
 ctx = "button"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_start_title]
 en = "Start a registration"
+fr = "Commencer une inscription"
 ctx = "title"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_status_approved]
 en = "Approved"
+fr = "Approuvée"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_status_caption]
 en = "Statuses are refreshed when this list loads. A review can take a day or more."
+fr = "Les états sont actualisés au chargement de cette liste. Un examen peut prendre un jour ou plus."
 ctx = "body"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_status_draft]
 en = "Draft, not yet filed"
+fr = "Brouillon, non déposé"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_status_in_review]
 en = "Under review"
+fr = "En cours d'examen"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_status_pending_review]
 en = "Filed, waiting for review"
+fr = "Déposée, en attente d'examen"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_status_refused]
 en = "Refused"
+fr = "Refusée"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registration_title]
 en = "{country} · {number_type}"
+fr = "{country} · {number_type}"
 ctx = "title"
 screen = "numbers registrations"
 tier = "T1"
 args = { country = "str", number_type = "str" }
+state = "reviewed"
+same_ok = true
 note = "{country} is a two-letter country code and {number_type} the number type as the carrier names it."
 
 [numbers.registrations_empty_body]
 en = "Some countries require a registration before a number there can be bought. Start one for the country you want."
+fr = "Certains pays exigent une inscription avant qu'un numéro puisse y être acheté. Commencez-en une pour le pays voulu."
 ctx = "body"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registrations_empty_title]
 en = "Nothing filed yet"
+fr = "Aucune demande déposée"
 ctx = "title"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registrations_eyebrow]
 en = "Regulatory registrations"
+fr = "Inscriptions réglementaires"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.registrations_failed]
 en = "Could not load this workspace's registrations."
+fr = "Impossible de charger les inscriptions de cet espace de travail."
 ctx = "error"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.release_action]
 en = "Release this number"
+fr = "Libérer ce numéro"
 ctx = "button"
 screen = "numbers"
 tier = "T2"
+state = "reviewed"
 
 [numbers.release_confirm_action]
 en = "Release it"
+fr = "Libérer"
 ctx = "button"
 screen = "numbers"
 tier = "T2"
+state = "reviewed"
 
 [numbers.release_confirm_body]
 en = "{phone_number} goes back to the carrier's pool and generally cannot be reclaimed. Calls and messages to it stop immediately, so anyone dialling it reaches nothing. Its monthly charge ends."
+fr = "{phone_number} retourne dans la réserve du transporteur et ne peut généralement pas être récupéré. Les appels et les messages vers ce numéro cessent immédiatement\u00A0: quiconque le compose ne joint plus personne. Ses frais mensuels prennent fin."
 ctx = "body"
 screen = "numbers"
 tier = "T2"
 args = { phone_number = "str" }
+state = "reviewed"
 note = "Irreversible: the number goes back to the carrier."
 
 [numbers.release_confirm_title]
 en = "Release this number?"
+fr = "Libérer ce numéro?"
 ctx = "title"
 screen = "numbers"
 tier = "T2"
+state = "reviewed"
 
 [numbers.release_done]
 en = "Released. Reload your numbers."
+fr = "Numéro libéré. Actualisez la liste de vos numéros."
 ctx = "toast"
 screen = "numbers"
 tier = "T2"
+state = "reviewed"
 
 [numbers.release_warning_eyebrow]
 en = "Released, but"
+fr = "Numéro libéré, mais"
 ctx = "label"
 screen = "numbers"
 tier = "T2"
+state = "reviewed"
 note = "Starts a sentence listing what could not be tidied after a release that worked."
 
 [numbers.requirement_kind_document]
 en = "Document"
+fr = "Document"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
+same_ok = true
 
 [numbers.requirement_kind_field]
 en = "Detail"
+fr = "Détail"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.requirement_no_fields]
 en = "No fields"
+fr = "Aucun champ"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.requirements_check_action]
 en = "Check requirements"
+fr = "Vérifier les exigences"
 ctx = "button"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.requirements_eyebrow]
 en = "What this country asks for"
+fr = "Exigences de ce pays"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.requirements_none_body]
 en = "This country publishes no regulation for this number type, so there is nothing to file."
+fr = "Ce pays ne publie aucune réglementation pour ce type de numéro; il n'y a donc rien à déposer."
 ctx = "body"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.requirements_none_heading]
 en = "{country} · No registration required"
+fr = "{country} · aucune inscription requise"
 ctx = "title"
 screen = "numbers registrations"
 tier = "T1"
 args = { country = "str" }
+state = "reviewed"
 note = "{country} is a two-letter country code."
 
 [numbers.requirements_not_purchasable]
 en = "Numbers in this country are not purchasable through Distronode today, even with a registration."
+fr = "Les numéros de ce pays ne peuvent pas être achetés auprès de Distronode pour l'instant, même avec une inscription."
 ctx = "body"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_address_count]
 en.one = "{count} address"
 en.other = "{count} addresses"
+fr.one = "{count} adresse"
+fr.other = "{count} adresses"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
 args = { count = "int" }
+state = "reviewed"
 
 [numbers.sip_create_action]
 en = "Create trunk"
+fr = "Créer le raccordement"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_domain_caption]
 en = "The carrier adds .sip.twilio.com, so enter the label only."
+fr = "Le transporteur ajoute .sip.twilio.com\u00A0: saisissez seulement l'étiquette."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = ".sip.twilio.com is a domain suffix: keep it as is."
 
 [numbers.sip_domain_label]
 en = "Domain label"
+fr = "Étiquette de domaine"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_empty_body]
 en = "A SIP trunk lets your own PBX send and receive calls on this workspace's numbers."
+fr = "Avec un raccordement SIP, votre PBX passe et reçoit des appels sur les numéros de cet espace de travail."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_eyebrow]
 en = "SIP trunks"
+fr = "Raccordements SIP"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_ip_label]
 en = "Allowed IPs or ranges, one per line"
+fr = "Adresses IP ou plages permises, une par ligne"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_name_label]
 en = "Trunk name"
+fr = "Nom du raccordement"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.sip_one_way]
 en = "Creating a trunk adds a $25 per month charge, and it cannot be removed in this app."
+fr = "Un raccordement ajoute des frais de 25\u00A0$ par mois et ne peut pas être supprimé dans cette application."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "A recurring carrier charge, stated before the trunk is created."
 
 [numbers.sip_trunk_meta_line]
 en = "{status} · {addresses}"
+fr = "{status} · {addresses}"
 ctx = "format"
 screen = "numbers carrier"
 tier = "T1"
 args = { status = "str", addresses = "str" }
+state = "reviewed"
+same_ok = true
 note = "{status} is the trunk status as the server sends it; {addresses} is the already-worded address count."
 
 [numbers.sip_unprovisioned]
 en = "No carrier resources are recorded for this trunk."
+fr = "Aucune ressource du transporteur n'est consignée pour ce raccordement."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.submit_confirm_action]
 en = "File it"
+fr = "Déposer"
 ctx = "button"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.submit_confirm_body]
 en = "This uploads your documents to the carrier and files a regulatory application for {country} in your business's name. Review can take a day or more, and the filing cannot be edited while it is under review."
+fr = "Cette action téléverse vos documents vers le transporteur et dépose une demande réglementaire au nom de votre entreprise (pays\u00A0: {country}). L'examen peut prendre un jour ou plus, et le dépôt ne peut pas être modifié pendant l'examen."
 ctx = "body"
 screen = "numbers registrations"
 tier = "T1"
 args = { country = "str" }
+state = "reviewed"
 note = "Files a regulated application in the business's name."
 
 [numbers.submit_confirm_title]
 en = "File this registration?"
+fr = "Déposer cette inscription?"
 ctx = "title"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.submit_filed]
 en = "Filed. The carrier is reviewing it."
+fr = "Déposée. Le transporteur l'examine."
 ctx = "toast"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.submit_refused_because]
 en = "{reason} The carrier refused it. Reload the list to see what it objected to."
+fr = "{reason} Le transporteur a refusé le dépôt. Actualisez la liste pour voir ses objections."
 ctx = "error"
 screen = "numbers registrations"
 tier = "T1"
 args = { reason = "str" }
+state = "reviewed"
 note = "{reason} is the carrier's or server's own sentence, which ends in a full stop."
 
 [numbers.submit_refused_reread]
 en = "The carrier refused it. Reload the list to see what it objected to."
+fr = "Le transporteur a refusé le dépôt. Actualisez la liste pour voir ses objections."
 ctx = "body"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tab_carrier]
 en = "Carrier"
+fr = "Transporteur"
 ctx = "label"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tab_registrations]
 en = "Registrations"
+fr = "Inscriptions"
 ctx = "label"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_caption]
 en = "Required before a toll-free number can send text messages."
+fr = "Obligatoire avant qu'un numéro sans frais puisse envoyer des textos."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_confirm_action]
 en = "Submit it"
+fr = "Soumettre"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_confirm_body]
 en = "This files a verification with the carrier for a number that is already answering calls, and puts it into a manual review that takes days. Repeated submissions for one number can put your carrier account's standing in question."
+fr = "Cette action dépose auprès du transporteur une demande de vérification pour un numéro qui répond déjà aux appels, et la soumet à un examen manuel de plusieurs jours. Des soumissions répétées pour un même numéro peuvent nuire à la réputation de votre compte de transporteur."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_confirm_title]
 en = "Submit this verification?"
+fr = "Soumettre cette vérification?"
 ctx = "title"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_message_label]
 en = "Example message (optional)"
+fr = "Exemple de message (facultatif)"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_opt_in_caption]
 en = "A reviewer opens this by hand. It must be publicly reachable and show your own consent wording."
+fr = "Un examinateur ouvre ce lien manuellement. Le lien doit être accessible publiquement et afficher votre propre texte de consentement."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_opt_in_label]
 en = "Link to your opt-in form or screenshot"
+fr = "Lien vers votre formulaire de consentement ou une capture d'écran"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_submit_action]
 en = "Submit verification"
+fr = "Soumettre la vérification"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_submitted]
 en = "Submitted. The carrier reports {status}."
+fr = "Soumise. État selon le transporteur\u00A0: {status}."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
 args = { status = "str" }
+state = "reviewed"
 note = "{status} is the carrier's own status word, shown as sent."
 
 [numbers.tfv_title]
 en = "Toll-free verification"
+fr = "Vérification du numéro sans frais"
 ctx = "title"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_use_case_customer_support]
 en = "Customer Support"
+fr = "Soutien à la clientèle"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_use_case_label]
 en = "Use case"
+fr = "Utilisation"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.tfv_use_case_marketing]
 en = "Marketing"
+fr = "Marketing"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
+same_ok = true
 
 [numbers.tfv_use_case_notifications]
 en = "Notifications"
+fr = "Notifications"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
+same_ok = true
 
 [numbers.tfv_use_case_otp]
 en = "2FA / OTP"
+fr = "2FA / code unique"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 note = "2FA is two-factor authentication; OTP a one-time passcode."
 
 [numbers.verify_disable_action]
 en = "Stop using one-time passcodes"
+fr = "Désactiver les codes à usage unique"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.verify_disable_caption]
 en = "Turning this off stops Distronode using the service. The carrier keeps it, and its history, on your account."
+fr = "Une fois désactivé, ce service n'est plus utilisé par Distronode. Le transporteur le conserve, avec son historique, dans votre compte."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.verify_enable_action]
 en = "Enable one-time passcodes"
+fr = "Activer les codes à usage unique"
 ctx = "button"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.verify_enable_caption]
 en = "Creates a one-time passcode sender on your carrier account. The carrier charges for the messages it sends."
+fr = "Cette option crée un expéditeur de codes à usage unique dans votre compte de transporteur. Le transporteur facture les messages qu'il envoie."
 ctx = "body"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.verify_eyebrow]
 en = "One-time passcodes"
+fr = "Codes à usage unique"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.verify_off]
 en = "Not enabled"
+fr = "Non activé"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.verify_on]
 en = "Enabled"
+fr = "Activé"
 ctx = "label"
 screen = "numbers carrier"
 tier = "T1"
+state = "reviewed"
 
 [numbers.viewer_cannot_provision]
 en = "Registrations, carrier setup and number changes need an agency or client role. Ask someone on this workspace who has one."
+fr = "Les inscriptions, la configuration du transporteur et la gestion des numéros exigent le rôle Agence ou Client. Demandez à un membre qui a l'un de ces rôles."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 
 [numbers.write_unrepeatable]
 en = "We could not confirm whether that went through, so it is not offered again. Reload to see where things stand."
+fr = "Nous n'avons pas pu confirmer si l'opération a abouti; elle n'est donc pas proposée de nouveau. Actualisez pour voir où en sont les choses."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
+state = "reviewed"
 note = "After a failure that may have gone through: the control is not offered again."
 
 [numbers.your_approvals]
 en = "Your approvals"
+fr = "Vos approbations"
 ctx = "label"
 screen = "numbers registrations"
 tier = "T1"
+state = "reviewed"
 note = "Countries this workspace's own approved filings unlock."

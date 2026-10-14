@@ -2,6 +2,8 @@ package com.distronode.districtai.ui.scheduling
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -234,6 +236,7 @@ private fun HostLine(host: String) {
  * switched off region by region and a shipped Play build cannot be reverted, so an installed copy
  * has to lead with the hand-off that survives the flip.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SchedulingActions(
     presentation: SchedulingPresentation,
@@ -247,9 +250,12 @@ private fun SchedulingActions(
     onOpenScheduler: () -> Unit,
     onRefresh: () -> Unit,
 ) {
-    Row(
+    // ⚠️ A FLOW ROW, SO A LABEL THAT DOES NOT FIT MOVES TO THE NEXT LINE INSTEAD OF BEING SQUEEZED
+    // UNTIL IT SPLITS MID-WORD (W4 French QA: en-XA, and French ~30% longer than English).
+    FlowRow(
         modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
+        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         if (presentation.offersOpen) {
             DistrictButton(

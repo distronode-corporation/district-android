@@ -23,11 +23,13 @@ import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
+import com.distronode.districtai.ui.wordsBrokenAcrossLines
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * The messaging screen, for both audiences.
@@ -820,5 +822,21 @@ class MessagingScreenTest {
         }
 
         composeRule.onNodeWithTag(MESSAGING_CHANNEL_CONFIRM_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    /**
+     * ⛔ A SQUEEZED CONTROL SPLITS ITS LABEL MID-WORD. French runs about 30% longer than English and
+     * this build carries no French, so English at a narrow width stands in for French at phone width
+     * (the W4 French QA found the account label split one letter per line on a 411dp phone in fr-CA and en-XA).
+     */
+    @Test
+    // ⚠️ NATIVE GRAPHICS: the legacy mode measures no real glyphs, so it never wraps a label at all.
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w320dp-h1600dp")
+    fun `an account's controls leave its label room for whole words`() {
+        render(ready())
+
+        val rows = listOf(messagingAccountDescription("acct-twilio"), messagingAccountDescription("acct-telnyx"))
+        assertEquals(emptyList<String>(), composeRule.wordsBrokenAcrossLines(rows))
     }
 }

@@ -17,11 +17,13 @@ import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
+import com.distronode.districtai.ui.wordsBrokenAcrossLines
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * What the booking-page card draws in each of its seven presentations, plus loading and failure.
@@ -518,5 +520,21 @@ class SchedulingScreenTest {
         composeRule.setContent { SchedulingScreenPreview() }
 
         composeRule.onNodeWithTag(SCHEDULING_LINK_DESCRIPTION).assertIsDisplayed()
+    }
+
+    /**
+     * ⛔ A SQUEEZED CONTROL SPLITS ITS LABEL MID-WORD. French runs about 30% longer than English and
+     * this build carries no French, so English at a narrow width stands in for French at phone width
+     * (the W4 French QA found this row split on a 411dp phone in fr-CA and en-XA).
+     */
+    @Test
+    // ⚠️ NATIVE GRAPHICS: the legacy mode measures no real glyphs, so it never wraps a label at all.
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w200dp-h1600dp")
+    fun `the hand-off buttons wrap onto another line rather than splitting a word`() {
+        render(ready(tenant = tenant(status = "ready", bookingUrl = "https://x.test/b")))
+
+        val buttons = listOf(SCHEDULING_DASHBOARD_DESCRIPTION, SCHEDULING_OPEN_DESCRIPTION)
+        assertEquals(emptyList<String>(), composeRule.wordsBrokenAcrossLines(buttons))
     }
 }

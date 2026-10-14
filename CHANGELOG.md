@@ -20,8 +20,6 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
   Unblock.
 - Knowledge can read a plain text file (.txt or .md, up to 1 MB) into a new document's title
   and text, for you to review before you add it.
-- Start a new conversation from the Inbox: New message lets you pick a recent contact or type a
-  number or email address, choose SMS or email, and send. The new thread opens once it is sent.
 
 ## [2.2] - 2026-10-13
 

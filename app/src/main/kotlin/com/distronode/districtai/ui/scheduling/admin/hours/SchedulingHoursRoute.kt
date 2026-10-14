@@ -1,6 +1,8 @@
 package com.distronode.districtai.ui.scheduling.admin.hours
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -102,9 +104,15 @@ fun SchedulingHoursScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun WriteBar(actions: SchedulingHoursActions) {
-    Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+    // ⚠️ A FLOW ROW, SO A LABEL THAT DOES NOT FIT MOVES TO THE NEXT LINE INSTEAD OF BEING SQUEEZED
+    // UNTIL IT SPLITS MID-WORD (W4 French QA: en-XA, and French ~30% longer than English).
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+    ) {
         DistrictButton(
             text = stringResource(R.string.scheduling_admin_hours_edit_title),
             onClick = actions.onEditHours,

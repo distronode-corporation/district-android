@@ -18,12 +18,14 @@ import com.distronode.districtai.ui.scheduling.admin.SCHEDULING_WRITE_FAILURE_TA
 import com.distronode.districtai.ui.scheduling.admin.SCHEDULING_WRITE_NOTICE_TAG
 import com.distronode.districtai.ui.scheduling.admin.SCHEDULING_WRITE_RETRY_TAG
 import com.distronode.districtai.ui.scheduling.admin.SectionState
+import com.distronode.districtai.ui.wordsBrokenAcrossLines
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** The working-hours screen as a member sees it: the week, the overrides, and who gets the editors. */
 @RunWith(AndroidJUnit4::class)
@@ -164,5 +166,21 @@ class SchedulingHoursScreenTest {
         composeRule.onNodeWithTag(SCHEDULING_WRITE_FAILURE_TAG).assertExists()
         composeRule.onNodeWithTag(SCHEDULING_WRITE_DISMISS_TAG).performClick()
         assertEquals(listOf("dismiss"), calls)
+    }
+
+    /**
+     * ⛔ A SQUEEZED CONTROL SPLITS ITS LABEL MID-WORD. French runs about 30% longer than English and
+     * this build carries no French, so English at a narrow width stands in for French at phone width
+     * (the W4 French QA found this row split on a 411dp phone in fr-CA and en-XA).
+     */
+    @Test
+    // ⚠️ NATIVE GRAPHICS: the legacy mode measures no real glyphs, so it never wraps a label at all.
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w200dp-h1600dp")
+    fun `the two editors wrap onto another line rather than splitting a word`() {
+        show(state())
+
+        val editors = listOf(SCHEDULING_HOURS_EDIT_TAG, SCHEDULING_HOURS_ADD_OVERRIDE_TAG)
+        assertEquals(emptyList<String>(), composeRule.wordsBrokenAcrossLines(editors))
     }
 }

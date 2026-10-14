@@ -3,7 +3,8 @@ package com.distronode.districtai.ui.desk
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -124,6 +125,7 @@ private fun TicketLoaded(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TicketHeader(
     state: DeskTicketUiState.Content,
@@ -151,10 +153,12 @@ private fun TicketHeader(
                 )
             }
 
-            Row(
+            // ⚠️ A FLOW ROW, SO A LABEL THAT DOES NOT FIT MOVES TO THE NEXT LINE INSTEAD OF BEING SQUEEZED
+            // UNTIL IT SPLITS MID-WORD (W4 French QA: en-XA, and French ~30% longer than English).
+            FlowRow(
                 modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
                 horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
             ) {
                 DeskTicketStatus.entries.forEach { status ->
                     DistrictButton(

@@ -2,7 +2,6 @@ package com.distronode.districtai.ui.settings.workspace
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -268,35 +267,36 @@ private fun AccountRow(
                         color = DistrictTheme.colors.district,
                     )
                 }
+                // ⚠️ STACKED, AS THE MEMBERS ROW STACKS ITS TWO. Side by side, three buttons took the
+                // row's width before the label did, and a longer language left the account's own name
+                // one letter per line (W4 French QA, en-XA).
                 if (state.canEdit) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
-                        if (!isDefault) {
-                            DistrictButton(
-                                text = stringResource(R.string.messaging_make_default_action),
-                                onClick = { onSetDefault(account.id) },
-                                variant = ButtonVariant.Ghost,
-                                size = ButtonSize.Sm,
-                                enabled = !state.busy,
-                                modifier = Modifier.testTag(messagingDefaultDescription(account.id)),
-                            )
-                        }
+                    if (!isDefault) {
                         DistrictButton(
-                            text = stringResource(R.string.messaging_edit),
-                            onClick = { onStartEditing(account.id) },
+                            text = stringResource(R.string.messaging_make_default_action),
+                            onClick = { onSetDefault(account.id) },
                             variant = ButtonVariant.Ghost,
                             size = ButtonSize.Sm,
                             enabled = !state.busy,
-                            modifier = Modifier.testTag(messagingEditDescription(account.id)),
-                        )
-                        DistrictButton(
-                            text = stringResource(R.string.messaging_delete),
-                            onClick = { onRequestDelete(account) },
-                            variant = ButtonVariant.Ghost,
-                            size = ButtonSize.Sm,
-                            enabled = !state.busy,
-                            modifier = Modifier.testTag(messagingRemoveDescription(account.id)),
+                            modifier = Modifier.testTag(messagingDefaultDescription(account.id)),
                         )
                     }
+                    DistrictButton(
+                        text = stringResource(R.string.messaging_edit),
+                        onClick = { onStartEditing(account.id) },
+                        variant = ButtonVariant.Ghost,
+                        size = ButtonSize.Sm,
+                        enabled = !state.busy,
+                        modifier = Modifier.testTag(messagingEditDescription(account.id)),
+                    )
+                    DistrictButton(
+                        text = stringResource(R.string.messaging_delete),
+                        onClick = { onRequestDelete(account) },
+                        variant = ButtonVariant.Ghost,
+                        size = ButtonSize.Sm,
+                        enabled = !state.busy,
+                        modifier = Modifier.testTag(messagingRemoveDescription(account.id)),
+                    )
                 }
             }
         },

@@ -142,7 +142,7 @@ class WireLabelsTest(unittest.TestCase):
         self.assertEqual((unknown["en"], unknown["fr"]), ("Active", "Actif"))
         self.assertNotIn("args", unknown)
         self.assertEqual(self.table["transfer_reason_unknown"]["en"], "Transfer attempted but not connected")
-        self.assertEqual(self.table["desk_ticket_status_unknown"]["fr"], "Inconnue")
+        self.assertEqual(self.table["desk_ticket_status_unknown"]["fr"], "Inconnu")
         self.assertEqual(self.table["knowledge_document_status_unknown"]["fr"], "Inconnu")
         self.assertEqual(self.table["meeting_status_unknown"]["en"], "{value}")
         self.assertIn("unknownTakesValue = false", self.kotlin)

@@ -250,20 +250,20 @@ class BillingContractFixtureTest {
 
     @Test
     fun `currency is read on a subscription and an invoice when sent, and is null when absent`() {
-        // ⚠️ CLIENTS FIRST: no fixture carries `currency` yet, so the present branch is a local
-        // literal, and the fixtures pin the absent one.
-        val sent = """{"subscriptions":[{"id":"sub_1","status":"active","tierName":"VoicePro",""" +
-            """"amount":35900,"currency":"cad"}],"invoices":[{"id":"in_1","amount_paid":35900,""" +
-            """"total":35900,"tax":0,"status":"paid","created":1790000000,"currency":"cad"}]}"""
-        val withCurrency = json.decodeFromString<StripeBilling>(sent)
-        assertEquals("cad", withCurrency.subscriptions.single().currency)
-        assertEquals("cad", withCurrency.invoices.single().currency)
-        WireMirror.assertRoundTrips(StripeBilling.serializer(), withCurrency, "a billing answer with currency")
-
+        // The server sends `currency` since monorepo 43eed5fd6, so the fixture pins the present
+        // branch and the absent one (an older server) is a local literal.
         val today = json.decodeFromString<StripeBilling>(fixture("district-billing.json"))
         assertTrue(today.subscriptions.isNotEmpty() && today.invoices.isNotEmpty())
-        today.subscriptions.forEach { assertNull("absent means not sent, never USD", it.currency) }
-        today.invoices.forEach { assertNull("absent means not sent, never USD", it.currency) }
+        today.subscriptions.forEach { assertEquals("usd", it.currency) }
+        today.invoices.forEach { assertEquals("usd", it.currency) }
+
+        val older = """{"subscriptions":[{"id":"sub_1","status":"active","tierName":"VoicePro",""" +
+            """"amount":35900}],"invoices":[{"id":"in_1","amount_paid":35900,""" +
+            """"total":35900,"tax":0,"status":"paid","created":1790000000}]}"""
+        val withoutCurrency = json.decodeFromString<StripeBilling>(older)
+        assertNull("absent means not sent, never USD", withoutCurrency.subscriptions.single().currency)
+        assertNull("absent means not sent, never USD", withoutCurrency.invoices.single().currency)
+        WireMirror.assertRoundTrips(StripeBilling.serializer(), withoutCurrency, "a billing answer without currency")
     }
 
     @Test

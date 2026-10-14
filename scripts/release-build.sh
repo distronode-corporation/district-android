@@ -3,7 +3,7 @@
 # Build the signed release bundle in release.yml, with the upload key and the Sentry values
 # borrowed from Google Secret Manager for this one run.
 #
-#   GCP_TOKEN=<token> VERSION_CODE=<n> scripts/release-build.sh
+#   GCP_TOKEN=<token> VERSION_CODE=<n> DISTRICT_FRENCH=false scripts/release-build.sh
 #
 # Output: app/build/outputs/bundle/release/app-release.aab and
 # app/build/outputs/mapping/release/mapping.txt.
@@ -22,6 +22,11 @@
 # ⛔ THE KEY IS CHECKED BEFORE THE BUILD, NOT AFTER. A wrong password or alias otherwise fails at
 # the signing task, twenty minutes in, after R8. keytool reads the password from the environment
 # (`-storepass:env`), never from argv.
+#
+# ⛔ DISTRICT_FRENCH (release.yml) IS REQUIRED, `true` OR `false`, AND IS THE ONE FRENCH SWITCH.
+# `true` passes -Pdistrict.l10n.fr=true, which builds src/l10n-fr/res in; `false` passes nothing.
+# Anything else, or nothing, is refused before a secret is read, because a release whose language
+# nobody chose is not one to build. release.yml's French guard reads the same value.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -33,6 +38,11 @@ fail() {
 
 : "${GCP_TOKEN:?GCP_TOKEN must hold a Google Cloud access token}"
 : "${VERSION_CODE:?VERSION_CODE must be set (scripts/release-version.sh)}"
+case "${DISTRICT_FRENCH:-}" in
+true) french=(-Pdistrict.l10n.fr=true) ;;
+false) french=() ;;
+*) fail "DISTRICT_FRENCH is '${DISTRICT_FRENCH:-}', not true or false." ;;
+esac
 
 secret() {
     local value
@@ -78,7 +88,7 @@ keytool -list -keystore "$keystore" -storetype PKCS12 -storepass:env ANDROID_UPL
 # included, to disk under .gradle/, and a release gains nothing from it. -PdistrictVersionCode
 # pins the number release-version.sh computed, which is also the one submit.yml will look for.
 ./gradlew :app:bundleRelease --no-daemon --no-configuration-cache \
-    "-PdistrictVersionCode=$VERSION_CODE"
+    "-PdistrictVersionCode=$VERSION_CODE" ${french[@]+"${french[@]}"}
 
 aab=app/build/outputs/bundle/release/app-release.aab
 mapping=app/build/outputs/mapping/release/mapping.txt

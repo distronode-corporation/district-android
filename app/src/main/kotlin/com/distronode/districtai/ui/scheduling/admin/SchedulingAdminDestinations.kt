@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.distronode.districtai.AppContainer
+import com.distronode.districtai.core.data.MembersRepository
 import com.distronode.districtai.core.data.SchedulingAdminRepository
 import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.ui.ARG_WORKSPACE_ID
@@ -55,6 +56,8 @@ object SchedulingAdminRoutes {
  * @property navigate push a route from [SchedulingAdminRoutes].
  * @property openUrl hand a URL to a browser; answers whether one took it.
  * @property sessionEpoch changes when the session does; a section re-reads on a change.
+ * @property members the District workspace roster, which the team section joins against the
+ *   scheduler's users (district-ios's `SchedulingTeamModel` reads the same route).
  */
 @Suppress("LongParameterList") // A parameter object: its fields ARE the parameters.
 class SchedulingAdminDeps(
@@ -65,6 +68,7 @@ class SchedulingAdminDeps(
     val onBack: () -> Unit,
     val navigate: (String) -> Unit,
     val openUrl: (String) -> Boolean,
+    val members: MembersRepository,
 )
 
 /**
@@ -87,6 +91,7 @@ internal fun NavGraphBuilder.schedulingAdminDestinations(
         onBack = { navController.popBackStack() },
         navigate = { navController.navigate(it) },
         openUrl = openUrl,
+        members = container.membersRepository,
     )
 
     composable(SchedulingAdminRoutes.SECTION) { entry ->

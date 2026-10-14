@@ -18,6 +18,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.AppContainer
 import com.distronode.districtai.AppContainerSeams
+import com.distronode.districtai.core.data.MembersRepository
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
 import com.distronode.districtai.core.model.SchedulingBookingPage
@@ -121,7 +122,16 @@ class SchedulingAdminNavigationTest {
         rig.admin.value(SchedulingAdminOp.BOOKINGS_LIST, SchedulingBookingPage(items = emptyList()))
         var epoch by mutableIntStateOf(0)
         composeRule.setContent {
-            val deps = SchedulingAdminDeps(rig.adminRepository, rig.scheduling, "ws-1", epoch, {}, {}, { true })
+            val deps = SchedulingAdminDeps(
+                rig.adminRepository,
+                rig.scheduling,
+                "ws-1",
+                epoch,
+                {},
+                {},
+                { true },
+                MembersRepository(rig.district),
+            )
             DistrictTheme {
                 Column {
                     SchedulingSectionRoute(SchedulingSection.OVERVIEW, deps)

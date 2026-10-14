@@ -2662,6 +2662,619 @@ ctx = "title"
 screen = "scheduling"
 tier = "T3"
 
+[scheduling_admin.settings.assistant_done]
+en = "Booking assistant saved"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_edit]
+en = "Edit booking assistant"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_enabled]
+en = "Booking assistant"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Whether the booking page's assistant is on."
+
+[scheduling_admin.settings.assistant_hint]
+en = "The assistant that answers questions on your booking page."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_instructions]
+en = "Extra instructions"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_instructions_hint]
+en = "Extra instructions for the booking assistant. Up to 4000 characters."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_instructions_label]
+en = "Extra instructions for the booking assistant"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_instructions_too_long]
+en = "That is longer than 4000 characters."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_save]
+en = "Save booking assistant"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_title]
+en = "Booking assistant"
+ctx = "title"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.assistant_toggle]
+en = "Turn the booking assistant on"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.avatar]
+en = "Profile picture"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.avatar_removed]
+en = "Profile picture removed"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.avatar_uploaded]
+en = "Profile picture uploaded"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.banner]
+en = "Banner"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "The booking page's banner image."
+
+[scheduling_admin.settings.banner_opacity]
+en = "Banner opacity"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.banner_removed]
+en = "Banner removed"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.banner_uploaded]
+en = "Banner uploaded"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.branding_done]
+en = "Booking page saved"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.branding_edit]
+en = "Edit booking page"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.branding_save]
+en = "Save booking page"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.branding_title]
+en = "Booking page"
+ctx = "title"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.business_name]
+en = "Business name"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.business_name_hint]
+en = "Shown at the top of every booking page."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.business_name_too_long]
+en = "That name is longer than 200 characters."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.close]
+en = "Done"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+note = "Closes a settings dialog without saving what was not saved."
+
+[scheduling_admin.settings.date_format_dmy]
+en = "31/12/2026"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+fixed = true
+note = "The day-month-year date format, shown as an example date."
+
+[scheduling_admin.settings.date_format_mdy]
+en = "12/31/2026"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+fixed = true
+note = "The month-day-year date format, shown as an example date."
+
+[scheduling_admin.settings.date_format_required]
+en = "Choose how dates are written."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.date_format_ymd]
+en = "2026-12-31"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+fixed = true
+note = "The year-month-day date format, shown as an example date."
+
+[scheduling_admin.settings.fallback_locale_hint]
+en = "The language a visitor gets when their browser asks for one we do not have."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.fallback_locale_required]
+en = "Choose the language the booking page falls back to."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.image_choose]
+en = "Choose image"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+note = "Opens the system photo picker."
+
+[scheduling_admin.settings.image_hint]
+en = "JPEG, PNG, GIF or WebP, up to 5 MB."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+note = "Keep the format names."
+
+[scheduling_admin.settings.image_immediate]
+en = "Images save as soon as you choose or remove them."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T2"
+
+[scheduling_admin.settings.image_remove]
+en = "Remove"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T2"
+note = "Destructive: removes an image from the booking page or the profile at once."
+
+[scheduling_admin.settings.image_remove_title]
+en = "Remove this image?"
+ctx = "title"
+screen = "scheduling settings"
+tier = "T2"
+
+[scheduling_admin.settings.image_too_large]
+en = "That image is larger than 5 MB. Choose a smaller one."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.image_unreadable]
+en = "That image could not be read. Choose another."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.image_wrong_type]
+en = "That file is not an image we can use. Choose a JPEG, PNG, GIF or WebP."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.legal_url_hint]
+en = "Linked in the footer of the booking page. Leave it empty for none."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.logo]
+en = "Logo"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "The booking page's logo image."
+
+[scheduling_admin.settings.logo_height]
+en = "Logo height"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.logo_height_hint]
+en = "In pixels, between 16 and 64."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.logo_height_range]
+en = "Give a whole number between 16 and 64."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+note = "The logo height, in pixels."
+
+[scheduling_admin.settings.logo_opacity]
+en = "Logo opacity"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.logo_removed]
+en = "Logo removed"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.logo_uploaded]
+en = "Logo uploaded"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.name_required]
+en = "Give your name."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.name_too_long]
+en = "That name is longer than 200 characters."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notifications_done]
+en = "Notifications saved"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notifications_edit]
+en = "Edit notifications"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notifications_save]
+en = "Save notifications"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notifications_title]
+en = "Email notifications"
+ctx = "title"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notify_attendee_description]
+en = "When you are the one being booked into somebody else's meeting."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notify_attendee_heading]
+en = "As an attendee"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email switches for when the member is booked into somebody else's meeting."
+
+[scheduling_admin.settings.notify_cancellation]
+en = "Booking cancelled"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as an attendee."
+
+[scheduling_admin.settings.notify_confirmation]
+en = "Booking confirmed"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as an attendee."
+
+[scheduling_admin.settings.notify_host_booking]
+en = "Someone booked with you"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as the host."
+
+[scheduling_admin.settings.notify_host_cancel]
+en = "Someone cancelled with you"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as the host."
+
+[scheduling_admin.settings.notify_host_description]
+en = "When somebody books one of your event types."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.notify_host_heading]
+en = "As a host"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email switches for when somebody books one of the member's event types."
+
+[scheduling_admin.settings.notify_host_reschedule]
+en = "Someone rescheduled with you"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as the host."
+
+[scheduling_admin.settings.notify_reminder]
+en = "Booking reminder"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as an attendee."
+
+[scheduling_admin.settings.notify_reschedule]
+en = "Booking rescheduled"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Email to the member as an attendee."
+
+[scheduling_admin.settings.off]
+en = "Off"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "A setting that is switched off."
+
+[scheduling_admin.settings.on]
+en = "On"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "A setting that is switched on."
+
+[scheduling_admin.settings.opacity_hint]
+en = "A percentage, between 20 and 100."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.opacity_range]
+en = "Give a whole number between 20 and 100."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+note = "An opacity, as a percentage."
+
+[scheduling_admin.settings.page_language]
+en = "Page language"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "The language a booking page visitor gets when theirs is not offered."
+
+[scheduling_admin.settings.privacy_url]
+en = "Privacy policy link"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_date_format]
+en = "Date format"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_done]
+en = "Profile saved"
+ctx = "toast"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_edit]
+en = "Edit profile"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_name]
+en = "Name"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "The member's own name on the scheduler."
+
+[scheduling_admin.settings.profile_save]
+en = "Save profile"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_time_format]
+en = "Time format"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_timezone]
+en = "Timezone"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_title]
+en = "Your scheduler profile"
+ctx = "title"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.profile_week_start]
+en = "Week starts on"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.set]
+en = "Set"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "An image (logo, banner, profile picture) that has been uploaded."
+
+[scheduling_admin.settings.slider_value]
+en = "{label}: {value}"
+ctx = "format"
+screen = "scheduling settings"
+tier = "T3"
+args = { label = "str", value = "int" }
+note = "A slider's caption with its current value, e.g. \"Logo height: 48\"."
+
+[scheduling_admin.settings.tab_assistant]
+en = "Booking assistant"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+note = "A tab: the assistant that answers questions on the booking page."
+
+[scheduling_admin.settings.tab_booking_page]
+en = "Booking page"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+note = "A tab: the public booking page's look and links."
+
+[scheduling_admin.settings.tab_notifications]
+en = "Your notifications"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.tab_profile]
+en = "Your profile"
+ctx = "button"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.terms_url]
+en = "Terms link"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.time_format_12h]
+en = "12-hour (2:30 pm)"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Keep the sample time; it is what makes the choice clear."
+
+[scheduling_admin.settings.time_format_24h]
+en = "24-hour (14:30)"
+ctx = "label"
+screen = "scheduling settings"
+tier = "T3"
+note = "Keep the sample time; it is what makes the choice clear."
+
+[scheduling_admin.settings.time_format_required]
+en = "Choose 12-hour or 24-hour."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.timezone_hint]
+en = "An IANA zone name, such as America/Toronto."
+ctx = "body"
+screen = "scheduling settings"
+tier = "T3"
+note = "Keep the zone name America/Toronto as written; it is an identifier."
+
+[scheduling_admin.settings.timezone_required]
+en = "Choose your timezone."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.timezone_unknown]
+en = "This device does not know that zone. Use a name such as America/Toronto."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+note = "Keep America/Toronto as written; it is an identifier."
+
+[scheduling_admin.settings.url_not_absolute]
+en = "Give the full address, starting with https://"
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.url_too_long]
+en = "That link is too long."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
+[scheduling_admin.settings.week_start_required]
+en = "Choose the day your week starts on."
+ctx = "error"
+screen = "scheduling settings"
+tier = "T3"
+
 [scheduling_admin.team.add]
 en = "Add member"
 ctx = "button"

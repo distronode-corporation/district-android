@@ -327,6 +327,50 @@ class ComposeDialogTest {
         )
     }
 
+    /**
+     * ⚠️ A NEW ACTIONS INSTANCE MID-FORM, as a recreated screen hands over: every control must call
+     * the instance it was last given, never the one it was first drawn with.
+     */
+    @Test
+    fun `controls follow a replaced actions instance`() {
+        val later = RecordingActions()
+        var current: ComposeActions by mutableStateOf(actions)
+        var state by mutableStateOf(
+            ComposeUiState(open = true, contacts = ComposeContacts.Ready(listOf(ada)), query = "ada"),
+        )
+        composeRule.setContent {
+            DistrictTheme { ComposeHost(InboxCompose(state, current) {}) }
+        }
+
+        current = later
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Ada Lovelace").performClick()
+        composeRule.onNodeWithText(str(R.string.inbox_compose_message_address, "ada")).performClick()
+        composeRule.onNodeWithTag(COMPOSE_TO_DESCRIPTION).performTextInput("x")
+
+        state = state.copy(contacts = ComposeContacts.Failed(FailureText(UiText.Literal("Down."))))
+        composeRule.waitForIdle()
+        current = actions
+        composeRule.waitForIdle()
+
+        state = state.copy(recipient = ComposeRecipient.Picked(ada), selectedChannel = 1, body = "Hi", subject = "Q")
+        composeRule.waitForIdle()
+        current = later
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("$COMPOSE_CHANNEL_DESCRIPTION-sms").performClick()
+        composeRule.onNodeWithTag(COMPOSE_SUBJECT_DESCRIPTION).performTextInput("!")
+        composeRule.onNodeWithTag(COMPOSE_MESSAGE_DESCRIPTION).performTextInput("!")
+        composeRule.onNodeWithTag(COMPOSE_CHANGE_DESCRIPTION).performScrollTo().performClick()
+        pressBackOnDialog()
+
+        // ⚠️ A field may echo its fixed value back on redraw; no tap ever reached the old instance.
+        assertEquals(emptyList<String>(), actions.calls.filterNot { it.startsWith("query:") })
+        assertEquals("choose:c1", later.calls.first())
+        assertEquals(true, "typed" in later.calls)
+        assertEquals(true, "channel:0" in later.calls)
+        assertEquals(listOf("clear", "dismiss"), later.calls.takeLast(2))
+    }
+
     // ── The host ─────────────────────────────────────────────────────────────
 
     @Test

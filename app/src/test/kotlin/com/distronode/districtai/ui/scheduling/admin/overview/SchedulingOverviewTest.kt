@@ -117,6 +117,7 @@ class SchedulingOverviewTest {
     fun `working hours group equal days, read three in a row as a range, and ignore event type rules`() {
         var summary: String? = "unset"
         var none: String? = "unset"
+        var apart: String? = "unset"
         composeRule.setContent {
             summary = workingHoursSummary(
                 listOf(
@@ -132,9 +133,11 @@ class SchedulingOverviewTest {
                 ),
             )
             none = workingHoursSummary(listOf(rule(4, "08:00", "09:00", eventType = "et-1")))
+            apart = workingHoursSummary(listOf(1, 3, 5).map { rule(it, "09:00", "10:00") })
         }
         composeRule.waitForIdle()
         assertEquals("Mon to Wed, 9:00 to 12:00 and 13:00 to 17:00; Sat, Sun, 10:00 to 11:00", summary)
+        assertEquals("Mon, Wed, Fri, 9:00 to 10:00", apart)
         assertNull(none)
     }
 
@@ -160,6 +163,7 @@ class SchedulingOverviewTest {
             val emailOnly = SchedulingBookingAttendee(name = " ", email = "e@x")
             read["email"] = bookingWho(schedulingBooking(attendee = emailOnly))
             read["someone"] = bookingWho(schedulingBooking(attendee = SchedulingBookingAttendee()))
+            read["blank"] = bookingWho(schedulingBooking(attendee = SchedulingBookingAttendee(email = " ")))
             read["nobody"] = bookingWho(schedulingBooking(attendee = null))
             read["what"] = bookingEventTypeName(schedulingBooking(), listOf(schedulingEventType()))
             read["slug"] = bookingEventTypeName(schedulingBooking(eventTypeSlug = "zzz"), items)
@@ -178,6 +182,7 @@ class SchedulingOverviewTest {
         assertEquals("e@x", read["email"])
         assertEquals(str(R.string.scheduling_admin_overview_someone), read["someone"])
         assertEquals(str(R.string.scheduling_admin_overview_someone), read["nobody"])
+        assertEquals(str(R.string.scheduling_admin_overview_someone), read["blank"])
         assertEquals("Intro call", read["what"])
         assertEquals("zzz", read["slug"])
         assertEquals(str(R.string.scheduling_admin_overview_booking), read["none"])
@@ -262,8 +267,19 @@ class SchedulingOverviewTest {
     }
 
     @Test
+    fun `a next booking whose time cannot be read says so`() {
+        val state = SchedulingOverviewUiState(
+            eventTypes = SectionState.Ready(emptyList()),
+            bookings = SectionState.Ready(listOf(schedulingBooking(startAt = "soon"))),
+        )
+        composeRule.setContent { DistrictTheme { SchedulingOverviewScreen(state, {}, {}, now) } }
+        val unknown = str(R.string.scheduling_admin_common_unknown_time)
+        composeRule.onNodeWithText("$unknown, Bo Chen, intro").assertExists()
+    }
+
+    @Test
     fun `the coming-up card waits while its read is on its way`() {
-        composeRule.setContent { DistrictTheme { SchedulingOverviewScreen(SchedulingOverviewUiState(), {}, {}) } }
+        composeRule.setContent { DistrictTheme { SchedulingOverviewScreen(SchedulingOverviewUiState(), {}, {}, now) } }
         composeRule.onNodeWithTag(SCHEDULING_OVERVIEW_LOADING_TAG).assertIsDisplayed()
     }
 

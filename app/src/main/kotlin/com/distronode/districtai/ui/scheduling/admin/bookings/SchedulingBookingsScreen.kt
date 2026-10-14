@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -111,7 +112,6 @@ fun SchedulingBookingsScreen(state: SchedulingBookingsUiState, actions: Scheduli
             )
         }
         when (val list = state.list) {
-            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKINGS_LOADING_TAG)
             is SectionState.Failed ->
                 SchedulingSectionFailure(list.failure, actions.onRefresh, SCHEDULING_BOOKINGS_FAILURE_TAG)
             is SectionState.Ready -> if (state.rows.isEmpty()) {
@@ -123,6 +123,7 @@ fun SchedulingBookingsScreen(state: SchedulingBookingsUiState, actions: Scheduli
             } else {
                 BookingRows(state, actions)
             }
+            else -> SchedulingSectionLoading(SCHEDULING_BOOKINGS_LOADING_TAG)
         }
     }
 }
@@ -175,19 +176,17 @@ private fun BookingActions(
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         val id = booking.id
-        ActionButton(R.string.scheduling_admin_bookings_cancel_confirm, "$SCHEDULING_BOOKINGS_CANCEL_TAG-$id") {
-            actions.onCancel(booking)
-        }
+        val cancel = @DontMemoize { actions.onCancel(booking) }
+        ActionButton(R.string.scheduling_admin_bookings_cancel_confirm, "$SCHEDULING_BOOKINGS_CANCEL_TAG-$id", cancel)
         if (booking.eventTypeSlug != null) {
+            val reschedule = @DontMemoize { actions.onReschedule(booking) }
             val tag = "$SCHEDULING_BOOKINGS_RESCHEDULE_TAG-$id"
-            ActionButton(R.string.scheduling_admin_bookings_reschedule_action, tag) {
-                actions.onReschedule(booking)
-            }
+            ActionButton(R.string.scheduling_admin_bookings_reschedule_action, tag, reschedule)
         }
         if (state.schedulerIsAdmin) {
-            ActionButton(R.string.scheduling_admin_bookings_reassign_action, "$SCHEDULING_BOOKINGS_REASSIGN_TAG-$id") {
-                actions.onReassign(booking)
-            }
+            val reassign = @DontMemoize { actions.onReassign(booking) }
+            val tag = "$SCHEDULING_BOOKINGS_REASSIGN_TAG-$id"
+            ActionButton(R.string.scheduling_admin_bookings_reassign_action, tag, reassign)
         }
     }
 }

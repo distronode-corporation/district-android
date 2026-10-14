@@ -122,7 +122,8 @@ class SchedulingBookingsViewModel(
         onChanged = ::load,
     )
 
-    private var page: Job? = null
+    /** The read in flight, cancelled by the next one. Starts as a finished job so it is never null. */
+    private var page: Job = Job().apply { complete() }
 
     init {
         load()
@@ -130,7 +131,7 @@ class SchedulingBookingsViewModel(
 
     /** Read the context (status, profile, event types), then the first page of the current view. */
     fun load() {
-        page?.cancel()
+        page.cancel()
         _state.value = _state.value.copy(
             list = SectionState.Loading,
             rows = emptyList(),
@@ -155,7 +156,7 @@ class SchedulingBookingsViewModel(
     /** Switch views. ⚠️ The context stays: only the list is read again. */
     fun selectView(view: SchedulingBookingView) {
         if (view == _state.value.view) return
-        page?.cancel()
+        page.cancel()
         _state.value = _state.value.copy(
             view = view,
             list = SectionState.Loading,

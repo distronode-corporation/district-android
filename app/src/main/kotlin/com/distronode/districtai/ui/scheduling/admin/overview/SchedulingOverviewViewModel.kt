@@ -128,5 +128,5 @@ fun SchedulingOverviewRoute(deps: SchedulingAdminDeps) {
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
     OnSessionChanged(deps.sessionEpoch) { viewModel.load() }
-    SchedulingOverviewScreen(state = state, onBack = deps.onBack, onRefresh = viewModel::load)
+    SchedulingOverviewScreen(state = state, onBack = deps.onBack, onRefresh = viewModel::load, now = Instant.now())
 }

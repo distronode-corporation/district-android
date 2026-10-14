@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.scheduling.admin
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -186,12 +187,17 @@ class SchedulingAdminChromeTest {
         var chosen by mutableStateOf<String?>(null)
         composeRule.setContent {
             DistrictTheme {
-                SchedulingTextField("Name", text, { text = it }, "name", hint = "Who", kind = SchedulingFieldKind.TEXT)
-                SchedulingTextField("Notes", "", {}, "notes", error = "Too long", kind = SchedulingFieldKind.MULTILINE)
-                SchedulingTextField("Secret", "abc", {}, "secret", kind = SchedulingFieldKind.PASSWORD)
-                SchedulingToggleRow("On", on, { on = it }, "toggle")
-                SchedulingChoiceRow(listOf("a" to "A", "b" to "B"), chosen, { chosen = it }, "choice", label = "Pick")
-                SchedulingChoiceRow(listOf(1 to "One"), null, {}, "plain")
+                Column {
+                    SchedulingTextField("Name", text, { text = it }, "name", hint = "Who")
+                    val multiline = SchedulingFieldKind.MULTILINE
+                    SchedulingTextField("Notes", "", {}, "notes", error = "Too long", kind = multiline)
+                    SchedulingTextField("Secret", "abc", {}, "secret", kind = SchedulingFieldKind.PASSWORD)
+                    SchedulingToggleRow("On", on, { on = it }, "toggle")
+                    SchedulingToggleRow("Off", false, {}, "locked", enabled = false)
+                    val ab = listOf("a" to "A", "b" to "B")
+                    SchedulingChoiceRow(ab, chosen, { chosen = it }, "choice", label = "Pick")
+                    SchedulingChoiceRow(listOf(1 to "One"), null, {}, "plain", enabled = false)
+                }
             }
         }
         composeRule.onNodeWithTag("name").performTextInput("Ana")

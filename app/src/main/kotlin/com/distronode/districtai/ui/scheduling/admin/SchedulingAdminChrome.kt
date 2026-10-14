@@ -89,8 +89,8 @@ fun SchedulingCard(
 
 /** A label over its value, as a read-only fact. */
 @Composable
-fun SchedulingReadOnlyRow(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
+fun SchedulingReadOnlyRow(label: String, value: String) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
@@ -144,18 +144,18 @@ enum class SchedulingStatusKind(val tone: Tone) {
 
 /** A status as a badge. */
 @Composable
-fun SchedulingStatusBadge(label: String, kind: SchedulingStatusKind, modifier: Modifier = Modifier) {
-    DistrictBadge(text = label, tone = kind.tone, modifier = modifier)
+fun SchedulingStatusBadge(label: String, kind: SchedulingStatusKind) {
+    DistrictBadge(text = label, tone = kind.tone)
 }
 
 /** A muted line under a field or a list. */
 @Composable
-fun SchedulingHint(text: String, modifier: Modifier = Modifier) {
+fun SchedulingHint(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 

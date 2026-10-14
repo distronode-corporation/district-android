@@ -285,4 +285,29 @@ class NumberProvisioningRequestTest {
         assertEquals("/api/district/workspace/lookup", recorded.url.encodedPath)
         assertEquals("+14165550142", recorded.url.queryParameter("phoneNumber"))
     }
+
+    @Test
+    fun `every optional field is sent when present and left out when absent`() = runTest {
+        repeat(2) { answer("""{"success":true,"registration":{"id":"BU2","status":"draft"}}""") }
+        numbers().createNumberRegistration(
+            "ws_1",
+            "DE",
+            numberType = null,
+            endUserType = "business",
+            friendlyName = null
+        )
+        val first = server.takeRequest().json()
+        assertEquals("business", first.text("endUserType"))
+        assertFalse(first.containsKey("numberType") || first.containsKey("friendlyName"))
+
+        answer("""{"success":true,"status":"pending","brandSid":"B","messagingServiceSid":"M","campaignSid":"C"}""")
+        carrier().submitA2PRegistration(
+            "ws_1",
+            A2PRegistrationRequest("Acme", "2FA", "d", "1", "2", ein = "12-3456789", vertical = "HEALTHCARE"),
+        )
+        val body = server.takeRequest().json()
+        assertEquals("12-3456789", body.text("ein"))
+        assertEquals("HEALTHCARE", body.text("vertical"))
+        assertFalse(body.containsKey("website"))
+    }
 }

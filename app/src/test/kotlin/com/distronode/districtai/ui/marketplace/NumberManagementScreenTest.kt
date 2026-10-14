@@ -27,6 +27,7 @@ import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -557,5 +558,102 @@ class NumberManagementScreenTest {
         composeRule.onNodeWithText(str(R.string.numbers_release_confirm_body, "+1")).assertIsDisplayed()
         composeRule.onNodeWithTag(NUMBER_CONFIRM_ACTION_TAG).performClick()
         assertEquals(listOf<Any>("confirm"), asked)
+    }
+
+    // ── The branches between the states above ───────────────────────────────────────────────────
+
+    @Test
+    fun `the number tabs draw nothing where number management is not wired`() {
+        composeRule.setContent {
+            DistrictTheme {
+                val tab = androidx.compose.runtime.remember {
+                    androidx.compose.runtime.mutableStateOf(
+                        MarketplaceTab.REGISTRATIONS
+                    )
+                }
+                MarketplaceScreen(
+                    state = MarketplaceUiState(tab = tab.value),
+                    role = WorkspaceRole.AGENCY,
+                    onSelectTab = { tab.value = it },
+                    onUpdateForm = {},
+                    onSearch = {},
+                    onRetryOwned = {},
+                    onOpenWeb = {},
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag(REGISTRATIONS_TAB_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(MARKETPLACE_TAB_CARRIER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(CARRIER_TAB_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun `ready forms stay disarmed while their write is not, and every SIP field edits the draft`() {
+        render(
+            NumberProvisioningUiState(
+                sip = SectionState.Ready(listOf(SipTrunk(id = "T1", domain = "acme", domainSid = "SD1"))),
+                sipDraft = SipTrunkDraft(name = "PBX", domain = "acme", ipAddresses = "1.2.3.4"),
+                carrierWrite = NumberWriteState.Failed(failure, resubmitAllowed = false),
+                lookupNumber = "+1",
+                lookupWrite = NumberWriteState.Running,
+                a2pDraft = A2PDraft(businessName = "A", campaignDescription = "d", sampleOne = "1", sampleTwo = "2"),
+                tollFreeDraft = TollFreeDraft(phoneNumber = "+1", businessName = "A", optInImageUrl = "u"),
+            ),
+            MarketplaceTab.CARRIER,
+        )
+        listOf(SIP_CREATE_TAG, LOOKUP_TAG, A2P_SUBMIT_TAG, TFV_SUBMIT_TAG).forEach {
+            composeRule.onNodeWithTag(it).performScrollTo().assertIsNotEnabled()
+        }
+        composeRule.onNodeWithText(str(R.string.numbers_sip_unprovisioned)).assertDoesNotExist()
+        composeRule.onNodeWithTag(
+            numberFieldTag(R.string.numbers_sip_domain_label)
+        ).performScrollTo().performTextInput("x")
+        composeRule.onNodeWithTag(numberFieldTag(R.string.numbers_sip_ip_label)).performScrollTo().performTextInput("y")
+        assertTrue(asked.any { it is SipTrunkDraft && it.domain == "xacme" })
+        assertTrue(asked.any { it is SipTrunkDraft && it.ipAddresses == "y1.2.3.4" })
+    }
+
+    @Test
+    fun `a trunk with only its address list recorded is provisioned, and a running write freezes the SIP form`() {
+        render(
+            NumberProvisioningUiState(
+                sip = SectionState.Ready(listOf(SipTrunk(id = "T1", domain = "acme", ipAclSid = "AL1"))),
+                carrierWrite = NumberWriteState.Running,
+            ),
+            MarketplaceTab.CARRIER,
+        )
+        composeRule.onNodeWithText(str(R.string.numbers_sip_unprovisioned)).assertDoesNotExist()
+        composeRule.onNodeWithTag(SIP_CREATE_TAG).performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a filing that is not a draft offers nothing, and a disarmed start waits`() {
+        val filed = NumberRegistration(
+            id = "BU9",
+            status = "in-review",
+            friendlyName = " ",
+            documents = listOf(RegistrationDocument(id = "D9", requirementName = "Proof")),
+        )
+        render(
+            NumberProvisioningUiState(
+                registrationDraft = RegistrationDraft(country = "DE"),
+                registrationWrite = NumberWriteState.Failed(failure, resubmitAllowed = false),
+                requirements = RequirementsState.Ready(
+                    CountryRequirements(friendlyName = "Germany"),
+                    purchasable = true
+                ),
+                registrations = SectionState.Ready(
+                    Registrations(listOf(filed), approvedCountries = listOf("CA"), platformCountries = emptyList())
+                ),
+            ),
+            MarketplaceTab.REGISTRATIONS,
+        )
+        composeRule.onNodeWithTag(REGISTRATION_START_TAG).performScrollTo().assertIsNotEnabled()
+        composeRule.onNodeWithTag(documentRemoveTag("D9")).assertDoesNotExist()
+        composeRule.onNodeWithTag(registrationSubmitTag("BU9")).assertDoesNotExist()
+        composeRule.onNodeWithText(str(R.string.numbers_ready_buy_today)).assertDoesNotExist()
+        shows(str(R.string.numbers_your_approvals))
+        composeRule.onNodeWithText(str(R.string.numbers_requirements_not_purchasable)).assertDoesNotExist()
     }
 }

@@ -250,6 +250,7 @@ class NumberProvisioningViewModelTest {
         vm.confirm()
         advanceUntilIdle()
         assertTrue((vm.now.lookupWrite as NumberWriteState.Failed).resubmitAllowed)
+        assertFalse(vm.now.lookupWrite.refusedRepeat)
     }
 
     @Test

@@ -166,7 +166,7 @@ private fun AvailableNumberRow(number: AvailableNumber) {
 }
 
 @Composable
-internal fun OwnedList(state: OwnedState.Ready, onOpen: ((ListedNumber) -> Unit)? = null) {
+internal fun OwnedList(state: OwnedState.Ready, onOpen: ((ListedNumber) -> Unit)?) {
     ContentContainer {
         Column(
             modifier = Modifier

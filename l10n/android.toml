@@ -1423,6 +1423,58 @@ screen = "contact detail"
 tier = "T3"
 note = "Contact detail"
 
+[contact_video.action]
+en = "Video call"
+ctx = "button"
+screen = "contact detail"
+note = "Starts a video room and sends the contact a link to join it. Shown again, as the way into the room, once the link has been sent."
+
+[contact_video.could_not_start]
+en = "Could not start a video call for this workspace."
+ctx = "body"
+screen = "contact detail"
+
+[contact_video.dismiss]
+en = "Dismiss"
+ctx = "button"
+screen = "contact detail"
+note = "Clears the video-call error under the contact."
+
+[contact_video.email_subject]
+en = "Video call invitation"
+ctx = "label"
+screen = "contact detail"
+note = "Subject line of the email sent to the contact. Sent to a customer, never shown in the app."
+
+[contact_video.invitation]
+en = "Join me on a video call: {link} (the link works for the next 12 hours)"
+ctx = "body"
+screen = "contact detail"
+args = { link = "str" }
+note = "Sent to the customer by SMS or email, never shown in the app. It says what the link is and that it expires: a bare URL from an unknown number reads as spam, and the invite really is limited to twelve hours by the server."
+
+[contact_video.no_address]
+en = "This contact has no phone number or email address, so there is nowhere to send a video call link."
+ctx = "body"
+screen = "contact detail"
+
+[contact_video.no_invite]
+en = "That room was created without a shareable link, so the contact cannot be invited to it."
+ctx = "body"
+screen = "contact detail"
+note = "The room exists but the server gave no guest link, so there is nothing to send."
+
+[contact_video.send_failed]
+en = "The room is ready but the invitation could not be sent."
+ctx = "error"
+screen = "contact detail"
+tier = "T2"
+
+[contact_video.starting]
+en = "Setting up…"
+ctx = "label"
+screen = "contact detail"
+
 [contacts.create_action]
 en = "Add a contact"
 ctx = "button"

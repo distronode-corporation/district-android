@@ -725,6 +725,480 @@ args = { value = "str" }
 same_ok = true
 note = "A status, role or type the server sent that this version of the app does not know, shown as the server spelled it."
 
+[scheduling_admin.developer.app_revoke_action]
+en = "Revoke access"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T2"
+note = "Destructive: signs a connected app out of the workspace's booking data."
+
+[scheduling_admin.developer.app_revoke_confirm]
+en = "It stops reaching this workspace's booking data now."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T2"
+
+[scheduling_admin.developer.app_revoke_prompt]
+en = "Revoke {client_name}?"
+ctx = "title"
+screen = "scheduling developer"
+tier = "T2"
+args = { client_name = "str" }
+note = "client_name is the name the app registered."
+
+[scheduling_admin.developer.apps_empty]
+en = "No connected apps."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.apps_eyebrow]
+en = "Connected apps"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.apps_subtitle]
+en = "Every connected app reaches the same booking data. There are no partial permissions, so revoking is the only way to narrow one."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.clip_key]
+en = "Scheduling API key"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "The clipboard's description of a copied API key."
+
+[scheduling_admin.developer.clip_secret]
+en = "Webhook signing secret"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "The clipboard's description of a copied webhook signing secret."
+
+[scheduling_admin.developer.deliveries]
+en = "Deliveries"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "Shows or hides one webhook's recent delivery attempts."
+
+[scheduling_admin.developer.deliveries_empty]
+en = "Nothing delivered yet."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.delivery_delivered]
+en = "Delivered"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "A webhook delivery the receiving server accepted."
+
+[scheduling_admin.developer.delivery_no_answer]
+en = "No answer"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "A failed webhook delivery where the receiving server never answered (DNS, firewall, timeout)."
+
+[scheduling_admin.developer.delivery_rejected]
+en = "Rejected with {code}"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+args = { code = "str" }
+note = "A failed webhook delivery; code is the HTTP status the receiving server answered, e.g. 500."
+
+[scheduling_admin.developer.delivery_waiting]
+en = "Waiting"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "A webhook delivery not sent yet."
+
+[scheduling_admin.developer.done]
+en = "Done"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "Closes a dialog; on a shown-once key it also drops the key."
+
+[scheduling_admin.developer.key_copied]
+en = "Copied"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "The copy button's label once the key is on the clipboard."
+
+[scheduling_admin.developer.key_copy_action]
+en = "Copy key"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.key_create]
+en = "Create key"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "Opens the form that mints a new API key; also its title and its submit button."
+
+[scheduling_admin.developer.key_name_hint]
+en = "What will use this key. You will see it in the list and nowhere else."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.key_name_label]
+en = "Name"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "The customer's own label for a new API key."
+
+[scheduling_admin.developer.key_name_missing]
+en = "Give the key a name."
+ctx = "error"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.key_reveal_title]
+en = "Your key for {name}"
+ctx = "title"
+screen = "scheduling developer"
+tier = "T3"
+args = { name = "str" }
+note = "name is the label the customer gave the key."
+
+[scheduling_admin.developer.key_reveal_warning]
+en = "Copy it now. It is not shown again."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T2"
+note = "Shown once beside a new API key or a webhook's signing secret."
+
+[scheduling_admin.developer.key_revoke_action]
+en = "Revoke key"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T2"
+note = "Destructive: the key stops working at once."
+
+[scheduling_admin.developer.key_revoke_confirm]
+en = "Anything using it stops working now."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T2"
+
+[scheduling_admin.developer.key_revoke_prompt]
+en = "Revoke {name}?"
+ctx = "title"
+screen = "scheduling developer"
+tier = "T2"
+args = { name = "str" }
+note = "name is the API key's label."
+
+[scheduling_admin.developer.key_value]
+en = "Created {created} · Last used {last_used}"
+ctx = "format"
+screen = "scheduling developer"
+tier = "T3"
+args = { created = "str", last_used = "str" }
+note = "Under an API key's name. Both are dates and times; last_used may be \"Never\"."
+
+[scheduling_admin.developer.keys_empty]
+en = "No API keys yet."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.keys_eyebrow]
+en = "Your API keys"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.keys_subtitle]
+en = "A key lets your own tools and scripts reach this workspace's booking data."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.mcp_auth_label]
+en = "Authorization header"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "The HTTP header name; the value below it is what to send."
+
+[scheduling_admin.developer.mcp_auth_value]
+en = "Bearer <your API key>"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "Keep \"Bearer\" (an HTTP keyword); translate only the placeholder in angle brackets. Never a real key."
+
+[scheduling_admin.developer.mcp_eyebrow]
+en = "Connect an AI assistant"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "MCP: the protocol AI assistants use to reach this workspace's bookings."
+
+[scheduling_admin.developer.mcp_no_host]
+en = "Your booking address is not ready yet. It appears here once scheduling is set up."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.mcp_note]
+en = "Use a key from the API keys tab. Anyone holding it can do everything on this workspace's bookings, so give each assistant its own and revoke it when you are done with it."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T2"
+
+[scheduling_admin.developer.mcp_url_label]
+en = "MCP URL"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "MCP is a protocol name; keep it."
+
+[scheduling_admin.developer.never]
+en = "Never"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "An API key or a connected app that has never been used."
+
+[scheduling_admin.developer.not_tried_yet]
+en = "Not tried yet"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "A webhook delivery that has not been attempted yet."
+
+[scheduling_admin.developer.tab_apps]
+en = "Connected apps"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "A tab: third-party apps holding an OAuth grant on the workspace's booking data."
+
+[scheduling_admin.developer.tab_keys]
+en = "API keys"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "A tab on the developer screen."
+
+[scheduling_admin.developer.tab_webhooks]
+en = "Webhooks"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "A tab on the developer screen."
+
+[scheduling_admin.developer.webhook_add_action]
+en = "Add webhook"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "Opens the new-webhook form; also its title and its submit button."
+
+[scheduling_admin.developer.webhook_added]
+en = "Webhook added"
+ctx = "toast"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_delete_action]
+en = "Delete webhook"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T2"
+note = "Destructive: the webhook stops receiving booking changes."
+
+[scheduling_admin.developer.webhook_delete_confirm]
+en = "It stops receiving booking changes now, and its signing secret cannot be recovered."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T2"
+
+[scheduling_admin.developer.webhook_delete_prompt]
+en = "Delete this webhook?"
+ctx = "title"
+screen = "scheduling developer"
+tier = "T2"
+
+[scheduling_admin.developer.webhook_dropped_events]
+en = "Saving will stop sending {events}. This app does not know those events, so it cannot send them back."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T2"
+args = { events = "str" }
+note = "events is a comma-separated list of event names, shown as sent (e.g. booking.paid)."
+
+[scheduling_admin.developer.webhook_edit_action]
+en = "Edit"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+note = "Edits one webhook's events and data."
+
+[scheduling_admin.developer.webhook_edit_title]
+en = "Edit webhook"
+ctx = "title"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_events_hint]
+en = "What to send. Each one is a separate delivery."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_events_label]
+en = "Events"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_events_missing]
+en = "Choose at least one event."
+ctx = "error"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_fields_hint]
+en = "Which parts of the booking each delivery carries."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_fields_label]
+en = "Data to send"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_off]
+en = "Off"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "A webhook that is switched off."
+
+[scheduling_admin.developer.webhook_on]
+en = "On"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+note = "A webhook that is delivering."
+
+[scheduling_admin.developer.webhook_personal_data]
+en = "Personal data"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T2"
+note = "A badge on the delivery fields that carry a person's details off the platform."
+
+[scheduling_admin.developer.webhook_save_action]
+en = "Save changes"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_secret_copy]
+en = "Copy signing secret"
+ctx = "button"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_secret_note]
+en = "Every delivery to {url} is signed with it, in the X-Calnode-Signature header."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+args = { url = "str" }
+note = "url is the webhook's address; X-Calnode-Signature is a header name, keep it."
+
+[scheduling_admin.developer.webhook_secret_title]
+en = "Your signing secret"
+ctx = "title"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_updated]
+en = "Webhook updated"
+ctx = "toast"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_fixed]
+en = "The URL cannot be changed. Delete this webhook and add another to move it."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_hint]
+en = "Where each delivery is posted. https only."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_label]
+en = "Endpoint URL"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_missing]
+en = "Give the webhook a URL."
+ctx = "error"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_not_a_url]
+en = "That is not a URL. It has to start with https://."
+ctx = "error"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_not_https]
+en = "The URL has to start with https://."
+ctx = "error"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhook_url_private]
+en = "That address is not reachable from the internet. Use a public https URL."
+ctx = "error"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhooks_empty]
+en = "No webhooks yet."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhooks_eyebrow]
+en = "Webhooks"
+ctx = "label"
+screen = "scheduling developer"
+tier = "T3"
+
+[scheduling_admin.developer.webhooks_subtitle]
+en = "Bookings already reach your District inbox and workflows; webhooks are for other systems."
+ctx = "body"
+screen = "scheduling developer"
+tier = "T3"
+
 [scheduling_admin.event_types.active_toggle]
 en = "Active"
 ctx = "label"
@@ -1562,7 +2036,6 @@ tier = "T3"
 en = "Event type turned on"
 ctx = "toast"
 screen = "scheduling event type actions"
-tier = "T3"
 
 [scheduling_admin.failure.forbidden]
 en = "You can view this but not change it."

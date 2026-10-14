@@ -327,5 +327,9 @@ class SchedulingTeamWritesTest {
             R.string.scheduling_admin_failure_unavailable,
             id(SchedulingAdminError.Refused(SchedulingAdminFailureCode.UNAVAILABLE)),
         )
+        assertEquals(R.string.scheduling_admin_failure_forbidden, id(SchedulingAdminError.Forbidden))
+        assertEquals(R.string.scheduling_admin_failure_not_ready, id(SchedulingAdminError.NotReady))
+        assertEquals(R.string.scheduling_admin_failure_unavailable, id(SchedulingAdminError.Unavailable))
+        assertEquals(R.string.scheduling_admin_failure_offline, id(SchedulingAdminError.Transport))
     }
 }

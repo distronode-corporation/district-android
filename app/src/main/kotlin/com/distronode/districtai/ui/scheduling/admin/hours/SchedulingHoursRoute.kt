@@ -123,11 +123,11 @@ private fun WriteBar(actions: SchedulingHoursActions) {
 private fun WeekCard(state: SchedulingHoursUiState, onRetry: () -> Unit) {
     SchedulingCard(eyebrow = stringResource(SchedulingSection.HOURS.title)) {
         val rules = state.rules
-        when {
-            rules is SectionState.Failed ->
+        when (rules) {
+            is SectionState.Failed ->
                 SchedulingSectionFailure(rules.failure, onRetry, SCHEDULING_HOURS_FAILURE_TAG)
-            rules !is SectionState.Ready -> SchedulingSectionLoading(SCHEDULING_HOURS_LOADING_TAG)
-            else -> {
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_HOURS_LOADING_TAG)
+            is SectionState.Ready -> {
                 Text(
                     text = workingHoursSummary(rules.value)
                         ?: stringResource(R.string.scheduling_admin_hours_none_at_all),
@@ -157,11 +157,11 @@ private fun OverridesCard(
     SchedulingCard(eyebrow = stringResource(R.string.scheduling_admin_hours_overrides_eyebrow)) {
         SchedulingHint(stringResource(R.string.scheduling_admin_hours_overrides_subtitle))
         val overrides = state.overrides
-        when {
-            overrides is SectionState.Failed -> SchedulingFailureLine(overrides.failure, onRetry = actions.onRefresh)
-            overrides !is SectionState.Ready ->
+        when (overrides) {
+            is SectionState.Failed -> SchedulingFailureLine(overrides.failure, onRetry = actions.onRefresh)
+            SectionState.Loading ->
                 SchedulingSectionLoading(SCHEDULING_HOURS_OVERRIDES_LOADING_TAG, rows = 1)
-            else -> if (overrides.value.isEmpty()) {
+            is SectionState.Ready -> if (overrides.value.isEmpty()) {
                 val empty = if (state.canManage) {
                     R.string.scheduling_admin_hours_overrides_empty_manage
                 } else {

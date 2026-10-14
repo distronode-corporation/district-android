@@ -41,7 +41,7 @@ fun SchedulingBookingDialogs(dialog: BookingDialog?, writes: SchedulingBookingWr
         is BookingDialog.Reschedule ->
             RescheduleDialog(dialog, writes.reschedule, @DontMemoize { writes.close() }, timezone)
         is BookingDialog.Reassign -> ReassignDialog(dialog, writes.reassign, @DontMemoize { writes.close() })
-        else -> Unit
+        null -> Unit
     }
 }
 
@@ -157,7 +157,7 @@ private fun RescheduleDialog(
                     label = stringResource(R.string.scheduling_admin_bookings_reschedule_time_label),
                 )
             }
-            else -> SchedulingSectionLoading(SCHEDULING_BOOKING_RESCHEDULE_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKING_RESCHEDULE_LOADING_TAG, rows = 1)
         }
         if (dialog.pickRejected) {
             SchedulingRejection(stringResource(R.string.scheduling_admin_bookings_reschedule_pick_time))
@@ -208,7 +208,7 @@ private fun ReassignDialog(dialog: BookingDialog.Reassign, reassign: BookingReas
                     label = stringResource(R.string.scheduling_admin_bookings_reassign_host_label),
                 )
             }
-            else -> SchedulingSectionLoading(SCHEDULING_BOOKING_REASSIGN_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_BOOKING_REASSIGN_LOADING_TAG, rows = 1)
         }
     }
 }

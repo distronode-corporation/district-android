@@ -107,7 +107,7 @@ fun SchedulingCalendarScreen(
                 ConnectCard(status.value, state, removal, actions)
             }
             // ⚠️ `else` IS LOADING: an exhaustive sealed `when` here leaves a branch no test reaches.
-            else -> SchedulingSectionLoading(SCHEDULING_CALENDAR_LOADING_TAG)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_CALENDAR_LOADING_TAG)
         }
     }
 }

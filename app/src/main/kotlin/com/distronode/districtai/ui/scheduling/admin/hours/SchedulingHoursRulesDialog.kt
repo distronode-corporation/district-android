@@ -50,15 +50,15 @@ fun SchedulingHoursRulesDialog(editor: SchedulingRulesEditorState, actions: Sche
         confirmEnabled = editor.canSave,
     ) {
         val load = editor.load
-        when {
-            load is SectionState.Failed ->
+        when (load) {
+            is SectionState.Failed ->
                 SchedulingSectionFailure(
                     load.failure,
                     @DontMemoize { actions.load() },
                     SCHEDULING_HOURS_RULES_FAILURE_TAG,
                 )
-            load !is SectionState.Ready -> SchedulingSectionLoading(SCHEDULING_HOURS_RULES_LOADING_TAG, rows = 1)
-            else -> {
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_HOURS_RULES_LOADING_TAG, rows = 1)
+            is SectionState.Ready -> {
                 val errors = editor.errors
                 editor.week.forEachIndexed { day, ranges ->
                     DayEditor(day, ranges, errors[day], actions, enabled = !editor.state.isWorking)

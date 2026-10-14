@@ -138,7 +138,7 @@ private fun Details(row: SectionState<SchedulingEventType>, onRetry: () -> Unit)
                 row.value.description?.takeIf { it.isNotEmpty() }?.let { SchedulingHint(it) }
                 eventTypeFacts(row.value).forEach { (label, value) -> SchedulingReadOnlyRow(label, value) }
             }
-            else -> SchedulingSectionLoading(SCHEDULING_EVENT_TYPE_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_EVENT_TYPE_LOADING_TAG, rows = 1)
         }
     }
 }
@@ -232,7 +232,7 @@ private fun <T> ChildRows(
         } else {
             rows.value.forEach { row(it) }
         }
-        else -> SchedulingSectionLoading(loadingTag, rows = 1)
+        SectionState.Loading -> SchedulingSectionLoading(loadingTag, rows = 1)
     }
 }
 

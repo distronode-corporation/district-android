@@ -24,7 +24,7 @@ fun SchedulingEventTypeDialogs(dialog: EventTypeDialog?, writes: SchedulingEvent
         is EventTypeDialog.Actions -> SchedulingEventTypeActionsDialog(dialog, writes.actions, close)
         is EventTypeDialog.Hosts -> SchedulingEventTypeHostsDialog(dialog, writes.hosts, close)
         is EventTypeDialog.Questions -> SchedulingEventTypeQuestionsDialog(dialog, writes.questions, close)
-        else -> Unit
+        null -> Unit
     }
 }
 

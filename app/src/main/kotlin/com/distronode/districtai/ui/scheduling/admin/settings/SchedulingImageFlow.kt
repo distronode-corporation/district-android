@@ -89,9 +89,9 @@ class SchedulingImageFlow(
                 SchedulingAdminUploadTarget.BANNER ->
                     SchedulingAdminUploadTarget.BANNER to
                         dialog.copy(confirmingRemove = null, banner = WriteState.Working)
-                else -> return
+                SchedulingAdminUploadTarget.AVATAR, null -> return
             }
-            else -> return
+            is SettingsDialog.Notifications, is SettingsDialog.Assistant, null -> return
         }
         host.show(working)
         scope.launch {

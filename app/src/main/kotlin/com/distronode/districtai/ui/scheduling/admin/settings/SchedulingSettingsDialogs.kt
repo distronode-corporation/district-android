@@ -38,7 +38,7 @@ fun SchedulingSettingsDialogs(writes: SchedulingSettingsWrites, onPickImage: (Sc
         is SettingsDialog.Notifications -> NotificationsDialog(open, writes)
         is SettingsDialog.Branding -> SettingsBrandingDialog(open, writes, onPickImage)
         is SettingsDialog.Assistant -> SettingsAssistantDialog(open, writes)
-        else -> Unit
+        null -> Unit
     }
     val removing = (dialog as? SettingsDialog.Profile)?.confirmingRemove == true ||
         (dialog as? SettingsDialog.Branding)?.confirmingRemove != null

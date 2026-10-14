@@ -85,7 +85,7 @@ fun SchedulingDeveloperScreen(
         when (state.tab) {
             SchedulingDeveloperTab.KEYS -> DeveloperKeysTab(state, removals.keyRevoke, writes, onRefresh)
             SchedulingDeveloperTab.APPS -> DeveloperAppsTab(state, removals.appRevoke, onRefresh)
-            else -> DeveloperWebhooksTab(
+            SchedulingDeveloperTab.WEBHOOKS -> DeveloperWebhooksTab(
                 state = state,
                 delete = removals.webhookDelete,
                 writes = writes,
@@ -106,7 +106,7 @@ internal fun <T> DeveloperRead(read: SectionState<T>?, onRetry: () -> Unit, cont
         is SectionState.Ready -> content(read.value)
         is SectionState.Failed -> SchedulingSectionFailure(read.failure, onRetry, SCHEDULING_DEVELOPER_FAILURE_TAG)
         // ⚠️ Not yet read (null) or on its way: both draw as loading.
-        else -> SchedulingSectionLoading(SCHEDULING_DEVELOPER_LOADING_TAG)
+        SectionState.Loading, null -> SchedulingSectionLoading(SCHEDULING_DEVELOPER_LOADING_TAG)
     }
 }
 

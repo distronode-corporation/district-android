@@ -173,7 +173,7 @@ private fun ComingUp(state: SchedulingOverviewUiState, now: Instant) {
                     )
                 }
             }
-            else -> SchedulingSectionLoading(SCHEDULING_OVERVIEW_LOADING_TAG)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_OVERVIEW_LOADING_TAG)
         }
     }
 }
@@ -190,7 +190,7 @@ private fun <T> DeskRow(@StringRes title: Int, state: SectionState<T>, tag: Stri
         when (state) {
             is SectionState.Failed -> Line(state.failure.message.resolve(), LineTone.FAILURE)
             is SectionState.Ready -> content(state.value)
-            else -> SkeletonBlock()
+            SectionState.Loading -> SkeletonBlock()
         }
     }
 }

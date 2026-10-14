@@ -24,7 +24,7 @@ fun SchedulingCalendarDialogs(dialog: CalendarDialog?, writes: SchedulingCalenda
         is CalendarDialog.Caldav -> CaldavDialog(dialog, writes.caldav, @DontMemoize { writes.close() })
         is CalendarDialog.Picker -> PickerDialog(dialog, writes.picker, @DontMemoize { writes.close() })
         // ⚠️ `else` is no dialog: an exhaustive dispatch in a composable leaves an unreachable branch.
-        else -> Unit
+        null -> Unit
     }
 }
 
@@ -144,7 +144,7 @@ private fun PickerDialog(dialog: CalendarDialog.Picker, flow: CalendarPickerFlow
                 SchedulingHint(stringResource(R.string.scheduling_admin_calendar_calendars_destination_hint))
             }
             // ⚠️ `else` IS LOADING: an exhaustive sealed `when` here leaves a branch no test reaches.
-            else -> SchedulingSectionLoading(SCHEDULING_CALENDAR_PICKER_LOADING_TAG, rows = 1)
+            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_CALENDAR_PICKER_LOADING_TAG, rows = 1)
         }
     }
 }

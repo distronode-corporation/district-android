@@ -316,9 +316,19 @@ class UserArchiveFlow(
          * response we could not read is not a refusal, and every other code keeps the shared mapping.
          */
         internal fun refusal(error: SchedulingAdminError): FailureText = when (error) {
-            SchedulingAdminError.Unknown, SchedulingAdminError.Refused(SchedulingAdminFailureCode.UNKNOWN) ->
-                FailureText(UiText.Resource(R.string.scheduling_admin_team_archive_refused), retryable = false)
-            else -> error.toFailureText()
+            is SchedulingAdminError.Refused ->
+                if (error.code == SchedulingAdminFailureCode.UNKNOWN) archiveRefused() else error.toFailureText()
+            SchedulingAdminError.Unknown -> archiveRefused()
+            SchedulingAdminError.InvalidParams,
+            SchedulingAdminError.Forbidden,
+            SchedulingAdminError.NotReady,
+            SchedulingAdminError.Unavailable,
+            SchedulingAdminError.Transport,
+            SchedulingAdminError.Decoding,
+            -> error.toFailureText()
         }
+
+        private fun archiveRefused() =
+            FailureText(UiText.Resource(R.string.scheduling_admin_team_archive_refused), retryable = false)
     }
 }

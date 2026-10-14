@@ -58,7 +58,12 @@ fun SchedulingAdminError.toFailureText(): FailureText = when (this) {
     SchedulingAdminError.Transport -> failure(R.string.scheduling_admin_failure_offline, retryable = true)
     SchedulingAdminError.Decoding -> failure(R.string.scheduling_admin_failure_stale_build, retryable = false)
     SchedulingAdminError.InvalidParams -> failure(R.string.scheduling_admin_failure_unknown, retryable = false)
-    else -> uiCode.toFailureText()
+    is SchedulingAdminError.Refused,
+    SchedulingAdminError.Forbidden,
+    SchedulingAdminError.NotReady,
+    SchedulingAdminError.Unavailable,
+    SchedulingAdminError.Unknown,
+    -> uiCode.toFailureText()
 }
 
 /** The sentence for one of the five recoveries. */

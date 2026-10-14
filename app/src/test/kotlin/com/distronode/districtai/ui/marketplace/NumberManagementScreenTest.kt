@@ -1,6 +1,8 @@
 package com.distronode.districtai.ui.marketplace
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -256,8 +258,9 @@ class NumberManagementScreenTest {
             ),
             MarketplaceTab.CARRIER,
         )
-        tap(choiceTag("MARKETING"))
-        tap(choiceTag("Notifications"))
+        // ⚠️ THE CHOICES SCROLL SIDEWAYS, so a later one can sit off-screen: clicked by its action.
+        composeRule.onNodeWithTag(choiceTag("MARKETING")).performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.onNodeWithTag(choiceTag("Notifications")).performSemanticsAction(SemanticsActions.OnClick)
         tap(A2P_SUBMIT_TAG)
         tap(TFV_SUBMIT_TAG)
         assertEquals(

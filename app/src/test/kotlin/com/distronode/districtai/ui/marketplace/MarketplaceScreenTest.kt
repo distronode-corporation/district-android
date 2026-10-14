@@ -121,8 +121,7 @@ class MarketplaceScreenTest {
         )
 
         composeRule.onNodeWithText(
-            "This screen is read-only. Ask an agency or client member of this workspace to add " +
-                "or release a number.",
+            "Changing a number needs an agency or client role. Ask someone on this workspace who has one.",
         ).assertIsDisplayed()
     }
 

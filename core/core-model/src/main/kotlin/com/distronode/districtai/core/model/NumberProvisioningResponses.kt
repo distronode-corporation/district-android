@@ -10,9 +10,11 @@ import kotlinx.serialization.Serializable
 // Payments policy here, App Store 3.1.1 on iOS); `workspace/numbers/purchase` has no type, no
 // endpoint and no path in this client.
 //
-// ⚠️ NONE OF THESE HAS A CONTRACT FIXTURE YET: the monorepo publishes none for these routes. The
-// shapes are the routes' own (`distronode-website/src/app/api/district/workspace/...`), pinned by
-// the request tests in :core:core-network. ⚠️ Every timestamp is an ISO-8601 string.
+// ⚠️ THE FILING TYPES HAVE NO CONTRACT FIXTURE YET (requirements, registrations, documents,
+// submit): their shapes are the routes' own (`distronode-website/src/app/api/district/workspace/...`),
+// pinned by the request tests in :core:core-network. Provider status, configure, release, SIP,
+// Verify, A2P, toll-free and lookup are held against the monorepo's fixtures by
+// `NumberProvisioningContractFixtureTest`. ⚠️ Every timestamp is an ISO-8601 string.
 
 /** One carrier as `workspace/provider/status` reports it. */
 @Serializable

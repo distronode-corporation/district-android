@@ -218,6 +218,13 @@ data class BillingSubscription(
     val includedMinutes: Int? = null,
     val overageRate: Double? = null,
     val discount: BillingDiscount? = null,
+    /**
+     * The price's currency, lowercase as Stripe writes it (`usd`, `cad`, `eur`), or null.
+     *
+     * ⚠️ CLIENTS FIRST: no server answer carries this key yet, so null today means "not sent",
+     * never "USD". [amount] and [overageRate] are in this currency once it arrives.
+     */
+    val currency: String? = null,
 )
 
 /**
@@ -261,4 +268,9 @@ data class BillingInvoice(
     val hostedInvoiceUrl: String? = null,
     @SerialName("invoice_pdf")
     val invoicePdf: String? = null,
+    /**
+     * The invoice's currency, lowercase as Stripe writes it, or null. ⚠️ Clients first, like
+     * [BillingSubscription.currency]: null means "not sent", never "USD".
+     */
+    val currency: String? = null,
 )

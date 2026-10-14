@@ -9,7 +9,8 @@ Distronode. It is the app published on
 intelligence dossiers, multi-party rooms, a self-managed softphone that places and answers
 calls through Android's Telecom framework, push notifications, and workspace settings.
 
-Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache-2.0.
+Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache-2.0. It
+runs on Android 8.0 (API level 26) and later.
 
 The app is a client of the District AI API. Everything it shows comes from that service, and
 signing in needs a District AI account. There is no offline mode and no local server.
@@ -125,9 +126,8 @@ for the length of one run, through workload identity federation pinned to this r
 that environment and those refs. On a tag the workflow refuses to build unless the tag equals
 `versionName` and names a commit on `main`, and it checks the release notes before building.
 
-Versions up to and including 1.0, the current store release
-([on Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai)),
-were built and signed on a maintainer's machine before this workflow existed.
+Versions up to and including 1.0 were built and signed on a maintainer's machine before this
+workflow existed.
 
 The scripts the workflows run are in `scripts/` (`release-version.sh`, `release-build.sh`,
 `release-notes.sh`, `play-publish.sh`, `gsm-secret.sh`, `github-release.sh`), and

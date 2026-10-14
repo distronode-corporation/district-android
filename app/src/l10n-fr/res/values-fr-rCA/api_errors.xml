@@ -27,7 +27,7 @@
     <string name="api_error_default_card_in_use">Définissez une autre carte comme carte par défaut avant de retirer celle-ci.</string>
     <string name="api_error_demo_lines_busy">Toutes les lignes de démonstration sont occupées en ce moment. Réessayez dans quelques minutes.</string>
     <string name="api_error_dgi_requires_studio">L\'enrichissement des pistes est inclus avec Voice Studio. Passez à ce forfait pour l\'activer.</string>
-    <string name="api_error_direct_dial_disabled">La composition directe n\'est pas encore offerte pour cet espace de travail. Communiquez avec l\'assistance pour vous renseigner.</string>
+    <string name="api_error_direct_dial_disabled">La composition directe n\'est pas encore disponible pour cet espace de travail. Communiquez avec l\'assistance pour vous renseigner.</string>
     <string name="api_error_disclosure_required_in_region">Dans cette région, les appelants doivent être informés qu\'ils parlent avec une assistante automatisée. Ce paramètre ne peut donc pas être désactivé.</string>
     <string name="api_error_do_not_call">Ce numéro a retiré son consentement aux communications de cet espace de travail.</string>
     <string name="api_error_emergency_acknowledgement_required">Confirmez que vous comprenez que ce numéro ne peut pas servir à appeler le 9-1-1 ni aucun autre service d\'urgence, puis réessayez.</string>
@@ -99,7 +99,7 @@
     <string name="api_error_service_not_configured">Cela n\'est pas encore configuré sur ce déploiement.</string>
     <string name="api_error_service_unavailable">Cela est temporairement indisponible. Veuillez réessayer sous peu.</string>
     <string name="api_error_session_expired">Votre session a expiré. Veuillez vous reconnecter.</string>
-    <string name="api_error_setup_not_available">La configuration guidée n\'est pas offerte pour cet espace de travail.</string>
+    <string name="api_error_setup_not_available">La configuration guidée n\'est pas disponible pour cet espace de travail.</string>
     <string name="api_error_sip_provider_required">Cela exige un fournisseur compatible SIP, c\'est-à-dire Twilio ou Telnyx sur cet espace de travail.</string>
     <string name="api_error_status_change_failed">Le statut n\'a pas pu être modifié. Veuillez réessayer.</string>
     <string name="api_error_stripe_test_mode_refused">Le paiement de test n\'est pas offert pour ce compte sur ce site.</string>

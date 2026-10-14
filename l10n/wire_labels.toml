@@ -8,7 +8,7 @@ fr = "Sentiment de friction"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The analyticsSentiment value `Friction Sentiment` as the server sends it. This app has always shown it as sent. The portal's English label is \"Friction Sentiment\"."
 
 [wire.analytics_sentiment_neutral_sentiment]
@@ -17,7 +17,7 @@ fr = "Sentiment neutre"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The analyticsSentiment value `Neutral Sentiment` as the server sends it. This app has always shown it as sent. The portal's English label is \"Neutral Sentiment\"."
 
 [wire.analytics_sentiment_positive_sentiment]
@@ -26,15 +26,17 @@ fr = "Sentiment positif"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The analyticsSentiment value `Positive Sentiment` as the server sends it. This app has always shown it as sent. The portal's English label is \"Positive Sentiment\"."
 
 [wire.analytics_sentiment_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A analyticsSentiment value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.call_status_abandoned]
@@ -43,7 +45,7 @@ fr = "Abandonné"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `abandoned` as the server sends it. This app has always shown it as sent. The portal's English label is \"Abandoned\"."
 
 [wire.call_status_busy]
@@ -52,7 +54,7 @@ fr = "Occupé"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `busy` as the server sends it. This app has always shown it as sent. The portal's English label is \"Busy\"."
 
 [wire.call_status_canceled]
@@ -61,7 +63,7 @@ fr = "Annulé"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `canceled` as the server sends it. This app has always shown it as sent. The portal's English label is \"Canceled\"."
 
 [wire.call_status_completed]
@@ -70,7 +72,7 @@ fr = "Terminé"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `completed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Completed\"."
 
 [wire.call_status_failed]
@@ -79,7 +81,7 @@ fr = "Échec"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `failed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Failed\"."
 
 [wire.call_status_in_progress]
@@ -88,7 +90,7 @@ fr = "En cours"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `in-progress` as the server sends it. This app has always shown it as sent. The portal's English label is \"In progress\"."
 
 [wire.call_status_no_answer]
@@ -97,7 +99,7 @@ fr = "Sans réponse"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `no-answer` as the server sends it. This app has always shown it as sent. The portal's English label is \"No answer\"."
 
 [wire.call_status_ringing]
@@ -106,86 +108,108 @@ fr = "Sonnerie"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The callStatus value `ringing` as the server sends it. This app has always shown it as sent. The portal's English label is \"Ringing\"."
 
 [wire.call_status_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A callStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.disposition_booked]
 en = "booked"
+fr = "rendez-vous pris"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `booked` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_callback]
 en = "callback"
+fr = "à rappeler"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `callback` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_escalated]
 en = "escalated"
+fr = "transmis à l'équipe"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `escalated` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_info]
 en = "info"
+fr = "information"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `info` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_interested]
 en = "interested"
+fr = "intéressé"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `interested` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_not_interested]
 en = "not-interested"
+fr = "pas intéressé"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `not-interested` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_other]
 en = "other"
+fr = "autre"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `other` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A disposition value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.disposition_voicemail]
 en = "voicemail"
+fr = "boîte vocale"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `voicemail` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.disposition_wrong_number]
 en = "wrong-number"
+fr = "mauvais numéro"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The disposition value `wrong-number` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.funnel_stage_connected_calls]
@@ -194,7 +218,7 @@ fr = "Appels connectés"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The funnelStage value `Connected Calls` as the server sends it. This app has always shown it as sent. The portal's English label is \"Connected Calls\"."
 
 [wire.funnel_stage_successful_leads]
@@ -203,7 +227,7 @@ fr = "Clients potentiels obtenus"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The funnelStage value `Successful Leads` as the server sends it. This app has always shown it as sent. The portal's English label is \"Successful Leads\"."
 
 [wire.funnel_stage_total_dials]
@@ -212,15 +236,17 @@ fr = "Composions totales"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The funnelStage value `Total Dials` as the server sends it. This app has always shown it as sent. The portal's English label is \"Total Dials\"."
 
 [wire.funnel_stage_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A funnelStage value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.region_apac]
@@ -229,7 +255,7 @@ fr = "Asie-Pacifique"
 ctx = "label"
 screen = "overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The region value `apac` as the server sends it. This app has always shown it as sent (upper-cased). The portal's English label is \"Asia-Pacific\". Its long French name is \"Asie-Pacifique (Singapour)\"."
 
 [wire.region_ca]
@@ -238,7 +264,7 @@ fr = "Canada"
 ctx = "label"
 screen = "overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The region value `ca` as the server sends it. This app has always shown it as sent (upper-cased). The portal's English label is \"Canada\". Its long French name is \"Canada (Montréal)\"."
 
 [wire.region_eu]
@@ -247,15 +273,17 @@ fr = "Europe"
 ctx = "label"
 screen = "overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The region value `eu` as the server sends it. This app has always shown it as sent (upper-cased). The portal's English label is \"Europe\". Its long French name is \"Europe (Francfort)\"."
 
 [wire.region_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "overview"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A region value this app does not know, passed through as {value} (upper-cased). English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.region_us]
@@ -264,7 +292,7 @@ fr = "États-Unis"
 ctx = "label"
 screen = "overview"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The region value `us` as the server sends it. This app has always shown it as sent (upper-cased). The portal's English label is \"United States\". Its long French name is \"États-Unis (us-east4)\"."
 
 [wire.sentiment_negative]
@@ -273,7 +301,7 @@ fr = "Friction"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The sentiment value `negative` as the server sends it. This app has always shown it as sent. The portal's English label is \"Friction\"."
 
 [wire.sentiment_neutral]
@@ -282,7 +310,7 @@ fr = "Neutre"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The sentiment value `neutral` as the server sends it. This app has always shown it as sent. The portal's English label is \"Neutral\"."
 
 [wire.sentiment_positive]
@@ -291,15 +319,17 @@ fr = "Positif"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The sentiment value `positive` as the server sends it. This app has always shown it as sent. The portal's English label is \"Positive\"."
 
 [wire.sentiment_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A sentiment value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.transfer_reason_auth_error]
@@ -308,14 +338,16 @@ fr = "Erreur d'autorisation du transfert"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `auth_error` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer authorization error\"."
 
 [wire.transfer_reason_caller_requested_human]
 en = "caller_requested_human"
+fr = "veut parler à une personne"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The transferReason value `caller_requested_human` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.transfer_reason_error]
@@ -324,7 +356,7 @@ fr = "Échec du transfert"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `error` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer failed\"."
 
 [wire.transfer_reason_no_answer]
@@ -333,7 +365,7 @@ fr = "Le poste n'a pas répondu"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `no_answer` as the server sends it. This app has always shown it as sent. The portal's English label is \"Target didn't answer\"."
 
 [wire.transfer_reason_provider_unsupported]
@@ -342,7 +374,7 @@ fr = "Transfert tenté, sans connexion"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `provider_unsupported` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer attempted but not connected\"."
 
 [wire.transfer_reason_ring_timeout]
@@ -351,7 +383,7 @@ fr = "Le poste n'a pas répondu (sonnerie expirée)"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `ring_timeout` as the server sends it. This app has always shown it as sent. The portal's English label is \"Target didn't answer (rang out)\"."
 
 [wire.transfer_reason_room_not_found]
@@ -360,7 +392,7 @@ fr = "Transfert tenté, sans connexion"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `room_not_found` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer attempted but not connected\"."
 
 [wire.transfer_reason_trunk_not_configured]
@@ -369,22 +401,26 @@ fr = "Voie de transfert non configurée"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferReason value `trunk_not_configured` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer route not configured\"."
 
 [wire.transfer_reason_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A transferReason value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.transfer_status_completed]
 en = "completed"
+fr = "Terminé"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
+state = "reviewed"
 note = "The transferStatus value `completed` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.transfer_status_failed]
@@ -393,7 +429,8 @@ fr = "Échec du transfert"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
+fr_variant = "transfer context"
 note = "The transferStatus value `failed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transfer failed\"."
 
 [wire.transfer_status_success]
@@ -402,13 +439,15 @@ fr = "Transféré"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The transferStatus value `success` as the server sends it. This app has always shown it as sent. The portal's English label is \"Transferred\"."
 
 [wire.transfer_status_unknown]
 en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 args = { value = "str" }
+state = "reviewed"
 note = "A transferStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."

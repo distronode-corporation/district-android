@@ -249,6 +249,24 @@ class BillingContractFixtureTest {
     }
 
     @Test
+    fun `currency is read on a subscription and an invoice when sent, and is null when absent`() {
+        // ⚠️ CLIENTS FIRST: no fixture carries `currency` yet, so the present branch is a local
+        // literal, and the fixtures pin the absent one.
+        val sent = """{"subscriptions":[{"id":"sub_1","status":"active","tierName":"VoicePro",""" +
+            """"amount":35900,"currency":"cad"}],"invoices":[{"id":"in_1","amount_paid":35900,""" +
+            """"total":35900,"tax":0,"status":"paid","created":1790000000,"currency":"cad"}]}"""
+        val withCurrency = json.decodeFromString<StripeBilling>(sent)
+        assertEquals("cad", withCurrency.subscriptions.single().currency)
+        assertEquals("cad", withCurrency.invoices.single().currency)
+        WireMirror.assertRoundTrips(StripeBilling.serializer(), withCurrency, "a billing answer with currency")
+
+        val today = json.decodeFromString<StripeBilling>(fixture("district-billing.json"))
+        assertTrue(today.subscriptions.isNotEmpty() && today.invoices.isNotEmpty())
+        today.subscriptions.forEach { assertNull("absent means not sent, never USD", it.currency) }
+        today.invoices.forEach { assertNull("absent means not sent, never USD", it.currency) }
+    }
+
+    @Test
     fun `an unmodelled field on either billing route is rejected rather than ignored`() {
         // ⛔ PROVES THE GUARD GUARDS, for this file's decoder too. `ContractFixtureTest` and
         // `DeviceContractFixtureTest` carry the same assertion, and the duplication is deliberate:

@@ -157,7 +157,7 @@ class SchedulingAdminDeveloperContractFixtureTest {
         ).items
 
         assertEquals(2, deliveries.size)
-        assertEquals("delivered", deliveries[0].status)
+        assertEquals("success", deliveries[0].status)
         assertEquals(1, deliveries[0].attemptCount)
         assertEquals(200, deliveries[0].responseStatus)
         assertEquals("bk-contract-1", deliveries[0].bookingId)

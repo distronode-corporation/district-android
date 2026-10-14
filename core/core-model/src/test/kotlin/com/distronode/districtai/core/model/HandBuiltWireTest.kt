@@ -21,8 +21,9 @@ import org.junit.Test
  *
  * WHY HAND-WRITTEN HERE AND NOWHERE ELSE. Every other DTO is held against real server output. These
  * are the request bodies the app builds itself, and the few responses the website's generator has
- * no fixture for (search hits, the block list). For a request body the production encoding IS the
- * contract: it is exactly what the route receives, so each case pins it key for key, both fully
+ * no fixture for (search hits; the block answers were written here before theirs arrived, and
+ * `ContactBlockContractFixtureTest` now reads those). For a request body the production encoding IS
+ * the contract: it is exactly what the route receives, so each case pins it key for key, both fully
  * populated and with every optional property left at its default.
  *
  * WHAT "LEFT AT ITS DEFAULT" PROVES. The production encoder omits defaults, so an empty optional

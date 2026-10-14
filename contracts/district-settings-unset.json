@@ -1,0 +1,13 @@
+{
+  "profile": {
+    "email": "contract@distronode.test",
+    "displayName": "",
+    "timezone": "America/Toronto",
+    "locale": null
+  },
+  "subscription": {
+    "tier": "Free",
+    "status": "none"
+  },
+  "region": "us"
+}

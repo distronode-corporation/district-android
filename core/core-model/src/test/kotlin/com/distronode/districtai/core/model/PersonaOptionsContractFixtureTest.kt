@@ -101,6 +101,55 @@ class PersonaOptionsContractFixtureTest {
         }
     }
 
+    // ── The French answer ────────────────────────────────────────────────────
+
+    @Test
+    fun `a French request decodes into the same type, with French labels`() {
+        // ⚠️ ONE DTO FOR BOTH LANGUAGES: the server localizes labels and nothing else, so a 3.x
+        // client in French reads the same shape.
+        val french =
+            json.decodeFromString<PersonaOptionsResponse>(fixture("district-persona-options-fr.json"))
+
+        assertTrue(french.success)
+        val gemini = french.engines.first { it.id == "gemini-live-2.5-flash-native-audio" }
+        assertEquals("Gemini 2.5 Live (Reste aux États-Unis)", gemini.label)
+        assertEquals(
+            "Concise (1 à 2 phrases, moins de 30 mots)",
+            gemini.responseLengths.first { it.value == "concise" }.label,
+        )
+        assertEquals("français (Canada)", french.languages.general.first { it.value == "fr-CA" }.label)
+    }
+
+    @Test
+    fun `the French answer changes labels only, never a wire value`() {
+        // ⛔ WIRE VALUES NEVER LOCALIZE. An engine id, a language code or a voice id that differed
+        // between the two answers would be saved onto a persona and refused by the agent.
+        val english =
+            json.decodeFromString<PersonaOptionsResponse>(fixture("district-persona-options.json"))
+        val french =
+            json.decodeFromString<PersonaOptionsResponse>(fixture("district-persona-options-fr.json"))
+
+        fun values(options: List<PersonaLabelledValue>) = options.map { it.value }
+
+        assertEquals(english.region, french.region)
+        assertEquals(english.engines.map { it.id }, french.engines.map { it.id })
+        assertEquals(english.engines.map { it.inRegion }, french.engines.map { it.inRegion })
+        assertEquals(
+            english.engines.map { values(it.responseLengths) },
+            french.engines.map { values(it.responseLengths) },
+        )
+        assertEquals(values(english.languages.deepgram), values(french.languages.deepgram))
+        assertEquals(values(english.languages.general), values(french.languages.general))
+        assertEquals(
+            english.voices.map { Triple(it.engine, it.language, it.groups.flatMap { g -> values(g.options) }) },
+            french.voices.map { Triple(it.engine, it.language, it.groups.flatMap { g -> values(g.options) }) },
+        )
+        assertEquals(values(english.voiceStyles), values(french.voiceStyles))
+        assertEquals(english.defaults, french.defaults)
+        // Guards against a vacuous pass: the labels really are different.
+        assertFalse(english.engines.map { it.label } == french.engines.map { it.label })
+    }
+
     // ── The preview credential ───────────────────────────────────────────────
 
     @Test

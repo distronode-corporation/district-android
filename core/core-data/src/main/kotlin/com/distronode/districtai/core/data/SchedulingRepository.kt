@@ -122,6 +122,24 @@ class SchedulingRepository(
         api.schedulingSsoTarget(workspaceId, SCHEDULER_ADMIN_PATH)
 
     /**
+     * Ask for a hand-off that lands on a calendar provider's consent screen, for one Connect press.
+     *
+     * ⛔ THE SAME SSO ROUTE AS [schedulerHandOff] WITH A DIFFERENT `next`, AND IT IS NOT AN ADMIN
+     * OP. The consent screen is the provider's, so the round trip has to happen in a browser; the
+     * catalog has no `calendar.connect`, and `GET /v1/calendar/connect` lives on the scheduler behind
+     * its own session. This is how the web's calendar Connect link and district-ios's
+     * `SchedulingCalendarConnectModel` spend it. ⚠️ The route's 410 for a retired console does not
+     * apply: this `next` is not under `/admin`.
+     *
+     * ⛔ THE URL IS ANSWERED, NEVER STORED, NEVER LOGGED, for the reasons on [schedulerHandOff], and
+     * a 409 reaches the caller unchanged for the same reason.
+     *
+     * @param provider `google` or `microsoft`, the fork's own provider keys.
+     */
+    suspend fun calendarConnectHandOff(workspaceId: String, provider: String): ApiResult<String> =
+        api.schedulingSsoTarget(workspaceId, calendarConnectNext(provider, webOrigin))
+
+    /**
      * Ask for a signed-in browser onto the dashboard's own scheduling pages.
      *
      * ⛔ THIS IS THE PRIMARY HAND-OFF AND [schedulerHandOff] IS NOW THE FALLBACK. The scheduler's
@@ -209,3 +227,46 @@ class SchedulingRepository(
         const val HTTPS_PREFIX = "https://"
     }
 }
+
+/**
+ * The `next` a calendar Connect asks the SSO route for, with `return_to` already encoded.
+ *
+ * ⛔ THE INNER ENCODE IS THE LOAD-BEARING ONE. The route's `safeReturnPath` refuses any `next` that
+ * carries a literal `://`, and `return_to` is an ABSOLUTE URL, so it is encoded here before it goes
+ * into `next`, and the network client encodes `next` as a whole query value on top
+ * (`addQueryParameter` escapes `%`, `&` and `=`). A single encode reads correctly and has its `next`
+ * dropped at the far end, where the only symptom is landing on the scheduler's default page.
+ *
+ * ⚠️ `return_to` IS THE WEB DASHBOARD'S CALENDAR PAGE, NOT AN APP SCHEME, exactly as district-ios
+ * sends it: nothing establishes that the fork accepts a non-http `return_to`. The app re-reads the
+ * status when the member comes back instead of being told the outcome.
+ */
+internal fun calendarConnectNext(provider: String, webOrigin: String): String {
+    val returnTo = webOrigin.trimEnd('/') + CALENDAR_RETURN_PATH
+    return "/v1/calendar/connect?provider=${encodeComponent(provider)}&return_to=${encodeComponent(returnTo)}"
+}
+
+/**
+ * RFC 3986 unreserved characters only, every other UTF-8 byte as `%XX`: district-ios's
+ * `SchedulingSSOClient.encode`, stricter than `encodeURIComponent` and decoded identically, so no
+ * server's parser has a say about `!'()*`.
+ */
+internal fun encodeComponent(value: String): String = buildString {
+    value.toByteArray(Charsets.UTF_8).forEach { byte ->
+        val code = byte.toInt() and BYTE_MASK
+        val char = code.toChar()
+        if (char in UNRESERVED) {
+            append(char)
+        } else {
+            append('%').append(HEX[code shr NIBBLE]).append(HEX[code and LOW_NIBBLE])
+        }
+    }
+}
+
+/** The dashboard page a calendar connection comes back to, district-ios's `calendarPath`. */
+private const val CALENDAR_RETURN_PATH = "/dashboard/district/scheduling/calendar"
+private val UNRESERVED: Set<Char> = (('a'..'z') + ('A'..'Z') + ('0'..'9') + "-._~".toList()).toSet()
+private const val HEX = "0123456789ABCDEF"
+private const val BYTE_MASK = 0xFF
+private const val NIBBLE = 4
+private const val LOW_NIBBLE = 0x0F

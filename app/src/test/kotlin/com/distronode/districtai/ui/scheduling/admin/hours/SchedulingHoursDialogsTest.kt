@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.scheduling.admin.hours
 
+import com.distronode.districtai.core.data.MembersRepository
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -241,6 +242,7 @@ class SchedulingHoursDialogsTest {
                 onBack = {},
                 navigate = {},
                 openUrl = { false },
+                members = MembersRepository(rig.district),
             )
             DistrictTheme { SchedulingHoursRoute(deps) }
         }

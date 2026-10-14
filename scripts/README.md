@@ -37,6 +37,11 @@ Generates `l10n/api_errors.toml` and `l10n/wire_labels.toml`, with their Kotlin 
 those files change, then `tools/l10n/l10n.py gen` for each catalog (CONTRIBUTING.md, "Strings").
 `--check` is what CI runs.
 
+An entry whose English is unchanged keeps the `fr`, `state` and other translation fields the committed
+catalog has, so French written by `tools/l10n/l10n.py import` survives a regeneration; a new entry, or one
+whose English changed, takes the contract's French as a draft. Tests: `python3 -m unittest discover -s
+scripts -p 'test_*.py'` (CI runs them).
+
 ⚠️ A wire label's English is what this app has always shown (the raw value, or upper-cased for a
 region), not the portal's label: W1 changes no English. The portal's English is in each entry's note.
 

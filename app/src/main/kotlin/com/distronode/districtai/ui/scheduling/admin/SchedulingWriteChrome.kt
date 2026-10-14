@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -51,7 +52,10 @@ fun SchedulingWriteDialog(
 ) {
     val working = state.isWorking
     AlertDialog(
-        onDismissRequest = { if (!working) onCancel() },
+        // ⚠️ Back and an outside tap are switched off while the write is on its way, rather than
+        // checked in a lambda, so there is one place that decides it.
+        onDismissRequest = onCancel,
+        properties = DialogProperties(dismissOnBackPress = !working, dismissOnClickOutside = !working),
         containerColor = DistrictTheme.colors.card,
         titleContentColor = DistrictTheme.colors.foreground,
         textContentColor = DistrictTheme.colors.foreground,
@@ -136,7 +140,7 @@ fun SchedulingWriteOutcome(state: WriteState, onRetry: (() -> Unit)? = null, onD
     when (state) {
         is WriteState.Done -> SchedulingNoticeLine(state.message, onDismiss)
         is WriteState.Failed -> SchedulingFailureLine(state.failure, onRetry, onDismiss)
-        WriteState.Idle, WriteState.Working -> Unit
+        else -> Unit
     }
 }
 
@@ -179,13 +183,13 @@ fun SchedulingFailureLine(failure: FailureText, onRetry: (() -> Unit)? = null, o
 
 /** A line in the danger colour under a field, for a value the form refused before sending. */
 @Composable
-fun SchedulingRejection(message: String?, modifier: Modifier = Modifier) {
+fun SchedulingRejection(message: String?) {
     message?.let {
         Text(
             text = it,
             style = MaterialTheme.typography.bodySmall,
             color = DistrictTheme.colors.destructive,
-            modifier = modifier.fillMaxWidth().testTag(SCHEDULING_WRITE_REJECTION_TAG),
+            modifier = Modifier.fillMaxWidth().testTag(SCHEDULING_WRITE_REJECTION_TAG),
         )
     }
 }

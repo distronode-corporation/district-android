@@ -38,7 +38,7 @@ fun SchedulingOverviewScreen(
     state: SchedulingOverviewUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    now: Instant = Instant.now(),
+    now: Instant,
 ) {
     SchedulingSectionScaffold(
         title = stringResource(SchedulingSection.OVERVIEW.title),
@@ -152,7 +152,6 @@ private fun ComingUp(state: SchedulingOverviewUiState, now: Instant) {
         modifier = Modifier.testTag(SCHEDULING_OVERVIEW_COMING_UP_TAG),
     ) {
         when (val bookings = state.bookings) {
-            SectionState.Loading -> SchedulingSectionLoading(SCHEDULING_OVERVIEW_LOADING_TAG)
             is SectionState.Failed -> Line(bookings.failure.message.resolve(), LineTone.FAILURE)
             is SectionState.Ready -> if (bookings.value.isEmpty()) {
                 Line(stringResource(R.string.scheduling_admin_overview_coming_up_empty), LineTone.HINT)
@@ -174,6 +173,7 @@ private fun ComingUp(state: SchedulingOverviewUiState, now: Instant) {
                     )
                 }
             }
+            else -> SchedulingSectionLoading(SCHEDULING_OVERVIEW_LOADING_TAG)
         }
     }
 }
@@ -188,9 +188,9 @@ private fun <T> DeskRow(@StringRes title: Int, state: SectionState<T>, tag: Stri
             color = DistrictTheme.colors.mutedForeground,
         )
         when (state) {
-            SectionState.Loading -> SkeletonBlock()
             is SectionState.Failed -> Line(state.failure.message.resolve(), LineTone.FAILURE)
             is SectionState.Ready -> content(state.value)
+            else -> SkeletonBlock()
         }
     }
 }

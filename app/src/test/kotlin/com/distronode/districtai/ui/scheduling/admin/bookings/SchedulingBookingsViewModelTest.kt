@@ -119,6 +119,18 @@ class SchedulingBookingsViewModelTest {
     }
 
     @Test
+    fun `a full last page that reaches the total ends the list, and a member who is not a scheduler admin`() =
+        runTest(dispatcher) {
+            val rig = SchedulingAdminTestRig()
+            rig.admin.value(SchedulingAdminOp.ME_GET, schedulingMe(isAdmin = false))
+            rig.admin.value(SchedulingAdminOp.BOOKINGS_LIST, page(25, total = 25))
+            val viewModel = model(rig)
+            advanceUntilIdle()
+            assertTrue(viewModel.state.value.isEnd)
+            assertFalse(viewModel.state.value.schedulerIsAdmin)
+        }
+
+    @Test
     fun `switching views reads that view, and the same view again is ignored`() = runTest(dispatcher) {
         val rig = SchedulingAdminTestRig()
         rig.admin.value(SchedulingAdminOp.BOOKINGS_LIST, page(2))

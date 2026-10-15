@@ -29,11 +29,12 @@ import java.util.Locale
 /**
  * Cents as a plain decimal amount — "24900" becomes "249.00".
  *
- * ⛔ NO CURRENCY SYMBOL AND NO CURRENCY CODE, BECAUSE THE ROUTE PUBLISHES NEITHER. Nothing on
- * `/api/billing` carries a currency: not the subscription amount, not the invoice total, not the
- * tax. The web console prefixes a bare "$" and this client mirrors that from a STRING RESOURCE
- * (`billing_amount`) rather than concatenating a symbol here — so the assumption lives in one
- * translatable place and shows up in a diff if the catalogue ever stops being USD.
+ * ⛔ NO CURRENCY SYMBOL AND NO CURRENCY CODE. `/api/billing` carries an optional `currency` on a
+ * subscription and an invoice, which French reads through [frenchMoney]; English, and French
+ * without one, keep the bare "$". The web console prefixes a bare "$" and this client mirrors that
+ * from a STRING RESOURCE (`billing_amount`) rather than concatenating a symbol here, so the
+ * assumption lives in one translatable place and shows up in a diff if the catalogue ever stops
+ * being USD.
  *
  * ⚠️ ALWAYS TWO DECIMALS, unlike `formatUsageAmount` which drops a trailing ".00". A price of
  * "249" beside a price of "249.99" reads as a different KIND of number; money is padded and
@@ -55,6 +56,23 @@ internal fun formatCents(cents: Long, language: AppLanguage = AppLanguage.EN): S
         // ⚠️ English is this app's own price, "1204.25": two decimals, never grouped. The web groups
         // ("1,204.25"); W1 changes no English, so the difference is kept and recorded here.
         BigDecimal.valueOf(cents, 2).toPlainString()
+    }
+
+/**
+ * A billing amount in French when the server sent its currency: "249,00 $ US", "249,00 $ CA"
+ * (format-vectors.json, formatMoney). Null otherwise, and the caller keeps its resource with the bare
+ * "$" around [formatCents].
+ *
+ * ⛔ FRENCH ONLY. English prices stay exactly as they are ("$249.00"), currency or not: a v3 plan
+ * decision, so an English amount never changes with this field.
+ *
+ * ⚠️ A blank currency is no currency: "$" is not invented for it, as no other code is.
+ */
+internal fun frenchMoney(cents: Long, currency: String?, language: AppLanguage): String? =
+    if (language == AppLanguage.FR && !currency.isNullOrBlank()) {
+        DistrictFormat.money(cents, currency, language)
+    } else {
+        null
     }
 
 /**

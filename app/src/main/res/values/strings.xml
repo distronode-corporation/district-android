@@ -66,6 +66,9 @@
     <string name="billing_meter_unmetered">No call minutes have been recorded this month yet.</string>
     <string name="billing_meter_used">%1$s minutes used</string>
     <string name="billing_meter_used_of">%1$s of %2$s included minutes used</string>
+    <string name="billing_money_discount">%1$s, %2$s off</string>
+    <string name="billing_money_monthly">%1$s / month</string>
+    <string name="billing_money_tax">incl. %1$s tax</string>
     <string name="billing_open">Billing</string>
     <string name="billing_overage_auto_bill">Extra minutes beyond your plan are billed automatically.</string>
     <string name="billing_overage_blocked">Calls are being declined — your included minutes are used up</string>

@@ -15,7 +15,9 @@ The inputs are the website's byte-pinned contract files, vendored unchanged unde
   with the portal's labels. One catalog entry per value of every category, and one for a value the
   category does not list. Its
   `placeholders` (English the server writes in place of a real value, with earlier spellings under
-  `aliases`) become two Kotlin tables and no catalog entry: a screen recognises one and shows its own copy.
+  `aliases`) become one catalog entry each (`placeholder_*`, English the value as sent, so English reads
+  as it always has) and three Kotlin tables: a screen either recognises one and shows its own copy, or
+  shows the placeholder's label (WIRE_PLACEHOLDER_LABELS, every spelling to its label).
 
 ⛔ THE ENGLISH OF A WIRE LABEL IS WHAT THIS APP SHOWS TODAY, NOT THE PORTAL'S LABEL. The app has always
 displayed these values raw (a call reads "completed", a region "CA"), and W1 changes no English, so `en`
@@ -229,6 +231,14 @@ def wire_labels() -> tuple[dict, str]:
                 {"value": "str"},
             )
         enums.append((enum_name, rule, pairs, f"wire_{prefix}_unknown", not fallback))
+    for p in src["placeholders"]:
+        # ⛔ THE ENGLISH IS THE PLACEHOLDER AS THE SERVER WRITES IT, which is what a screen that passes it
+        # through has always shown; the French is the contract's where it has one.
+        table[placeholder_segment(p["value"])] = entry(
+            display(p["value"], "raw"), p.get("fr"), "label", PLACEHOLDER_SCREEN, "T3",
+            "Text the service stores or sends in English in place of a real value, in "
+            + "; ".join(p["fields"]) + ". Shown where that value is shown.",
+        )
     data = {"meta": {"catalog": "wire_labels", "platform": "android"}, "wire": table}
     lines = [
         f"// {HEADER.format(src='wire-vocabulary.json')}",
@@ -264,6 +274,14 @@ def wire_labels() -> tuple[dict, str]:
     return data, "\n".join(lines)
 
 
+PLACEHOLDER_SCREEN = "wire placeholder"
+
+
+def placeholder_segment(value: str) -> str:
+    """`No summary available.` -> placeholder_no_summary_available, the name the cores use."""
+    return f"placeholder_{snake(value)}"
+
+
 def placeholder_tables(placeholders: list) -> list[str]:
     """The `placeholders` list as Kotlin: every value the server stores or sends in English in place of a
     real one, and the earlier spellings (`aliases`) a stored row may still hold. json.dumps escapes any
@@ -283,6 +301,18 @@ def placeholder_tables(placeholders: list) -> list[str]:
         *[
             f"    {json.dumps(p['value'])} to listOf({', '.join(json.dumps(a) for a in p['aliases'])}),"
             for p in aliased
+        ],
+        ")",
+        "",
+        "/**",
+        " * Every placeholder, in its current spelling and every earlier one, to its label: the same words in",
+        " * English, the reader's language in French.",
+        " */",
+        "internal val WIRE_PLACEHOLDER_LABELS: Map<String, Int> = mapOf(",
+        *[
+            f"    {json.dumps(spelling)} to R.string.wire_{placeholder_segment(p['value'])},"
+            for p in placeholders
+            for spelling in [p["value"], *p.get("aliases", [])]
         ],
         ")",
         "",

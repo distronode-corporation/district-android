@@ -25,6 +25,7 @@ import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.model.BlockedContact
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.CenteredState
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.PagedListEmpty
@@ -108,7 +109,8 @@ private fun Content(
 @Composable
 private fun Row(contact: BlockedContact, canMutate: Boolean, enabled: Boolean, onUnblock: () -> Unit) {
     DistrictListRow(
-        title = contact.name.takeIf { it.isNotBlank() } ?: stringResource(R.string.contacts_unnamed),
+        title = contact.name.takeIf { it.isNotBlank() }?.let { serverText(it) }
+            ?: stringResource(R.string.contacts_unnamed),
         subtitle = contact.phoneNumber,
         trailing = {
             if (canMutate) {

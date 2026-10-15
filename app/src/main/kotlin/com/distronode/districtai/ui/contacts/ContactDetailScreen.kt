@@ -32,6 +32,7 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.Contact
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.CenteredState
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
@@ -218,7 +219,7 @@ private fun Content(
 @Composable
 private fun Identity(contact: Contact) {
     Text(
-        text = contact.displayName ?: stringResource(R.string.contacts_unnamed),
+        text = contact.displayName?.let { serverText(it) } ?: stringResource(R.string.contacts_unnamed),
         style = MaterialTheme.typography.headlineSmall,
     )
     // ⚠️ Email-first: show whichever identifiers exist rather than assuming a phone number. A
@@ -241,7 +242,7 @@ private fun Identity(contact: Contact) {
 @Composable
 private fun Attributes(contact: Contact) {
     contact.latestContextSummary?.let {
-        LabelledCard(stringResource(R.string.contact_detail_context), it)
+        LabelledCard(stringResource(R.string.contact_detail_context), serverText(it))
     }
     contact.budget?.let { LabelledCard(stringResource(R.string.contact_detail_budget), it) }
     contact.timeline?.let { LabelledCard(stringResource(R.string.contact_detail_timeline), it) }

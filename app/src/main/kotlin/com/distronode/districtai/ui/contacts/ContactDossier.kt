@@ -176,16 +176,22 @@ private fun DossierFieldCard(field: DossierField, modifier: Modifier = Modifier)
 
 /**
  * A dossier key's heading: the contact drawer's label for a key the vocabulary lists
- * (contactResearchKey), else the generic label carrying the key split into words. In English both read
- * as the app has always shown them ("Executive summary", "Summary").
+ * (contactResearchKey), else the key split into words, as generated. In English both read as the app
+ * has always shown them ("Executive summary", "Summary").
+ *
+ * ⛔ A KEY THE VOCABULARY DOES NOT LIST WAS WRITTEN BY THE MODEL, SO IT IS SHOWN AS GENERATED, IN
+ * EVERY LANGUAGE (the AI-text rule; district-linux does the same). It is not a value this app failed
+ * to recognise, so it never reads as the category's unknown-value label (« Valeur inconnue : … »).
  */
 @Composable
 @ReadOnlyComposable
 internal fun dossierHeading(key: String): String {
-    val category = WireCategory.CONTACT_RESEARCH_KEY
-    val id = category.labels[key]
-    return if (id != null) stringResource(id) else stringResource(category.unknown, humanizeKey(key))
+    val id = dossierHeadingLabel(key)
+    return if (id != null) stringResource(id) else humanizeKey(key)
 }
+
+/** The label resource for a key the vocabulary lists, or null for one the model wrote. */
+internal fun dossierHeadingLabel(key: String): Int? = WireCategory.CONTACT_RESEARCH_KEY.labels[key]
 
 /** ⚠️ One level deep only — see [dossierFields]. A grandchild arrives already flattened to JSON. */
 @Composable

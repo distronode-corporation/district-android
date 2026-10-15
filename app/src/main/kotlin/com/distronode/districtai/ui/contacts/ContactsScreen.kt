@@ -33,6 +33,7 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.Contact
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.PagedAppendFailure
 import com.distronode.districtai.ui.PagedAppendLoading
@@ -240,7 +241,7 @@ private fun ContactsEmpty(canMutate: Boolean, onCreate: () -> Unit) {
 private fun ContactRow(contact: Contact, blocked: Boolean, onClick: () -> Unit) {
     // ⚠️ `name` is non-null server-side but can be the literal "Unknown", which the voice agent
     // writes for an unidentified caller — printing it would read as a name.
-    val name = contact.displayName
+    val name = contact.displayName?.let { serverText(it) }
     DistrictListRow(
         title = name ?: stringResource(R.string.contacts_unnamed),
         // ⚠️ Contacts are EMAIL-FIRST, so a phone-less contact is legal and common. Prefer whichever

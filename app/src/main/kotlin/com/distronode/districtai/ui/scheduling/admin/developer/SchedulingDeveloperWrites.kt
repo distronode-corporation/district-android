@@ -54,6 +54,8 @@ data class SchedulingWebhookDraft(
          *
          * ⛔ AN EVENT NAME THIS BUILD DOES NOT KNOW IS DROPPED FROM THE TICKS (the patch would be
          * refused with `unknown event`), and the dialog names it rather than losing it quietly.
+         * ⚠️ A known event the screen does not offer (`notes.ready`) stays in [events] with no tick,
+         * so a save sends it back: an existing subscription is not dropped by an edit.
          * ⚠️ An absent `fields` is the fork's default set, not an empty selection.
          */
         fun from(webhook: SchedulingWebhook): SchedulingWebhookDraft = SchedulingWebhookDraft(
@@ -217,9 +219,13 @@ class SchedulingWebhookEditorFlow(
 
     fun editUrl(value: String) = edit { it.copy(draft = it.draft.copy(url = value), urlIssue = null) }
 
-    fun toggleEvent(event: SchedulingWebhookEvent, on: Boolean) = edit {
-        val events = if (on) it.draft.events + event else it.draft.events - event
-        it.copy(draft = it.draft.copy(events = events), eventsMissing = false)
+    /** ⚠️ Only an offered event can be ticked or unticked; any other is ignored. */
+    fun toggleEvent(event: SchedulingWebhookEvent, on: Boolean) {
+        if (event !in SchedulingWebhookEvent.OFFERED) return
+        edit {
+            val events = if (on) it.draft.events + event else it.draft.events - event
+            it.copy(draft = it.draft.copy(events = events), eventsMissing = false)
+        }
     }
 
     fun toggleField(field: String, on: Boolean) = edit {

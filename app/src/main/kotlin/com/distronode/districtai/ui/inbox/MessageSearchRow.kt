@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.MessageSearchHit
 import com.distronode.districtai.core.model.displayName
+import com.distronode.districtai.l10n.serverText
 
 /**
  * One full-content search hit.
@@ -43,7 +44,7 @@ internal fun MessageSearchRow(hit: MessageSearchHit, onClick: () -> Unit) {
         Text(
             // ⚠️ THE COUNTERPART IS THE FALLBACK, NOT A BLANK. A hit with no `Contact` row is an
             // ordinary result, and the address is the only thing that identifies it.
-            text = hit.displayName,
+            text = serverText(hit.displayName),
             style = MaterialTheme.typography.titleSmall,
             color = DistrictTheme.colors.foreground,
             maxLines = 1,

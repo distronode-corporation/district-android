@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.l10n.callDurationText
 import com.distronode.districtai.l10n.callTimeText
 import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -115,7 +116,7 @@ private fun Content(
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         Text(
-            text = display.displayName ?: stringResource(R.string.overview_no_caller_id),
+            text = display.displayName?.let { serverText(it) } ?: stringResource(R.string.overview_no_caller_id),
             style = MaterialTheme.typography.headlineSmall,
         )
         Text(

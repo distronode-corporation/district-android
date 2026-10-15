@@ -39,6 +39,7 @@ import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.MessageSearchHit
 import com.distronode.districtai.l10n.inboxChannelLabel
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.resolve
 
@@ -283,7 +284,7 @@ private fun Loaded(
 @Composable
 private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: () -> Unit) {
     DistrictListRow(
-        title = thread.displayName,
+        title = serverText(thread.displayName),
         // ⚠️ The last message's body, one line. An inbound row reads as the customer talking; the
         // direction is carried by the badge rather than by a prefix, which would eat the preview.
         subtitle = thread.lastMessage.body.takeIf { it.isNotBlank() }
@@ -291,7 +292,7 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
         onClick = onClick,
         leading = {
             Avatar(
-                name = thread.contactName.orEmpty(),
+                name = serverText(thread.contactName.orEmpty()),
                 // ⚠️ Neutral for an unresolved address, so a thread with no Contact row does not wear
                 // the brand accent as if it were a known customer.
                 tone = if (thread.contactName == null) Tone.Neutral else Tone.District,

@@ -492,3 +492,27 @@ internal val WIRE_PLACEHOLDERS: Set<String> = setOf(
 internal val WIRE_PLACEHOLDER_ALIASES: Map<String, List<String>> = mapOf(
     "No answer, no conversation took place." to listOf("No answer \u2014 no conversation took place."),
 )
+
+/**
+ * Every placeholder, in its current spelling and every earlier one, to its label: the same words in
+ * English, the reader's language in French.
+ */
+internal val WIRE_PLACEHOLDER_LABELS: Map<String, Int> = mapOf(
+    "Unknown" to R.string.wire_placeholder_unknown,
+    "Unknown Caller" to R.string.wire_placeholder_unknown_caller,
+    "Customer" to R.string.wire_placeholder_customer,
+    "Test call" to R.string.wire_placeholder_test_call,
+    "No summary available." to R.string.wire_placeholder_no_summary_available,
+    "AI call completed." to R.string.wire_placeholder_ai_call_completed,
+    "AI Voice session active..." to R.string.wire_placeholder_ai_voice_session_active,
+    "AI Outbound Voice session active..." to R.string.wire_placeholder_ai_outbound_voice_session_active,
+    "Voice session completed." to R.string.wire_placeholder_voice_session_completed,
+    "No answer, no conversation took place." to R.string.wire_placeholder_no_answer_no_conversation_took_place,
+    "No answer \u2014 no conversation took place." to R.string.wire_placeholder_no_answer_no_conversation_took_place,
+    "New manually added contact." to R.string.wire_placeholder_new_manually_added_contact,
+    "Manual edit update." to R.string.wire_placeholder_manual_edit_update,
+    "Consultation" to R.string.wire_placeholder_consultation,
+    "Distronode Support" to R.string.wire_placeholder_distronode_support,
+    "You" to R.string.wire_placeholder_you,
+    "Free" to R.string.wire_placeholder_free,
+)

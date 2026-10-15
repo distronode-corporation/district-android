@@ -66,6 +66,9 @@
     <string name="billing_meter_unmetered">Aucune minute d\'appel n\'a encore été comptabilisée ce mois-ci.</string>
     <string name="billing_meter_used">Minutes utilisées\u00A0: %1$s</string>
     <string name="billing_meter_used_of">Minutes utilisées\u00A0: %1$s sur %2$s incluses</string>
+    <string name="billing_money_discount">%1$s, %2$s de rabais</string>
+    <string name="billing_money_monthly">%1$s / mois</string>
+    <string name="billing_money_tax">dont %1$s de taxes</string>
     <string name="billing_open">Facturation</string>
     <string name="billing_overage_auto_bill">Les minutes hors forfait sont facturées automatiquement.</string>
     <string name="billing_overage_blocked">Les appels sont refusés\u00A0: vos minutes incluses sont épuisées</string>

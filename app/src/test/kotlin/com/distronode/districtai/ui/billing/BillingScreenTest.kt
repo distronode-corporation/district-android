@@ -379,6 +379,29 @@ class BillingScreenTest {
     }
 
     @Test
+    fun `English prices read exactly as before when the server sends the currency`() {
+        // ⛔ A plan decision: `currency` changes French only ("249,00 $ US"); English stays "$249.00".
+        val withCurrency = detail.copy(
+            subscriptions = detail.subscriptions.map { it.copy(currency = "usd") } +
+                BillingSubscription(
+                    id = "sub_cad",
+                    tierName = "Canadian plan",
+                    amount = 35900,
+                    currency = "cad",
+                    discount = BillingDiscount(couponName = "Welcome", amountOff = 2000),
+                ),
+            invoices = detail.invoices.map { it.copy(currency = "usd") },
+        )
+        render(content(stripe = StripeSectionState.Ready(withCurrency)))
+
+        composeRule.onNodeWithText("$249.00 / month").assertIsDisplayed()
+        composeRule.onNodeWithText("$359.00 / month").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.billing_discount_amount, "Welcome", "20.00")).assertExists()
+        composeRule.onNodeWithText("$249.00").assertIsDisplayed()
+        composeRule.onNodeWithText("incl. $32.37 tax").assertIsDisplayed()
+    }
+
+    @Test
     fun `tapping an invoice with a hosted page hands the URL to the caller`() {
         var opened: String? = null
         render(content(), onOpenInvoice = { opened = it })

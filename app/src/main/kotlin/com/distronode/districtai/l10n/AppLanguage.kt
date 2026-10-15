@@ -48,6 +48,22 @@ internal fun wireLabel(category: WireCategory, value: String): String {
 }
 
 /**
+ * Server text that may be one of the service's English stand-ins (`Unknown Caller`, `Voice session
+ * completed.`, the `placeholders` of contracts/i18n/wire-vocabulary.json, in any spelling a stored row
+ * keeps): the stand-in's label, which in English is the same words the app has always shown. Anything
+ * else is real data (a name, a summary) and is returned as it is, never translated.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun serverText(value: String): String {
+    val id = placeholderLabel(value)
+    return if (id != null) stringResource(id) else value
+}
+
+/** The label resource for [value] when it is a server placeholder, else null. */
+internal fun placeholderLabel(value: String): Int? = WIRE_PLACEHOLDER_LABELS[value.trim()]
+
+/**
  * The sentence for an error the server described.
  *
  * Resolution, in this order:

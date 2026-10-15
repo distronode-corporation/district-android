@@ -51,6 +51,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -324,7 +325,26 @@ class SchedulingDeveloperScreenTest {
     }
 
     @Test
-    fun `a new webhook checks its URL, offers every event and field, and shows its secret once`() {
+    @Config(qualifiers = "+en-rXA")
+    fun `event and field names are API identifiers, shown as themselves in any language`() {
+        // ⛔ IN A PSEUDOLOCALE, where every app string is accented, so the generic unknown-value label
+        // (« Valeur inconnue : … » in French) can be told apart from the identifier itself.
+        assertNotEquals("booking.created", str(R.string.scheduling_admin_common_unknown_value, "booking.created"))
+        state = state.copy(tab = SchedulingDeveloperTab.WEBHOOKS, webhooks = SectionState.Ready(listOf(hook)))
+        show()
+        composeRule.onNodeWithText("booking.created, booking.paid").assertExists()
+        writes.webhooks.openEdit(hook)
+        settle()
+        composeRule.onNodeWithTag("$DEVELOPER_WEBHOOK_EVENT_TAG-booking.reminder").assertExists()
+        composeRule.onNodeWithText("booking.created").assertExists()
+        composeRule.onNodeWithText("booking.reminder").assertExists()
+        composeRule.onNodeWithText("attendee_email").assertExists()
+        composeRule.onNodeWithText(str(R.string.scheduling_admin_common_unknown_value, "booking.reminder"))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a new webhook checks its URL, offers the four booking events and every field, and shows its secret once`() {
         rig.admin.value(
             SchedulingAdminOp.WEBHOOKS_CREATE,
             SchedulingWebhookCreated(
@@ -338,6 +358,11 @@ class SchedulingDeveloperScreenTest {
         show()
         composeRule.onNodeWithTag(DEVELOPER_WEBHOOK_ADD_TAG).performClick()
         composeRule.onNodeWithTag("$DEVELOPER_WEBHOOK_FIELD_TAG-attendee_email").assertExists()
+        // The web portal's four: nothing records a meeting, so the other three would never fire.
+        SchedulingWebhookEvent.entries.forEach { event ->
+            val tick = composeRule.onNodeWithTag("$DEVELOPER_WEBHOOK_EVENT_TAG-${event.wire}")
+            if (event in SchedulingWebhookEvent.OFFERED) tick.assertExists() else tick.assertDoesNotExist()
+        }
         composeRule.onNodeWithTag(DEVELOPER_WEBHOOK_SUBMIT_TAG).performClick()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_developer_webhook_url_missing)).assertIsDisplayed()
         composeRule.onNodeWithText(str(R.string.scheduling_admin_developer_webhook_events_missing)).assertIsDisplayed()

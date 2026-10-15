@@ -29,6 +29,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.CHANNEL_EMAIL
 import com.distronode.districtai.core.model.Contact
+import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -82,7 +83,7 @@ fun ComposeDialog(state: ComposeUiState, actions: ComposeActions) {
                 if (label == null) {
                     RecipientPicker(state, actions)
                 } else {
-                    ChosenRecipient(label, state.sending, actions)
+                    ChosenRecipient(serverText(label), state.sending, actions)
                     ChannelSection(state, actions)
                     MessageSection(state, actions)
                 }
@@ -156,7 +157,7 @@ private fun RecipientPicker(state: ComposeUiState, actions: ComposeActions) {
         is ComposeContacts.Ready -> {
             state.matches.forEach { contact ->
                 DistrictListRow(
-                    title = contact.label(),
+                    title = serverText(contact.label()),
                     subtitle = contact.detail(),
                     onClick = { actions.choose(contact) },
                     modifier = Modifier.testTag(COMPOSE_CONTACT_DESCRIPTION),

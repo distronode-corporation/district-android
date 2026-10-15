@@ -203,6 +203,49 @@ class SchedulingDeveloperWritesTest {
     }
 
     @Test
+    fun `an edit keeps an event the screen does not offer, and only the offered four can be ticked`() {
+        rig.admin.value(SchedulingAdminOp.WEBHOOKS_PATCH, SchedulingNoContent(ok = true))
+        val row = hook(events = listOf("notes.ready", "booking.created", "recording.completed", "booking.paid"))
+        writes.webhooks.openEdit(row)
+        assertEquals(
+            setOf(
+                SchedulingWebhookEvent.BOOKING_CREATED,
+                SchedulingWebhookEvent.RECORDING_COMPLETED,
+                SchedulingWebhookEvent.NOTES_READY,
+            ),
+            hookDialog.draft.events,
+        )
+        // Only the unknown name is dropped (the scheduler would refuse it); the known ones are kept.
+        assertEquals(listOf("booking.paid"), hookDialog.droppedEvents)
+        // A screen offers no tick for these three, and a call that names one changes nothing.
+        writes.webhooks.toggleEvent(SchedulingWebhookEvent.NOTES_READY, on = false)
+        writes.webhooks.toggleEvent(SchedulingWebhookEvent.TRANSCRIPT_READY, on = true)
+        writes.webhooks.toggleEvent(SchedulingWebhookEvent.BOOKING_CREATED, on = false)
+        writes.webhooks.toggleEvent(SchedulingWebhookEvent.BOOKING_REMINDER, on = true)
+        writes.webhooks.submit()
+        scope.advanceUntilIdle()
+
+        val sent = rig.admin.callsTo(SchedulingAdminOp.WEBHOOKS_PATCH).single().params
+        assertEquals(strings("booking.reminder", "recording.completed", "notes.ready"), sent["events"])
+
+        // A row holding only an event the screen does not offer saves it back as it is.
+        writes.webhooks.openEdit(hook(events = listOf("transcript.ready")))
+        writes.webhooks.submit()
+        scope.advanceUntilIdle()
+        val kept = rig.admin.callsTo(SchedulingAdminOp.WEBHOOKS_PATCH).last().params
+        assertEquals(strings("transcript.ready"), kept["events"])
+
+        // A new webhook can subscribe only to the offered four.
+        writes.webhooks.openCreate()
+        writes.webhooks.toggleEvent(SchedulingWebhookEvent.RECORDING_COMPLETED, on = true)
+        assertTrue(hookDialog.draft.events.isEmpty())
+        assertEquals(
+            listOf("booking.created", "booking.cancelled", "booking.rescheduled", "booking.reminder"),
+            SchedulingWebhookEvent.OFFERED.map { it.wire },
+        )
+    }
+
+    @Test
     fun `failed webhook writes say why and editing clears the failure`() {
         rig.admin.fail(SchedulingAdminOp.WEBHOOKS_PATCH, offline)
         rig.admin.fail(SchedulingAdminOp.WEBHOOKS_CREATE, offline)

@@ -44,9 +44,10 @@ class PreferencesSavedAccountLocale(context: Context) : SavedAccountLocale {
         prefs.edit().apply { if (locale == null) remove(KEY) else putString(KEY, locale) }.apply()
     }
 
+    // ⚠️ A LANGUAGE CODE ("en" or "fr"), NOTHING SENSITIVE: plain preferences are the right store.
     private companion object {
-        const val FILE = "district_account_language"
-        const val KEY = "saved_locale"
+        const val FILE = "district_language"
+        const val KEY = "saved_language"
     }
 }
 

@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.settings.workspace.studio
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -85,7 +86,11 @@ private fun RecipeTile(
         onClick = onClick.takeIf { enabled },
         modifier = Modifier.testTag(studioHandle(HANDLE_RECIPE, recipe.id, selected)),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+        // ⚠️ A FLOW ROW, so a badge wraps under the name instead of breaking "Defaul / t" at 200% font.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
+        ) {
             Text(recipe.name, style = MaterialTheme.typography.titleSmall, color = DistrictTheme.colors.foreground)
             if (recipe.isDefault) DistrictBadge(defaultBadge)
             if (selected) DistrictBadge(stringResource(R.string.voice_studio_selected), tone = Tone.District)

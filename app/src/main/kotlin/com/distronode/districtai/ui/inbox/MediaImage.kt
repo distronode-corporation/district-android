@@ -23,6 +23,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import kotlinx.coroutines.CoroutineDispatcher
@@ -168,10 +171,18 @@ fun MediaImage(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(THUMBNAIL_SIZE),
             )
+            // ⚠️ AT MOST TWO LINES, STEPPING DOWN TO FIT THE TILE, so a 200% font cannot break
+            // "unavail / able" across a fixed-size thumbnail (visual QA A-S6).
             MediaPhase.Failed -> Text(
                 text = stringResource(R.string.thread_image_failed),
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = with(LocalDensity.current) { TILE_TEXT_FLOOR.toSp() },
+                    maxFontSize = MaterialTheme.typography.bodySmall.fontSize,
+                ),
                 modifier = Modifier.testTag(THREAD_MEDIA_FAILED_DESCRIPTION),
             )
             MediaPhase.Loading -> Text(
@@ -202,3 +213,6 @@ private val THUMBNAIL_RADIUS = 8.dp
 const val THREAD_MEDIA_DESCRIPTION: String = "district-thread-media"
 const val THREAD_MEDIA_LOADING_DESCRIPTION: String = "district-thread-media-loading"
 const val THREAD_MEDIA_FAILED_DESCRIPTION: String = "district-thread-media-failed"
+
+/** The smallest a thumbnail's status word gets, in dp so a large font cannot push it out of the tile. */
+private val TILE_TEXT_FLOOR = 9.dp

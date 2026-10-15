@@ -24,6 +24,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import com.distronode.districtai.l10n.AppLanguage
+import com.distronode.districtai.l10n.DistrictFormat
 
 /**
  * What the booking-page card draws in each of its seven presentations, plus loading and failure.
@@ -312,7 +314,17 @@ class SchedulingScreenTest {
             .assertIsDisplayed()
         composeRule.onNodeWithTag(SCHEDULING_HOST_DESCRIPTION).assertIsDisplayed()
         composeRule
-            .onNodeWithText(text(R.string.scheduling_last_checked, "2026-09-06T11:20:00.000Z"))
+            // ⛔ Formatted in English too, never the raw instant (visual QA AA3, AC7).
+            .onNodeWithText(
+                text(
+                    R.string.scheduling_last_checked,
+                    DistrictFormat.dateTime(
+                        java.time.Instant.parse("2026-09-06T11:20:00.000Z"),
+                        java.time.ZoneId.systemDefault(),
+                        AppLanguage.EN,
+                    ),
+                ),
+            )
             .assertIsDisplayed()
 
         composeRule.onNodeWithTag(SCHEDULING_OPEN_DESCRIPTION).performClick()

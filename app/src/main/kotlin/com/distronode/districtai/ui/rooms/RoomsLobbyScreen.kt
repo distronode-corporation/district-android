@@ -35,6 +35,7 @@ import com.distronode.districtai.core.model.MeetingSummary
 import com.distronode.districtai.l10n.WireCategory
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.InlineFailure
+import androidx.compose.foundation.layout.FlowRow
 
 /**
  * The rooms lobby: start a meeting, or read the minutes of one that already happened.
@@ -161,9 +162,12 @@ private fun MeetingCard(
             color = DistrictTheme.colors.mutedForeground,
             modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
         )
-        Row(
+        // ⚠️ A FLOW ROW: beside « Lire le procès-verbal », « Rejoindre » broke "Rej / oin / dre" at 200%
+        // font (visual QA AA11). It moves to its own line instead.
+        FlowRow(
             modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
             horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         ) {
             DistrictButton(
                 text = stringResource(R.string.rooms_open_meeting),

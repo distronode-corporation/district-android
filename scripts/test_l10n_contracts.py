@@ -41,6 +41,15 @@ tier = "T3"
 state = "signed"
 note = "old note"
 
+[wire.call_status_no_answer]
+en = "no-answer"
+fr = "Sans réponse (révisé)"
+ctx = "label"
+screen = "call log"
+tier = "T3"
+state = "reviewed"
+note = "old note"
+
 [wire.call_status_unknown]
 en = "{value}"
 fr = "Statut inconnu ({value})"
@@ -62,6 +71,11 @@ def fresh() -> dict:
             "call_status_failed": gen.entry("Failed", "Échec", "label", "call log", "T3", "new note"),
             "call_status_unknown": gen.entry("{value}", None, "label", "call log", "T3", "new note", {"value": "str"}),
             "call_status_busy": gen.entry("busy", "Occupé", "label", "call log", "T3", "new note"),
+            # Moved from the raw value to the portal's label in 3.0.1: the generator records what it was.
+            "call_status_no_answer": {
+                **gen.entry("No answer", "Sans réponse", "label", "call log", "T3", "new note"),
+                gen.WAS: "no-answer",
+            },
         },
     }
 
@@ -93,8 +107,15 @@ class KeepTranslationsTest(unittest.TestCase):
         e = self.kept()["call_status_busy"]
         self.assertEqual((e["fr"], e["state"]), ("Occupé", "draft"))
 
+    def test_english_moved_to_the_portal_label_keeps_the_reviewed_french(self) -> None:
+        e = self.kept()["call_status_no_answer"]
+        self.assertEqual((e["en"], e["fr"], e["state"]), ("No answer", "Sans réponse (révisé)", "reviewed"))
+        self.assertNotIn(gen.WAS, e, "the earlier English is read, never written")
+
     def test_no_committed_catalog(self) -> None:
-        self.assertEqual(gen.keep_translations(fresh(), self.tmp / "missing.toml"), fresh())
+        expected = fresh()
+        del expected["wire"]["call_status_no_answer"][gen.WAS]
+        self.assertEqual(gen.keep_translations(fresh(), self.tmp / "missing.toml"), expected)
 
     def test_emitted_catalog_is_valid(self) -> None:
         data = gen.keep_translations(fresh(), self.previous)
@@ -121,13 +142,13 @@ class WireLabelsTest(unittest.TestCase):
         self.assertEqual(set(src["categories"]), set(gen.WIRE_CATEGORIES))
 
     def test_a_value_spelled_unknown_does_not_take_the_unknown_value_key(self) -> None:
-        self.assertEqual(self.table["call_status_value_unknown"]["en"], "unknown")
+        self.assertEqual(self.table["call_status_value_unknown"]["en"], "Unknown")
         self.assertEqual(self.table["call_status_unknown"]["en"], "{value}")
         self.assertIn('"unknown" to R.string.wire_call_status_value_unknown,', self.kotlin)
 
     def test_a_brace_in_a_value_is_literal(self) -> None:
         self.assertEqual(gen.display("http-{status}", "raw"), "http-{{status}}")
-        self.assertEqual(self.table["workflow_action_reason_http_status"]["en"], "http-{{status}}")
+        self.assertEqual(self.table["workflow_action_reason_http_status"]["en"], "Http {{status}}")
         self.assertIn('"http-{status}" to R.string.wire_workflow_action_reason_http_status,', self.kotlin)
 
     def test_a_dossier_key_reads_as_the_app_shows_its_heading(self) -> None:
@@ -158,6 +179,23 @@ class WireLabelsTest(unittest.TestCase):
         # A value the portal has no label for is shown as sent, and an unknown one generically.
         self.assertEqual(self.table["number_provider_value_unknown"]["en"], "unknown")
         self.assertEqual(self.table["sip_trunk_status_unknown"]["en"], "{value}")
+
+    def test_english_reads_the_portal_label_or_the_value_humanized_as_the_cores_do(self) -> None:
+        # visual QA A-S7: English used to show these as sent ("completed", "no-answer", "paid").
+        self.assertEqual(self.table["call_status_completed"]["en"], "Completed")
+        self.assertEqual(self.table["call_status_no_answer"]["en"], "No answer")
+        self.assertEqual(self.table["sentiment_negative"]["en"], "Friction")
+        self.assertEqual(self.table["disposition_booked"]["en"], "Booked")
+        self.assertEqual(self.table["billing_invoice_status_paid"]["en"], "Paid")
+        self.assertEqual(self.table["number_status_pending_verification"]["en"], "Pending verification")
+        self.assertEqual(self.table["messaging_credential_source_byok"]["en"], "Bring Your Own Keys")
+        self.assertEqual(gen.core_label(" not-interested "), "Not interested")
+        # The region chip and the dossier headings keep their own display.
+        self.assertEqual(self.table["region_ca"]["en"], "CA")
+        # Every moved entry carries its earlier English for keep_translations, and only those.
+        self.assertEqual(self.table["call_status_completed"][gen.WAS], "completed")
+        self.assertNotIn(gen.WAS, self.table["region_ca"])
+        self.assertNotIn(gen.WAS, self.table["number_provider_twilio"])
 
     def test_a_category_fallback_is_its_unknown_label_in_both_languages(self) -> None:
         unknown = self.table["number_status_unknown"]

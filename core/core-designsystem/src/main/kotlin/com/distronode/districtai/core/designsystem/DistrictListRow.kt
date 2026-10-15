@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +16,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
+import kotlin.math.hypot
 
 /**
  * One tappable row: optional leading slot, title, optional subtitle, optional trailing slot.
@@ -41,6 +45,11 @@ fun DistrictListRow(
     trailing: @Composable (() -> Unit)? = null,
 ) {
     val colors = DistrictTheme.colors
+    // ⛔ AT A LARGE FONT SCALE THE TRAILING SLOT MOVES UNDER THE TEXT. Beside it, a badge measured at
+    // its own width first and left the title a column two or three letters wide, so names, emails and
+    // phone numbers broke mid-word at 200% ("Soph / ie Bouc / hard", "fo / un / de / r"; visual QA
+    // AA10, AB3, AB4). Under the subtitle it costs a line and the text keeps the row's width.
+    val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -70,8 +79,11 @@ fun DistrictListRow(
                     modifier = Modifier.padding(top = SUBTITLE_GAP),
                 )
             }
+            if (trailing != null && stacked) {
+                Box(modifier = Modifier.padding(top = DistrictTheme.spacing.hairline)) { trailing() }
+            }
         }
-        if (trailing != null) {
+        if (trailing != null && !stacked) {
             trailing()
         }
     }
@@ -118,7 +130,9 @@ fun Avatar(
         .ifEmpty { "·" }
 
     Box(
-        modifier = modifier.size(AVATAR_SIZE).background(tone.fill(DistrictTheme.colors), CircleShape),
+        modifier = modifier
+            .background(tone.fill(DistrictTheme.colors), CircleShape)
+            .circleAround(AVATAR_SIZE),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -128,6 +142,22 @@ fun Avatar(
         )
     }
 }
+
+/**
+ * A square at least [min] wide that grows until a circle drawn in it holds its content.
+ *
+ * ⚠️ THE CIRCLE GROWS WITH THE TEXT. A fixed 36dp circle clipped two initials at 200% font ("MG" read
+ * "M"; visual QA AA9). The side is the content's diagonal, so the initials' corners stay inside.
+ */
+private fun Modifier.circleAround(min: Dp): Modifier = layout { measurable, constraints ->
+    val content = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+    val diagonal = hypot(content.width.toFloat(), content.height.toFloat())
+    val side = maxOf(min.roundToPx(), ceil(diagonal).toInt())
+    layout(side, side) { content.place((side - content.width) / 2, (side - content.height) / 2) }
+}
+
+/** The font scale from which a row's trailing content moves under its text. */
+private const val STACK_FONT_SCALE = 1.3f
 
 private val ROW_MIN_HEIGHT = 56.dp
 private val SUBTITLE_GAP = 2.dp

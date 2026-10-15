@@ -17,6 +17,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import androidx.compose.ui.test.onNodeWithContentDescription
 
 /**
  * ⛔ THIS SCREEN IS A PLAY REQUIREMENT, SO ITS TEST GUARDS AN UPLOAD RATHER THAN A FEATURE. Google's
@@ -124,7 +125,7 @@ class SettingsScreenTest {
         var backs = 0
         render(onBack = { backs += 1 })
 
-        composeRule.onNodeWithText(str(R.string.top_bar_back)).performClick()
+        composeRule.onNodeWithContentDescription(str(R.string.top_bar_back)).performClick()
 
         assertEquals(1, backs)
     }

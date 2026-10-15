@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.billing
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -235,23 +236,22 @@ private fun InvoiceRow(invoice: BillingInvoice, onOpenInvoice: (String) -> Unit)
             invoice.status?.takeIf { it.isNotBlank() }?.let {
                 DistrictBadge(text = wireLabel(WireCategory.BILLING_INVOICE_STATUS, it), tone = invoiceTone(it))
             }
-            // ⚠️ Tax is SUMMED server-side, so a zero here is measured rather than absent. Shown
-            // only when non-zero: an "incl. $0.00 tax" line is noise on every untaxed invoice.
-            if (invoice.tax > 0) {
-                Text(
-                    text = frenchMoney(invoice.tax, invoice.currency, language)
-                        ?.let { money -> stringResource(R.string.billing_money_tax, money) }
-                        ?: stringResource(R.string.billing_invoice_tax, formatCents(invoice.tax, language)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = DistrictTheme.colors.mutedForeground,
-                    modifier = Modifier.padding(start = DistrictTheme.spacing.tight),
-                )
+            // ⛔ THE TAX LINE TAKES THE ROW'S SPARE WIDTH AND WRAPS IN IT; the button keeps its own.
+            // An unweighted tax text plus an empty weighted spacer left "Ouvrir" no width at all at
+            // 200% font, so the only way to open the invoice was off screen (visual QA AB5).
+            Box(modifier = Modifier.weight(1f).padding(horizontal = DistrictTheme.spacing.tight)) {
+                // ⚠️ Tax is SUMMED server-side, so a zero here is measured rather than absent. Shown
+                // only when non-zero: an "incl. $0.00 tax" line is noise on every untaxed invoice.
+                if (invoice.tax > 0) {
+                    Text(
+                        text = frenchMoney(invoice.tax, invoice.currency, language)
+                            ?.let { money -> stringResource(R.string.billing_money_tax, money) }
+                            ?: stringResource(R.string.billing_invoice_tax, formatCents(invoice.tax, language)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DistrictTheme.colors.mutedForeground,
+                    )
+                }
             }
-            Text(
-                text = "",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.weight(1f),
-            )
             if (url != null) {
                 DistrictButton(
                     text = stringResource(R.string.billing_invoice_open),

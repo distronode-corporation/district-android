@@ -125,6 +125,7 @@ import com.distronode.districtai.ui.settings.workspace.RoutingRulesScreen
 import com.distronode.districtai.ui.settings.workspace.RoutingRulesViewModel
 import com.distronode.districtai.ui.settings.workspace.WorkspaceSettingsScreen
 import com.distronode.districtai.auth.CustomTabsLauncher
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictNavBar
 import com.distronode.districtai.core.designsystem.DistrictNavItem
 import com.distronode.districtai.core.model.CHANNEL_SMS
@@ -1731,12 +1732,14 @@ fun DistrictNavHost(
             DistrictNavBar {
                 DistrictNavItem(
                     label = stringResource(R.string.nav_overview),
+                    icon = DistrictIcons.Home,
                     selected = route == Routes.OVERVIEW,
                     description = NAV_OVERVIEW_DESCRIPTION,
                     onClick = { navController.navigateTopLevel(Routes.OVERVIEW) },
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_inbox),
+                    icon = DistrictIcons.Inbox,
                     selected = route == Routes.INBOX,
                     description = NAV_INBOX_DESCRIPTION,
                     onClick = {
@@ -1745,12 +1748,14 @@ fun DistrictNavHost(
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_calls),
+                    icon = DistrictIcons.Call,
                     selected = route == Routes.CALL_LOG,
                     description = NAV_CALLS_DESCRIPTION,
                     onClick = { navController.navigateTopLevel(Routes.callLog(workspaceId, role)) },
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_contacts),
+                    icon = DistrictIcons.Person,
                     selected = route == Routes.CONTACTS,
                     description = NAV_CONTACTS_DESCRIPTION,
                     onClick = {
@@ -1759,6 +1764,7 @@ fun DistrictNavHost(
                 )
                 DistrictNavItem(
                     label = stringResource(R.string.nav_account),
+                    icon = DistrictIcons.AccountCircle,
                     selected = route == Routes.SETTINGS,
                     description = NAV_ACCOUNT_DESCRIPTION,
                     onClick = { navController.navigateTopLevel(Routes.SETTINGS) },

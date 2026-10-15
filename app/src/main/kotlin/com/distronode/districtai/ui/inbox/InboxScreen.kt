@@ -22,15 +22,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
-import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
-import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
@@ -89,10 +89,10 @@ fun InboxScreen(
                     // ⚠️ NOT DRAWN WHILE A SEARCH IS ON SCREEN, as on iOS: the search replaces the
                     // list, and the write controls belong to the list.
                     if (compose != null && !searchState.active) {
-                        DistrictButton(
-                            text = stringResource(R.string.inbox_compose_open),
+                        DistrictTopBarAction(
+                            icon = DistrictIcons.Edit,
+                            label = stringResource(R.string.inbox_compose_open),
                             onClick = compose.actions.open,
-                            variant = ButtonVariant.Ghost,
                             modifier = Modifier.testTag(COMPOSE_OPEN_DESCRIPTION),
                         )
                     }

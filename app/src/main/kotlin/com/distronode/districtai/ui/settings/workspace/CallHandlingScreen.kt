@@ -25,6 +25,7 @@ import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtSwitchColors
 import com.distronode.districtai.core.model.CallHandling
 
 /**
@@ -219,6 +220,7 @@ private fun AvailabilitySection(
                             checked = state.availableForCalls,
                             onCheckedChange = onSetAvailability,
                             enabled = state.canToggleAvailability,
+                            colors = districtSwitchColors(),
                             modifier = Modifier.testTag(CALL_HANDLING_AVAILABILITY_DESCRIPTION),
                         )
                     },

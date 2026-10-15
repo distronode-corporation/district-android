@@ -32,6 +32,11 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import com.distronode.districtai.ui.MainLooperDrain
 import org.junit.rules.RuleChain
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import org.junit.Assert.assertTrue
 
 /**
  * ⛔ TWO ASSERTIONS HERE GUARD MONEY, NOT LAYOUT: that a `viewer` is offered no reply box at all, and
@@ -115,34 +120,55 @@ class ThreadScreenTest {
         canReply: Boolean = true,
         wiring: Wiring = Wiring(),
         moderation: ThreadModeration? = null,
+        fontScale: Float = 1f,
     ) {
         composeRule.setContent {
             var text by remember { mutableStateOf("") }
             DistrictTheme {
-                ThreadScreen(
-                    title = "Ada Lovelace",
-                    state = state,
-                    canReply = canReply,
-                    onBack = {},
-                    onSend = wiring.onSend,
-                    onRetry = wiring.onRetry,
-                    onSignIn = {},
-                    onDismissSendFailure = wiring.onDismiss,
-                    onLoadOlder = wiring.onLoadOlder,
-                    composer = ComposerHandlers(
-                        text = text,
-                        onTextChange = { text = it },
-                        canAttach = wiring.canAttach,
-                        onAttach = wiring.onAttach,
-                        onRemoveAttachment = wiring.onRemoveAttachment,
-                        onGenerateDraft = wiring.onGenerateDraft,
-                        imageLoader = wiring.imageLoader,
-                        onOpenMedia = wiring.onOpenMedia,
-                    ),
-                    moderation = moderation,
-                )
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                    ThreadScreen(
+                        title = "Ada Lovelace",
+                        state = state,
+                        canReply = canReply,
+                        onBack = {},
+                        onSend = wiring.onSend,
+                        onRetry = wiring.onRetry,
+                        onSignIn = {},
+                        onDismissSendFailure = wiring.onDismiss,
+                        onLoadOlder = wiring.onLoadOlder,
+                        composer = ComposerHandlers(
+                            text = text,
+                            onTextChange = { text = it },
+                            canAttach = wiring.canAttach,
+                            onAttach = wiring.onAttach,
+                            onRemoveAttachment = wiring.onRemoveAttachment,
+                            onGenerateDraft = wiring.onGenerateDraft,
+                            imageLoader = wiring.imageLoader,
+                            onOpenMedia = wiring.onOpenMedia,
+                        ),
+                        moderation = moderation,
+                    )
+                }
             }
         }
+    }
+
+    /**
+     * ⛔ AT 200% FONT THE ACTIONS GO UNDER THE REPLY FIELD (visual QA AA1): beside it, they took their
+     * own width first and left the field a fifth of the row.
+     */
+    @Test
+    fun `at 200 percent font the reply field keeps the row and the actions sit under it`() {
+        render(
+            ThreadUiState.Content(listOf(message(direction = "outbound", status = "delivered"))),
+            fontScale = 2f,
+        )
+
+        val field = composeRule.onNodeWithTag(THREAD_REPLY_FIELD_DESCRIPTION).getUnclippedBoundsInRoot()
+        val send = composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).getUnclippedBoundsInRoot()
+        assertTrue(send.top >= field.bottom)
+        composeRule.onNodeWithText("Delivered").assertExists()
     }
 
     @Test

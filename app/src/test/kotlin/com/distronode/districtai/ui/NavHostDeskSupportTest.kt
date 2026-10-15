@@ -155,7 +155,7 @@ class NavHostDeskSupportTest {
         assertEquals("agency", harness.argument(ARG_ROLE))
 
         harness.back()
-        harness.tapText(string(R.string.desk_settings_open))
+        harness.tapDescription(string(R.string.desk_settings_open))
         assertEquals(Routes.DESK_SETTINGS, harness.route())
         harness.awaitDescription(DESK_SETTINGS_ROOT_DESCRIPTION)
     }

@@ -29,6 +29,9 @@ internal fun languageOf(tag: String): AppLanguage = if (tag == "fr") AppLanguage
 /**
  * The label for a wire value: a call status, a sentiment, a region.
  *
+ * ⛔ A KNOWN VALUE READS AS THE PORTAL LABELS IT, in English too ("Completed", "No answer"), since
+ * 3.0.1; English used to show the value as sent (visual QA A-S7).
+ *
  * ⚠️ AN UNKNOWN VALUE IS NOT AN ERROR. The server can add a value before this build knows it, so it
  * gets the category's own "unknown" label. For most categories that label takes the value as its
  * argument and reads in English exactly as the app always showed the value (as sent, or upper-cased

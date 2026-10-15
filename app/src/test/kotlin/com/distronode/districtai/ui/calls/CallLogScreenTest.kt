@@ -210,7 +210,7 @@ class CallLogScreenTest {
         )
 
         composeRule.onNodeWithText(str(R.string.overview_status_live)).assertIsDisplayed()
-        composeRule.onNodeWithText("no-answer").assertIsDisplayed()
+        composeRule.onNodeWithText("No answer").assertIsDisplayed()
     }
 
     @Test

@@ -550,7 +550,7 @@ class BillingScreenTest {
         composeRule.onNodeWithTag(invoiceDescription("in_blank")).performClick()
         assertEquals(null, opened)
         // An unrecognised Stripe status is still shown, in its own words.
-        composeRule.onNodeWithText("draft").assertIsDisplayed()
+        composeRule.onNodeWithText("Draft").assertIsDisplayed()
         // And a list the server did not cap says nothing about truncation.
         composeRule
             .onAllNodesWithTag(BILLING_INVOICES_TRUNCATED_DESCRIPTION, useUnmergedTree = true)
@@ -566,7 +566,7 @@ class BillingScreenTest {
         )
         render(content(stripe = StripeSectionState.Ready(StripeBilling(invoices = invoices))))
 
-        composeRule.onNodeWithText("uncollectible").assertIsDisplayed()
+        composeRule.onNodeWithText("Uncollectible").assertIsDisplayed()
         // Three rows, and exactly one status badge among them.
         composeRule.onNodeWithText("$2.00").assertIsDisplayed()
         composeRule.onNodeWithText("$3.00").assertIsDisplayed()

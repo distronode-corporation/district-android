@@ -26,18 +26,18 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.distronode.districtai.l10n.WireCategory
-import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.PageHeader
@@ -45,6 +45,8 @@ import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.WorkspaceEntry
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.SignedOutCause
 import com.distronode.districtai.ui.resolve
 
@@ -173,11 +175,10 @@ fun OverviewScreen(
             DistrictTopBar(
                 title = stringResource(R.string.app_name),
                 actions = {
-                    DistrictButton(
-                        text = stringResource(R.string.settings_open),
+                    DistrictTopBarAction(
+                        icon = DistrictIcons.AccountCircle,
+                        label = stringResource(R.string.settings_open),
                         onClick = onOpenSettings,
-                        variant = ButtonVariant.Ghost,
-                        size = ButtonSize.Sm,
                         modifier = Modifier.testTag(OVERVIEW_OPEN_SETTINGS_DESCRIPTION),
                     )
                 },

@@ -254,7 +254,10 @@ private fun AccountRow(
     onRequestDelete: (MessagingAccount) -> Unit,
 ) {
     DistrictListRow(
-        title = account.label.orEmpty().ifBlank { account.provider.orEmpty() },
+        // ⚠️ An unnamed account is titled with its carrier's label ("Twilio"), not the raw value (visual QA AC4).
+        title = account.label.orEmpty().ifBlank {
+            account.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }.orEmpty()
+        },
         subtitle = stringResource(
             R.string.messaging_account_subtitle,
             account.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }

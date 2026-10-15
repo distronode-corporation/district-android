@@ -31,6 +31,7 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.districtFieldColors
+import com.distronode.districtai.core.designsystem.districtSwitchColors
 import com.distronode.districtai.ui.CenteredState
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
@@ -282,6 +283,7 @@ private fun ToggleRow(
             checked = checked,
             onCheckedChange = onChange,
             enabled = enabled,
+            colors = districtSwitchColors(),
             modifier = modifier,
         )
     }

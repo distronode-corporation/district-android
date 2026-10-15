@@ -55,8 +55,12 @@ internal fun chartDateText(serverText: String, isoDate: String, language: AppLan
 }
 
 /**
- * An ISO instant the app has always printed as sent (a thread message's stamp): unchanged in English,
- * in French a day, month and time in the device's zone ("15 août, 14 h 30"), as a call row reads.
+ * An ISO instant (a thread message's stamp): a day, month and time in the device's zone, "Aug 15,
+ * 2:30 p.m." / "15 août, 14 h 30", as a call row reads.
+ *
+ * ⛔ ENGLISH IS FORMATTED TOO, unlike the server-built strings above. The server sends this one as a
+ * bare ISO instant, so English used to print "2026-08-15T13:10:00.000Z" five times a screen (visual
+ * QA AA3). An instant that does not parse is still shown as sent.
  */
 @Composable
 @ReadOnlyComposable
@@ -65,14 +69,14 @@ internal fun stampText(
     language: AppLanguage = appLanguage(),
     zone: ZoneId = ZoneId.systemDefault(),
 ): String {
-    if (language == AppLanguage.EN) return iso
     val instant = instantOrNull(iso) ?: return iso
     return DistrictFormat.monthDayTime(instant, zone, language)
 }
 
 /**
- * An ISO instant shown as sent beside a label ("Last active …", "Last checked …"): unchanged in
- * English, in French a medium date and a time in the device's zone ("15 août 2026, 14 h 30").
+ * An ISO instant beside a label ("Last active …", "Last checked …"): a medium date and a time in the
+ * device's zone, "Aug 15, 2026, 2:30 p.m." / "15 août 2026, 14 h 30". English is formatted too, for the
+ * same reason as [stampText] (visual QA AC7).
  */
 @Composable
 @ReadOnlyComposable
@@ -81,7 +85,6 @@ internal fun stampDateTimeText(
     language: AppLanguage = appLanguage(),
     zone: ZoneId = ZoneId.systemDefault(),
 ): String {
-    if (language == AppLanguage.EN) return iso
     val instant = instantOrNull(iso) ?: return iso
     return DistrictFormat.dateTime(instant, zone, language)
 }

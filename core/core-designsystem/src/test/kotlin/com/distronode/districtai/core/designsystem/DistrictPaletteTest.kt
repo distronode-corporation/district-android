@@ -56,12 +56,32 @@ class DistrictPaletteTest {
             "--border" to (DistrictColors.BORDER to 0xFF24393D),
             "--input" to (DistrictColors.INPUT to 0xFF2A4146),
             "--elevated" to (DistrictColors.ELEVATED to 0xFF1F373B),
-            "--district" to (DistrictColors.DISTRICT to 0xFF7D84F7),
-            "--district-foreground" to (DistrictColors.DISTRICT_FOREGROUND to 0xFF0F1020),
-            "--success" to (DistrictColors.SUCCESS to 0xFF3FBF7F),
-            "--warning" to (DistrictColors.WARNING to 0xFFFBBF24),
-            "--destructive" to (DistrictColors.DESTRUCTIVE to 0xFFF87171),
-            "--info" to (DistrictColors.INFO to 0xFF60A5FA),
+            "--district" to (DistrictColors.DISTRICT to 0xFF67CDED),
+            "--district-foreground" to (DistrictColors.DISTRICT_FOREGROUND to 0xFF0E1C1F),
+            "--success" to (DistrictColors.SUCCESS to 0xFF74E9AA),
+            "--warning" to (DistrictColors.WARNING to 0xFFEAB90C),
+            "--destructive" to (DistrictColors.DESTRUCTIVE to 0xFFFE737F),
+            "--info" to (DistrictColors.INFO to 0xFF77BAFE),
+        ).forEach { (token, pair) ->
+            val (color, argb) = pair
+            assertEquals(token, Color(argb), color)
+        }
+    }
+
+    /**
+     * The light accent and status four, pinned to tokens.css `:root` (colour v3). Until 3.0.1 they
+     * were the pre-v3 indigo and status colours while the web had moved on (visual QA A-S1).
+     */
+    @Test
+    fun `the light accent and status tokens are the web's colour v3 values`() {
+        val light = DistrictColors.Light
+        mapOf(
+            "--district" to (light.district to 0xFF01657D),
+            "--district-foreground" to (light.districtForeground to 0xFFFFFFFF),
+            "--success" to (light.success to 0xFF016F4E),
+            "--warning" to (light.warning to 0xFF754603),
+            "--destructive" to (light.destructive to 0xFFB4022D),
+            "--info" to (light.info to 0xFF223092),
         ).forEach { (token, pair) ->
             val (color, argb) = pair
             assertEquals(token, Color(argb), color)
@@ -116,7 +136,7 @@ class DistrictPaletteTest {
         assertEquals(DistrictColors.Light, tokens)
         assertEquals(DistrictColors.Light.district, scheme.primary)
         assertEquals(DistrictColors.Light.background, scheme.background)
-        // The accent is indigo in both modes but not the same indigo: the light palette carries a
+        // The accent is teal in both modes but not the same teal: the light palette carries a
         // far deeper one for AA contrast on white.
         assertNotEquals(DistrictColors.DISTRICT, scheme.primary)
     }

@@ -670,6 +670,9 @@ class AppContainer(
             onIncomingCall = { event ->
                 incomingCallController.onIncomingCall(event.workspaceId, event.callId)
             },
+            onRingCancelled = { event ->
+                incomingCallController.onRingCancelled(event.callId, event.reason)
+            },
         )
     }
 

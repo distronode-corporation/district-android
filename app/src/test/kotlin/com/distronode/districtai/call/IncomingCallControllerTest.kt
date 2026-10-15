@@ -4,7 +4,9 @@ import com.distronode.districtai.core.data.InboundCallRepository
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.model.CallAnswerResponse
 import com.distronode.districtai.core.network.ApiResult
+import android.telecom.DisconnectCause
 import com.distronode.districtai.push.RecordingPushNotifier
+import com.distronode.districtai.push.RingCancelReason
 import com.distronode.districtai.ui.dialer.FakeTelecomBridge
 import com.distronode.districtai.ui.rooms.FakeCallEngine
 import com.distronode.districtai.core.media.CallConnectionState
@@ -830,6 +832,109 @@ class IncomingCallControllerTest {
         assertEquals("start", h.ringer.calls.first())
         assertEquals("start", h.ringer.calls.last())
         assertTrue(h.ringer.calls.contains("stop"))
+    }
+
+    @Test
+    fun `a ring answered on another device stops ringing here and ends as answered elsewhere`() = callTest { h ->
+        // ⛔ SEAN'S 3.0.1 ADDITION: every app stops ringing when the call is answered elsewhere.
+        h.controller.onIncomingCall("ws-1", "CA1")
+
+        h.controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)
+
+        assertFalse(h.ringer.ringing)
+        assertEquals(listOf("call:ws-1:CA1", "cancel"), h.notifier.drawn)
+        assertEquals(listOf("incoming", "disconnected:${DisconnectCause.ANSWERED_ELSEWHERE}"), h.telecom.calls)
+        // ⛔ THE RINGING SCREEN IS WITHDRAWN, not left as an ended summary waiting for a Dismiss.
+        assertNull(h.controller.state.value)
+        // ⛔ NOTHING IS SENT BACK, exactly as on a decline.
+        assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
+        assertEquals("the ring timeout went with it", 0, liveJobs())
+    }
+
+    @Test
+    fun `every other reason ends the ring as missed`() = callTest { h ->
+        listOf(RingCancelReason.TIMEOUT, RingCancelReason.CALL_ENDED, RingCancelReason.WITHDRAWN)
+            .forEachIndexed { index, reason ->
+                val callId = "CA$index"
+                h.controller.onIncomingCall("ws-1", callId)
+
+                h.controller.onRingCancelled(callId, reason)
+
+                assertFalse(h.ringer.ringing)
+                assertEquals("disconnected:${DisconnectCause.MISSED}", h.telecom.calls.last())
+                assertNull(h.controller.state.value)
+            }
+    }
+
+    @Test
+    fun `on the device that answered, the cancellation changes nothing`() {
+        // ⛔ THE SERVER SENDS IT TO THE ANSWERING DEVICE TOO. Mid-answer and mid-call, it must not
+        // end the call this device just took.
+        val gate = CompletableDeferred<Unit>()
+        callTest { h ->
+            h.answerable()
+            h.api.pushApi.answerGate = gate
+            h.controller.onIncomingCall("ws-1", "CA1")
+            h.controller.answer()
+            settle()
+
+            h.controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)
+            assertEquals(IncomingCallPhase.ANSWERING, h.controller.state.value?.phase)
+
+            gate.complete(Unit)
+            settle()
+            h.controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)
+
+            assertEquals(IncomingCallPhase.IN_CALL, h.controller.state.value?.phase)
+            assertEquals(listOf("incoming", "active"), h.telecom.calls)
+            assertEquals(listOf(true), h.foreground.calls)
+        }
+    }
+
+    @Test
+    fun `a cancellation for a call that is not ringing here is a no-op`() = callTest { h ->
+        h.controller.onRingCancelled("CA9", RingCancelReason.ANSWERED)
+        assertNull(h.controller.state.value)
+
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.onRingCancelled("CA2", RingCancelReason.ANSWERED)
+        assertEquals(IncomingCallPhase.RINGING, h.controller.state.value?.phase)
+        assertTrue(h.ringer.ringing)
+
+        h.controller.decline()
+        h.controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)
+        assertEquals("an ended call stays as it ended", listOf("incoming", "disconnected"), h.telecom.calls)
+    }
+
+    @Test
+    fun `a ring that arrives after its own cancellation never rings`() = callTest { h ->
+        // ⚠️ FCM DOES NOT ORDER DELIVERIES: the ring push can be the late one.
+        h.controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)
+
+        h.controller.onIncomingCall("ws-1", "CA1")
+
+        assertNull(h.controller.state.value)
+        assertEquals(emptyList<String>(), h.ringer.calls)
+        assertEquals(emptyList<String>(), h.notifier.drawn)
+        assertEquals(emptyList<String>(), h.telecom.calls)
+    }
+
+    @Test
+    fun `the cancelled-call memory is bounded, oldest first`() = callTest { h ->
+        h.controller.onRingCancelled("CA0", RingCancelReason.TIMEOUT)
+        repeat(IncomingCallController.CANCELLED_MEMORY) {
+            h.controller.onRingCancelled("old-$it", RingCancelReason.TIMEOUT)
+        }
+        // A repeat of a remembered id moves it to the end rather than adding a second entry.
+        h.controller.onRingCancelled("old-0", RingCancelReason.TIMEOUT)
+
+        h.controller.onIncomingCall("ws-1", "CA0")
+        assertEquals("forgotten, so it rings", IncomingCallPhase.RINGING, h.controller.state.value?.phase)
+        h.controller.decline()
+
+        h.controller.onIncomingCall("ws-1", "old-0")
+        assertEquals("still remembered", IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+        assertEquals("CA0", h.controller.state.value?.callId)
     }
 
     /** Coroutines still running on the application scope the controller was given. */

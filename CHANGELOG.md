@@ -15,6 +15,8 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - Incoming calls now ring. Your ringtone plays and the phone vibrates as your sound settings
   allow, and silent mode and Do Not Disturb are respected.
 - On a locked phone, an incoming call now opens full screen when Android allows it.
+- Your devices stop ringing as soon as a call is answered on another device or the caller hangs
+  up.
 
 ## [3.0.0] - 2026-10-15
 

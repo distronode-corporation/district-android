@@ -38,6 +38,44 @@ internal sealed interface PushEvent {
      * nobody. Nothing may call the answer route on the strength of this event alone.
      */
     data class IncomingCall(val workspaceId: String, val callId: String) : PushEvent
+
+    /**
+     * A ring this device may still be sounding is over, for the [reason] the server gives.
+     *
+     * ⛔ SENT ON EVERY END OF A RING, TO THE SAME DEVICES THE RING REACHED, INCLUDING THE ONE THAT
+     * ANSWERED. So it only means anything to a device that is still RINGING that call: the device
+     * that answered, and a device that never rang it, ignore it (see `IncomingCallController`).
+     *
+     * ⚠️ IDENTIFIED BY THE CALL ALONE. `workspaceId` is in the payload but is not needed to match:
+     * a call id names one call, and a cancellation that matches nothing is a no-op, so requiring the
+     * workspace would only turn a server-side slip into a phone that rings on for thirty seconds.
+     */
+    data class RingCancelled(val callId: String, val reason: RingCancelReason) : PushEvent
+}
+
+/**
+ * Why the server withdrew a ring (`docs/ring_cancel_contract.md` in the server repository).
+ *
+ * ⚠️ ANYTHING ELSE, OR NOTHING, READS AS [WITHDRAWN], as the contract says, and never fails the
+ * decode: a client older than a new reason must still stop ringing.
+ */
+internal enum class RingCancelReason(val wire: String) {
+    /** Another device (or another person) took the call. */
+    ANSWERED("answered"),
+
+    /** Nobody answered within the server's rendezvous. */
+    TIMEOUT("timeout"),
+
+    /** The caller hung up while it rang. */
+    CALL_ENDED("call_ended"),
+
+    /** The server stopped ringing app devices for any other reason. */
+    WITHDRAWN("withdrawn"),
+    ;
+
+    internal companion object {
+        fun fromWire(value: String?): RingCancelReason = entries.firstOrNull { it.wire == value } ?: WITHDRAWN
+    }
 }
 
 /**
@@ -62,14 +100,16 @@ internal sealed interface PushEvent {
  */
 internal object PushPayload {
 
-    /** ⚠️ These four names are the server's push-payload keys, verbatim. */
+    /** ⚠️ These five names are the server's push-payload keys, verbatim. */
     const val KEY_TYPE: String = "type"
     const val KEY_WORKSPACE_ID: String = "workspaceId"
     const val KEY_MESSAGE_ID: String = "messageId"
     const val KEY_CALL_ID: String = "callId"
+    const val KEY_REASON: String = "reason"
 
     const val TYPE_MESSAGE: String = "message"
     const val TYPE_INCOMING_CALL: String = "incoming_call"
+    const val TYPE_RING_CANCELLED: String = "call_ring_cancelled"
 
     /**
      * @return the event, or null for anything this build cannot act on.
@@ -79,6 +119,13 @@ internal object PushPayload {
      * value is what a mis-templated sender produces.
      */
     fun parse(data: Map<String, String>): PushEvent? {
+        // ⚠️ BEFORE THE WORKSPACE CHECK: a cancellation needs only the call id. See
+        // [PushEvent.RingCancelled].
+        if (data.value(KEY_TYPE) == TYPE_RING_CANCELLED) {
+            return data.value(KEY_CALL_ID)?.let {
+                PushEvent.RingCancelled(callId = it, reason = RingCancelReason.fromWire(data.value(KEY_REASON)))
+            }
+        }
         val workspaceId = data.value(KEY_WORKSPACE_ID) ?: return null
         return when (data.value(KEY_TYPE)) {
             TYPE_MESSAGE -> data.value(KEY_MESSAGE_ID)

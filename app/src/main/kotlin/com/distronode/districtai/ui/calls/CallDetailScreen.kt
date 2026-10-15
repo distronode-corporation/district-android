@@ -16,20 +16,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import com.distronode.districtai.l10n.callDurationText
-import com.distronode.districtai.l10n.callTimeText
-import com.distronode.districtai.l10n.WireCategory
-import com.distronode.districtai.l10n.serverText
-import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.R
-import com.distronode.districtai.core.designsystem.ButtonSize
-import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
+import com.distronode.districtai.l10n.WireCategory
+import com.distronode.districtai.l10n.callDurationText
+import com.distronode.districtai.l10n.callTimeText
+import com.distronode.districtai.l10n.serverText
+import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.CenteredState
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.resolve
@@ -63,11 +62,10 @@ fun CallDetailScreen(
                 // ⚠️ ONLY ONCE THE CALL LOADED: a report names a call the operator could see.
                 actions = onReport?.takeIf { state is CallDetailUiState.Content }?.let { report ->
                     {
-                        DistrictButton(
-                            text = stringResource(R.string.report_action_call),
+                        DistrictTopBarAction(
+                            icon = DistrictIcons.Flag,
+                            label = stringResource(R.string.report_action_call),
                             onClick = report,
-                            variant = ButtonVariant.Ghost,
-                            size = ButtonSize.Sm,
                             modifier = Modifier.testTag(CALL_DETAIL_REPORT_DESCRIPTION),
                         )
                     }

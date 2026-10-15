@@ -23,13 +23,13 @@ import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
-import com.distronode.districtai.core.designsystem.ButtonVariant
-import com.distronode.districtai.core.designsystem.ButtonSize
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.Contact
@@ -41,6 +41,8 @@ import com.distronode.districtai.ui.PagedListEmpty
 import com.distronode.districtai.ui.PagedListLoading
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toPagedFailure
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.dp
 
 /**
  * The paged CRM list.
@@ -106,11 +108,10 @@ fun ContactsScreen(
                 onBack = onBack,
                 actions = onOpenBlocked?.let { open ->
                     {
-                        DistrictButton(
-                            text = stringResource(R.string.contact_block_blocked_callers),
+                        DistrictTopBarAction(
+                            icon = DistrictIcons.Block,
+                            label = stringResource(R.string.contact_block_blocked_callers),
                             onClick = open,
-                            variant = ButtonVariant.Ghost,
-                            size = ButtonSize.Sm,
                             modifier = Modifier.testTag(CONTACTS_BLOCKED_DESCRIPTION),
                         )
                     }
@@ -168,7 +169,9 @@ private fun Loaded(
     onOpenContact: (String) -> Unit,
     onSignIn: () -> Unit,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    // ⛔ BOTTOM PADDING THAT CLEARS THE ADD FAB (56dp, its 16dp margin and 16dp more), or the last row's
+    // status chip sits under the "+" and cannot be read (visual QA AA2).
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FAB_CLEARANCE)) {
         if (!canMutate) {
             // ⚠️ Stated up front rather than discovered by tapping something that 403s. Every
             // contacts mutation excludes `viewer` server-side.
@@ -282,3 +285,6 @@ const val CONTACTS_APPEND_FAILURE_DESCRIPTION: String = "district-contacts-appen
 const val CONTACTS_READ_ONLY_DESCRIPTION: String = "district-contacts-read-only"
 const val CONTACTS_ADD_DESCRIPTION: String = "district-contacts-add"
 const val CONTACTS_BLOCKED_DESCRIPTION: String = "district-contacts-blocked"
+
+/** What the list leaves under its last row so the add FAB never covers it. */
+private val FAB_CLEARANCE = 88.dp

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -343,29 +345,50 @@ private fun ReplyBox(
     onSend: (String) -> Unit,
     composer: ComposerHandlers,
 ) {
+    // ⛔ AT A LARGE FONT SCALE THE ACTIONS GO UNDER THE FIELD. Beside it, the three buttons took
+    // their own width first and left the field a fifth of the row, its label broken "RÉP / ONS / E"
+    // (visual QA AA1). Under it, the field keeps the full width.
+    val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
+    val field: @Composable (Modifier) -> Unit = { modifier ->
+        OutlinedTextField(
+            value = composer.text,
+            onValueChange = composer.onTextChange,
+            label = { Eyebrow(stringResource(R.string.thread_reply_label)) },
+            enabled = !state.sending,
+            maxLines = REPLY_MAX_LINES,
+            colors = districtFieldColors(),
+            modifier = modifier.testTag(THREAD_REPLY_FIELD_DESCRIPTION),
+        )
+    }
     ContentContainer {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DistrictTheme.spacing.gutter),
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-        ) {
-            OutlinedTextField(
-                value = composer.text,
-                onValueChange = composer.onTextChange,
-                label = { Eyebrow(stringResource(R.string.thread_reply_label)) },
-                enabled = !state.sending,
-                maxLines = REPLY_MAX_LINES,
-                colors = districtFieldColors(),
+        if (stacked) {
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .testTag(THREAD_REPLY_FIELD_DESCRIPTION),
-            )
-            ComposerActions(state, onSend, composer)
+                    .fillMaxWidth()
+                    .padding(DistrictTheme.spacing.gutter),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            ) {
+                field(Modifier.fillMaxWidth())
+                ComposerActions(state, onSend, composer)
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(DistrictTheme.spacing.gutter),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            ) {
+                field(Modifier.weight(1f))
+                ComposerActions(state, onSend, composer)
+            }
         }
     }
 }
+
+/** The font scale from which the reply bar stacks its actions under the field. */
+private const val STACK_FONT_SCALE = 1.3f
 
 /**
  * Attach, draft and send.
@@ -473,13 +496,16 @@ private fun MessageBubble(
                 style = MaterialTheme.typography.bodyMedium,
                 color = DistrictTheme.colors.foreground,
             )
-            Row(
+            // ⚠️ A FLOW ROW, so the badges wrap under the stamp rather than squeezing beside it. In a
+            // plain row at 200% font, "delivered" and "1 attachment" stacked two or three letters per
+            // line beside the stamp (visual QA AA1).
+            FlowRow(
                 modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),
                 horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
             ) {
                 Text(
-                    // As sent in English, as always; read in the device's zone in French.
+                    // The device's zone, in both languages.
                     text = stampText(event.timestamp),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,

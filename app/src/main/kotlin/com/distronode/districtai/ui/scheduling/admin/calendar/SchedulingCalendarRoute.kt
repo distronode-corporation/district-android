@@ -1,7 +1,6 @@
 package com.distronode.districtai.ui.scheduling.admin.calendar
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.getValue
@@ -35,6 +34,7 @@ import com.distronode.districtai.ui.scheduling.admin.SchedulingSectionLoading
 import com.distronode.districtai.ui.scheduling.admin.SchedulingSectionScaffold
 import com.distronode.districtai.ui.scheduling.admin.SectionState
 import com.distronode.districtai.ui.scheduling.admin.schedulingProviderLabel
+import androidx.compose.foundation.layout.FlowRow
 
 /** The calendar section, wired to its ViewModel. */
 @Composable
@@ -132,7 +132,12 @@ private fun ConnectionCard(
             stringResource(R.string.scheduling_admin_calendar_destination),
             destinationSummary(connection, calendars),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+        // ⚠️ A FLOW ROW: beside "Choose calendars", « Déconnecter » was squeezed to one letter per line
+        // at 200% font (visual QA AB2). It moves to its own line instead.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+        ) {
             DistrictButton(
                 text = stringResource(R.string.scheduling_admin_calendar_calendars_open),
                 onClick = @DontMemoize { actions.choose(connection) },

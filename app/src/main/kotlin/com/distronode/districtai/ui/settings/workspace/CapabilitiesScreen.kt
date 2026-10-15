@@ -21,6 +21,7 @@ import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.districtSwitchColors
 
 /**
  * What the agent may DO on a call, and the external-enrichment opt-in.
@@ -160,9 +161,10 @@ private fun CapabilityToggleRow(
     onToggle: (Boolean) -> Unit,
 ) {
     DistrictListRow(
-        // ⛔ AN UNRECOGNISED ID IS SHOWN BY ITS RAW NAME rather than hidden. Hiding it would delete
-        // it on the next save, because the allowlist is replaced wholesale.
-        title = row.labelRes?.let { stringResource(it) } ?: row.id,
+        // ⛔ AN UNRECOGNISED ID IS SHOWN rather than hidden. Hiding it would delete it on the next save,
+        // because the allowlist is replaced wholesale. ⚠️ Under a title that says what it is, not its
+        // snake_case identifier ("transfer_to_creator" in both languages; visual QA AC5).
+        title = stringResource(row.labelRes ?: R.string.capabilities_unknown_title),
         // ⚠️ The prerequisite hint wins when there is one; otherwise an unrecognised row explains
         // itself, so a raw id on screen reads as "stored but unknown to this app" rather than as a
         // rendering fault.
@@ -173,6 +175,7 @@ private fun CapabilityToggleRow(
                 checked = row.enabled,
                 onCheckedChange = onToggle,
                 enabled = enabled,
+                colors = districtSwitchColors(),
                 modifier = Modifier.testTag(capabilityToggleDescription(row.id)),
             )
         },
@@ -209,6 +212,7 @@ private fun EnrichmentSection(
                     checked = state.enrichmentEnabled,
                     onCheckedChange = onToggleEnrichment,
                     enabled = !busy,
+                    colors = districtSwitchColors(),
                     modifier = Modifier.testTag(CAPABILITIES_ENRICHMENT_TOGGLE_DESCRIPTION),
                 )
             },

@@ -26,6 +26,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.NumberRegistration
 import com.distronode.districtai.core.model.RegistrationDocument
 import com.distronode.districtai.ui.InlineFailure
+import androidx.compose.foundation.layout.FlowRow
 
 /**
  * The Registrations tab (iOS `RegistrationsSection`): what a country's regulator asks for, starting
@@ -84,7 +85,12 @@ private fun StartCard(draft: RegistrationDraft, write: NumberWriteState, handler
             label = R.string.numbers_registration_name_label,
             enabled = editable,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+        // ⚠️ A FLOW ROW, so « Commencer l'inscription » keeps one line and moves under « Vérifier les
+        // exigences » when the two do not fit side by side (visual QA AA5).
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+        ) {
             DistrictButton(
                 text = stringResource(R.string.numbers_requirements_check_action),
                 onClick = handlers.onCheckRequirements,

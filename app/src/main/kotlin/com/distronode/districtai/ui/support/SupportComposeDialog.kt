@@ -2,9 +2,9 @@ package com.distronode.districtai.ui.support
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -16,8 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
-import com.distronode.districtai.core.designsystem.ButtonVariant
-import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictRadioRow
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.SupportRequestKind
@@ -65,18 +64,16 @@ fun SupportComposeDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
                 )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
-                ) {
+                // ⛔ A COLUMN OF RADIO ROWS, NOT A ROW OF BUTTONS. Three kinds as buttons in one row
+                // broke "A sugges / tion" mid-word at 100%, dropped « Une suggestion » out of sight in
+                // French, and at 200% filled the dialog so the subject and message were off screen
+                // and a request could not be written (visual QA AD1).
+                Column(modifier = Modifier.selectableGroup()) {
                     SupportRequestKind.entries.forEach { kind ->
-                        DistrictButton(
-                            text = stringResource(kindLabel(kind)),
+                        DistrictRadioRow(
+                            label = stringResource(kindLabel(kind)),
+                            selected = state.kind == kind,
                             onClick = { onKind(kind) },
-                            variant = if (state.kind == kind) {
-                                ButtonVariant.Primary
-                            } else {
-                                ButtonVariant.Ghost
-                            },
                             enabled = !state.submitting,
                             modifier = Modifier.testTag("$SUPPORT_COMPOSE_KIND_DESCRIPTION-${kind.wire}"),
                         )

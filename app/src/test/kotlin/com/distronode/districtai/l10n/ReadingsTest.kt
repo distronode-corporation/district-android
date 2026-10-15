@@ -112,17 +112,20 @@ class ReadingsTest {
     }
 
     @Test
-    fun `raw stamps, months and clock times keep today's English and read French in French`() {
+    fun `stamps read in both languages, and months and clock times keep today's English`() {
         val iso = "2026-08-15T14:30:00.000Z"
+        val toronto = ZoneId.of("America/Toronto")
         assertRendered(
-            iso to { stampText(iso, en, utc) },
+            // ⛔ English is formatted too (visual QA AA3): never the raw "2026-08-15T14:30:00.000Z".
+            "Aug 15, 14:30" to { stampText(iso, en, utc) },
+            "Aug 15, 10:30 a.m." to { stampText(iso, en, toronto) },
             "15 août, 14 h 30" to { stampText(iso, fr, utc) },
             "yesterday" to { stampText("yesterday", fr, utc) },
-            iso to { stampText(iso) },
-            iso to { stampDateTimeText(iso, en, utc) },
+            "yesterday" to { stampText("yesterday") },
+            "Aug 15, 2026, 14:30" to { stampDateTimeText(iso, en, utc) },
             "15 août 2026, 14 h 30" to { stampDateTimeText(iso, fr, utc) },
             "soon" to { stampDateTimeText("soon", fr, utc) },
-            iso to { stampDateTimeText(iso) },
+            "soon" to { stampDateTimeText("soon") },
             "2026-08" to { yearMonthText("2026-08", en) },
             "août 2026" to { yearMonthText("2026-08", fr) },
             "2026-13" to { yearMonthText("2026-13", fr) },

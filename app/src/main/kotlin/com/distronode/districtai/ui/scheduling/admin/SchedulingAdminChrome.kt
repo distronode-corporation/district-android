@@ -15,15 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
-import com.distronode.districtai.core.designsystem.ButtonSize
-import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
-import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictCard
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
@@ -53,11 +52,10 @@ fun SchedulingSectionScaffold(
                 title = title,
                 onBack = onBack,
                 actions = {
-                    DistrictButton(
-                        text = stringResource(R.string.scheduling_admin_common_refresh),
+                    DistrictTopBarAction(
+                        icon = DistrictIcons.Refresh,
+                        label = stringResource(R.string.scheduling_admin_common_refresh),
                         onClick = onRefresh,
-                        variant = ButtonVariant.Ghost,
-                        size = ButtonSize.Sm,
                         modifier = Modifier.testTag(SCHEDULING_ADMIN_REFRESH_TAG),
                     )
                 },

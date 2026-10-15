@@ -26,6 +26,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
 
 /**
  * Panels, headers and the width container: the port of the web dashboard's UI primitives.
@@ -99,19 +101,28 @@ fun Eyebrow(
     modifier: Modifier = Modifier,
     color: Color = DistrictTheme.colors.mutedForeground,
 ) {
+    val style = DistrictTheme.text.eyebrow
+    val floor = with(LocalDensity.current) { EYEBROW_FLOOR.toSp() }
     Text(
         text = text.uppercase(),
-        style = DistrictTheme.text.eyebrow,
+        style = style,
+        // ⛔ NEVER SPLIT MID-WORD. At 200% font a metric card's eyebrow broke « HEBDOMADA / IRE » (visual
+        // QA A-S6); the label now steps its size down, no lower than a floor in dp, until every word is
+        // whole, exactly as a navigation label does.
+        autoSize = remember(style.fontSize, floor) { WholeWordAutoSize(max = style.fontSize, floor = floor) },
         color = color,
         modifier = modifier,
     )
 }
 
+/** The smallest an eyebrow gets, in dp so a 200% font scale cannot push a word past its column. */
+private val EYEBROW_FLOOR = 9.dp
+
 /**
  * A panel. 12dp radius, one calm 1px border, no shadow.
  *
- * ⛔ A BORDER RATHER THAN AN ELEVATION SHADOW, DELIBERATELY. The web's own note is that the system
- * uses "calm borders, single indigo accent, no neon glow"; on a near-black background a Material
+ * ⛔ A BORDER RATHER THAN AN ELEVATION SHADOW, DELIBERATELY. The web's design system uses calm
+ * borders, a single accent and no glow; on a near-black background a Material
  * shadow is invisible anyway, so elevation would communicate nothing while costing a layer.
  */
 @Composable
@@ -167,7 +178,7 @@ fun MetricCard(
 }
 
 /**
- * The standard surface title block: sentence-case title, optional indigo accent word, muted
+ * The standard surface title block: sentence-case title, optional accent word, muted
  * subtitle, actions slot, and a bottom rule.
  *
  * ⚠️ The accent word is ONE `AnnotatedString`, not two `Text`s in a `Row`. Two would not wrap as a

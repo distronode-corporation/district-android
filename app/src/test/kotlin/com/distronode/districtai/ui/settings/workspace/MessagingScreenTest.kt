@@ -128,10 +128,13 @@ class MessagingScreenTest {
             .assertIsDisplayed()
         // ⚠️ `byok` vs `managed` is what tells an operator whose carrier account is being billed.
         composeRule.onNodeWithText(
-            str(R.string.messaging_account_subtitle, "twilio", "byok", 2),
+            str(R.string.messaging_account_subtitle, "Twilio", "Bring Your Own Keys", 2),
             substring = true,
         ).assertIsDisplayed()
-        composeRule.onNodeWithText(str(R.string.messaging_account_subtitle, "telnyx", "managed", 1), substring = true)
+        composeRule.onNodeWithText(
+            str(R.string.messaging_account_subtitle, "Telnyx", "Managed Service", 1),
+            substring = true,
+        )
             .assertIsDisplayed()
     }
 

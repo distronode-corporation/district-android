@@ -26,11 +26,13 @@ import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
@@ -73,10 +75,10 @@ fun DeskScreen(
                     // ⚠️ Offered only to a role the settings routes admit, which is the same role
                     // the queue admits — so in practice it is present whenever this screen is.
                     if (canUse) {
-                        DistrictButton(
-                            text = stringResource(R.string.desk_settings_open),
+                        DistrictTopBarAction(
+                            icon = DistrictIcons.Settings,
+                            label = stringResource(R.string.desk_settings_open),
                             onClick = onSettings,
-                            variant = ButtonVariant.Ghost,
                         )
                     }
                 },

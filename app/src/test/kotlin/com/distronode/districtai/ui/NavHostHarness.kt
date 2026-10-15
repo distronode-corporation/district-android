@@ -65,6 +65,7 @@ import com.distronode.districtai.core.network.testing.FakeCallHandlingApi
 import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
 import com.distronode.districtai.core.network.testing.FakeDeskApi
 import com.distronode.districtai.core.network.testing.FakeSupportApi
+import androidx.compose.ui.test.hasContentDescription
 
 /**
  * [DistrictNavHost] over a container whose every dependency answers from a fake, on the main looper.
@@ -203,6 +204,12 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
 
     fun tap(description: String) {
         composeRule.onNodeWithTag(description).scrolledIntoView().performClick()
+        composeRule.waitForIdle()
+    }
+
+    /** Taps the icon action whose content description is [text] (a top-bar action draws no words). */
+    fun tapDescription(text: String) {
+        composeRule.onNode(hasContentDescription(text)).performClick()
         composeRule.waitForIdle()
     }
 

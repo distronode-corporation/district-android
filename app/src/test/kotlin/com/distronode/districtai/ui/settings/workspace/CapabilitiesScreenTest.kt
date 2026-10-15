@@ -147,11 +147,13 @@ class CapabilitiesScreenTest {
     }
 
     @Test
-    fun `a stored capability this app cannot name is drawn by its raw id and explains itself`() {
+    fun `a stored capability this app cannot name is drawn under a plain title and explains itself`() {
         // ⛔ HIDING IT WOULD DELETE IT ON THE NEXT SAVE, because the list is replaced wholesale.
         render(CapabilitiesUiState(load = loaded))
 
-        composeRule.onNodeWithText("transfer_to_creator").assertIsDisplayed()
+        composeRule.onNodeWithText("Unrecognised capability").assertIsDisplayed()
+        // ⚠️ Never its snake_case identifier as a title (visual QA AC5).
+        composeRule.onNodeWithText("transfer_to_creator").assertDoesNotExist()
         composeRule.onNodeWithTag(capabilityToggleDescription("transfer_to_creator"))
             .assertIsOn()
         composeRule.onNodeWithText(

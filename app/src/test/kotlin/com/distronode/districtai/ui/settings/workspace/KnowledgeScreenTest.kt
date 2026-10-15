@@ -107,11 +107,11 @@ class KnowledgeScreenTest {
         // ⚠️ VERBATIM. `status` is a plain string column, so an unrecognised value renders as
         // itself rather than being mapped to a guess.
         composeRule.onNodeWithText(
-            str(R.string.knowledge_doc_subtitle, "processing", 0),
+            str(R.string.knowledge_doc_subtitle, "Indexing", 0),
             substring = true,
         ).assertIsDisplayed()
         composeRule.onNodeWithText(
-            str(R.string.knowledge_doc_subtitle, "ready", 4),
+            str(R.string.knowledge_doc_subtitle, "Ready", 4),
             substring = true,
         ).assertIsDisplayed()
     }

@@ -16,9 +16,13 @@ import androidx.compose.ui.graphics.Color
  * changes per device. A brand is not allowed to be a function of the wallpaper.
  *
  * ⛔ THERE IS EXACTLY ONE ACCENT AND IT IS [DISTRICT]. The Ledger's neutrals are a teal-slate
- * ramp and the single accent sits on top of them as indigo in both modes (`#3f36e2` light,
- * `#7d84f7` dark). Nothing else in the palette is a brand colour: the status four
- * (success/warning/destructive/info) are state, not identity. Do not introduce a second one.
+ * ramp and the single accent sits on top of them as the logo's teal in both modes (`#01657d`
+ * light, `#67cded` dark; colour v3). Nothing else in the palette is a brand colour: the status
+ * four (success/warning/destructive/info) are state, not identity. Do not introduce a second one.
+ *
+ * ⛔ COLOUR V3 SINCE 3.0.1. Until then this file still carried the pre-v3 indigo accent and status
+ * colours while tokens.css had moved to v3 (visual QA A-S1, ruled a defect). Every value below is
+ * tokens.css's again; the neutrals did not change.
  *
  * ⚠️ VALUES ARE THE WEB'S, NOT APPROXIMATIONS OF IT. The source of truth is the web design
  * system's token stylesheet (`tokens.css`: `:root` is light, `[data-theme="dark"]` is dark).
@@ -60,7 +64,7 @@ data class DistrictColors(
     val input: Color,
     /** Raised/pressed surface above [card]. */
     val elevated: Color,
-    /** ⛔ The single brand accent. Indigo in both modes. */
+    /** ⛔ The single brand accent. The logo's teal in both modes. */
     val district: Color,
     /** Text ON [district]. ⚠️ Mode-dependent, and not by symmetry — see [DISTRICT_FOREGROUND]. */
     val districtForeground: Color,
@@ -105,35 +109,35 @@ data class DistrictColors(
         val ELEVATED = Color(0xFF1F373B)
 
         /**
-         * `--district: #7d84f7`.
+         * `--district: #67cded`.
          *
          * ⛔ The only brand colour in the app. The Material scheme's `ring`-equivalent
          * (focus indicator) resolves to this too, matching the web.
          */
-        val DISTRICT = Color(0xFF7D84F7)
+        val DISTRICT = Color(0xFF67CDED)
 
         /**
-         * `--district-foreground: #0f1020`.
+         * `--district-foreground: #0e1c1f`.
          *
-         * ⚠️ DARK TEXT ON THE INDIGO, WHICH LOOKS WRONG UNTIL YOU TRY IT, and it is
-         * mode-dependent rather than symmetric: dark mode's accent is a LIGHT indigo, so it
-         * takes this near-black, while light mode's accent is a deep indigo and takes white
+         * ⚠️ DARK TEXT ON THE ACCENT, WHICH LOOKS WRONG UNTIL YOU TRY IT, and it is
+         * mode-dependent rather than symmetric: dark mode's accent is a LIGHT teal, so it
+         * takes this near-black, while light mode's accent is a deep teal and takes white
          * ([LIGHT_DISTRICT_FOREGROUND]). Both pairs are AA in the web's contrast audit.
          * Copying one mode's choice to the other inverts a measured decision.
          */
-        val DISTRICT_FOREGROUND = Color(0xFF0F1020)
+        val DISTRICT_FOREGROUND = Color(0xFF0E1C1F)
 
-        /** `--success: #3fbf7f`. */
-        val SUCCESS = Color(0xFF3FBF7F)
+        /** `--success: #74e9aa`. */
+        val SUCCESS = Color(0xFF74E9AA)
 
-        /** `--warning: #fbbf24`. */
-        val WARNING = Color(0xFFFBBF24)
+        /** `--warning: #eab90c`. */
+        val WARNING = Color(0xFFEAB90C)
 
-        /** `--destructive: #f87171`. */
-        val DESTRUCTIVE = Color(0xFFF87171)
+        /** `--destructive: #fe737f`. */
+        val DESTRUCTIVE = Color(0xFFFE737F)
 
-        /** `--info: #60a5fa`. */
-        val INFO = Color(0xFF60A5FA)
+        /** `--info: #77bafe`. */
+        val INFO = Color(0xFF77BAFE)
 
         /**
          * ⚠️ NOT A LEDGER TOKEN — THIS FILE'S OWN CONVENTION, KEPT. tokens.css defines no
@@ -156,15 +160,15 @@ data class DistrictColors(
         private val LIGHT_INPUT = Color(0xFFBFCED0)
         private val LIGHT_ELEVATED = Color(0xFFF7F9F9)
 
-        /** `--district: #3f36e2` in light. Same family as [DISTRICT], far deeper for AA on white. */
-        private val LIGHT_DISTRICT = Color(0xFF3F36E2)
+        /** `--district: #01657d` in light. Same family as [DISTRICT], far deeper for AA on white. */
+        private val LIGHT_DISTRICT = Color(0xFF01657D)
 
         /** `--district-foreground: #ffffff` in light. */
         private val LIGHT_DISTRICT_FOREGROUND = Color(0xFFFFFFFF)
-        private val LIGHT_SUCCESS = Color(0xFF167A4B)
-        private val LIGHT_WARNING = Color(0xFF985305)
-        private val LIGHT_DESTRUCTIVE = Color(0xFFC51F1F)
-        private val LIGHT_INFO = Color(0xFF1B4FCA)
+        private val LIGHT_SUCCESS = Color(0xFF016F4E)
+        private val LIGHT_WARNING = Color(0xFF754603)
+        private val LIGHT_DESTRUCTIVE = Color(0xFFB4022D)
+        private val LIGHT_INFO = Color(0xFF223092)
 
         /**
          * The light-mode half of the [ON_SEMANTIC_DARK] convention: the four light status

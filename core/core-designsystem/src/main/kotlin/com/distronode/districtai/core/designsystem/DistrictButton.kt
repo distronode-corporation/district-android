@@ -16,10 +16,10 @@ import androidx.compose.ui.unit.dp
 /**
  * The four button variants, ported from `buttonClasses.ts`.
  *
- * ⛔ `Primary` PUTS DARK TEXT ON THE INDIGO, WHICH LOOKS WRONG UNTIL YOU CHECK THE CONTRAST.
- * `--district-foreground` is `240 20% 8%` — near-black. The accent is a LIGHT indigo (70%
- * lightness), so white on it fails WCAG AA while near-black passes comfortably. Every filled
- * primary button on the web reads this way; it is a contrast decision, not a style flourish.
+ * ⛔ `Primary` PUTS DARK TEXT ON THE DARK MODE'S ACCENT, WHICH LOOKS WRONG UNTIL YOU CHECK THE
+ * CONTRAST. In dark, `--district` is a LIGHT teal (`#67cded`) and `--district-foreground` the page's
+ * near-black (`#0e1c1f`), so white on it fails WCAG AA while near-black passes comfortably; light
+ * mode's deep teal takes white. It is a contrast decision, not a style flourish.
  *
  * ⚠️ `Danger` IS A TINTED OUTLINE, NOT A RED FILL. The web uses
  * `bg-destructive/10 text-destructive border-destructive/25`, because a solid red fill reads as
@@ -31,8 +31,8 @@ enum class ButtonVariant { Primary, Secondary, Ghost, Danger }
 /**
  * `Md` is the default (40dp, 14sp); `Sm` (32dp, 12sp) is for dense rows and toolbars.
  *
- * ⚠️ 32dp is BELOW Material's 48dp touch-target guidance, and it is on the web's spec, so `Sm` is
- * for pointer-dense surfaces only. Anything a thumb reaches for should be `Md`.
+ * ⚠️ 32dp and 40dp are the DRAWN heights, on the web's spec. The touch target is Material's 48dp in
+ * both sizes (see [DistrictButton]), so `Sm` is a visual density, not a smaller target.
  */
 enum class ButtonSize { Sm, Md }
 
@@ -42,6 +42,11 @@ enum class ButtonSize { Sm, Md }
  * ⚠️ Wraps Material's [Button] rather than a bare `Box`, so it keeps the ripple, the disabled
  * semantics, the minimum touch target and the focus handling for free. Only the colours, shape
  * and metrics are overridden.
+ *
+ * ⚠️ THE TOUCH TARGET IS 48dp EVEN FOR `Sm`. Material's button reserves
+ * `minimumInteractiveComponentSize` around the drawn 32dp or 40dp shape, so a tap anywhere in the
+ * 48dp band lands; the semantics bounds a screenshot tool reads are the drawn shape's. Pinned in
+ * DistrictButtonTest.
  */
 @Composable
 fun DistrictButton(
@@ -97,10 +102,17 @@ fun DistrictButton(
             // ⚠️ The web's `disabled:opacity-50` applied to BOTH halves. Material would otherwise
             // substitute its own greys, which on a near-black surface become invisible rather
             // than merely quiet.
-            disabledContainerColor = container.copy(alpha = 0.5f),
+            //
+            // ⛔ EXCEPT A TRANSPARENT CONTAINER, WHICH STAYS TRANSPARENT. `Color.Transparent` is
+            // black at alpha 0, so `copy(alpha = 0.5f)` turned a disabled Ghost button into a 50%
+            // black block (a grey slab in light, a pit darker than the page in dark; visual QA AC2).
+            disabledContainerColor = disabledContainer(container),
             disabledContentColor = ink.copy(alpha = 0.5f),
         ),
-        contentPadding = PaddingValues(horizontal = horizontal),
+        // ⚠️ VERTICAL PADDING TOO, so a label that wraps at a large font scale does not run into
+        // the button's top and bottom edges (visual QA AA5, AC12). One line still fits the minimum
+        // height, so a single-line button is unchanged.
+        contentPadding = PaddingValues(horizontal = horizontal, vertical = VERTICAL_PADDING),
         // ⚠️ `defaultMinSize` rather than `height`: a fixed height would clip a label that wraps
         // at a large font scale, and this app declares no maximum text size.
         modifier = modifier.defaultMinSize(minHeight = height),
@@ -108,3 +120,11 @@ fun DistrictButton(
         Text(text = text, style = style)
     }
 }
+
+private val VERTICAL_PADDING = 6.dp
+
+/** The disabled fill: half the enabled one, except that a transparent fill stays transparent (see AC2 above). */
+internal fun disabledContainer(container: Color): Color =
+    if (container.alpha == 0f) container else container.copy(alpha = DISABLED_ALPHA)
+
+private const val DISABLED_ALPHA = 0.5f

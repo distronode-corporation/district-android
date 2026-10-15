@@ -21,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -174,15 +176,25 @@ private fun KnowledgeModeSection(state: KnowledgeUiState, onSelectMode: (String)
         }
         state.modeOptions.forEach { option ->
             val (label, help) = modeStrings(option)
+            // ⚠️ THE WHOLE ROW IS THE CHOICE, as Material's single-choice list has it: the label and its
+            // help text select too, not only the 24dp dot (visual QA A-S4). One node carries the
+            // radio-button role and the selected state; the dot itself takes no click.
             DistrictListRow(
                 title = stringResource(label),
                 subtitle = stringResource(help),
+                modifier = Modifier
+                    .selectable(
+                        selected = state.mode == option,
+                        enabled = state.canChangeMode,
+                        role = Role.RadioButton,
+                        onClick = { onSelectMode(option) },
+                    )
+                    .testTag(knowledgeModeDescription(option)),
                 trailing = {
                     RadioButton(
                         selected = state.mode == option,
-                        onClick = { onSelectMode(option) },
+                        onClick = null,
                         enabled = state.canChangeMode,
-                        modifier = Modifier.testTag(knowledgeModeDescription(option)),
                     )
                 },
             )

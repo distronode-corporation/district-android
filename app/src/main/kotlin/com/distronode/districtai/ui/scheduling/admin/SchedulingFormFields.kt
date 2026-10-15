@@ -25,6 +25,7 @@ import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.districtFieldColors
+import com.distronode.districtai.core.designsystem.districtSwitchColors
 
 /**
  * A labelled text field with its hint and the reason it was refused, the shape of district-ios's
@@ -80,6 +81,7 @@ fun SchedulingToggleRow(
             checked = checked,
             onCheckedChange = onCheckedChange,
             enabled = enabled,
+            colors = districtSwitchColors(),
             modifier = Modifier.testTag(tag),
         )
     }

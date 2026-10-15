@@ -324,13 +324,16 @@ class RecompositionTest {
                     DistrictNavBar(modifier = Modifier.testTag("bar")) {
                         DistrictNavItem(
                             label = OVERVIEW,
+                            icon = DistrictIcons.Home,
                             selected = selected == OVERVIEW,
                             onClick = { selected = OVERVIEW },
                             description = if (described) "nav-$OVERVIEW" else null,
                         )
-                        DistrictNavItem(CALLS, selected == CALLS, { selected = CALLS })
+                        DistrictNavItem(CALLS, DistrictIcons.Call, selected == CALLS, { selected = CALLS })
                     }
-                    DistrictNavBar { DistrictNavItem(label = "Alone", selected = false, onClick = {}) }
+                    DistrictNavBar {
+                        DistrictNavItem(label = "Alone", icon = DistrictIcons.Person, selected = false, onClick = {})
+                    }
                 }
             }
         }

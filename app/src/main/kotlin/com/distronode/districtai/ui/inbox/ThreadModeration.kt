@@ -13,9 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
-import com.distronode.districtai.core.designsystem.ButtonSize
-import com.distronode.districtai.core.designsystem.ButtonVariant
-import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictIcons
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.ui.FailureText
 
 /**
@@ -41,11 +40,10 @@ data class ThreadModeration(
 internal fun ModerationMenu(moderation: ThreadModeration, onBlock: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        DistrictButton(
-            text = stringResource(R.string.contact_block_manage),
+        DistrictTopBarAction(
+            icon = DistrictIcons.MoreVert,
+            label = stringResource(R.string.contact_block_manage),
             onClick = { open = true },
-            variant = ButtonVariant.Ghost,
-            size = ButtonSize.Sm,
             enabled = !moderation.busy,
             modifier = Modifier.testTag(THREAD_MANAGE_DESCRIPTION),
         )

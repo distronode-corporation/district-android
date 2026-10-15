@@ -162,6 +162,7 @@
     <string name="capabilities_title">Capacités de l\'agent</string>
     <string name="capabilities_transfer_to_agent">Transférer à un humain (en dernier recours)</string>
     <string name="capabilities_transfer_to_person">Transférer à une personne</string>
+    <string name="capabilities_unknown_title">Capacité non reconnue</string>
     <string name="capabilities_unknown_tool">Capacité stockée pour cet espace de travail. Cette version de l\'application ne sait pas la nommer; la laisser activée la conserve.</string>
     <string name="contact_create">Ajouter un contact</string>
     <string name="contact_create_email">Courriel</string>

@@ -46,9 +46,9 @@ class AppLanguageTest {
     }
 
     @Test
-    fun `a known wire value reads as the app always showed it, and an unknown one passes through`() {
+    fun `a known wire value reads as the portal labels it, and an unknown one passes through`() {
         assertRendered(
-            "completed" to { wireLabel(WireCategory.CALL_STATUS, "completed") },
+            "Completed" to { wireLabel(WireCategory.CALL_STATUS, "completed") },
             "queued" to { wireLabel(WireCategory.CALL_STATUS, "queued") },
             "CA" to { wireLabel(WireCategory.REGION, "ca") },
             "MARS" to { wireLabel(WireCategory.REGION, "mars") },

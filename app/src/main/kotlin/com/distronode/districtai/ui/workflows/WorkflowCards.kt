@@ -26,6 +26,7 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
+import com.distronode.districtai.core.designsystem.districtSwitchColors
 import com.distronode.districtai.core.model.CampaignStatus
 import com.distronode.districtai.core.model.WorkflowListItem
 import com.distronode.districtai.core.model.WorkflowRun
@@ -201,6 +202,7 @@ internal fun WorkflowRow(
                     // ⚠️ Disabled while its own write is in flight, not while ANY is: two switches
                     // touch two different rows and nothing re-reads, so they do not race.
                     enabled = canToggle && !pending,
+                    colors = districtSwitchColors(),
                     modifier = Modifier.testTag(workflowToggleDescription(workflow.id)),
                 )
             }

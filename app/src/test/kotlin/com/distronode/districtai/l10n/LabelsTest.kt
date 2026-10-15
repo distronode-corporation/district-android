@@ -79,8 +79,8 @@ class LabelsTest {
                 wireLabel(WireCategory.MESSAGING_CREDENTIAL_SOURCE, "managed")
             },
         )
-        // English is the value as the app has always shown it.
-        assertEquals("delivered", str(R.string.wire_message_delivery_status_delivered))
+        // English is the portal's label since 3.0.1 (visual QA A-S7); an unknown value still passes through.
+        assertEquals("Delivered", str(R.string.wire_message_delivery_status_delivered))
         assertEquals("bounced", str(R.string.wire_message_delivery_status_unknown, "bounced"))
     }
 
@@ -89,7 +89,7 @@ class LabelsTest {
         // ⛔ It used to map to the category's unknown label, which takes an argument, so a call whose
         // status is `unknown` read "%1$s".
         assertRendered(
-            "unknown" to { wireLabel(WireCategory.CALL_STATUS, "unknown") },
+            "Unknown" to { wireLabel(WireCategory.CALL_STATUS, "unknown") },
             "unknown" to { wireLabel(WireCategory.NUMBER_PROVIDER, "unknown") },
         )
         assertEquals(R.string.wire_call_status_value_unknown, WireCategory.CALL_STATUS.labels["unknown"])
@@ -109,16 +109,17 @@ class LabelsTest {
     }
 
     @Test
-    fun `an inbox channel chip, a messaging channel and a support status read as English always did`() {
+    fun `an inbox channel chip, a messaging channel and a support status read as the portal names them`() {
         assertRendered(
             "EMAIL" to { inboxChannelLabel("email") },
             "SMS" to { inboxChannelLabel("sms") },
             unknown("WHATSAPP") to { inboxChannelLabel("whatsapp") },
-            "sms" to { messagingChannelLabel("sms") },
-            "voice" to { messagingChannelLabel("voice") },
-            "whatsapp" to { messagingChannelLabel("whatsapp") },
+            // The portal's channel names since 3.0.1 (visual QA AC4), no longer the raw value.
+            "SMS" to { messagingChannelLabel("sms") },
+            "Voice" to { messagingChannelLabel("voice") },
+            "WhatsApp" to { messagingChannelLabel("whatsapp") },
             unknown("rcs") to { messagingChannelLabel("rcs") },
-            str(R.string.messaging_channel_title, "sms") to {
+            str(R.string.messaging_channel_title, "SMS") to {
                 stringResource(R.string.messaging_channel_title, messagingChannelLabel("sms"))
             },
             str(R.string.support_status_received) to { stringResource(supportStatusLabel("Received", "PENDING")) },
@@ -135,10 +136,11 @@ class LabelsTest {
         assertEquals(ROUTING_FIELDS.toSet(), ROUTING_FIELD_LABELS.keys)
         assertEquals(ROUTING_OPERATORS.toSet(), ROUTING_OPERATOR_LABELS.keys)
         assertRendered(
-            "industry" to { valueLabel(ROUTING_FIELD_LABELS, "industry") },
-            "isDecisionMaker" to { valueLabel(ROUTING_FIELD_LABELS, "isDecisionMaker") },
-            "contains" to { valueLabel(ROUTING_OPERATOR_LABELS, "contains") },
-            "equals" to { valueLabel(ROUTING_OPERATOR_LABELS, "equals") },
+            // The portal's labels since 3.0.1 (visual QA AC4).
+            "Industry" to { valueLabel(ROUTING_FIELD_LABELS, "industry") },
+            "Decision Maker (true/false)" to { valueLabel(ROUTING_FIELD_LABELS, "isDecisionMaker") },
+            "Contains" to { valueLabel(ROUTING_OPERATOR_LABELS, "contains") },
+            "Equals" to { valueLabel(ROUTING_OPERATOR_LABELS, "equals") },
             unknown("revenue") to { valueLabel(ROUTING_FIELD_LABELS, "revenue") },
         )
     }

@@ -1453,6 +1453,15 @@ tier = "T3"
 state = "reviewed"
 note = "── Agent capabilities ──────────────────────────────────────────────── ⛔ THE ALLOWLIST IS REPLACED WHOLESALE BY ITS SAVE ROUTE."
 
+[capabilities.unknown_title]
+en = "Unrecognised capability"
+fr = "Capacité non reconnue"
+ctx = "label"
+screen = "capabilities"
+tier = "T3"
+state = "draft"
+note = "── Agent capabilities ──────────────────────────────────────────────── The title of a row for a capability stored for the workspace that this version of the app has no name for. Until 3.0.1 the row was titled with the raw identifier (`transfer_to_creator`; visual QA AC5)."
+
 [capabilities.unknown_tool]
 en = "Stored for this workspace. This version of the app does not have a name for it, and leaving it on keeps it."
 fr = "Capacité stockée pour cet espace de travail. Cette version de l'application ne sait pas la nommer; la laisser activée la conserve."
@@ -4598,14 +4607,15 @@ state = "reviewed"
 note = "Dismisses the carrier account form without saving."
 
 [messaging.channel_sms]
-en = "sms"
+en = "SMS"
 fr = "SMS"
 ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
 state = "reviewed"
+same_ok = true
 fr_variant = "messaging channel name: the portal's channel badge (messagingI18n.ts badgeSms), as the « SMS » channel label elsewhere"
-note = "The channel `sms`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeSms)."
+note = "The channel `sms`, as a heading and inside Send {channel} from. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's channel badge (messagingI18n.ts badgeSms)."
 
 [messaging.channel_title]
 en = "Send {channel} from"
@@ -4618,22 +4628,23 @@ state = "reviewed"
 note = "{channel} is a channel name such as SMS or WhatsApp; the line heads a picker of which carrier account sends it."
 
 [messaging.channel_voice]
-en = "voice"
+en = "Voice"
 fr = "Voix"
 ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
 state = "reviewed"
-note = "The channel `voice`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeVoice)."
+note = "The channel `voice`, as a heading and inside Send {channel} from. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's channel badge (messagingI18n.ts badgeVoice)."
 
 [messaging.channel_whatsapp]
-en = "whatsapp"
+en = "WhatsApp"
 fr = "WhatsApp"
 ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
 state = "reviewed"
-note = "The channel `whatsapp`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeWhatsApp)."
+same_ok = true
+note = "The channel `whatsapp`, as a heading and inside Send {channel} from. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's channel badge (messagingI18n.ts badgeWhatsApp)."
 
 [messaging.creator_cell_help]
 en = "Where the AI transfers a call it cannot handle. We cannot show the saved number here, so typing one replaces it."
@@ -6533,58 +6544,59 @@ state = "reviewed"
 note = "── Call routing rules ──────────────────────────────────────────────── ⛔ ALSO REPLACED WHOLESALE. A rule decides which voice and which engine answer a segment of callers."
 
 [routing.field_caller_type]
-en = "callerType"
+en = "Caller Type (business/consumer)"
 fr = "Type d'appelant (business/consumer)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The contact field `callerType` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+note = "The contact field `callerType` a rule tests. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.field_estimated_value]
-en = "estimatedValue"
+en = "Estimated Value"
 fr = "Valeur estimée"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The contact field `estimatedValue` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
+note = "The contact field `estimatedValue` a rule tests. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
 
 [routing.field_industry]
-en = "industry"
+en = "Industry"
 fr = "Secteur d'activité"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The contact field `industry` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
+fr_variant = "routing field name: the portal's routing field label (personaMediaI18n.ts routingFieldLabels), the field a rule tests rather than a contact's sector"
+note = "The contact field `industry` a rule tests. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingFieldLabels)."
 
 [routing.field_is_decision_maker]
-en = "isDecisionMaker"
+en = "Decision Maker (true/false)"
 fr = "Décideur (true/false)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The contact field `isDecisionMaker` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+note = "The contact field `isDecisionMaker` a rule tests. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.field_line_type]
-en = "lineType"
+en = "Line Type (mobile/landline/voip)"
 fr = "Type de ligne (mobile/landline/voip)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The contact field `lineType` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+note = "The contact field `lineType` a rule tests. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.field_seniority]
-en = "seniority"
+en = "Seniority (e.g. vp, c-suite)"
 fr = "Niveau hiérarchique (p. ex. vp, c-suite)"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The contact field `seniority` a rule tests. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
+note = "The contact field `seniority` a rule tests. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingFieldLabels), whose bracketed values are the CRM's and stay English."
 
 [routing.instruction]
 en = "Extra instruction for these callers"
@@ -6624,22 +6636,22 @@ state = "reviewed"
 note = "── Call routing rules ──────────────────────────────────────────────── ⛔ ALSO REPLACED WHOLESALE. A rule decides which voice and which engine answer a segment of callers."
 
 [routing.operator_contains]
-en = "contains"
+en = "Contains"
 fr = "Contient"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The comparison `contains`. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
+note = "The comparison `contains`. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
 
 [routing.operator_equals]
-en = "equals"
+en = "Equals"
 fr = "Égal à"
 ctx = "label"
 screen = "routing rules"
 tier = "T3"
 state = "reviewed"
-note = "The comparison `equals`. English is the value as the app has always shown it; the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
+note = "The comparison `equals`. English is the portal's label since 3.0.1 (visual QA AC4; it showed the value as sent until then), and the French is the portal's (personaMediaI18n.ts routingOperatorLabels)."
 
 [routing.option_unset]
 en = "not set"

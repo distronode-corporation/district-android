@@ -56,6 +56,7 @@ class DistrictNavBarTest {
                     listOf(OVERVIEW, CALLS, CONTACTS, ACCOUNT).forEach { label ->
                         DistrictNavItem(
                             label = label,
+                            icon = DistrictIcons.Home,
                             selected = label == selectedLabel,
                             description = "nav-$label",
                             onClick = { onSelect(label) },

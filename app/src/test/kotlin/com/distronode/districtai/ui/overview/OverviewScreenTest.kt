@@ -393,7 +393,7 @@ class OverviewScreenTest {
         )
 
         scrollToText("Live").assertIsDisplayed()
-        scrollToText("no-answer").assertIsDisplayed()
+        scrollToText("No answer").assertIsDisplayed()
     }
 
     @Test

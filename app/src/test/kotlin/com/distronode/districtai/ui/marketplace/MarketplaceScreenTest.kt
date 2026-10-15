@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.marketplace
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -233,6 +235,12 @@ class MarketplaceScreenTest {
         )
 
         composeRule.onNodeWithText("+14165550111").assertIsDisplayed()
+        // The carrier that answered, by its name ("Carrier: Twilio"). The eyebrow is upper-cased, so
+        // English cannot tell it from the key; CarrierLabelsScreenTest checks it in a pseudolocale.
+        composeRule.onNodeWithText(
+            str(R.string.marketplace_provider, str(R.string.wire_number_provider_twilio)),
+            ignoreCase = true,
+        ).assertIsDisplayed()
         composeRule.onNodeWithText("1.15 USD").assertIsDisplayed()
         composeRule.onNodeWithText("+18005550122").assertIsDisplayed()
         composeRule.onNodeWithText("0").assertDoesNotExist()
@@ -430,7 +438,9 @@ class MarketplaceScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("mobile").assertIsDisplayed()
+        // The result row's type by its label ("Mobile", not `mobile`); the search form's chip says it too.
+        composeRule.onAllNodesWithText(str(R.string.wire_number_type_mobile)).assertCountEquals(2)
+        composeRule.onNodeWithText("mobile").assertDoesNotExist()
         composeRule.onNodeWithText("sms · voice").assertDoesNotExist()
         composeRule.onNodeWithText("twilio", substring = true).assertDoesNotExist()
     }

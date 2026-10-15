@@ -528,7 +528,7 @@ class WorkflowsScreenTest {
         composeRule
             .onNodeWithTag(runCardDescription("run-partial"))
             .assertIsDisplayed()
-        composeRule.onNodeWithText("send_email").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.wire_workflow_action_send_email)).assertIsDisplayed()
         composeRule.onNodeWithText("contact has no email address").assertIsDisplayed()
     }
 

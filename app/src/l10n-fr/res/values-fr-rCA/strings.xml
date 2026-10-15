@@ -572,7 +572,7 @@
     <string name="nav_account">Compte</string>
     <string name="nav_calls">Appels</string>
     <string name="nav_contacts">Contacts</string>
-    <string name="nav_inbox">Boîte de réception</string>
+    <string name="nav_inbox">Réception</string>
     <string name="nav_overview">Aperçu</string>
     <string name="overview_badge_transfer_failed">Échec du transfert</string>
     <string name="overview_badge_transferred">Transféré</string>

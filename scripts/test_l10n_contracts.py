@@ -149,6 +149,16 @@ class WireLabelsTest(unittest.TestCase):
             self.kotlin,
         )
 
+    def test_a_portal_category_reads_as_the_portal_names_it_in_english_too(self) -> None:
+        self.assertEqual(self.table["a2p_campaign_type_customer_care"]["en"], "Customer Care")
+        self.assertEqual(self.table["number_provider_twilio"]["en"], "Twilio")
+        self.assertEqual(self.table["sip_trunk_status_active"]["en"], "Active")
+        self.assertEqual(self.table["workflow_action_send_sms"]["en"], "Send SMS")
+        self.assertEqual(self.table["number_type_toll_free"]["en"], "Toll-Free")
+        # A value the portal has no label for is shown as sent, and an unknown one generically.
+        self.assertEqual(self.table["number_provider_value_unknown"]["en"], "unknown")
+        self.assertEqual(self.table["sip_trunk_status_unknown"]["en"], "{value}")
+
     def test_a_category_fallback_is_its_unknown_label_in_both_languages(self) -> None:
         unknown = self.table["number_status_unknown"]
         self.assertEqual((unknown["en"], unknown["fr"]), ("Active", "Actif"))

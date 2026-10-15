@@ -127,7 +127,9 @@ internal fun SearchResults(state: SearchState.Ready) {
         ) {
             // ⚠️ The carrier that ACTUALLY answered, which need not be the one the operator
             // expected: the resolved credentials decide, not the request.
-            state.provider?.let { Eyebrow(stringResource(R.string.marketplace_provider, it)) }
+            state.provider?.let {
+                Eyebrow(stringResource(R.string.marketplace_provider, wireLabel(WireCategory.NUMBER_PROVIDER, it)))
+            }
 
             if (state.numbers.isEmpty()) {
                 // ⚠️ Reachable only once a search SUCCEEDED, so it genuinely means the carrier
@@ -153,7 +155,9 @@ private fun AvailableNumberRow(number: AvailableNumber) {
                 Text(text = locality, style = MaterialTheme.typography.bodySmall)
             }
             Text(
-                text = number.capabilities.joinToString(" · ").ifBlank { number.type },
+                // Each capability and the type by its label (« Texto »; "Toll-Free"), not as sent.
+                text = number.capabilities.map { wireLabel(WireCategory.NUMBER_CAPABILITY, it) }.joinToString(" · ")
+                    .ifBlank { wireLabel(WireCategory.NUMBER_TYPE, number.type) },
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
             )

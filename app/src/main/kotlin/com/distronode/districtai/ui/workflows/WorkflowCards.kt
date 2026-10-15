@@ -353,10 +353,13 @@ private fun RunCard(run: WorkflowRun) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
-                DistrictBadge(text = action.outcome, tone = outcomeTone(action.outcome))
+                DistrictBadge(
+                    text = wireLabel(WireCategory.WORKFLOW_ACTION_OUTCOME, action.outcome),
+                    tone = outcomeTone(action.outcome),
+                )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = action.type,
+                        text = wireLabel(WireCategory.WORKFLOW_ACTION, action.type),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.foreground,
                     )

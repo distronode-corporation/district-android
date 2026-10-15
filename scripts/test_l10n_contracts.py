@@ -153,6 +153,8 @@ class WireLabelsTest(unittest.TestCase):
         self.assertEqual(self.table["a2p_campaign_type_customer_care"]["en"], "Customer Care")
         self.assertEqual(self.table["number_provider_twilio"]["en"], "Twilio")
         self.assertEqual(self.table["sip_trunk_status_active"]["en"], "Active")
+        self.assertEqual(self.table["workflow_action_send_sms"]["en"], "Send SMS")
+        self.assertEqual(self.table["number_type_toll_free"]["en"], "Toll-Free")
         # A value the portal has no label for is shown as sent, and an unknown one generically.
         self.assertEqual(self.table["number_provider_value_unknown"]["en"], "unknown")
         self.assertEqual(self.table["sip_trunk_status_unknown"]["en"], "{value}")

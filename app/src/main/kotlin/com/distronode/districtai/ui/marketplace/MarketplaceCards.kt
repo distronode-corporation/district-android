@@ -155,7 +155,9 @@ private fun AvailableNumberRow(number: AvailableNumber) {
                 Text(text = locality, style = MaterialTheme.typography.bodySmall)
             }
             Text(
-                text = number.capabilities.joinToString(" · ").ifBlank { number.type },
+                // Each capability and the type by its label (« Texto »; "Toll-Free"), not as sent.
+                text = number.capabilities.map { wireLabel(WireCategory.NUMBER_CAPABILITY, it) }.joinToString(" · ")
+                    .ifBlank { wireLabel(WireCategory.NUMBER_TYPE, number.type) },
                 style = MaterialTheme.typography.bodySmall,
                 color = DistrictTheme.colors.mutedForeground,
             )

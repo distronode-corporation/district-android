@@ -5115,11 +5115,12 @@ note = "── Devices ───────────────────
 
 [nav.inbox]
 en = "Inbox"
-fr = "Boîte de réception"
+fr = "Réception"
 ctx = "menu"
 screen = "navigation"
 tier = "T3"
 state = "reviewed"
+fr_variant = "bottom navigation label: « Boîte de réception » wraps to two lines on a phone (store screenshot review); the iPhone tab bar's word"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist."
 
 [nav.overview]

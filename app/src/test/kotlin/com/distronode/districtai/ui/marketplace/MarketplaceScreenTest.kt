@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.marketplace
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -436,7 +438,9 @@ class MarketplaceScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("mobile").assertIsDisplayed()
+        // The result row's type by its label ("Mobile", not `mobile`); the search form's chip says it too.
+        composeRule.onAllNodesWithText(str(R.string.wire_number_type_mobile)).assertCountEquals(2)
+        composeRule.onNodeWithText("mobile").assertDoesNotExist()
         composeRule.onNodeWithText("sms · voice").assertDoesNotExist()
         composeRule.onNodeWithText("twilio", substring = true).assertDoesNotExist()
     }

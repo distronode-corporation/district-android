@@ -65,6 +65,17 @@ jobs:
           python3 tools/l10n/l10n.py check l10n/wire_labels.toml --gen android:l10n/res --opt name=wire_labels
           python3 tools/l10n/l10n.py check l10n/scheduling.toml --gen android:l10n/res --opt name=scheduling
 
+      # frcheck's French rules (typography, terms, sentence case, one French version of an
+      # English string across catalogs) over every catalog, as district-core-swift and
+      # district-linux run them. No term base or memory here. Warnings print; an error fails.
+      - name: The French rules (frcheck)
+        run: python3 tools/l10n/frcheck.py all --termbase '' --tm '' .
+
+      # The French sign-off check itself runs in release.yml on a tag only: catalogs change
+      # between releases. Its self-test reads no catalog, so it runs here.
+      - name: The French sign-off check still catches what it claims to
+        run: python3 scripts/check-fr-signoff.py --self-test
+
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1

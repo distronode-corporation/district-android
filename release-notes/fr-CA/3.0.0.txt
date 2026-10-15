@@ -1,0 +1,7 @@
+District AI est maintenant en français canadien.
+• Transcription en direct d'un appel en cours
+• Bloquez un appelant et signalez un contenu généré par l'IA
+• Lancez une conversation depuis la boîte de réception ou envoyez à un contact un lien d'appel vidéo
+• Numéros de téléphone : acheminement des appels, libération d'un numéro, inscriptions et transporteurs
+• Gestion des pages de réservation, maintenant dans l'application
+• Importez un fichier texte dans Connaissances

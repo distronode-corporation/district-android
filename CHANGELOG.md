@@ -8,48 +8,15 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
-### Added
+## [3.0.0] - 2026-10-15
 
-- A call in progress shows its live transcript on the call screen as it is spoken, and the full
-  transcript in the same place once the call ends.
-- Report AI-generated content from a call, a conversation or a District HQ answer. The report goes
-  to Distronode's support desk with an optional note.
-- Block a caller from their contact or a conversation. Their conversations leave the Inbox, a
-  Blocked badge marks them in Contacts, and Contacts → Blocked callers lists everyone blocked, with
-  Unblock.
-- Knowledge can read a plain text file (.txt or .md, up to 1 MB) into a new document's title
-  and text, for you to review before you add it.
-- Phone numbers: open a number to reapply its call routing or release it (the app asks first,
-  because a released number cannot be reclaimed). New Registrations and Carrier tabs cover
-  regulatory filings, carrier accounts, one-time passcodes, SIP trunks, A2P 10DLC and toll-free
-  verification, and a paid number lookup. Buying a number stays on the web.
-- Scheduling: the booking page's admin is now in the app, with Overview, Bookings, Event types,
-  Working hours, Calendar, Team, Developer and Settings.
-- A Video call button on a contact sends the contact a link to a video room by text or email;
-  the same button then takes you into the room.
-- Start a new conversation from the Inbox: New message lets you pick a recent contact or type a
-  number or email address, choose SMS or email, and send. The new thread opens once it is sent.
-
-### Changed
-
-- Every word on screen now comes from one string catalog, and error messages from the service are
-  matched by their code. What you see in English does not change.
-- The app reads the service's current list of call and transfer statuses, including four new
-  transfer values.
-- The catalogs carry their reviewed Canadian French (fr-CA): 1,769 entries across
-  `l10n/*.toml`, regenerated into `app/src/l10n-fr/res/values-fr-rCA`. French stays switched
-  off: that source set still joins the build only with `-Pdistrict.l10n.fr`, and
-  `scripts/french-guard.sh` still holds every release bundle to no French. The English
-  resources lose their `tools:ignore="MissingTranslation"`, which the generator writes only
-  while a French entry is missing.
-
-### Fixed
-
-- A call with no AI summary says so ("No AI summary for this call.") instead of showing the
-  service's stand-in text, such as "No summary available." or a live-session status, and a call
-  whose summary failed says that it could not be summarised.
-- TalkBack reads a screen's own words instead of internal labels that were attached to controls
-  for testing.
+District AI is now in Canadian French.
+- Live transcript of a call in progress
+- Block a caller, and report AI-generated content
+- Start a conversation from the Inbox, or send a contact a video call link
+- Phone numbers: call routing, release, registrations and carriers
+- Booking pages admin, now in the app
+- Read a text file into Knowledge
 
 ## [2.2] - 2026-10-13
 

@@ -326,7 +326,7 @@ class DeskScreenTest {
 
     /**
      * ⛔ A SQUEEZED CONTROL SPLITS ITS LABEL MID-WORD. French runs about 30% longer than English and
-     * this build carries no French, so English at a narrow width stands in for French at phone width
+     * these tests render English, so English at a narrow width stands in for French at phone width
      * (the W4 French QA found this row split on a 411dp phone in fr-CA and en-XA).
      */
     @Test

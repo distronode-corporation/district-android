@@ -340,6 +340,7 @@ ctx = "label"
 screen = "call log, call detail, overview"
 tier = "T3"
 state = "reviewed"
+fr_variant = "callStatus: contract label"
 note = "The callStatus value `unknown` as the server sends it. This app has always shown it as sent. The portal's English label is \"Unknown\"."
 
 [wire.call_type_inbound]
@@ -487,6 +488,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
+fr_variant = "deskTicketStatus: contract label"
 note = "The deskTicketStatus value `open` as the server sends it. This app has always shown it as sent. The portal's English label is \"Open\"."
 
 [wire.desk_ticket_status_resolved]
@@ -696,6 +698,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
+fr_variant = "lineType: contract label"
 note = "The lineType value `mobile` as the server sends it. This app has always shown it as sent. The portal's English label is \"Mobile phone\"."
 
 [wire.line_type_unknown]
@@ -724,6 +727,7 @@ ctx = "label"
 screen = "rooms"
 tier = "T3"
 state = "reviewed"
+fr_variant = "meetingStatus: contract label"
 note = "The meetingStatus value `completed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Completed\"."
 
 [wire.meeting_status_in_progress]
@@ -983,6 +987,7 @@ ctx = "label"
 screen = "phone numbers"
 tier = "T3"
 state = "reviewed"
+fr_variant = "numberProvider: a status label, capitalized like the provider names (the contract has no French for `unknown`)"
 note = "The numberProvider value `unknown` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.number_status_active]
@@ -1283,6 +1288,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
+fr_variant = "researchStatus: contract label"
 note = "The researchStatus value `failed` as the server sends it. This app has always shown it as sent. The portal's English label is \"Enrichment failed\"."
 
 [wire.research_status_pending]
@@ -1292,6 +1298,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
+fr_variant = "researchStatus: contract label"
 note = "The researchStatus value `pending` as the server sends it. This app has always shown it as sent. The portal's English label is \"Pending queue\"."
 
 [wire.research_status_unknown]
@@ -1403,6 +1410,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
+fr_variant = "schedulingWebhookDeliveryStatus: contract label"
 note = "The schedulingWebhookDeliveryStatus value `success` as the server sends it. This app has always shown it as sent. The portal's English label is \"Delivered\"."
 
 [wire.scheduling_webhook_delivery_status_unknown]
@@ -1943,6 +1951,7 @@ ctx = "label"
 screen = "workflows"
 tier = "T3"
 state = "reviewed"
+fr_variant = "workflowRunStatus: contract label"
 note = "The workflowRunStatus value `skipped` as the server sends it. This app has always shown it as sent. The portal's English label is \"Nothing to do\"."
 
 [wire.workflow_run_status_success]
@@ -1952,6 +1961,7 @@ ctx = "label"
 screen = "workflows"
 tier = "T3"
 state = "reviewed"
+fr_variant = "workflowRunStatus: contract label"
 note = "The workflowRunStatus value `success` as the server sends it. This app has always shown it as sent. The portal's English label is \"Succeeded\"."
 
 [wire.workflow_run_status_unknown]

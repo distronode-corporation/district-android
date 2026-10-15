@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #
 # Tests for the release scripts (release-version.sh, release-notes.sh, gsm-secret.sh,
-# play-publish.sh, github-release.sh), run by CI on every pull request. No network: curl and gh
-# are replaced by stubs that answer from fixtures and record every call, so the tests can assert
-# what was sent, in what order, and what was NOT sent (no commit after a failure, no second
-# submission, no token in argv, no second release).
+# play-publish.sh, github-release.sh, release-build.sh, french-guard.sh), run by CI on every pull
+# request. No network: curl, gh, Gradle, keytool and aapt2 are replaced by stubs that answer from
+# fixtures and record every call, so the tests can assert what was sent, in what order, and what
+# was NOT sent (no commit after a failure, no second submission, no token in argv, no second
+# release, no French flag nobody chose).
 #
 #   scripts/release-scripts.test.sh
 set -euo pipefail
@@ -21,6 +22,11 @@ check() { # description, then a command that must succeed
     local what=$1
     shift
     if "$@"; then pass "$what"; else flunk "$what"; fi
+}
+passes() { # description, then a command that must succeed, its output kept in $work/out
+    local what=$1
+    shift
+    if "$@" > "$work/out" 2>&1; then pass "$what"; else flunk "$what (it failed: $(tail -n 3 "$work/out"))"; fi
 }
 refuses() { # description, then a command that must fail
     local what=$1
@@ -423,6 +429,227 @@ check "asks for successful push runs of release.yml on the tag" \
 echo '{"workflow_runs":[]}' > "$STUB_DIR/runs"
 out=$(ghrel build-run v1.2)
 check "no such run: prints nothing" test -z "$out"
+
+# ── release-build.sh ──────────────────────────────────────────────────────────
+# Only the French switch is tested here: DISTRICT_FRENCH must be true or false, and reaches Gradle
+# by value as -Pdistrict.l10n.fr=true or =false (French is on by default since 3.0). Secret Manager, keytool and Gradle are stubs; the
+# stub Gradle records its argv and writes a signed-looking bundle and a mapping.
+echo "release-build.sh"
+rb="$work/rb"
+rbbin="$work/rbbin"
+mkdir -p "$rb/scripts" "$rbbin" "$work/rbtmp"
+cp "$root/scripts/release-build.sh" "$rb/scripts/"
+cat > "$rb/scripts/gsm-secret.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "$1" >> "$RB_LOG/gsm-calls"
+case "$1" in
+ANDROID_UPLOAD_KEYSTORE) printf 'stub-keystore' | base64 ;;
+*) printf 'stub-%s' "$1" ;;
+esac
+EOF
+cat > "$rb/gradlew" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$RB_LOG/gradle-args"
+mkdir -p app/build/outputs/bundle/release app/build/outputs/mapping/release
+python3 -I -c 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1], "w"); z.writestr("META-INF/STUB.RSA", "sig"); z.writestr("base/manifest/AndroidManifest.xml", "m"); z.close()' \
+    app/build/outputs/bundle/release/app-release.aab
+echo "mapping" > app/build/outputs/mapping/release/mapping.txt
+EOF
+printf '#!/bin/sh\nexit 0\n' > "$rbbin/keytool"
+chmod +x "$rb/scripts/gsm-secret.sh" "$rb/gradlew" "$rbbin/keytool"
+rbrun() { # DISTRICT_FRENCH value, or "unset"
+    rm -rf "$work/rblog"
+    mkdir -p "$work/rblog"
+    if [ "$1" = unset ]; then
+        env -u DISTRICT_FRENCH PATH="$rbbin:$PATH" RB_LOG="$work/rblog" RUNNER_TEMP="$work/rbtmp" \
+            GCP_TOKEN=t VERSION_CODE=4242 "$rb/scripts/release-build.sh"
+    else
+        env PATH="$rbbin:$PATH" RB_LOG="$work/rblog" RUNNER_TEMP="$work/rbtmp" GCP_TOKEN=t \
+            VERSION_CODE=4242 DISTRICT_FRENCH="$1" "$rb/scripts/release-build.sh"
+    fi
+}
+passes "DISTRICT_FRENCH=false builds" rbrun false
+check "  (Gradle got -Pdistrict.l10n.fr=false)" grep -qx -- '-Pdistrict.l10n.fr=false' "$work/rblog/gradle-args"
+check "  (and the version code)" grep -qx -- '-PdistrictVersionCode=4242' "$work/rblog/gradle-args"
+passes "DISTRICT_FRENCH=true builds" rbrun true
+check "  (Gradle got -Pdistrict.l10n.fr=true)" grep -qx -- '-Pdistrict.l10n.fr=true' "$work/rblog/gradle-args"
+refuses "DISTRICT_FRENCH unset is refused" rbrun unset
+check "  (the message names the variable)" grep -q "DISTRICT_FRENCH is '', not true or false" "$work/out"
+check "  (no secret was read)" test ! -e "$work/rblog/gsm-calls"
+check "  (Gradle never ran)" test ! -e "$work/rblog/gradle-args"
+refuses "DISTRICT_FRENCH=yes is refused" rbrun yes
+check "  (the message quotes the value)" grep -q "DISTRICT_FRENCH is 'yes'" "$work/out"
+check "  (Gradle never ran)" test ! -e "$work/rblog/gradle-args"
+
+# ── french-guard.sh ───────────────────────────────────────────────────────────
+# A tree of its own: the guard reads the app's keys from app/src/main/res/values beside it. The
+# stub aapt2 answers `dump resources` with $FG_TABLE and `dump xmltree` with $FG_LOCALES, in the
+# formats aapt2 37.0.0 printed for a real bundle (2026-10-14), and records its argv.
+echo "french-guard.sh"
+fg="$work/fg"
+mkdir -p "$fg/scripts" "$fg/app/src/main/res/values" "$work/sdk/build-tools/37.0.0"
+cp "$root/scripts/french-guard.sh" "$fg/scripts/"
+cat > "$fg/app/src/main/res/values/strings.xml" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @generated by i18n/tools/l10n.py from catalog "android". Do not edit; run l10n.py gen. -->
+<resources>
+    <string name="app_name">District AI</string>
+    <string name="sign_in_action">Sign in</string>
+    <string name="date_format_ymd" translatable="false">2026-12-31</string>
+    <plurals name="entry_count">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+</resources>
+EOF
+# Hand-written, not generated: its strings are not catalog keys.
+cat > "$fg/app/src/main/res/values/colors.xml" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="not_a_catalog_key">x</string>
+</resources>
+EOF
+cat > "$work/sdk/build-tools/37.0.0/aapt2" << 'EOF'
+#!/usr/bin/env bash
+echo "$*" >> "$FG_LOG"
+case "$1 $2" in
+"dump resources") cat "$FG_TABLE" ;;
+"dump xmltree") cat "$FG_LOCALES" ;;
+*) echo "stub aapt2: unhandled $*" >&2; exit 2 ;;
+esac
+EOF
+chmod +x "$work/sdk/build-tools/37.0.0/aapt2"
+echo "not really an apk" > "$work/app.apk"
+python3 -I -c 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1], "w"); z.writestr("base/manifest/AndroidManifest.xml", "m"); z.writestr("base/resources.pb", "t"); z.close()' "$work/app.aab"
+
+# fg_table <app_name configs> <sign_in_action configs> <entry_count configs> <date_format configs>
+#          <not_a_catalog_key configs> [nolocale]
+# Each configs argument is a space-separated list of extra configurations beside the default
+# (`-` for none); app_name `missing` leaves it out of the table. AndroidX's own French is always
+# there, as in every real bundle.
+fg_table() {
+    local config
+    {
+        echo "Package name=com.distronode.districtai id=7f"
+        echo "  type plurals id=0c entryCount=1"
+        echo "    resource 0x7f0c0000 plurals/entry_count"
+        echo '      () (featureFlag=) (plurals) size=2 src=values.xml:1'
+        echo "        one=\"%1\$d entry\""
+        echo "        other=\"%1\$d entries\""
+        for config in $3; do
+            [ "$config" = - ] && continue
+            echo "      ($config) (featureFlag=) (plurals) size=2 src=values.xml:2"
+            echo "        one=\"%1\$d entree\""
+        done
+        echo "  type string id=0e entryCount=6"
+        echo "    resource 0x7f0e0001 string/abc_action_bar_home_description"
+        echo '      () "Navigate home" src=values.xml:3'
+        echo '      (fr-rCA) "Revenir a l accueil" src=values-fr-rCA.xml:3'
+        echo '      (fr) "Revenir a l accueil" src=values-fr.xml:3'
+        if [ "$1" != missing ]; then
+            echo "    resource 0x7f0e00c2 string/app_name"
+            echo '      () "District AI" src=values.xml:447'
+            for config in $1; do [ "$config" = - ] || echo "      ($config) \"District IA\" src=values.xml:9"; done
+        fi
+        echo "    resource 0x7f0e00c3 string/sign_in_action"
+        echo '      () "Sign in" src=values.xml:448'
+        for config in $2; do [ "$config" = - ] || echo "      ($config) \"Se connecter\" src=values.xml:10"; done
+        echo "    resource 0x7f0e00c4 string/date_format_ymd"
+        echo '      () "2026-12-31" src=values.xml:449'
+        for config in $4; do [ "$config" = - ] || echo "      ($config) \"2026-12-31\" src=values.xml:11"; done
+        echo "    resource 0x7f0e00c5 string/not_a_catalog_key"
+        echo '      () "x" src=values.xml:450'
+        for config in $5; do [ "$config" = - ] || echo "      ($config) \"x\" src=values.xml:12"; done
+        if [ "${6:-}" != nolocale ]; then
+            echo "  type xml id=11 entryCount=1"
+            echo "    resource 0x7f110000 xml/_generated_res_locale_config"
+            echo "      () (file) res/xml/_generated_res_locale_config.xml type=protoXML src=localeConfig:0"
+            echo "      (v35) (file) res/xml-v35/_generated_res_locale_config.xml type=protoXML src=localeConfig:0"
+        fi
+    } > "$work/fg-table"
+}
+# fg_locales <language>...: the per-app language list as `aapt2 dump xmltree` prints it.
+fg_locales() {
+    local language
+    {
+        echo "N: android=http://schemas.android.com/apk/res/android (line=1)"
+        echo "  E: locale-config (line=1)"
+        echo '    A: http://schemas.android.com/apk/res/android:defaultLocale(0x01010688)="en-US" (Raw: "en-US")'
+        for language in "$@"; do
+            echo "      E: locale (line=2)"
+            echo "        A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"$language\" (Raw: \"$language\")"
+        done
+    } > "$work/fg-locales"
+}
+guard() { # mode, artifact
+    : > "$work/fg-log"
+    env ANDROID_HOME="$work/sdk" FG_TABLE="$work/fg-table" FG_LOCALES="$work/fg-locales" \
+        FG_LOG="$work/fg-log" "$fg/scripts/french-guard.sh" "$@"
+}
+said() { grep -q -- "$1" "$work/out"; }
+
+echo "french-guard.sh absent"
+fg_table - - - - -
+fg_locales en-US
+passes "English app keys pass, beside AndroidX's own French" guard absent "$work/app.apk"
+check "  (it counts the app's keys, not AndroidX's or a hand-written file's)" said "4 of 4 app keys in the table, 0 with French"
+check "  (both locale-config files were read)" grep -q "dump xmltree --file res/xml-v35/_generated_res_locale_config.xml" "$work/fg-log"
+passes "a bundle passes the same way" guard absent "$work/app.aab"
+check "  (aapt2 read the repacked base module)" grep -q "dump resources .*/base.apk" "$work/fg-log"
+fg_table fr-rCA - - - -
+refuses "an app string in fr-rCA fails" guard absent "$work/app.apk"
+check "  (it names the key)" said "1 app keys have a French value: string/app_name"
+fg_table - - fr - -
+refuses "an app plural in plain fr fails" guard absent "$work/app.apk"
+check "  (it names the plural)" said "plurals/entry_count"
+fg_table - fr-rFR - - -
+refuses "an app string in fr-rFR fails" guard absent "$work/app.apk"
+check "  (it names the key)" said "string/sign_in_action"
+fg_table - b+fr+CA - - -
+refuses "an app string in b+fr+CA fails" guard absent "$work/app.apk"
+fg_table - - - fr-rCA-v21 -
+refuses "a non-translatable key with French (fr-rCA-v21) fails too" guard absent "$work/app.apk"
+check "  (it names the key)" said "string/date_format_ymd"
+fg_table - - - - fr-rCA
+passes "a hand-written resource with French is not a catalog key" guard absent "$work/app.apk"
+fg_table - - - - -
+fg_locales en-US fr-CA
+refuses "the per-app language list naming fr-CA fails" guard absent "$work/app.apk"
+check "  (it names the list)" said "the per-app language list names fr-CA"
+fg_locales en-US fr
+refuses "the per-app language list naming plain fr fails" guard absent "$work/app.apk"
+fg_locales en-US
+fg_table - - - - - nolocale
+refuses "no locale config at all fails rather than passing" guard absent "$work/app.apk"
+check "  (it says what is missing)" said "has no xml/_generated_res_locale_config"
+fg_table - - - - -
+fg_locales
+refuses "a locale config with no language read fails" guard absent "$work/app.apk"
+fg_locales en-US
+fg_table missing - - - -
+refuses "a table without string/app_name fails" guard absent "$work/app.apk"
+check "  (it says the table was not read)" said "string/app_name is not in"
+
+echo "french-guard.sh present"
+fg_table fr-rCA fr-rCA fr-rCA - -
+fg_locales en-US fr-CA
+passes "every translatable key in fr-rCA and fr-CA listed passes" guard present "$work/app.apk"
+check "  (the non-translatable key needs no French)" said "French is present"
+fg_table fr-rCA - fr-rCA - -
+refuses "a translatable key without fr-rCA fails" guard present "$work/app.apk"
+check "  (it names the key)" said "1 translatable app keys have no fr-rCA value: string/sign_in_action"
+fg_table "fr-rCA fr" fr-rCA fr-rCA - -
+refuses "a plain fr value beside fr-rCA fails" guard present "$work/app.apk"
+check "  (it names the key)" said "app keys have a French value other than fr-rCA: string/app_name"
+fg_table fr-rCA fr-rCA fr-rCA - -
+fg_locales en-US
+refuses "fr-CA missing from the per-app language list fails" guard present "$work/app.apk"
+check "  (it names what the list holds)" said "does not name fr-CA (it names: en-US)"
+fg_table - - - - -
+refuses "an English bundle fails present" guard present "$work/app.apk"
+
+refuses "an unknown mode is refused" guard maybe "$work/app.apk"
+refuses "a missing artifact is refused" guard absent "$work/nothing.aab"
 
 echo
 echo "$passed passed, $failed failed"

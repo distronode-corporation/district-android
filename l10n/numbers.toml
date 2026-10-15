@@ -340,7 +340,7 @@ note = "Under the tabs, for a role that may change numbers. The web hand-off but
 
 [numbers.read_only_viewer]
 en = "Changing a number needs an agency or client role. Ask someone on this workspace who has one."
-fr = "Modifier un numéro exige un rôle Agence ou Client. Demandez à un membre de cet espace de travail qui en a un."
+fr = "Modifier un numéro exige un rôle Administrateur ou Membre. Demandez à un membre de cet espace de travail qui en a un."
 ctx = "body"
 screen = "numbers"
 tier = "T1"
@@ -985,7 +985,7 @@ state = "reviewed"
 
 [numbers.viewer_cannot_provision]
 en = "Registrations, carrier setup and number changes need an agency or client role. Ask someone on this workspace who has one."
-fr = "Les inscriptions, la configuration du transporteur et la gestion des numéros exigent le rôle Agence ou Client. Demandez à un membre qui a l'un de ces rôles."
+fr = "Les inscriptions, la configuration du transporteur et la gestion des numéros exigent le rôle Administrateur ou Membre. Demandez à un membre qui a l'un de ces rôles."
 ctx = "body"
 screen = "numbers"
 tier = "T1"

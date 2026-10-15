@@ -1,6 +1,7 @@
 package com.distronode.districtai
 
 import android.app.Application
+import android.content.res.Configuration
 import com.distronode.districtai.push.DistrictFirebase
 
 /**
@@ -46,7 +47,18 @@ import com.distronode.districtai.push.DistrictFirebase
  */
 class DistrictApplication : Application(), AppContainerOwner {
 
-    override val container: AppContainer by lazy { AppContainer(this) }
+    private val lazyContainer = lazy { AppContainer(this) }
+
+    override val container: AppContainer by lazyContainer
+
+    /**
+     * ⚠️ A DEVICE OR PER-APP LANGUAGE CHANGE ARRIVES HERE, and the account's saved language follows
+     * it. Only once the container exists: before that, its own construction does the same check.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (lazyContainer.isInitialized()) container.accountLanguage.onLanguageMaybeChanged()
+    }
 
     /**
      * ⛔ THE ONLY WORK DONE EAGERLY, AND NEITHER HALF COSTS I/O. `initializeApp` builds an in-memory

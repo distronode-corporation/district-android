@@ -60,6 +60,11 @@ import com.distronode.districtai.core.network.DistrictApiClient
 import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.DistrictHttp
+import com.distronode.districtai.core.network.HttpAccountApi
+import com.distronode.districtai.l10n.AccountLanguageReporter
+import com.distronode.districtai.l10n.PreferencesSavedLanguage
+import com.distronode.districtai.l10n.acceptLanguage
+import com.distronode.districtai.l10n.resolvedLanguage
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.media.LiveKitCallEngine
 import com.distronode.districtai.core.network.HttpCallControlApi
@@ -143,7 +148,11 @@ class AppContainer(
 
     private val appContext = context.applicationContext
 
-    private val httpClient = DistrictHttp.client()
+    /**
+     * ⚠️ `Accept-Language` follows the language the screens resolved to, read at each request, so a
+     * per-app language change reaches the next one. See [AcceptLanguageInterceptor].
+     */
+    private val httpClient = DistrictHttp.client { appContext.resolvedLanguage().acceptLanguage }
 
     private val authApi = NativeAuthApi(baseUrl = ApiEnvironment.baseUrl, client = httpClient)
 
@@ -573,6 +582,20 @@ class AppContainer(
     )
 
     /**
+     * The account's language on the server, kept to the app's. See [AccountLanguageReporter].
+     *
+     * ⚠️ EAGER, LIKE [pushRegistrar], because [DistrictApplication] reaches it on a configuration
+     * change and the process-start check below runs at construction.
+     */
+    internal val accountLanguage: AccountLanguageReporter = AccountLanguageReporter(
+        api = seams.accountApi ?: HttpAccountApi(apiClient),
+        language = { appContext.resolvedLanguage() },
+        saved = seams.savedLanguage ?: PreferencesSavedLanguage(appContext),
+        scope = appScope,
+        hasSession = ::hasStoredSession,
+    )
+
+    /**
      * What the push layer may draw.
      *
      * ⚠️ `by lazy` BECAUSE ITS CONSTRUCTOR CREATES NOTIFICATION CHANNELS, which is a binder call.
@@ -742,7 +765,10 @@ class AppContainer(
             // [sessionSignal] instead would also fire on sign-OUT, registering a push token with no
             // bearer — a 401 against a 20/min ceiling, and a device row still pointed at the account
             // that just left.
-            onSignedIn = pushRegistrar::onSignedIn,
+            onSignedIn = {
+                pushRegistrar.onSignedIn()
+                accountLanguage.onSignedIn()
+            },
         )
     }
 
@@ -764,6 +790,8 @@ class AppContainer(
         // ⚠️ THE SAME "ALWAYS RUNS" HOOK, FOR PUSH: the only retry a failed or missed registration
         // gets. Gated on a stored session; see moment (2) on PushRegistrar.
         pushRegistrar.onProcessStart()
+        // ⚠️ AND FOR THE ACCOUNT'S LANGUAGE: a language changed while the app was not running.
+        accountLanguage.onLanguageMaybeChanged()
     }
 
     /**
@@ -824,6 +852,7 @@ class AppContainer(
             revokeCurrentSession()
             tokenCoordinator.forget()
             workspaceRepository.clearSelection()
+            accountLanguage.onSignedOut()
             loginController.clearStatus()
             // Advances the epoch, so the hoisted overview re-reads, resolves to NEVER_SIGNED_IN,
             // and the activity's gate swaps the graph for the sign-in screen. See [SessionSignal].

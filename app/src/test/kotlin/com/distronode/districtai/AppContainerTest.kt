@@ -1,5 +1,6 @@
 package com.distronode.districtai
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.auth.PersistedSession
@@ -65,7 +66,11 @@ class AppContainerTest {
             // so without these the graph-shape tests would POST to PRODUCTION and then sit on the
             // registrar's five-second bound, which is the same order of magnitude as this class's
             // own await timeout.
-            seams = AppContainerSeams(pushApi = RecordingPushApi(), pushTokenSource = { null }),
+            seams = AppContainerSeams(
+                pushApi = RecordingPushApi(),
+                pushTokenSource = { null },
+                accountApi = FakeAccountApi(),
+            ),
         )
 
     /**
@@ -86,6 +91,7 @@ class AppContainerTest {
         ApplicationProvider.getApplicationContext(),
         appScope = scope,
         seams = AppContainerSeams(
+            accountApi = FakeAccountApi(),
             tokenStore = store,
             revokeApi = api,
             // ⛔ A THIRD SEAM, FOR THE SAME REASON AS THE REVOKE ONE AND WITH A SHARPER EDGE: the push
@@ -540,6 +546,7 @@ class AppContainerTest {
             ApplicationProvider.getApplicationContext(),
             appScope = realScope(),
             seams = AppContainerSeams(
+                accountApi = FakeAccountApi(),
                 tokenStore = store,
                 revokeApi = RecordingRevokeApi(store = store),
                 pushApi = push,

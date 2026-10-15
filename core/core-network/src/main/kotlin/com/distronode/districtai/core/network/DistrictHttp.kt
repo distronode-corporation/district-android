@@ -31,7 +31,12 @@ object DistrictHttp {
     private const val CONNECT_TIMEOUT_SECONDS = 10L
     private const val READ_TIMEOUT_SECONDS = 20L
 
-    fun client(): OkHttpClient = OkHttpClient.Builder()
+    /**
+     * @param languageTag the `Accept-Language` for each request, read as it is sent; see
+     *   [AcceptLanguageInterceptor]. English unless the app says otherwise.
+     */
+    fun client(languageTag: () -> String = { ACCEPT_LANGUAGE_EN }): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(AcceptLanguageInterceptor(languageTag))
         .callTimeout(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)

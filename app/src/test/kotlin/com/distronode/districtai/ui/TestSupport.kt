@@ -44,7 +44,7 @@ internal fun UiText.resolveInTest(
     context: Context = ApplicationProvider.getApplicationContext(),
 ): String = when (this) {
     is UiText.Literal -> value
-    // The English reading, which is what a test build renders (it carries no French resources).
+    // The English reading, which is what a test renders: tests run on an English (en-US) device.
     is UiText.Server -> value
     is UiText.Resource -> if (arg == null) context.getString(id) else context.getString(id, arg)
 }

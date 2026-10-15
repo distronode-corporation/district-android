@@ -39,7 +39,7 @@
     <string name="scheduling_admin_bookings_status_rescheduled">Reporté</string>
     <string name="scheduling_admin_bookings_subtitle">%1$s · %2$s · %3$s</string>
     <string name="scheduling_admin_bookings_view_all">Tout</string>
-    <string name="scheduling_admin_bookings_view_cancelled">Annulé</string>
+    <string name="scheduling_admin_bookings_view_cancelled">Annulés</string>
     <string name="scheduling_admin_bookings_view_past">Passés</string>
     <string name="scheduling_admin_bookings_view_upcoming">À venir</string>
     <string name="scheduling_admin_calendar_account">Compte</string>
@@ -340,7 +340,7 @@
     <string name="scheduling_admin_hours_none_at_all">Aucune journée réservable pour l\'instant.</string>
     <string name="scheduling_admin_hours_nothing_to_save">Rien à enregistrer.</string>
     <string name="scheduling_admin_hours_out_of_office">Absence</string>
-    <string name="scheduling_admin_hours_override_add">Ajouter l\'exception</string>
+    <string name="scheduling_admin_hours_override_add">Ajouter une exception</string>
     <string name="scheduling_admin_hours_override_add_title">Ajouter une exception</string>
     <string name="scheduling_admin_hours_override_added">Exception ajoutée</string>
     <string name="scheduling_admin_hours_override_delete">Supprimer</string>
@@ -558,8 +558,8 @@
     <string name="scheduling_admin_team_remove_title">Retirer cet hôte?</string>
     <string name="scheduling_admin_team_rename">Enregistrer le nom</string>
     <string name="scheduling_admin_team_rename_done">Équipe renommée</string>
-    <string name="scheduling_admin_team_role_agency">Agence</string>
-    <string name="scheduling_admin_team_role_client">Client</string>
+    <string name="scheduling_admin_team_role_agency">Administrateur</string>
+    <string name="scheduling_admin_team_role_client">Membre</string>
     <string name="scheduling_admin_team_role_removed">Retiré de l\'espace de travail</string>
     <string name="scheduling_admin_team_role_viewer">Lecteur</string>
     <string name="scheduling_admin_team_save_priority">Enregistrer la priorité</string>

@@ -152,4 +152,50 @@ class PushPayloadTest {
             ),
         )
     }
+
+    @Test
+    fun `a ring cancellation parses to its call and reason, with or without a workspace`() {
+        val type = PushPayload.KEY_TYPE to PushPayload.TYPE_RING_CANCELLED
+        val call = PushPayload.KEY_CALL_ID to "CA1"
+        fun reason(value: String) = PushPayload.KEY_REASON to value
+
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.ANSWERED),
+            message(type, PushPayload.KEY_WORKSPACE_ID to "ws-1", call, reason("answered")),
+        )
+        // ⚠️ THE CALL ID ALONE IDENTIFIES IT: a missing workspace must not leave a phone ringing.
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.CALL_ENDED),
+            message(type, call, reason("call_ended")),
+        )
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.WITHDRAWN),
+            message(type, call, reason("withdrawn")),
+        )
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.TIMEOUT),
+            message(type, call, reason("timeout")),
+        )
+    }
+
+    @Test
+    fun `an unknown or missing cancel reason reads as withdrawn`() {
+        // ⚠️ A CLIENT OLDER THAN A NEW REASON MUST STILL STOP RINGING.
+        val type = PushPayload.KEY_TYPE to PushPayload.TYPE_RING_CANCELLED
+        val call = PushPayload.KEY_CALL_ID to "CA1"
+
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.WITHDRAWN),
+            message(type, call, PushPayload.KEY_REASON to "declined_by_robot"),
+        )
+        assertEquals(PushEvent.RingCancelled("CA1", RingCancelReason.WITHDRAWN), message(type, call))
+    }
+
+    @Test
+    fun `a ring cancellation with no call id is dropped`() {
+        val type = PushPayload.KEY_TYPE to PushPayload.TYPE_RING_CANCELLED
+
+        assertNull(message(type, PushPayload.KEY_WORKSPACE_ID to "ws-1", PushPayload.KEY_REASON to "answered"))
+        assertNull(message(type, PushPayload.KEY_CALL_ID to "  "))
+    }
 }

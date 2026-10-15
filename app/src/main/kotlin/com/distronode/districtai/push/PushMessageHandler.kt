@@ -1,7 +1,7 @@
 package com.distronode.districtai.push
 
 /**
- * What happens to a push once it has been parsed: the gate, and the two destinations.
+ * What happens to a push once it has been parsed: the gate, and the three destinations.
  *
  * ⛔ IT IS A PLAIN CLASS WITH INJECTED SEAMS RATHER THAN LOGIC INSIDE THE SERVICE, AND ON THIS PATH
  * THAT IS THE DIFFERENCE BETWEEN TESTED AND UNTESTABLE. `FirebaseMessagingService` is constructed by
@@ -52,6 +52,12 @@ internal class PushMessageHandler(
      * whether it is reached.
      */
     private val onIncomingCall: (PushEvent.IncomingCall) -> Unit,
+    /**
+     * ⚠️ A CALLBACK FOR THE SAME REASON: stopping a ring is the controller's (the ringer, the
+     * notification and the Telecom connection are all its), and whether it applies depends on what
+     * this device is doing with that call, which only the controller knows.
+     */
+    private val onRingCancelled: (PushEvent.RingCancelled) -> Unit,
 ) {
 
     /**
@@ -69,6 +75,7 @@ internal class PushMessageHandler(
         when (event) {
             is PushEvent.Message -> notifier.showMessage(event.workspaceId, event.messageId)
             is PushEvent.IncomingCall -> onIncomingCall(event)
+            is PushEvent.RingCancelled -> onRingCancelled(event)
         }
         return event
     }

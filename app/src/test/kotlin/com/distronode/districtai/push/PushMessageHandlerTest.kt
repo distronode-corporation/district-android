@@ -42,10 +42,12 @@ class PushMessageHandlerTest {
     private class Harness(private val signedIn: Boolean = true) {
         val notifier = RecordingPushNotifier()
         val calls: MutableList<PushEvent.IncomingCall> = mutableListOf()
+        val cancellations: MutableList<PushEvent.RingCancelled> = mutableListOf()
         val handler = PushMessageHandler(
             signedIn = { signedIn },
             notifier = notifier,
             onIncomingCall = { calls += it },
+            onRingCancelled = { cancellations += it },
         )
     }
 
@@ -129,5 +131,25 @@ class PushMessageHandlerTest {
         harness.handler.handle(messagePayload())
 
         assertEquals(listOf("message:ws-1:msg-1", "message:ws-1:msg-1"), harness.notifier.drawn)
+    }
+
+    @Test
+    fun `a ring cancellation goes to the call controller and draws nothing`() = runTest {
+        val harness = Harness()
+
+        val event = harness.handler.handle(
+            mapOf(
+                PushPayload.KEY_TYPE to PushPayload.TYPE_RING_CANCELLED,
+                PushPayload.KEY_WORKSPACE_ID to "ws-1",
+                PushPayload.KEY_CALL_ID to "CA1",
+                PushPayload.KEY_REASON to "answered",
+            ),
+        )
+
+        val expected = PushEvent.RingCancelled("CA1", RingCancelReason.ANSWERED)
+        assertEquals(expected, event)
+        assertEquals(listOf(expected), harness.cancellations)
+        assertEquals(emptyList<PushEvent.IncomingCall>(), harness.calls)
+        assertEquals(emptyList<String>(), harness.notifier.drawn)
     }
 }

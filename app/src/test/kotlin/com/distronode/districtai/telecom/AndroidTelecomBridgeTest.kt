@@ -5,6 +5,7 @@ import android.content.ContextWrapper
 import android.net.Uri
 import android.os.Bundle
 import android.telecom.Connection
+import android.telecom.DisconnectCause
 import android.telecom.PhoneAccount
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
@@ -133,6 +134,22 @@ class AndroidTelecomBridgeTest {
         // ⛔ The app's own hang-up disarms first, so it cannot come back round as the OS's.
         DistrictCallRegistry.requestHangUp()
         assertEquals(0, hangUps)
+    }
+
+    @Test
+    fun `a ring the server withdrew ends with the cause it gave`() {
+        // ⚠️ ANSWERED ELSEWHERE IS NOT A LOCAL HANG-UP: the OS's call surfaces and call log read the
+        // cause, so it is passed through rather than flattened to LOCAL.
+        val bridge = AndroidTelecomBridge(context)
+        bridge.startIncoming(onSystemAnswer = { answers++ }, onSystemHangUp = { hangUps++ })
+        val connection = checkNotNull(telecom.allowIncomingCall(telecom.onlyIncomingCall))
+
+        bridge.setDisconnected(DisconnectCause.ANSWERED_ELSEWHERE)
+
+        assertEquals(Connection.STATE_DISCONNECTED, connection.state)
+        assertEquals(DisconnectCause.ANSWERED_ELSEWHERE, connection.disconnectCause.code)
+        assertNull(DistrictCallRegistry.current())
+        assertEquals("not reported back as the OS's hang-up", 0, hangUps)
     }
 
     @Test

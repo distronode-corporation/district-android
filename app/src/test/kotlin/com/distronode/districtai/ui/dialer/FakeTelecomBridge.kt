@@ -59,8 +59,9 @@ internal class FakeTelecomBridge : TelecomBridge {
         calls += "active"
     }
 
-    override fun setDisconnected() {
-        calls += "disconnected"
+    /** ⚠️ "disconnected" for the LOCAL cause every existing assertion expects, else with the code. */
+    override fun setDisconnected(cause: Int) {
+        calls += if (cause == android.telecom.DisconnectCause.LOCAL) "disconnected" else "disconnected:$cause"
     }
 
     /** Drive the OS's own end-call affordance. ⚠️ A no-op when no call armed a handler. */

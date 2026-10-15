@@ -3,7 +3,9 @@ package com.distronode.districtai.call
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.AnswerOutcome
 import com.distronode.districtai.core.data.InboundCallRepository
+import android.telecom.DisconnectCause
 import com.distronode.districtai.push.PushNotifier
+import com.distronode.districtai.push.RingCancelReason
 import com.distronode.districtai.telecom.TelecomBridge
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.UiText
@@ -158,6 +160,16 @@ internal class IncomingCallController(
     private var ringTimeout: Job? = null
 
     /**
+     * The calls whose rings the server has withdrawn, most recent last, at most [CANCELLED_MEMORY].
+     *
+     * ⚠️ FCM DOES NOT ORDER DELIVERIES, so a cancellation can arrive BEFORE the ring it cancels (the
+     * ring push delayed in Doze, the cancel not). Without this a phone would then ring for thirty
+     * seconds for a call another device answered a moment ago. Bounded because it only has to
+     * outlive a delivery race, not the process.
+     */
+    private val cancelledCalls = ArrayDeque<String>()
+
+    /**
      * Everything that watches one answered call: the session's engine collectors, its duration
      * ticker and the mirror onto [state].
      *
@@ -181,6 +193,8 @@ internal class IncomingCallController(
         // ⛔ See the ⛔ on the class: dropped, not queued and not a replacement, while a call is live.
         val current = _state.value
         if (current != null && current.phase != IncomingCallPhase.ENDED) return
+        // ⚠️ A ring that arrives after its own cancellation. See [cancelledCalls].
+        if (callId in cancelledCalls) return
         // ⚠️ AN ENDED CALL IS REPLACED, AND ITS MIRROR GOES WITH IT, exactly as [dismiss] would: the
         // old session emitting afterwards must not paint its finished call onto this ring.
         callScope?.cancel()
@@ -204,6 +218,37 @@ internal class IncomingCallController(
             // merely agreeing today.
             decline()
         }
+    }
+
+    /**
+     * The server says a ring is over: answered on another device, timed out, or the caller gone.
+     *
+     * ⛔ ONLY A CALL THAT IS STILL **RINGING HERE** IS ENDED. The cancellation goes to every device
+     * the ring reached, the one that answered included, so on that device (ANSWERING or IN_CALL) it
+     * must do nothing, and a cancellation for a call this device is not ringing (never rang, already
+     * ended, or another call) is a no-op too. ⛔ AND NOTHING IS SENT BACK, as on a decline.
+     *
+     * ⚠️ The Telecom connection ends as ANSWERED_ELSEWHERE when another device answered and as
+     * MISSED otherwise (an unknown reason reads as WITHDRAWN; see [RingCancelReason]), so the OS's
+     * own surfaces say what happened rather than that this user hung up.
+     *
+     * ⛔ AND THE RINGING SCREEN IS WITHDRAWN, NOT TURNED INTO AN ENDED SUMMARY. The contract says
+     * withdraw the incoming-call screen: there is nothing to summarise about a call this device never
+     * took, and an ENDED screen would wait for a Dismiss the user owes nothing for.
+     */
+    fun onRingCancelled(callId: String, reason: RingCancelReason) {
+        cancelledCalls.remove(callId)
+        cancelledCalls.addLast(callId)
+        if (cancelledCalls.size > CANCELLED_MEMORY) cancelledCalls.removeFirst()
+        val current = _state.value ?: return
+        if (current.callId != callId || current.phase != IncomingCallPhase.RINGING) return
+        val cause = if (reason == RingCancelReason.ANSWERED) {
+            DisconnectCause.ANSWERED_ELSEWHERE
+        } else {
+            DisconnectCause.MISSED
+        }
+        finish(null, cause)
+        dismiss()
     }
 
     /**
@@ -366,7 +411,7 @@ internal class IncomingCallController(
      * The one exit. ⚠️ Safe to call twice: [InboundCallSession.end] is itself one-way, and the
      * notification cancel and the Telecom disconnect are both idempotent.
      */
-    private fun finish(message: FailureText?) {
+    private fun finish(message: FailureText?, cause: Int = DisconnectCause.LOCAL) {
         clearRing()
         notifier.cancelIncomingCall()
         foreground.setCallActive(false)
@@ -376,7 +421,7 @@ internal class IncomingCallController(
             // ⚠️ NOTHING JOINED, SO TELECOM IS STILL HOLDING A RINGING CONNECTION AND HAS TO BE TOLD
             // DIRECTLY. When a session exists it owns that call — `end` disconnects Telecom itself —
             // and telling it twice would race the registry's disarm against its own teardown.
-            telecom.setDisconnected()
+            telecom.setDisconnected(cause)
         } else {
             live.end {}
         }
@@ -405,6 +450,9 @@ internal class IncomingCallController(
          * first would withdraw the Answer button while the server would still have accepted one.
          */
         const val RING_TIMEOUT_MILLIS: Long = 30_000L
+
+        /** ⚠️ How many withdrawn rings [cancelledCalls] remembers; a delivery race, not a history. */
+        const val CANCELLED_MEMORY: Int = 16
     }
 }
 

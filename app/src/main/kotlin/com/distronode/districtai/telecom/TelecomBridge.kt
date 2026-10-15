@@ -84,8 +84,14 @@ interface TelecomBridge {
     /** The callee answered. ⚠️ A no-op when the OS never gave us a connection. */
     fun setActive()
 
-    /** The call ended, locally or remotely. ⚠️ Idempotent: hang-up paths race. */
-    fun setDisconnected()
+    /**
+     * The call ended, locally or remotely. ⚠️ Idempotent: hang-up paths race.
+     *
+     * @param cause a [DisconnectCause] code. ⚠️ LOCAL for every end this device chose; a ring the
+     *   SERVER withdrew says why ([DisconnectCause.ANSWERED_ELSEWHERE] or [DisconnectCause.MISSED]),
+     *   which is what the OS's own call surfaces and call log read.
+     */
+    fun setDisconnected(cause: Int = DisconnectCause.LOCAL)
 }
 
 /**
@@ -198,13 +204,13 @@ class AndroidTelecomBridge(context: Context) : TelecomBridge {
         DistrictCallRegistry.current()?.setActive()
     }
 
-    override fun setDisconnected() {
+    override fun setDisconnected(cause: Int) {
         // ⚠️ DISARMED FIRST. `setDisconnectedAndDestroy` drives the connection to a terminal state,
         // and a framework that answered by calling `onDisconnect` would re-enter the ViewModel's
         // teardown from the far side — the app's own hang-up must not look like the OS's.
         DistrictCallRegistry.disarm()
         DistrictCallRegistry.current()
-            ?.setDisconnectedAndDestroy(DisconnectCause(DisconnectCause.LOCAL))
+            ?.setDisconnectedAndDestroy(DisconnectCause(cause))
     }
 
     internal companion object {

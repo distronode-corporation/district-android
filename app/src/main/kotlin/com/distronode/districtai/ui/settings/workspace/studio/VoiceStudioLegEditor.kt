@@ -1,8 +1,8 @@
 package com.distronode.districtai.ui.settings.workspace.studio
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -53,7 +53,11 @@ internal fun StudioLegEditor(state: VoiceStudioUiState.Ready, enabled: Boolean, 
 private fun LegChoice(state: VoiceStudioUiState.Ready, actions: VoiceStudioActions) {
     val labels = state.studio.labels
     Eyebrow(labels.editLeg)
-    Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+    // ⚠️ A FLOW ROW: four legs in one row squeezed the last to "V / o / i / ce" at 200% font.
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+    ) {
         listOf(
             StudioLegEdits.EAR to labels.legs.stt,
             StudioLegEdits.TURN to labels.legs.turn,

@@ -131,18 +131,18 @@ if (districtSentryDsn.isEmpty()) {
 }
 
 /**
- * -Pdistrict.l10n.fr=true: build the French resources in. See "Languages" in the android block.
+ * -Pdistrict.l10n.fr=false: build WITHOUT the French resources. See "Languages" in the android block.
  *
- * ⛔ THE VALUE DECIDES, NOT THE PRESENCE. Absent or `false` is off; `true`, or the bare flag
- * (which Gradle reads as an empty value), is on; anything else stops the build here rather than
- * guessing. Presence alone would read `-Pdistrict.l10n.fr=false` (or an
+ * ⛔ THE VALUE DECIDES, NOT THE PRESENCE. Since 3.0 French ships: absent, `true` or the bare flag
+ * (which Gradle reads as an empty value) is on; `false` is off; anything else stops the build here
+ * rather than guessing. Presence alone would read `-Pdistrict.l10n.fr=false` (or an
  * `ORG_GRADLE_PROJECT_district.l10n.fr=false` environment) as French ON, the opposite of what it
  * says. release.yml's French guard checks the bundle either way.
  */
 val districtL10nFr: Boolean =
     when (val value = providers.gradleProperty("district.l10n.fr").orNull?.trim()?.lowercase()) {
-        null, "false" -> false
-        "", "true" -> true
+        "false" -> false
+        null, "", "true" -> true
         else -> throw GradleException("district.l10n.fr is '$value': use true or false.")
     }
 
@@ -194,16 +194,16 @@ android {
 
     // ── Languages ────────────────────────────────────────────────────────────
     //
-    // ⛔ NO FRENCH SHIPS UNTIL THE 3.0 CUT, AND ONE GRADLE PROPERTY IS THE SWITCH. The French
+    // ⛔ FRENCH (fr-CA) SHIPS FROM 3.0, AND ONE GRADLE PROPERTY STILL SWITCHES IT. The French
     // resources are generated from l10n/*.toml into their own source directory, src/l10n-fr/res,
-    // which joins `main` only when the build is run with -Pdistrict.l10n.fr. Without it no
-    // app-owned string has an fr-rCA value, which release.yml checks on every bundle
-    // (scripts/french-guard.sh). fr-FR, fr-BE, fr-CH and plain fr all resolve to values-fr-rCA,
-    // so no plain values-fr is needed.
+    // which joins `main` unless the build is run with -Pdistrict.l10n.fr=false. release.yml checks
+    // every bundle against its DISTRICT_FRENCH (scripts/french-guard.sh). fr-FR, fr-BE, fr-CH and
+    // plain fr all resolve to values-fr-rCA, so no plain values-fr is needed, and the app follows
+    // the device's language or, on Android 13+, its own per-app language.
     //
     // ⚠️ generateLocaleConfig writes the locale list Android 13+ shows in the per-app language
-    // setting, from the resource directories in the build: `en-US` alone today, `en-US fr-CA`
-    // with the property. It needs src/main/res/resources.properties to name the language of the
+    // setting, from the resource directories in the build: `en-US fr-CA`, or `en-US` alone with
+    // the property false. It needs src/main/res/resources.properties to name the language of the
     // unqualified resources (en-US).
     androidResources {
         generateLocaleConfig = true

@@ -178,11 +178,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # The French build, NON-BLOCKING until the 3.0 cut: the debug APK with the French resources built
-  # in (-Pdistrict.l10n.fr) and the pseudolocales every debug build carries, linted, and checked to
-  # hold the app's own fr-rCA strings. French is incomplete until W3, so lint's MissingTranslation
-  # and friends are expected to have things to say; this job is a window on that work, not a gate.
-  # It holds no secret and builds nothing that ships.
+  # The French build: the debug APK with the French resources (on by default since 3.0; the flag
+  # says so explicitly) and the pseudolocales every debug build carries, linted, and checked to hold
+  # the app's own fr-rCA strings with the release guard. Non-blocking because the verify job
+  # already builds and lints the same French; this one adds the guard. It holds no secret and
+  # builds nothing that ships.
   french:
     name: French build (non-blocking)
     runs-on: ubuntu-24.04

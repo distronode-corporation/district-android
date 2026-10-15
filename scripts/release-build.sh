@@ -24,7 +24,9 @@
 # (`-storepass:env`), never from argv.
 #
 # ⛔ DISTRICT_FRENCH (release.yml) IS REQUIRED, `true` OR `false`, AND IS THE ONE FRENCH SWITCH.
-# `true` passes -Pdistrict.l10n.fr=true, which builds src/l10n-fr/res in; `false` passes nothing.
+# Its value is passed to Gradle as is: `true` passes -Pdistrict.l10n.fr=true, which builds
+# src/l10n-fr/res in; `false` passes -Pdistrict.l10n.fr=false, which leaves it out (French is on
+# by default since 3.0, so leaving the property off would build French in).
 # Anything else, or nothing, is refused before a secret is read, because a release whose language
 # nobody chose is not one to build. release.yml's French guard reads the same value.
 set -euo pipefail
@@ -40,7 +42,7 @@ fail() {
 : "${VERSION_CODE:?VERSION_CODE must be set (scripts/release-version.sh)}"
 case "${DISTRICT_FRENCH:-}" in
 true) french=(-Pdistrict.l10n.fr=true) ;;
-false) french=() ;;
+false) french=(-Pdistrict.l10n.fr=false) ;;
 *) fail "DISTRICT_FRENCH is '${DISTRICT_FRENCH:-}', not true or false." ;;
 esac
 

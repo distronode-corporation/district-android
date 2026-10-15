@@ -431,8 +431,8 @@ out=$(ghrel build-run v1.2)
 check "no such run: prints nothing" test -z "$out"
 
 # ── release-build.sh ──────────────────────────────────────────────────────────
-# Only the French switch is tested here: DISTRICT_FRENCH must be true or false, and only true
-# reaches Gradle as -Pdistrict.l10n.fr=true. Secret Manager, keytool and Gradle are stubs; the
+# Only the French switch is tested here: DISTRICT_FRENCH must be true or false, and reaches Gradle
+# by value as -Pdistrict.l10n.fr=true or =false (French is on by default since 3.0). Secret Manager, keytool and Gradle are stubs; the
 # stub Gradle records its argv and writes a signed-looking bundle and a mapping.
 echo "release-build.sh"
 rb="$work/rb"
@@ -469,7 +469,7 @@ rbrun() { # DISTRICT_FRENCH value, or "unset"
     fi
 }
 passes "DISTRICT_FRENCH=false builds" rbrun false
-check "  (Gradle got no French flag)" bash -c "! grep -q 'district.l10n.fr' '$work/rblog/gradle-args'"
+check "  (Gradle got -Pdistrict.l10n.fr=false)" grep -qx -- '-Pdistrict.l10n.fr=false' "$work/rblog/gradle-args"
 check "  (and the version code)" grep -qx -- '-PdistrictVersionCode=4242' "$work/rblog/gradle-args"
 passes "DISTRICT_FRENCH=true builds" rbrun true
 check "  (Gradle got -Pdistrict.l10n.fr=true)" grep -qx -- '-Pdistrict.l10n.fr=true' "$work/rblog/gradle-args"

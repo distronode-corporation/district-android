@@ -129,9 +129,9 @@ contract files change; then run `gen` for each with `--opt name=api_errors` and
 which is pinned to `contracts/i18n/format-vectors.json`.
 
 `l10n/res/values` and `l10n/res/values-fr-rCA` are symlinks to the main resource directory and to
-the French source set (`app/src/l10n-fr/res`, built only with `-Pdistrict.l10n.fr`), so the one
-`gen` writes both. No release build passes that property before the 3.0 cut, and release.yml
-checks the bundle for the app's own fr-rCA strings (`scripts/french-guard.sh`). Debug builds carry
+the French source set (`app/src/l10n-fr/res`, built in unless `-Pdistrict.l10n.fr=false`), so the
+one `gen` writes both. French ships from 3.0, and release.yml checks every bundle's own fr-rCA
+strings against its `DISTRICT_FRENCH` (`scripts/french-guard.sh`). Debug builds carry
 the pseudolocales (en-XA, ar-XB) for finding hard-coded text and truncation on a device.
 CI runs `l10n.py check` with the same `--gen` arguments and fails when the
 generated file differs from what the catalog produces. Keys are the resource names (`sign_in.action`

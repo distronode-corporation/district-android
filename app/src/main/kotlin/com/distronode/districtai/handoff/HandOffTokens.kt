@@ -25,7 +25,7 @@ internal object HandOffTokens {
 
     private val encoder: Base64.Encoder = Base64.getUrlEncoder().withoutPadding()
 
-    /** A fresh `state` for one hand-off, or for one probe of leg 1. */
+    /** A fresh `state` for one hand-off. */
     fun newState(): String {
         val bytes = ByteArray(STATE_BYTES)
         random.nextBytes(bytes)

@@ -12,10 +12,10 @@
 #      carry the cookie from leg 1, and the server signs that browser in and redirects to
 #      /dashboard/district/scheduling.
 #
-# If leg 2 never reaches the app, the app falls back to the unbound flow after ten seconds
-# and the dashboard still opens; the budget below allows for that, so a GREEN RUN ALONE DOES
-# NOT PROVE THE BINDING. `adb logcat -s DistrictHandOff` during the run prints BOUND for the
-# bound path and FALLBACK_* for either fallback (never the nonce). If leg 3 does not carry
+# There is no unbound fallback: if leg 2 never reaches the app within thirty seconds, nothing
+# is minted, the dashboard never opens, and the app says to try again, so this flow fails.
+# `adb logcat -s DistrictHandOff` during the run prints BOUND for the bound path and
+# NO_CALLBACK when the browser never called back (never the nonce). If leg 3 does not carry
 # the cookie, the server answers its 410 page ("This sign-in link has expired or was already
 # used"), and this flow fails on that sentence by name.
 #

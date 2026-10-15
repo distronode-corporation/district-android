@@ -242,7 +242,7 @@ class LabelsTest {
         assertRendered(
             "En cours" to { stringResource(supportStatusLabel("In Progress", "INDETERMINATE")) },
             "Terminée" to { stringResource(supportStatusLabel("Done", "DONE")) },
-            "Inconnue" to { stringResource(supportStatusLabel("Triage", "unknown")) },
+            "État inconnu" to { stringResource(supportStatusLabel("Triage", "unknown")) },
             "Reçue" to { stringResource(supportStatusLabel("Received", "PENDING")) },
         )
     }

@@ -2,7 +2,6 @@ package com.distronode.districtai.handoff
 
 import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.core.network.ApiResult
-import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The dashboard hand-off, bound to the browser that will redeem it (security item S33).
@@ -19,28 +18,17 @@ import kotlinx.coroutines.withTimeoutOrNull
  *   3. the app opens the code's URL in a Custom Tab of the SAME browser, whose cookie jar now
  *      holds N, and the server redeems the code only against that cookie.
  *
- * ⛔ THE FALLBACK IS REQUIRED, AND IT IS WHAT MAKES ANY RELEASE ORDER SAFE. Today's production has
- * no `/dashboard/handoff/start`, and a shipped Play build cannot be reverted, so whenever leg 1 does
- * not deliver a nonce this does today's UNBOUND flow (leg 2 without `nonce`, then leg 3). The server
- * accepts both until its `HANDOFF_REQUIRE_NONCE` flag is flipped, and answers 400 `nonce_required`
- * to the unbound flow after that.
+ * ⛔ THERE IS NO UNBOUND FALLBACK, AND THAT IS THE POINT (security item S33). Every code this app
+ * mints is bound, so the server can turn `HANDOFF_REQUIRE_NONCE` on; a single unbound mint from an
+ * installed build would keep it off. When the browser does not call back within
+ * [CALLBACK_TIMEOUT_MILLIS], the hand-off is given up: nothing is minted and the screen offers a
+ * retry ([Outcome.Unanswered]). District Core for Rust (4.0.2) and for Swift (7.0.1) do the same.
+ * The nonce is non-null all the way to the request type, so an unbound mint cannot be written.
  *
- * ⛔ THE DESIGN CHOICE: AN APP-SIDE PROBE OF LEG 1 BEFORE THE CUSTOM TAB, NOT THE TIMEOUT ALONE.
- * The fallback has to be detected in the app, because a Custom Tab showing a 404 or 400 page never
- * calls back. Using the ten-second timeout as the only trigger would put that error page on screen
- * on every tap against an older server, leave the user looking at it for ten seconds while the app
- * waits, and then stack the dashboard's tab on top of it, with the error page still behind it for
- * the back button. So leg 1 is first asked of the server directly ([SchedulingRepository.handOffStartServed]:
- * one small GET, no bearer, redirects not followed), and only a redirect onto `districtai://handoff`
- * opens the Custom Tab. Against an older server the fallback is immediate and nothing is shown.
- *
- * ⚠️ WHAT THE PROBE COSTS, AND WHY IT IS STILL RIGHT. One extra round trip per tap, and one extra
- * leg 1 at the server. Its cookie lands in OkHttp's jar, which is no jar at all (the shared client
- * has none), and its nonce was never bound to anything; the browser's own leg 1 mints a fresh one,
- * which the route allows by design. It proves the ROUTE exists, not that this browser will follow a
- * redirect to a custom scheme, so the timeout stays as the second trigger: a browser that never
- * calls back still falls back after [CALLBACK_TIMEOUT_MILLIS]. Once every region serves leg 1 and the
- * flag is on, the probe always passes and could go, together with the fallback it gates.
+ * ⚠️ NO PROBE OF LEG 1 EITHER. One used to ask the server whether it served leg 1 before putting a
+ * Custom Tab on screen, so an older server could be met with the unbound flow. With no unbound flow
+ * there is nothing to choose between: every region serves leg 1, and a browser that cannot reach it
+ * shows its own error page and never calls back, which ends in the same retryable notice.
  *
  * ⛔ BOTH BROWSER LEGS GO THROUGH THE SAME LAUNCHER, AND THAT IS HOW THEY SHARE ONE COOKIE JAR. A
  * Custom Tab uses its browser's jar, and the launcher pins the device's default browser by package
@@ -49,13 +37,13 @@ import kotlinx.coroutines.withTimeoutOrNull
  * two different browsers ends leg 3 on the server's 410 page, and the retry starts again from leg 1.
  *
  * ⛔ THE NONCE IS NEVER LOGGED AND NEVER LEAVES THIS FUNCTION EXCEPT IN THE MINT'S BODY. What is
- * recorded is which path was taken ([HandOffEvent.BOUND] or one of the two fallbacks), a closed set
- * of constants; see [HandOffLog].
+ * recorded is which path was taken ([HandOffEvent.BOUND] or [HandOffEvent.NO_CALLBACK]), a closed
+ * set of constants; see [HandOffLog].
  *
  * ⚠️ THE USER WHO CLOSES THE LEG-1 TAB BEFORE IT CALLS BACK is not detected: the wait runs out and
- * the unbound flow opens the dashboard anyway, which is the page they asked for. Watching for the
- * activity resuming without a callback (the way `LoginAttemptTracker` does for sign-in) would cut
- * that wait short, at the cost of a lifecycle-ordering rule this path does not otherwise need.
+ * the screen offers a retry. Watching for the activity resuming without a callback (the way
+ * `LoginAttemptTracker` does for sign-in) would cut that wait short, at the cost of a
+ * lifecycle-ordering rule this path does not otherwise need.
  */
 class DashboardHandOff(
     private val repository: SchedulingRepository,
@@ -75,6 +63,14 @@ class DashboardHandOff(
 
         /** Another hand-off is still running, and this press started nothing. */
         data object AlreadyRunning : Outcome
+
+        /**
+         * The browser opened leg 1 and never called back in time, so nothing was minted.
+         *
+         * ⚠️ RETRYABLE: a fresh press starts a fresh leg 1, which is the one thing that can fix it
+         * (the person was slow on the browser's "Open District AI?" prompt, or declined it).
+         */
+        data object Unanswered : Outcome
     }
 
     /**
@@ -95,8 +91,8 @@ class DashboardHandOff(
         return try {
             when (val binding = bind(pending, launch)) {
                 Binding.NoBrowser -> Outcome.Launched(opened = false)
+                Binding.Unanswered -> Outcome.Unanswered
                 is Binding.Bound -> mintAndOpen(workspaceId, binding.nonce, launch)
-                Binding.Unbound -> mintAndOpen(workspaceId, null, launch)
             }
         } finally {
             callbacks.finish(pending)
@@ -105,32 +101,20 @@ class DashboardHandOff(
 
     private suspend fun mintAndOpen(
         workspaceId: String,
-        nonce: String?,
+        nonce: String,
         launch: (String) -> Boolean,
     ): Outcome = when (val minted = repository.dashboardHandOff(workspaceId, nonce)) {
         is ApiResult.Success -> Outcome.Launched(opened = launch(minted.value))
         is ApiResult.Failure -> Outcome.Refused(minted)
     }
 
-    /**
-     * Legs 1 and the callback: a nonce, or the reason there is none.
-     *
-     * ⚠️ THE PROBE GETS ITS OWN STATE, never [pending]'s, so its `Location` can never be mistaken
-     * for the browser leg's callback, and the browser leg's state is seen by the browser only.
-     */
+    /** Leg 1 and its callback: a nonce, or the reason there is none. */
     private suspend fun bind(pending: PendingHandOff, launch: (String) -> Boolean): Binding {
-        val served = withTimeoutOrNull(START_PROBE_TIMEOUT_MILLIS) {
-            repository.handOffStartServed(newState())
-        }
-        if (served != true) {
-            log.record(HandOffEvent.FALLBACK_START_UNAVAILABLE)
-            return Binding.Unbound
-        }
         if (!launch(repository.handOffStartUrl(pending.state))) return Binding.NoBrowser
         val nonce = pending.awaitNonce(CALLBACK_TIMEOUT_MILLIS)
         if (nonce == null) {
-            log.record(HandOffEvent.FALLBACK_NO_CALLBACK)
-            return Binding.Unbound
+            log.record(HandOffEvent.NO_CALLBACK)
+            return Binding.Unanswered
         }
         log.record(HandOffEvent.BOUND)
         return Binding.Bound(nonce)
@@ -140,7 +124,8 @@ class DashboardHandOff(
         /** ⚠️ Not a data class: its `toString` must not print the nonce. */
         class Bound(val nonce: String) : Binding
 
-        data object Unbound : Binding
+        /** Leg 1 opened, and the browser never called back in time. */
+        data object Unanswered : Binding
 
         /** Leg 1 found no browser, so there is nothing to hand leg 3 to either. */
         data object NoBrowser : Binding
@@ -148,21 +133,13 @@ class DashboardHandOff(
 
     internal companion object {
         /**
-         * How long the leg-1 probe may take before the hand-off goes unbound.
-         *
-         * ⚠️ SHORTER THAN THE CALLBACK'S WAIT, because the user is looking at a busy button rather
-         * than at a browser, and the probe is one small request: on a connection where it takes
-         * longer than this, the browser's own leg 1 would not have called back in time either.
-         */
-        const val START_PROBE_TIMEOUT_MILLIS = 5_000L
-
-        /**
          * How long the app waits for `districtai://handoff` after opening leg 1.
          *
-         * ⚠️ TEN SECONDS, the figure the server half was designed around. A working browser calls
-         * back within a second or two (the route answers its redirect at once); this only runs out
-         * when the browser never follows the redirect into the app.
+         * ⚠️ THIRTY SECONDS, as District Core for Rust and for Swift wait. A working browser calls
+         * back within a second or two, but the browser may first ask "Open District AI?", and the
+         * wait has to cover a person reading that. Running out costs a retry, never an unbound
+         * code. The server's nonce cookie lives five minutes, well past it.
          */
-        const val CALLBACK_TIMEOUT_MILLIS = 10_000L
+        const val CALLBACK_TIMEOUT_MILLIS = 30_000L
     }
 }

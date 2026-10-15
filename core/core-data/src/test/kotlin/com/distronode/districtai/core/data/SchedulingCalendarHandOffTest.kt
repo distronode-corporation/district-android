@@ -17,14 +17,11 @@ class SchedulingCalendarHandOffTest {
 
     private val webOrigin = "https://www.distronode.com"
 
-    private fun repository(api: FakeDistrictApi, origin: String) =
-        SchedulingRepository(api, origin, "districtai://handoff")
-
     @Test
     fun `the next names the provider and a return_to encoded inside it`() = runTest {
         val api = FakeDistrictApi()
 
-        val result = repository(api, "$webOrigin/").calendarConnectHandOff("ws-1", "google")
+        val result = SchedulingRepository(api, "$webOrigin/").calendarConnectHandOff("ws-1", "google")
 
         val next = api.schedulingApi.schedulingSsoRequests.single().substringAfter("ws-1|")
         assertEquals(
@@ -46,7 +43,7 @@ class SchedulingCalendarHandOffTest {
         val refused = ApiResult.HttpFailure(409, "not ready")
         val api = FakeDistrictApi().apply { schedulingApi.schedulingSsoResult = refused }
 
-        assertSame(refused, repository(api, webOrigin).calendarConnectHandOff("ws-1", "microsoft"))
+        assertSame(refused, SchedulingRepository(api, webOrigin).calendarConnectHandOff("ws-1", "microsoft"))
     }
 
     @Test

@@ -1235,18 +1235,6 @@ internal class HttpSchedulingApi(private val client: DistrictApiClient) : Schedu
             serializer = SchedulingHandOffResponse.serializer(),
             body = request.toJson(SchedulingHandOffRequest.serializer()),
         )
-
-    /**
-     * ⛔ [DistrictApiClient.anonymousRedirectTarget], NOT [DistrictApiClient.redirectTarget], AND
-     * BOTH HALVES OF THE DIFFERENCE ARE THE POINT. This route takes no credential (a bearer here
-     * would be sent to a browser route for nothing), and it redirects to `districtai://handoff`,
-     * a custom scheme that `redirectTarget`'s https-only rule would refuse as drift.
-     */
-    override suspend fun schedulingHandOffStart(state: String): ApiResult<String> =
-        client.anonymousRedirectTarget(
-            segments = DistrictPaths.DASHBOARD_HANDOFF_START,
-            query = mapOf("state" to state),
-        )
 }
 
 internal object DistrictPaths {
@@ -1456,13 +1444,6 @@ internal object DistrictPaths {
      * hyphen, matching the dashboard route it mints a link to (`/dashboard/handoff`).
      */
     val SCHEDULING_HANDOFF = SCHEDULING + "handoff"
-
-    /**
-     * ⛔ NOT UNDER `api/` AT ALL, AND THAT IS NOT A SLIP. It is the BROWSER route that sets the
-     * hand-off nonce cookie; the app only probes it (see [SchedulingApi.schedulingHandOffStart]).
-     * Spelled out from the root so nobody "fixes" it into [DISTRICT].
-     */
-    val DASHBOARD_HANDOFF_START = listOf("dashboard", "handoff", "start")
     val CONTACTS = DISTRICT + "contacts"
     val CONTACTS_ENRICH = CONTACTS + "enrich"
     val CONTACTS_CLEAR_INTEL = CONTACTS + "clear-intel"

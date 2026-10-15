@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.distronode.districtai.ApiEnvironment
 import com.distronode.districtai.R
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
@@ -70,26 +69,10 @@ class SchedulingDestinationTest {
     }
 
     @Test
-    fun `the dashboard hand-off gives the browser the URL the server minted`() {
-        harness.installBrowser()
-        openLiveBookingPage()
-
-        harness.tap(SCHEDULING_DASHBOARD_DESCRIPTION)
-
-        assertEquals(
-            listOf("https://www.distronode.com/dashboard/handoff?code=stub&next=%2Fdashboard"),
-            harness.started.map { it.dataString },
-        )
-        assertTrue(harness.messages.isEmpty())
-    }
-
-    @Test
     fun `the nonce-bound hand-off opens leg 1 and then the bound code, through one launcher`() {
         // ⛔ BOTH BROWSER LEGS GO THROUGH THE SAME LAUNCHER, which pins the same browser package:
         // that is what puts the leg-3 Custom Tab in the cookie jar leg 1 wrote the nonce into.
         harness.installBrowser()
-        harness.api.schedulingApi.schedulingHandOffStartResult =
-            ApiResult.Success("${ApiEnvironment.HANDOFF_CALLBACK_URI}?state=probe&nonce=$NONCE")
         openLiveBookingPage()
 
         harness.tap(SCHEDULING_DASHBOARD_DESCRIPTION)

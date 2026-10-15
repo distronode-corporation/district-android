@@ -102,7 +102,8 @@ internal object EndpointParity {
         // `DistrictApi.schedulingHandOff`. It reads a redirect target into the scheduler's own
         // `/admin/` console, which is being switched off per region; both ship for one release so
         // an installed build keeps working either side of the flip. So this entry is expected to
-        // leave by DELETION here rather than by arriving on iOS.
+        // leave by DELETION here rather than by arriving on iOS, and when it does, this set
+        // becomes empty rather than shorter.
         "schedulingSsoTarget",
         // ⚠️ THE NATIVE VOICE STUDIO READ (`GET workspace/persona/voice-studio`), built for all
         // three apps at once. The vendored iOS snapshot predates it; this entry leaves when the
@@ -117,11 +118,5 @@ internal object EndpointParity {
         // district-core-swift; the vendored snapshot predates it, so this entry leaves when the
         // snapshot is refreshed.
         "saveLocale",
-        // ⚠️ THE PROBE OF THE NONCE-BOUND HAND-OFF'S LEG 1 (`/dashboard/handoff/start`, security
-        // item S33), which this client shipped first. It is not an API route at all: it is the
-        // browser route that sets the nonce cookie, read here without a bearer only to learn
-        // whether the server has it before a Custom Tab is put on screen. iOS needs the same
-        // binding; whether it needs the probe depends on how it detects an older server.
-        "schedulingHandOffStart",
     )
 }

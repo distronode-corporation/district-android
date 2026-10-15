@@ -7,7 +7,6 @@ import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.core.network.ApiResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -49,7 +48,7 @@ class SchedulingRepositoryTest {
      */
     private val webOrigin = "https://www.distronode.com"
 
-    private fun repository(api: FakeDistrictApi) = SchedulingRepository(api, webOrigin, HANDOFF_CALLBACK)
+    private fun repository(api: FakeDistrictApi) = SchedulingRepository(api, webOrigin)
 
     private val readyTenant = SchedulingTenant(
         status = "ready",
@@ -253,7 +252,7 @@ class SchedulingRepositoryTest {
     fun `the dashboard hand-off asks for the scheduling page and returns the url`() = runTest {
         val api = FakeDistrictApi()
 
-        val result = repository(api).dashboardHandOff("ws-1", nonce = null)
+        val result = repository(api).dashboardHandOff("ws-1", NONCE)
 
         // ⛔ `next` IS SENT EXPLICITLY RATHER THAN LEFT TO THE ROUTE'S DEFAULT. The route coerces
         // anything that is not a same-origin path under `/dashboard` to this exact value today, so
@@ -284,7 +283,7 @@ class SchedulingRepositoryTest {
             )
         }
 
-        val result = repository(api).dashboardHandOff("ws-1", nonce = null)
+        val result = repository(api).dashboardHandOff("ws-1", NONCE)
 
         assertTrue(result is ApiResult.DecodeFailure)
     }
@@ -300,7 +299,7 @@ class SchedulingRepositoryTest {
             )
         }
 
-        assertTrue(repository(api).dashboardHandOff("ws-1", nonce = null) is ApiResult.DecodeFailure)
+        assertTrue(repository(api).dashboardHandOff("ws-1", NONCE) is ApiResult.DecodeFailure)
     }
 
     @Test
@@ -314,7 +313,7 @@ class SchedulingRepositoryTest {
             )
         }
 
-        val preview = (repository(api).dashboardHandOff("ws-1", nonce = null) as ApiResult.DecodeFailure).bodyPreview
+        val preview = (repository(api).dashboardHandOff("ws-1", NONCE) as ApiResult.DecodeFailure).bodyPreview
 
         assertEquals("SchedulingHandOff{origin!=configured}", preview)
         assertTrue("the refused address must not be quoted", !preview.contains("evil.test"))
@@ -332,7 +331,7 @@ class SchedulingRepositoryTest {
             )
         }
 
-        val result = repository(api).dashboardHandOff("ws-1", nonce = null)
+        val result = repository(api).dashboardHandOff("ws-1", NONCE)
 
         assertEquals(
             "https://www.distronode.com/dashboard/handoff?code=x",
@@ -349,12 +348,12 @@ class SchedulingRepositoryTest {
         val forbidden = FakeDistrictApi().apply {
             schedulingApi.schedulingHandOffResult = ApiResult.Forbidden("Forbidden")
         }
-        assertTrue(repository(forbidden).dashboardHandOff("ws-1", nonce = null) is ApiResult.Forbidden)
+        assertTrue(repository(forbidden).dashboardHandOff("ws-1", NONCE) is ApiResult.Forbidden)
 
         val limited = FakeDistrictApi().apply {
             schedulingApi.schedulingHandOffResult = ApiResult.RateLimited("rate_limited")
         }
-        assertTrue(repository(limited).dashboardHandOff("ws-1", nonce = null) is ApiResult.RateLimited)
+        assertTrue(repository(limited).dashboardHandOff("ws-1", NONCE) is ApiResult.RateLimited)
     }
 
     @Test
@@ -364,7 +363,7 @@ class SchedulingRepositoryTest {
                 ApiResult.NetworkFailure(java.io.IOException("down"))
         }
 
-        repository(api).dashboardHandOff("ws-1", nonce = null)
+        repository(api).dashboardHandOff("ws-1", NONCE)
 
         assertEquals(1, api.schedulingApi.schedulingHandOffs.size)
     }
@@ -411,23 +410,14 @@ class SchedulingRepositoryTest {
     // ── The nonce-bound hand-off (security item S33) ─────────────────────────
 
     @Test
-    fun `a nonce from the browser's leg 1 travels in the mint's body, unchanged`() = runTest {
+    fun `the nonce from the browser's leg 1 travels in the mint's body, unchanged`() = runTest {
+        // ⛔ THE ONLY WAY TO MINT IS WITH ONE: `dashboardHandOff` takes a non-null nonce, so the
+        // unbound flow the server is about to refuse cannot be asked for from this module.
         val api = FakeDistrictApi()
 
-        repository(api).dashboardHandOff("ws-1", nonce = NONCE)
+        repository(api).dashboardHandOff("ws-1", NONCE)
 
         assertEquals(listOf(NONCE), api.schedulingApi.schedulingHandOffs.map { it.nonce })
-    }
-
-    @Test
-    fun `the unbound fallback sends no nonce at all`() = runTest {
-        // ⛔ NULL, NOT AN EMPTY STRING: the server reads an absent nonce as today's flow and a
-        // present one as a nonce to check, so an empty string would be `invalid_nonce`.
-        val api = FakeDistrictApi()
-
-        repository(api).dashboardHandOff("ws-1", nonce = null)
-
-        assertNull(api.schedulingApi.schedulingHandOffs.single().nonce)
     }
 
     @Test
@@ -438,60 +428,11 @@ class SchedulingRepositoryTest {
                     ApiResult.HttpFailure(status = 400, message = "Bad request", code = code)
             }
 
-            val result = repository(api).dashboardHandOff("ws-1", nonce = null) as ApiResult.HttpFailure
+            val result = repository(api).dashboardHandOff("ws-1", NONCE) as ApiResult.HttpFailure
 
             assertEquals(code, result.code)
         }
     }
-
-    @Test
-    fun `leg 1 is served only when it redirects onto this app's handoff callback`() = runTest {
-        val api = FakeDistrictApi().apply {
-            schedulingApi.schedulingHandOffStartResult =
-                ApiResult.Success("$HANDOFF_CALLBACK?state=probe&nonce=$NONCE")
-        }
-
-        assertTrue(repository(api).handOffStartServed("probe-state"))
-        // ⚠️ The probe's own state is what was sent.
-        assertEquals(listOf("probe-state"), api.schedulingApi.schedulingHandOffStarts)
-    }
-
-    @Test
-    fun `today's production 404, and every other answer, is not served`() = runTest {
-        // ⛔ EACH ONE IS A SERVER WHOSE BROWSER LEG WOULD NEVER CALL THIS APP BACK, so each must
-        // send the hand-off down the unbound path rather than open a Custom Tab on an error page.
-        val answers = listOf(
-            ApiResult.NotFound("no route"),
-            ApiResult.HttpFailure(status = 400, message = "bad state"),
-            ApiResult.NetworkFailure(java.io.IOException("down")),
-            // Another app's scheme, and a lookalike host on ours.
-            ApiResult.Success("otherapp://handoff?state=probe&nonce=$NONCE"),
-            ApiResult.Success("districtai://handoffx?state=probe&nonce=$NONCE"),
-            ApiResult.Success("districtai://auth?state=probe&code=x"),
-            // ⚠️ The bare callback with no query is not what the route sends either.
-            ApiResult.Success(HANDOFF_CALLBACK),
-            ApiResult.Success("https://www.distronode.com/dashboard"),
-        )
-        for (answer in answers) {
-            val api = FakeDistrictApi().apply { schedulingApi.schedulingHandOffStartResult = answer }
-
-            assertEquals(answer.toString(), false, repository(api).handOffStartServed("probe-state"))
-        }
-    }
-
-    @Test
-    fun `the callback's scheme and host are matched CASE-SENSITIVELY, as Android matches them`() =
-        runTest {
-            // ⛔ THE RFC SAYS CASE-INSENSITIVE AND ANDROID DOES NOT. The platform matches an intent
-            // filter's scheme and host exactly, so an upper-case Location would never reach the
-            // activity; calling it served would open a Custom Tab that cannot call back.
-            val api = FakeDistrictApi().apply {
-                schedulingApi.schedulingHandOffStartResult =
-                    ApiResult.Success("DistrictAI://HandOff?state=probe&nonce=$NONCE")
-            }
-
-            assertFalse(repository(api).handOffStartServed("probe-state"))
-        }
 
     @Test
     fun `leg 1's URL is on the website origin and carries the state as its only parameter`() {
@@ -502,16 +443,13 @@ class SchedulingRepositoryTest {
 
     @Test
     fun `an origin configured with a trailing slash does not double it`() {
-        val url = SchedulingRepository(FakeDistrictApi(), "$webOrigin/", HANDOFF_CALLBACK)
+        val url = SchedulingRepository(FakeDistrictApi(), "$webOrigin/")
             .handOffStartUrl("state")
 
         assertEquals("https://www.distronode.com/dashboard/handoff/start?state=state", url)
     }
 
     private companion object {
-        /** ⚠️ The app module's `ApiEnvironment.HANDOFF_CALLBACK_URI`, which this module cannot see. */
-        const val HANDOFF_CALLBACK = "districtai://handoff"
-
         /** 43 base64url characters, the shape the route mints. */
         const val NONCE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ0123456"
     }

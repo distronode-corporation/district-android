@@ -507,9 +507,6 @@ class AppContainer(
         // hardcoded host would keep passing on a build pointed somewhere else, which is a gate that
         // succeeds when it is misconfigured. `ApiEnvironment.baseUrl` is the single source.
         webOrigin = ApiEnvironment.baseUrl,
-        // ⛔ THE SAME CONSTANT THE MANIFEST'S FILTER IS TESTED AGAINST, so the probe of the
-        // hand-off's leg 1 accepts exactly the callback this app can receive.
-        handOffCallback = ApiEnvironment.HANDOFF_CALLBACK_URI,
     )
 
     /**
@@ -521,7 +518,7 @@ class AppContainer(
     val handOffCallbacks: HandOffCallbacks = HandOffCallbacks(log = LogcatHandOffLog)
 
     /**
-     * The nonce-bound dashboard hand-off (security item S33), with its unbound fallback.
+     * The nonce-bound dashboard hand-off (security item S33). ⛔ There is no unbound fallback.
      *
      * ⚠️ STATELESS APART FROM [handOffCallbacks], so one instance serves every workspace's screen,
      * and the one-at-a-time rule is the callbacks' and holds across all of them.

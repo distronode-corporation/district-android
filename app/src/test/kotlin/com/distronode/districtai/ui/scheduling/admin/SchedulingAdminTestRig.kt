@@ -32,7 +32,7 @@ class SchedulingAdminTestRig(canManage: Boolean = true, publicHost: String? = "a
     }
     val unknownOps = mutableListOf<String>()
     val adminRepository = SchedulingAdminRepository(admin) { unknownOps += it.wire }
-    val scheduling = SchedulingRepository(district, ApiEnvironment.baseUrl, ApiEnvironment.HANDOFF_CALLBACK_URI)
+    val scheduling = SchedulingRepository(district, ApiEnvironment.baseUrl)
 }
 
 fun schedulingMe(timezone: String = "America/Toronto", isAdmin: Boolean = true) = SchedulingMe(

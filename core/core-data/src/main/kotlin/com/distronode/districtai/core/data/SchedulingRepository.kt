@@ -73,16 +73,6 @@ class SchedulingRepository(
      * type points somewhere else. The app module owns the one origin; this module is handed it.
      */
     private val webOrigin: String,
-    /**
-     * The custom-scheme URI the hand-off's leg 1 redirects to, `districtai://handoff`, scheme and
-     * host only.
-     *
-     * ⛔ NO DEFAULT, FOR THE REASON [webOrigin] HAS NONE. [handOffStartServed] reads a probe's
-     * `Location` against this, and a hardcoded copy here would keep agreeing with itself the day
-     * the app's manifest and `ApiEnvironment` moved to another host, which would quietly turn every
-     * hand-off into the unbound one. The app module owns the one spelling.
-     */
-    private val handOffCallback: String,
 ) {
 
     /**
@@ -174,11 +164,11 @@ class SchedulingRepository(
      * credential when it went.
      *
      * @param nonce the value the browser's leg 1 handed back on `districtai://handoff`, which binds
-     *   the code to that browser's cookie; null for the unbound flow. ⛔ REQUIRED RATHER THAN
-     *   DEFAULTED, so no caller can drop to the unbound flow by forgetting an argument. ⚠️ Never
-     *   logged: the request type's `toString` prints only whether one is present.
+     *   the code to that browser's cookie. ⛔ NON-NULL, AND THAT IS THE POINT (security item S33):
+     *   there is no unbound mint to fall back to, so the server can require the binding. ⚠️ Never
+     *   logged: the request type's `toString` redacts it.
      */
-    suspend fun dashboardHandOff(workspaceId: String, nonce: String?): ApiResult<String> =
+    suspend fun dashboardHandOff(workspaceId: String, nonce: String): ApiResult<String> =
         when (
             val result = api.schedulingHandOff(
                 SchedulingHandOffRequest(
@@ -191,31 +181,6 @@ class SchedulingRepository(
             is ApiResult.Success -> verifiedDashboardTarget(result.value.url)
             is ApiResult.Failure -> result
         }
-
-    /**
-     * Whether this server serves the nonce-bound hand-off's leg 1, asked with a probe of its own
-     * [state].
-     *
-     * ⛔ TRUE ONLY FOR A REDIRECT ONTO [handOffCallback] FOLLOWED BY ITS QUERY. A 404 (today's
-     * production, which has no `/dashboard/handoff/start`), a 400, any other redirect, a network
-     * failure: all are "no", because each is a server whose browser leg would never call this app
-     * back, and the caller's answer to "no" is the unbound flow the server still accepts. The `?`
-     * in the prefix is what keeps `districtai://handoffx` from passing as the callback's host.
-     *
-     * ⛔ THE `Location` IS READ AND DROPPED HERE, NEVER RETURNED. It carries a nonce, unbound and
-     * useless as it is, and the only fact the caller needs is the boolean.
-     *
-     * ⚠️ THE CALLER OWNS THE TIME BUDGET, not this function: the probe is one leg of a hand-off the
-     * user is watching, so how long it may take is a decision made where that wait is designed.
-     */
-    suspend fun handOffStartServed(state: String): Boolean {
-        val answer = api.schedulingHandOffStart(state)
-        // ⛔ CASE-SENSITIVE, ON PURPOSE, UNLIKE THE RFC. Android matches an intent filter's scheme
-        // and host case-sensitively, so `DistrictAI://HandOff?…` would never reach the activity:
-        // calling it served would open a Custom Tab that cannot call back, and cost the user the
-        // whole callback wait before the fallback ran.
-        return answer is ApiResult.Success && answer.value.startsWith("$handOffCallback?")
-    }
 
     /**
      * The URL of the hand-off's leg 1 for [state], to open in the browser that will redeem the code.

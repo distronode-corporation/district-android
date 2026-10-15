@@ -6831,6 +6831,15 @@ tier = "T3"
 state = "reviewed"
 note = "── Scheduling ───────────────────────────────────────────────────────── The workspace's booking page: one card, four tenancy states plus the two \"there is no row\" ones. ⛔ NOTHING HERE OFFERS TO BUY ANYTHING. A workspace the feature does not admit gets `scheduling_not_eligible` and no control at all, Google Play's Payments policy is the same shape as the App Store's 3.1.3(b), and a \"contact sales\" line out of a paid product's own settings is a purchase offer wearing a different hat. ⚠️ THE ENABLE BUTTON'S WORDING IS THE SERVER'S DECISION, NOT A ROLE'S. The status route sends `canManage`, and the client draws the button from it rather than re-deriving one from a role string. ⛔ A DIFFERENT LIMIT FROM `scheduling_too_many_attempts` ABOVE, AND THE TWO MUST NOT BE MERGED. That one is five PROVISIONS an hour for the workspace; this is ten HAND-OFFS a minute for the account, and nothing was provisioned. Saying \"scheduling has been enabled several times\" for a budget that was never spent would be a wrong answer, not a vaguer one. ⛔ AND IT EXISTS AT ALL BECAUSE THE SERVER'S OWN TEXT IS UNSHOWABLE HERE. The handoff route's 429 body is `{\"error\":\"rate_limited\",\"message\":\"…\"}`, the human half is in `message`, which the client's error envelope does not model, so the shared mapping (which renders the server's string verbatim) would print `rate_limited` on a customer's phone."
 
+[scheduling.handoff_unconfirmed]
+en = "Your browser did not confirm the sign-in to the dashboard. Try again, and keep the browser open until the dashboard appears."
+fr = "Votre navigateur n'a pas confirmé la connexion au tableau de bord Web. Réessayez et gardez le navigateur ouvert jusqu'à ce que le tableau de bord s'affiche."
+ctx = "error"
+screen = "scheduling"
+tier = "T3"
+state = "draft"
+note = "⛔ THE NONCE BINDING'S TWO 400s (`nonce_required`, `invalid_nonce`) on the dashboard hand-off (security item S33). From 3.0.1 both mean the browser leg did not confirm the hand-off, never that the app is out of date: the app sends a nonce whenever the browser hands one back. Trying again starts a fresh hand-off, which is the one thing that can fix it."
+
 [scheduling.host]
 en = "Served from {host}"
 fr = "Serveur\u00A0: {host}"
@@ -7431,6 +7440,86 @@ state = "reviewed"
 fr_variant = "support requests resolved (section heading, plural)"
 note = "══ Support (this workspace's requests with Distronode) ════════════════ ⛔ NOT THE DESK. See the header above."
 
+[support.status_canceled]
+en = "Canceled"
+fr = "Annulée"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_closed]
+en = "Closed"
+fr = "Fermée"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_declined]
+en = "Declined"
+fr = "Refusée"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_done]
+en = "Done"
+fr = "Terminée"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_escalated]
+en = "Escalated"
+fr = "Remontée"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_in_progress]
+en = "In progress"
+fr = "En cours"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_open]
+en = "Open"
+fr = "Ouverte"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_pending]
+en = "Pending"
+fr = "En suspens"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
 [support.status_received]
 en = "Received"
 fr = "Reçue"
@@ -7439,7 +7528,47 @@ screen = "support, support request"
 tier = "T3"
 state = "reviewed"
 fr_variant = "support request status (« demande », feminine): the portal's statusUnsynced"
-note = "The status the server sends for a request the desk has not synced yet (helpdesk.ts writes \"Received\"). Every other status is the desk's own word and is shown as sent, as the portal does. The French is the portal's statusUnsynced (lib/i18n/pages/support.ts)."
+note = "The status the server sends for a request the desk has not synced yet (helpdesk.ts writes \"Received\"), and the label for Atlassian's synthetic PENDING category. The French is the portal's statusUnsynced (lib/i18n/pages/support.ts)."
+
+[support.status_resolved]
+en = "Resolved"
+fr = "Réglée"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_unknown]
+en = "Unknown"
+fr = "Inconnue"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_waiting_for_customer]
+en = "Waiting for your reply"
+fr = "En attente de votre réponse"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
+
+[support.status_waiting_for_support]
+en = "Waiting for support"
+fr = "En attente du soutien"
+ctx = "label"
+screen = "support, support request"
+tier = "T3"
+state = "draft"
+fr_variant = "support request status (« demande », feminine), like support.status_received"
+note = "A help-desk status, mapped from the desk's own word (case-insensitive) or, for a word the app does not know, from Atlassian's language-independent status category. The desk's raw word is never shown, so a French screen never prints the desk's English."
 
 [support.title]
 en = "Support"

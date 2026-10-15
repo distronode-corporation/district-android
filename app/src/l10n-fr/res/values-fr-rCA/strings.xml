@@ -763,6 +763,7 @@
     <string name="scheduling_eyebrow">Page de réservation</string>
     <string name="scheduling_failed">Impossible de charger la prise de rendez-vous</string>
     <string name="scheduling_handoff_rate_limited">La console de prise de rendez-vous a été ouverte plusieurs fois à l\'instant. Réessayez sous peu.</string>
+    <string name="scheduling_handoff_unconfirmed">Votre navigateur n\'a pas confirmé la connexion au tableau de bord Web. Réessayez et gardez le navigateur ouvert jusqu\'à ce que le tableau de bord s\'affiche.</string>
     <string name="scheduling_host">Serveur\u00A0: %1$s</string>
     <string name="scheduling_last_checked">Dernière vérification\u00A0: %1$s</string>
     <string name="scheduling_legacy">La prise de rendez-vous est disponible pour cet espace de travail. Activez-la pour offrir à vos clients une page de réservation dédiée.</string>
@@ -829,7 +830,19 @@
     <string name="support_request_title">Demande</string>
     <string name="support_section_open">Ouvertes</string>
     <string name="support_section_resolved">Réglées</string>
+    <string name="support_status_canceled">Annulée</string>
+    <string name="support_status_closed">Fermée</string>
+    <string name="support_status_declined">Refusée</string>
+    <string name="support_status_done">Terminée</string>
+    <string name="support_status_escalated">Remontée</string>
+    <string name="support_status_in_progress">En cours</string>
+    <string name="support_status_open">Ouverte</string>
+    <string name="support_status_pending">En suspens</string>
     <string name="support_status_received">Reçue</string>
+    <string name="support_status_resolved">Réglée</string>
+    <string name="support_status_unknown">Inconnue</string>
+    <string name="support_status_waiting_for_customer">En attente de votre réponse</string>
+    <string name="support_status_waiting_for_support">En attente du soutien</string>
     <string name="support_title">Soutien</string>
     <string name="support_unfiled">En cours d\'ouverture</string>
     <string name="support_viewer_body">Les demandes de soutien sont des échanges avec Distronode\u00A0: elles sont donc réservées aux rôles Administrateur et Membre. Au besoin, demandez à un membre de votre équipe de changer votre rôle.</string>

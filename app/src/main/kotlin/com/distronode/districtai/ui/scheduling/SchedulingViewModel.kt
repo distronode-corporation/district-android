@@ -9,6 +9,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.core.model.SchedulingEnableResponse
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.handoff.DashboardHandOff
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,13 @@ import kotlinx.coroutines.launch
  */
 class SchedulingViewModel(
     private val repository: SchedulingRepository,
+    /**
+     * The nonce-bound dashboard hand-off and its unbound fallback.
+     *
+     * ⚠️ HANDED IN RATHER THAN BUILT HERE, because it is process-scoped: the browser's callback
+     * reaches it through `MainActivity`, which knows nothing of this ViewModel. See [DashboardHandOff].
+     */
+    private val dashboardHandOff: DashboardHandOff,
     private val workspaceId: String,
 ) : ViewModel() {
 
@@ -113,17 +121,17 @@ class SchedulingViewModel(
         if (_state.value.openingDashboard) return
         _state.value = _state.value.copy(openingDashboard = true, notice = null)
         viewModelScope.launch {
-            when (val result = repository.dashboardHandOff(workspaceId)) {
-                is ApiResult.Success -> {
-                    val notice = noticeAfterLaunch(launch(result.value))
-                    _state.value = _state.value.copy(openingDashboard = false, notice = notice)
-                }
-                is ApiResult.Failure ->
-                    _state.value = _state.value.copy(
-                        openingDashboard = false,
-                        notice = dashboardNotice(result),
-                    )
+            // ⚠️ THE BUTTON STAYS BUSY FOR THE WHOLE HAND-OFF, browser leg included: up to the
+            // probe's and the callback's budgets, then the mint. That is this press's single-flight;
+            // the process-wide one is DashboardHandOff's.
+            val notice = when (val outcome = dashboardHandOff.open(workspaceId, launch)) {
+                is DashboardHandOff.Outcome.Launched -> noticeAfterLaunch(outcome.opened)
+                is DashboardHandOff.Outcome.Refused -> dashboardNotice(outcome.failure)
+                // ⚠️ Another workspace's screen is mid-hand-off; this press did nothing, so it says
+                // nothing, and whatever was already showing stays.
+                DashboardHandOff.Outcome.AlreadyRunning -> _state.value.notice
             }
+            _state.value = _state.value.copy(openingDashboard = false, notice = notice)
         }
     }
 
@@ -272,11 +280,26 @@ class SchedulingViewModel(
          * `scheduling_too_many_attempts`, which would be a sentence about a budget that was never
          * spent.
          */
-        internal fun dashboardNotice(failure: ApiResult.Failure): UiText = when (failure) {
-            is ApiResult.Forbidden -> UiText.Resource(R.string.failure_signed_out)
-            is ApiResult.RateLimited -> UiText.Resource(R.string.scheduling_handoff_rate_limited)
+        internal fun dashboardNotice(failure: ApiResult.Failure): UiText = when {
+            failure is ApiResult.Forbidden -> UiText.Resource(R.string.failure_signed_out)
+            failure is ApiResult.RateLimited -> UiText.Resource(R.string.scheduling_handoff_rate_limited)
+            failure is ApiResult.HttpFailure && failure.code in HANDOFF_BINDING_CODES ->
+                UiText.Resource(R.string.scheduling_handoff_unconfirmed)
             else -> failure.toFailureText().message
         }
+
+        /**
+         * ⛔ THE TWO 400s OF THE NONCE BINDING, AND NEITHER MEANS "UPDATE THE APP" FROM THIS BUILD.
+         * `nonce_required` is the server refusing the unbound flow once its flag is on; this build
+         * only sends that flow when the browser's leg 1 did not deliver a nonce (the probe failed,
+         * or the browser never called back), so the honest sentence is "the browser did not
+         * confirm, try again", which is what a retry from leg 1 can fix. `invalid_nonce` is a nonce
+         * the server could not read, which [com.distronode.districtai.handoff.HandOffTokens] makes
+         * unreachable from a well-formed callback, so it is drift and gets the same retry sentence
+         * rather than the shared mapping's echo of a 4xx body that carries no `error` at all.
+         * ⚠️ ON THE CODE, NOT THE STATUS: a bare 400 is an ordinary client error.
+         */
+        private val HANDOFF_BINDING_CODES = setOf("nonce_required", "invalid_nonce")
 
         private const val HTTP_CONFLICT = 409
         private const val HTTP_GONE = 410
@@ -302,9 +325,10 @@ class SchedulingViewModel(
 
         fun factory(
             repository: SchedulingRepository,
+            dashboardHandOff: DashboardHandOff,
             workspaceId: String,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { SchedulingViewModel(repository, workspaceId) }
+            initializer { SchedulingViewModel(repository, dashboardHandOff, workspaceId) }
         }
     }
 }

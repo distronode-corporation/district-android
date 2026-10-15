@@ -38,6 +38,9 @@ import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.ui.scheduling.admin.reportUnknownSchedulingOp
 import com.distronode.districtai.core.data.SetupRepository
 import com.distronode.districtai.core.data.SupportRepository
+import com.distronode.districtai.handoff.DashboardHandOff
+import com.distronode.districtai.handoff.HandOffCallbacks
+import com.distronode.districtai.handoff.LogcatHandOffLog
 import com.distronode.districtai.call.AndroidForegroundCallHost
 import com.distronode.districtai.call.AndroidIncomingRinger
 import com.distronode.districtai.call.InboundCallSessionFactory
@@ -504,6 +507,29 @@ class AppContainer(
         // hardcoded host would keep passing on a build pointed somewhere else, which is a gate that
         // succeeds when it is misconfigured. `ApiEnvironment.baseUrl` is the single source.
         webOrigin = ApiEnvironment.baseUrl,
+        // ⛔ THE SAME CONSTANT THE MANIFEST'S FILTER IS TESTED AGAINST, so the probe of the
+        // hand-off's leg 1 accepts exactly the callback this app can receive.
+        handOffCallback = ApiEnvironment.HANDOFF_CALLBACK_URI,
+    )
+
+    /**
+     * Where a `districtai://handoff` callback meets the dashboard hand-off waiting for it.
+     *
+     * ⛔ ONE, FOR THE PROCESS, because the callback arrives on `MainActivity` and the wait runs in a
+     * ViewModel, and either can be recreated while the browser is open. See [HandOffCallbacks].
+     */
+    val handOffCallbacks: HandOffCallbacks = HandOffCallbacks(log = LogcatHandOffLog)
+
+    /**
+     * The nonce-bound dashboard hand-off (security item S33), with its unbound fallback.
+     *
+     * ⚠️ STATELESS APART FROM [handOffCallbacks], so one instance serves every workspace's screen,
+     * and the one-at-a-time rule is the callbacks' and holds across all of them.
+     */
+    val dashboardHandOff: DashboardHandOff = DashboardHandOff(
+        repository = schedulingRepository,
+        callbacks = handOffCallbacks,
+        log = LogcatHandOffLog,
     )
 
     /**

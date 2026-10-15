@@ -1,0 +1,91 @@
+# The dashboard hand-off, end to end against a live server: console home -> Scheduling ->
+# "Open dashboard" -> the browser lands on the dashboard's scheduling page, signed in.
+#
+# ⛔ THIS IS THE DEVICE PROOF OF THE NONCE-BOUND HAND-OFF (security item S33) THAT NO UNIT
+# TEST CAN GIVE. Three legs share one browser cookie jar, and only a real browser has one:
+#
+#   1. the app opens /dashboard/handoff/start?state=S in a Custom Tab; the server sets the
+#      host-only cookie __Host-dn-handoff-nonce and redirects to districtai://handoff;
+#   2. the browser follows that redirect into the app (a custom-scheme redirect out of a
+#      Custom Tab), and the app mints the code bound to the nonce;
+#   3. the app opens the code's URL in a second Custom Tab of the SAME browser, which must
+#      carry the cookie from leg 1, and the server signs that browser in and redirects to
+#      /dashboard/district/scheduling.
+#
+# If leg 2 never reaches the app, the app falls back to the unbound flow after ten seconds
+# and the dashboard still opens; the budget below allows for that, so a GREEN RUN ALONE DOES
+# NOT PROVE THE BINDING. `adb logcat -s DistrictHandOff` during the run prints BOUND for the
+# bound path and FALLBACK_* for either fallback (never the nonce). If leg 3 does not carry
+# the cookie, the server answers its 410 page ("This sign-in link has expired or was already
+# used"), and this flow fails on that sentence by name.
+#
+# ⛔ READ-ONLY. Opening the dashboard mints a single-use, sixty-second code and a browser
+# session for the account already signed in; nothing is created, edited or deleted, and
+# nothing on the dashboard page is tapped. The scheduling tenancy must already be ready on
+# the account's workspace: the "Open dashboard" button is drawn only then, and this flow never
+# presses Enable (that provisions a tenancy and a DNS record).
+#
+# ⚠️ OPT-IN: smoke.yaml runs it only with DISTRICT_SMOKE_HANDOFF=1, because whether the review
+# workspace has a ready booking page is a fact about seeded data this repository cannot see.
+#
+# ⚠️ THE WEB PAGE IS READ BY ITS ENGLISH COPY, for the reason sign-in.yaml gives: Chrome
+# exposes a page's text to accessibility and nothing else. "Scheduling" is the dashboard
+# page's title (the website's schedulingI18n `pages.schedulingTitle`); the 410 sentence is
+# the website's `GONE_HTML` in /dashboard/handoff.
+appId: com.distronode.districtai.debug
+---
+- scrollUntilVisible:
+    element:
+      text: "district-overview-open-scheduling"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "district-overview-open-scheduling"
+- extendedWaitUntil:
+    visible:
+      text: "district-scheduling-dashboard"
+    timeout: 30000
+- takeScreenshot: 10-scheduling
+
+- tapOn:
+    text: "district-scheduling-dashboard"
+
+# ⛔ THE APP'S OWN SCREEN MUST BE GONE FIRST, because the app also says "Scheduling". Waiting
+# for the browser to cover it is what makes the next wait a statement about the WEB page.
+# A browser that handed the claimed /dashboard/district/scheduling URL back to the app (see
+# SchedulingDestination's ⛔) fails here, with the app's screen still showing.
+- extendedWaitUntil:
+    notVisible:
+      text: "district-scheduling-root"
+    timeout: 60000
+# ⚠️ WAIT FOR ANY OF THE THREE PAGES THE HAND-OFF CAN END ON, then name the bad two. Waiting
+# for the good page alone would turn a 410 into a timeout that says nothing about why.
+- extendedWaitUntil:
+    visible:
+      text: ".*Scheduling.*|This sign-in link has expired.*|This browser is already signed in.*"
+    timeout: 60000
+- takeScreenshot: 11-dashboard-scheduling
+- assertNotVisible:
+    text: "This sign-in link has expired or was already used.*"
+- assertNotVisible:
+    text: "This browser is already signed in to Distronode with a different account.*"
+- assertVisible:
+    text: ".*Scheduling.*"
+
+# Close the Custom Tab and walk back to the console, so the tour's sign-out leg runs from
+# where it expects to start.
+# ⚠️ UP TO THREE BACKS, NOT ONE: whether leg 1's tab is still on the stack under leg 3's
+# depends on how the browser parks a Custom Tab that redirected out to an app, which is the
+# browser's behaviour rather than this app's.
+- repeat:
+    times: 3
+    while:
+      notVisible:
+        text: "district-scheduling-root"
+    commands:
+      - back
+- assertVisible:
+    text: "district-scheduling-root"
+- back
+- assertVisible:
+    text: "district-overview-root"

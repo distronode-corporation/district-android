@@ -1599,6 +1599,33 @@ interface SchedulingApi {
     suspend fun schedulingHandOff(
         request: SchedulingHandOffRequest,
     ): ApiResult<SchedulingHandOffResponse>
+
+    /**
+     * Ask whether this server serves leg 1 of the NONCE-BOUND hand-off, and report where it
+     * redirects without going there.
+     *
+     * ⛔ A PROBE, NOT LEG 1 ITSELF, AND ITS ANSWER IS NEVER USED AS ONE. The real leg 1 has to run in
+     * the BROWSER, because what it is for is the `__Host-dn-handoff-nonce` cookie it sets, and only
+     * the browser that will open the code has to hold that cookie. This request is answered from
+     * the same route so the app can learn, without putting a Custom Tab on screen, whether the
+     * route exists at all: today's production has no `/dashboard/handoff/start`, and a Custom Tab
+     * showing its 404 never calls back. See `DashboardHandOff` in the app module for the decision.
+     *
+     * ⛔ NO BEARER, AND NO COOKIE JAR TO KEEP WHAT COMES BACK. The route is a browser route that
+     * takes no credential, so attaching the access token would only be one more place it goes. The
+     * cookie it sets lands in OkHttp's default `CookieJar.NO_COOKIES` and is dropped, and the nonce
+     * in the `Location` was never bound to anything: the browser's own leg 1 mints a fresh one,
+     * and a second leg 1 replaces the first by design.
+     *
+     * ⚠️ THE RESULT IS THE `Location` VERBATIM, A CUSTOM-SCHEME URI RATHER THAN AN https ONE, which
+     * is why this is not `DistrictApiClient.redirectTarget` (that refuses anything but https). It
+     * still carries a nonce, unbound or not, so nothing may log it either.
+     *
+     * @param state the probe's own `state`, 16 to 256 characters of `[A-Za-z0-9._~-]`. ⚠️ NOT the
+     *   state of the browser's leg 1: a fresh one, so the probe's answer can never be mistaken for
+     *   that leg's callback.
+     */
+    suspend fun schedulingHandOffStart(state: String): ApiResult<String>
 }
 
 /**
@@ -1613,12 +1640,30 @@ interface SchedulingApi {
  * `/dashboard` silently becomes `/dashboard/district/scheduling`, so a value the route refuses
  * costs the deep link and nothing else. `BODY_JSON` sets `explicitNulls = false`, so a null one is
  * omitted from the wire rather than sent as `"next": null`.
+ *
+ * ⛔ [nonce] BINDS THE CODE TO ONE BROWSER, AND ITS ABSENCE IS TODAY'S UNBOUND FLOW, NOT AN ERROR.
+ * The browser's leg 1 (`/dashboard/handoff/start`) set a `__Host-dn-handoff-nonce` cookie and
+ * handed the same value to the app on `districtai://handoff`; sending it here makes the minted code
+ * redeemable only by the browser holding that cookie, so a code that leaks cannot sign in any other
+ * browser. Omitted (null, so off the wire like [next]) when the browser leg did not complete: the
+ * server accepts that until its `HANDOFF_REQUIRE_NONCE` flag is on, and answers 400
+ * `nonce_required` after.
+ *
+ * ⛔ AND IT IS A CREDENTIAL HALF, SO THIS TYPE OVERRIDES `toString`. A data class prints every
+ * field, and a request object is exactly the kind of value that ends up interpolated into a log
+ * line or an assertion message. The override says whether a nonce is present and never what it is.
  */
 @kotlinx.serialization.Serializable
 data class SchedulingHandOffRequest(
     val workspaceId: String,
     val next: String? = null,
-)
+    val nonce: String? = null,
+) {
+    override fun toString(): String {
+        val nonceShape = if (nonce == null) "absent" else "present"
+        return "SchedulingHandOffRequest(workspaceId=$workspaceId, next=$next, nonce=$nonceShape)"
+    }
+}
 
 /**
  * The enable body.

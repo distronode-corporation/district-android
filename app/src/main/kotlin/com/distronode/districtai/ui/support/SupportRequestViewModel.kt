@@ -126,8 +126,8 @@ class SupportRequestViewModel(
      * their request was "done" or "won't do". Its sentence names the way forward (reply and we will
      * close it) and is shown verbatim.
      *
-     * ⚠️ THE RESOLVED `statusName` IS ADOPTED FROM THE RESPONSE. The live workflow is localised, so
-     * substituting "Closed" would print English over a status Atlassian spells in another language.
+     * ⚠️ THE RESOLVED `statusName` IS ADOPTED FROM THE RESPONSE, as the desk's word for the new
+     * state; the screen shows it in the app's language through `supportStatusLabel`.
      */
     fun close() {
         if (!canUse) return

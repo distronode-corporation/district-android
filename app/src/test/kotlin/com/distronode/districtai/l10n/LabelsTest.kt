@@ -121,8 +121,10 @@ class LabelsTest {
             str(R.string.messaging_channel_title, "sms") to {
                 stringResource(R.string.messaging_channel_title, messagingChannelLabel("sms"))
             },
-            "Received" to { supportStatusText("Received") },
-            "In Progress" to { supportStatusText("In Progress") },
+            str(R.string.support_status_received) to { stringResource(supportStatusLabel("Received", "PENDING")) },
+            str(R.string.support_status_in_progress) to {
+                stringResource(supportStatusLabel("In Progress", "INDETERMINATE"))
+            },
         )
         assertEquals(R.string.messaging_channel_sms, MESSAGING_CHANNEL_LABELS["sms"])
         assertEquals(MESSAGING_CHANNELS.toSet(), MESSAGING_CHANNEL_LABELS.keys)
@@ -187,6 +189,61 @@ class LabelsTest {
         assertRendered(
             str(R.string.wire_meeting_status_unknown, "paused") to { wireLabel(WireCategory.MEETING_STATUS, "paused") },
             "paused" to { wireLabel(WireCategory.MEETING_STATUS, "paused") },
+        )
+    }
+
+    @Test
+    fun `every desk status the app knows has its own label, matched whatever the desk's case or spacing`() {
+        // ⛔ 3.0.1: the desk's raw word reached French screens ("In Progress", "Done").
+        val expected = mapOf(
+            "Received" to R.string.support_status_received,
+            "Open" to R.string.support_status_open,
+            "New" to R.string.support_status_open,
+            "To Do" to R.string.support_status_open,
+            "In Progress" to R.string.support_status_in_progress,
+            "Work in progress" to R.string.support_status_in_progress,
+            "Under review" to R.string.support_status_in_progress,
+            "Escalated" to R.string.support_status_escalated,
+            "Waiting for customer" to R.string.support_status_waiting_for_customer,
+            "Waiting for reply" to R.string.support_status_waiting_for_customer,
+            "Waiting for support" to R.string.support_status_waiting_for_support,
+            "Pending" to R.string.support_status_pending,
+            "Done" to R.string.support_status_done,
+            "Completed" to R.string.support_status_done,
+            "Resolved" to R.string.support_status_resolved,
+            "Closed" to R.string.support_status_closed,
+            "Canceled" to R.string.support_status_canceled,
+            "Cancelled" to R.string.support_status_canceled,
+            "Declined" to R.string.support_status_declined,
+            "Won't do" to R.string.support_status_declined,
+        )
+        assertEquals(expected.size, SUPPORT_STATUS_LABELS.size)
+        expected.forEach { (word, label) ->
+            // The category disagrees on purpose: a word the app knows wins over the bucket.
+            assertEquals(word, label, supportStatusLabel(word, "NEW"))
+            assertEquals(word, label, supportStatusLabel("  ${word.uppercase()} ", "NEW"))
+        }
+    }
+
+    @Test
+    fun `a word the app does not know reads as its category, and nothing at all as unknown`() {
+        // ⚠️ THE LIVE DESK HAS ANSWERED IN CHINESE: the category is the one language-independent signal.
+        assertEquals(R.string.support_status_open, supportStatusLabel("新建", "NEW"))
+        assertEquals(R.string.support_status_in_progress, supportStatusLabel("Waiting on vendor", "indeterminate"))
+        assertEquals(R.string.support_status_closed, supportStatusLabel("完成", "DONE"))
+        assertEquals(R.string.support_status_received, supportStatusLabel("", "PENDING"))
+        assertEquals(R.string.support_status_unknown, supportStatusLabel("Triage", "unknown"))
+        assertEquals(R.string.support_status_unknown, supportStatusLabel("", ""))
+    }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `a French screen shows the desk's English status in French`() {
+        assertRendered(
+            "En cours" to { stringResource(supportStatusLabel("In Progress", "INDETERMINATE")) },
+            "Terminée" to { stringResource(supportStatusLabel("Done", "DONE")) },
+            "Inconnue" to { stringResource(supportStatusLabel("Triage", "unknown")) },
+            "Reçue" to { stringResource(supportStatusLabel("Received", "PENDING")) },
         )
     }
 }

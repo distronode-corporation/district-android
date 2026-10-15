@@ -264,4 +264,36 @@ class SupportRequestScreenTest {
             .assertTextEquals("Second failure.")
         composeRule.onNodeWithText("First failure.").assertDoesNotExist()
     }
+
+    @Test
+    fun `the same thread with a new draft, then a new thread, redraws with both`() {
+        // ⚠️ THE TWO WAYS A HOST RECOMPOSES THE THREAD: the SAME state with a new draft (typing),
+        // and a NEW state (a reply landed). Each must draw what it was given.
+        val content = SupportRequestUiState.Content(request)
+        var state by mutableStateOf<SupportRequestUiState>(content)
+        var draft by mutableStateOf("")
+        composeRule.setContent {
+            DistrictTheme {
+                SupportRequestScreen(
+                    state = state,
+                    draft = draft,
+                    canUse = true,
+                    onDraftChange = {},
+                    onSend = {},
+                    onClose = {},
+                    onRetry = {},
+                    onSignIn = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        draft = "Still dropping"
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Still dropping").assertIsDisplayed()
+        state = SupportRequestUiState.Content(request, sending = true)
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("Still dropping").assertIsDisplayed()
+    }
 }

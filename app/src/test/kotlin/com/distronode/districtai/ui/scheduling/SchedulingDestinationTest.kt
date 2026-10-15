@@ -7,10 +7,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.ApiEnvironment
 import com.distronode.districtai.R
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.handoff.HandOffEvent
 import com.distronode.districtai.ui.MainLooperDrain
 import com.distronode.districtai.ui.NavHostHarness
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
@@ -82,6 +84,35 @@ class SchedulingDestinationTest {
     }
 
     @Test
+    fun `the nonce-bound hand-off opens leg 1 and then the bound code, through one launcher`() {
+        // ⛔ BOTH BROWSER LEGS GO THROUGH THE SAME LAUNCHER, which pins the same browser package:
+        // that is what puts the leg-3 Custom Tab in the cookie jar leg 1 wrote the nonce into.
+        harness.installBrowser()
+        harness.api.schedulingApi.schedulingHandOffStartResult =
+            ApiResult.Success("${ApiEnvironment.HANDOFF_CALLBACK_URI}?state=probe&nonce=$NONCE")
+        openLiveBookingPage()
+
+        harness.tap(SCHEDULING_DASHBOARD_DESCRIPTION)
+        harness.awaitMain { harness.started.size == 1 }
+        val legOne = checkNotNull(harness.started.single().data)
+        assertEquals("/dashboard/handoff/start", legOne.path)
+        assertEquals(
+            HandOffEvent.CALLBACK_ACCEPTED,
+            harness.container.handOffCallbacks.deliver(legOne.getQueryParameter("state"), NONCE),
+        )
+        harness.awaitMain { harness.started.size == 2 }
+
+        assertEquals(
+            "https://www.distronode.com/dashboard/handoff?code=stub&next=%2Fdashboard",
+            harness.started[1].dataString,
+        )
+        val browser = checkNotNull(harness.started[0].`package`) { "leg 1 was not pinned to a browser" }
+        assertEquals("leg 3 went to another browser", browser, harness.started[1].`package`)
+        assertEquals(listOf(NONCE), harness.api.schedulingApi.schedulingHandOffs.map { it.nonce })
+        assertTrue(harness.messages.isEmpty())
+    }
+
+    @Test
     fun `the scheduler hand-off with no browser at all says so rather than doing nothing`() {
         openLiveBookingPage()
         harness.startFailure = ActivityNotFoundException("no browser")
@@ -94,5 +125,9 @@ class SchedulingDestinationTest {
         composeRule.onNodeWithText(browserMissing).assertExists()
         assertTrue(harness.messages.isEmpty())
         assertTrue(harness.started.isEmpty())
+    }
+
+    private companion object {
+        const val NONCE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ0123456"
     }
 }

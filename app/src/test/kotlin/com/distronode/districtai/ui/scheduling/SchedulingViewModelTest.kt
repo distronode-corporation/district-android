@@ -8,6 +8,9 @@ import com.distronode.districtai.core.model.SchedulingEnableResponse
 import com.distronode.districtai.core.model.SchedulingStatusResponse
 import com.distronode.districtai.core.model.SchedulingTenant
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.handoff.DashboardHandOff
+import com.distronode.districtai.handoff.HandOffCallbacks
+import com.distronode.districtai.handoff.HandOffEvent
 import com.distronode.districtai.ui.resourceIdOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -59,9 +62,19 @@ class SchedulingViewModelTest {
      * here would exercise the check against a value nothing else in the build agrees with.
      */
     private fun repository(api: FakeDistrictApi) =
-        SchedulingRepository(api, ApiEnvironment.baseUrl)
+        SchedulingRepository(api, ApiEnvironment.baseUrl, ApiEnvironment.HANDOFF_CALLBACK_URI)
 
-    private fun model(api: FakeDistrictApi) = SchedulingViewModel(repository(api), "ws-1")
+    /** What the hand-off recorded, across every model built from [callbacks]. */
+    private val recorded = mutableListOf<HandOffEvent>()
+
+    /** ⚠️ ONE PER TEST, AS THE CONTAINER HOLDS ONE PER PROCESS: two models share its single slot. */
+    private val callbacks = HandOffCallbacks { recorded += it }
+
+    private fun handOff(api: FakeDistrictApi) =
+        DashboardHandOff(repository(api), callbacks, { recorded += it })
+
+    private fun model(api: FakeDistrictApi, workspaceId: String = "ws-1") =
+        SchedulingViewModel(repository(api), handOff(api), workspaceId)
 
     // ── The read ─────────────────────────────────────────────────────────────
 
@@ -759,7 +772,7 @@ class SchedulingViewModelTest {
         }
 
         val viewModel = SchedulingViewModel
-            .factory(repository(api), "ws-2")
+            .factory(repository(api), handOff(api), "ws-2")
             .create(SchedulingViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 

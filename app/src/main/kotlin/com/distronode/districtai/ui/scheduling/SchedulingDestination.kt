@@ -52,6 +52,13 @@ import com.distronode.districtai.ui.scheduling.admin.schedulingAdminDestinations
  * reports the sheet bouncing back into the app, this is the first thing to check, and the answer
  * would be a `next` outside the claimed prefix rather than a change of launcher.
  *
+ * ⛔ THE SAME LAUNCHER OPENS BOTH BROWSER LEGS OF THE NONCE-BOUND DASHBOARD HAND-OFF, and that is
+ * what puts them in one cookie jar: `/dashboard/handoff/start` (which sets the nonce cookie) and
+ * then the code's URL (which is redeemed against it). Both resolve the same default browser by
+ * package, so the Custom Tab that redeems is a tab of the browser that took the cookie. Neither
+ * URL is claimed by the App Links filter (`/dashboard/handoff/...` is outside `/dashboard/district`),
+ * so `launch` is still the right call for both. See `DashboardHandOff`.
+ *
  * ⛔ AND THE URL IS SPENT IMMEDIATELY AND KEPT NOWHERE. It carries a 60-second single-use JWT; the
  * ViewModel answers it through a callback rather than parking it on a `StateFlow` for exactly that
  * reason, and nothing here logs it.
@@ -83,7 +90,11 @@ internal fun NavGraphBuilder.schedulingDestination(
             // name until the reload landed, and a booking link is exactly the kind of value
             // somebody copies to a customer before noticing.
             key = "scheduling-$workspaceId",
-            factory = SchedulingViewModel.factory(container.schedulingRepository, workspaceId),
+            factory = SchedulingViewModel.factory(
+                container.schedulingRepository,
+                container.dashboardHandOff,
+                workspaceId,
+            ),
         )
         val state by viewModel.state.collectAsStateWithLifecycle()
 

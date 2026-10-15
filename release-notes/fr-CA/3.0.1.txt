@@ -1,3 +1,5 @@
-• Les appels entrants font maintenant sonner votre appareil. Votre sonnerie joue et l'appareil vibre selon vos paramètres de son, dans le respect du mode silencieux et du mode Ne pas déranger.
-• Sur un appareil verrouillé, un appel entrant s'affiche maintenant en plein écran lorsqu'Android le permet.
-• Vos appareils cessent de sonner dès qu'un appel est pris sur un autre appareil ou que l'appelant raccroche.
+• Les appels entrants font maintenant sonner votre appareil selon vos paramètres de son, en respectant le mode silencieux et Ne pas déranger.
+• Sur un appareil verrouillé, un appel entrant s'affiche en plein écran si Android le permet.
+• Vos appareils cessent de sonner dès qu'un appel est pris ailleurs ou que l'appelant raccroche.
+• L'état de vos demandes de soutien s'affiche maintenant dans votre langue.
+• L'ouverture du tableau de bord Web depuis l'application est maintenant plus sûre.

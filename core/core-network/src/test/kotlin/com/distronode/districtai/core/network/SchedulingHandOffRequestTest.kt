@@ -161,4 +161,39 @@ class SchedulingHandOffRequestTest {
 
             assertEquals("Forbidden", (result as ApiResult.Forbidden).message)
         }
+
+    @Test
+    fun `a nonce from the browser's leg 1 is a third body key, and only when there is one`() = runTest {
+        // ⛔ THE BINDING TRAVELS IN THE BODY, never in the query string, which is the half of a
+        // request that reaches access logs. Its ABSENCE is the unbound flow, which the test above
+        // already pins as exactly `workspaceId` and `next`.
+        server.enqueue(MockResponse(code = 200, body = """{"url":"https://x.test/d","expiresIn":60}"""))
+
+        schedulingApi().schedulingHandOff(
+            SchedulingHandOffRequest(workspaceId = "ws-1", next = "/dashboard/district/scheduling", nonce = NONCE),
+        )
+
+        val recorded = server.takeRequest()
+        assertEquals("", recorded.url.encodedQuery.orEmpty())
+        val body = Json.parseToJsonElement(recorded.body?.utf8().orEmpty()) as JsonObject
+        assertEquals(setOf("workspaceId", "next", "nonce"), body.keys)
+        assertEquals(NONCE, (body["nonce"] as JsonPrimitive).content)
+    }
+
+    @Test
+    fun `printing the request says whether a nonce is present and never what it is`() {
+        // ⛔ A DATA CLASS PRINTS EVERY FIELD, and a request object is exactly what ends up in a log
+        // line or an assertion message. The nonce is half of a credential.
+        val bound = SchedulingHandOffRequest(workspaceId = "ws-1", next = "/n", nonce = NONCE).toString()
+        val unbound = SchedulingHandOffRequest(workspaceId = "ws-1").toString()
+
+        assertTrue(bound, !bound.contains(NONCE))
+        assertEquals("SchedulingHandOffRequest(workspaceId=ws-1, next=/n, nonce=present)", bound)
+        assertEquals("SchedulingHandOffRequest(workspaceId=ws-1, next=null, nonce=absent)", unbound)
+    }
+
+    private companion object {
+        /** 43 base64url characters, the shape the route mints. */
+        const val NONCE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ0123456"
+    }
 }

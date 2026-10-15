@@ -12,6 +12,10 @@ calls through Android's Telecom framework, push notifications, and workspace set
 Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache-2.0. It
 runs on Android 8.0 (API level 26) and later.
 
+**Languages:** English and Canadian French (fr-CA), since 3.0. The app follows the device's
+language or, on Android 13 and later, its own language setting; any French reads in Canadian
+French, and every other language in English.
+
 The app is a client of the District AI API. Everything it shows comes from that service, and
 signing in needs a District AI account. There is no offline mode and no local server.
 

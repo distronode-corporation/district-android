@@ -90,6 +90,15 @@ appId: com.distronode.districtai.debug
 - assertVisible:
     id: "district-overview-root"
 
+# ── Scheduling: the dashboard hand-off (opt-in) ─────────────────────────────────
+# ⚠️ Only with DISTRICT_SMOKE_HANDOFF=1: it needs a READY booking page on the workspace, a
+# fact about seeded data. Read-only; see the subflow's own header for what it proves and
+# what a green run does not.
+- runFlow:
+    when:
+      true: ${DISTRICT_SMOKE_HANDOFF === "1"}
+    file: scheduling-handoff.yaml
+
 # ── Settings, and out ───────────────────────────────────────────────────────────
 - tapOn:
     id: "district-overview-open-settings"

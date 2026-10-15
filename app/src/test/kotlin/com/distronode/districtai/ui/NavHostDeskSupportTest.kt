@@ -283,7 +283,7 @@ class NavHostDeskSupportTest {
         harness.tap(SUPPORT_REQUEST_CLOSE_DESCRIPTION)
 
         assertEquals(listOf("DA-42"), harness.support.closedKeys)
-        assertEquals(listOf(string(R.string.support_closed, "Done")), harness.messages)
+        assertEquals(listOf(string(R.string.support_closed, string(R.string.support_status_done))), harness.messages)
     }
 
     // ── A dead session ─────────────────────────────────────────────────────────────────────

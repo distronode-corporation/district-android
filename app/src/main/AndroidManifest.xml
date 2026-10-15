@@ -251,6 +251,28 @@
             </intent-filter>
 
             <!--
+              The dashboard hand-off's nonce callback (security item S33).
+
+              The browser's leg 1, `/dashboard/handoff/start?state=S`, sets a host-only nonce cookie
+              and redirects here with `?state=S&nonce=N`; the app then mints the code bound to N, so
+              only the browser holding the cookie can redeem it.
+
+              ⛔ A SEPARATE FILTER FROM `auth`, NOT A SECOND HOST ON IT. One filter's <data> elements
+                 combine as a cross product, which is harmless today and becomes a claim nobody meant
+                 the day either gains a path or a scheme. The host is matched again in MainActivity,
+                 because this activity is exported and any app can fire `districtai://handoff` at it:
+                 HandOffCallbacks drops anything whose state is not the one pending.
+            -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="handoff"
+                    android:scheme="districtai" />
+            </intent-filter>
+
+            <!--
               Android App Links: a dashboard URL opens the app instead of a browser tab.
 
               ⛔ `autoVerify="true"` IS A REQUEST, NOT A GRANT, AND IT FAILS CLOSED. At install the

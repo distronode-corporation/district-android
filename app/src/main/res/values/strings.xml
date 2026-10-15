@@ -772,6 +772,7 @@
     <string name="scheduling_eyebrow">Booking page</string>
     <string name="scheduling_failed">Could not load scheduling</string>
     <string name="scheduling_handoff_rate_limited">Scheduling was opened several times just now. Try again shortly.</string>
+    <string name="scheduling_handoff_unconfirmed">Your browser did not confirm the sign-in to the dashboard. Try again, and keep the browser open until the dashboard appears.</string>
     <string name="scheduling_host">Served from %1$s</string>
     <string name="scheduling_last_checked">Last checked %1$s</string>
     <string name="scheduling_legacy">Scheduling is available for this workspace. Turn it on to give customers a booking page of their own.</string>
@@ -838,7 +839,19 @@
     <string name="support_request_title">Request</string>
     <string name="support_section_open">Open</string>
     <string name="support_section_resolved">Resolved</string>
+    <string name="support_status_canceled">Canceled</string>
+    <string name="support_status_closed">Closed</string>
+    <string name="support_status_declined">Declined</string>
+    <string name="support_status_done">Done</string>
+    <string name="support_status_escalated">Escalated</string>
+    <string name="support_status_in_progress">In progress</string>
+    <string name="support_status_open">Open</string>
+    <string name="support_status_pending">Pending</string>
     <string name="support_status_received">Received</string>
+    <string name="support_status_resolved">Resolved</string>
+    <string name="support_status_unknown">Unknown</string>
+    <string name="support_status_waiting_for_customer">Waiting for your reply</string>
+    <string name="support_status_waiting_for_support">Waiting for support</string>
     <string name="support_title">Support</string>
     <string name="support_unfiled">Being opened</string>
     <string name="support_viewer_body">Support requests are correspondence with Distronode, so they are limited to agency and client seats. Ask someone on your team to change your role if you need it.</string>

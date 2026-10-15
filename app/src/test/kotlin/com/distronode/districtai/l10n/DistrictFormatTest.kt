@@ -150,6 +150,27 @@ class DistrictFormatTest {
     }
 
     @Test
+    fun `only the US dollar is disambiguated, and French already names it`() {
+        val nbsp = DistrictFormat.NBSP
+        assertEquals("US$12.50", DistrictFormat.money(1_250, "usd", AppLanguage.EN, disambiguateDollar = true))
+        assertEquals(
+            "12,50$nbsp$${nbsp}US",
+            DistrictFormat.money(1_250, "usd", AppLanguage.FR, disambiguateDollar = true),
+        )
+        assertEquals(
+            DistrictFormat.money(1_250, "cad", AppLanguage.EN),
+            DistrictFormat.money(1_250, "cad", AppLanguage.EN, disambiguateDollar = true),
+        )
+    }
+
+    @Test
+    fun `an Australian zone reads the twelve-hour clock, as the Americas do`() {
+        val at = java.time.Instant.parse("2026-10-15T03:04:00Z")
+        assertEquals("2:04 p.m.", DistrictFormat.time(at, java.time.ZoneId.of("Australia/Sydney"), AppLanguage.EN))
+        assertEquals("05:04", DistrictFormat.time(at, java.time.ZoneId.of("Europe/Paris"), AppLanguage.EN))
+    }
+
+    @Test
     fun `a month and day read as the medium date without its year`() {
         assertEquals("Aug 9", DistrictFormat.monthDay(9, 8, AppLanguage.EN))
         assertEquals("9 août", DistrictFormat.monthDay(9, 8, AppLanguage.FR))

@@ -16,6 +16,9 @@
 #       (appreview@, workspace "District Review"), NOT the store review demo account
 #   DISTRICT_SMOKE_CONTACT   a seeded contact's display name, default Amara Osei
 #   DISTRICT_SMOKE_PLAN      the raw tier the billing card prints, default VoicePro
+#   DISTRICT_SMOKE_HANDOFF   1 to also open Scheduling -> "Open dashboard" and wait for the
+#       dashboard's scheduling page in the browser (the nonce-bound hand-off, S33); needs a
+#       ready booking page on the workspace, so it is off unless asked for
 # With the first two unset the flow runs its launch leg only and still produces a
 # screenshot; that is a deliberate mode, not a degraded one.
 #
@@ -257,6 +260,7 @@ set +e
   -e DISTRICT_SMOKE_PASSWORD="${DISTRICT_SMOKE_PASSWORD:-}" \
   -e DISTRICT_SMOKE_CONTACT="${DISTRICT_SMOKE_CONTACT:-Amara Osei}" \
   -e DISTRICT_SMOKE_PLAN="${DISTRICT_SMOKE_PLAN:-VoicePro}" \
+  -e DISTRICT_SMOKE_HANDOFF="${DISTRICT_SMOKE_HANDOFF:-}" \
   "$FLOW"
 STATUS=$?
 set -e

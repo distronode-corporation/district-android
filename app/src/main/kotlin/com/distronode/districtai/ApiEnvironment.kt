@@ -62,4 +62,22 @@ object ApiEnvironment {
      * later needs no server change.
      */
     const val PKCE_REDIRECT_URI: String = "$PKCE_CALLBACK_SCHEME://$PKCE_CALLBACK_HOST"
+
+    /**
+     * The host the dashboard hand-off's leg 1 redirects to on [PKCE_CALLBACK_SCHEME], carrying the
+     * `state` this app sent and the `nonce` the browser now holds as a cookie.
+     *
+     * ⛔ ITS OWN HOST, NEVER `auth`. A hand-off callback routed to the login controller would be
+     * read as a sign-in with no code, and a sign-in callback routed here would be dropped as a
+     * malformed nonce; the two flows share the scheme and nothing else. The manifest's second
+     * `districtai` filter carries the same literal, held to it by the package-manager test that
+     * resolves [HANDOFF_CALLBACK_URI].
+     */
+    const val HANDOFF_CALLBACK_HOST: String = "handoff"
+
+    /**
+     * ⚠️ WHAT THE SERVER REDIRECTS TO, MINUS ITS QUERY: `SchedulingRepository` checks the leg-1
+     * probe's `Location` against it, so the probe and the manifest agree on one spelling.
+     */
+    const val HANDOFF_CALLBACK_URI: String = "$PKCE_CALLBACK_SCHEME://$HANDOFF_CALLBACK_HOST"
 }

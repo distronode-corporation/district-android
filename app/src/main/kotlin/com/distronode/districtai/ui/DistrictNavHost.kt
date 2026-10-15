@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui
 
+import com.distronode.districtai.core.model.SupportStatusCategory
+import com.distronode.districtai.l10n.supportStatusLabel
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -1694,9 +1696,13 @@ fun DistrictNavHost(
                     OnSessionChanged(sessionEpoch, viewModel::retryOrNoop)
 
                     closedAs?.let { statusName ->
-                        // ⚠️ THE DESK'S OWN WORD, which is localised — substituting "Closed" would
-                        // print English over a status Atlassian spells in another language.
-                        val message = stringResource(R.string.support_closed, statusName)
+                        // ⚠️ IN THE APP'S LANGUAGE, as the status badge is (see `supportStatusLabel`):
+                        // the desk answers in its own language, so its raw word printed English on
+                        // a French screen. The close always lands in the resolved category.
+                        val message = stringResource(
+                            R.string.support_closed,
+                            stringResource(supportStatusLabel(statusName, SupportStatusCategory.RESOLVED)),
+                        )
                         LaunchedEffect(statusName) {
                             onShowMessage(message)
                             viewModel.acknowledgeClosed()

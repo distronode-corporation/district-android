@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -272,10 +273,29 @@ class MainActivity : ComponentActivity() {
         // ⚠️ `Intent`, not `Intent?`, in all three consumers: the system never starts or
         // re-delivers to an activity without one, so a null branch here could never run.
         val uri = intent.data ?: return
-        // Only our callback's scheme AND host; ignore anything else that resolves here.
-        if (uri.scheme != ApiEnvironment.PKCE_CALLBACK_SCHEME || uri.host != ApiEnvironment.PKCE_CALLBACK_HOST) return
-        intent.data = null
-        loginController.onCallback(uri)
+        // Only our callbacks' scheme AND host; ignore anything else that resolves here.
+        if (uri.scheme != ApiEnvironment.PKCE_CALLBACK_SCHEME) return
+        when (uri.host) {
+            ApiEnvironment.PKCE_CALLBACK_HOST -> {
+                intent.data = null
+                loginController.onCallback(uri)
+            }
+            // ⛔ THE DASHBOARD HAND-OFF'S NONCE CALLBACK, HANDLED HERE RATHER THAN IN A FUNCTION OF
+            // ITS OWN because this class is at detekt's function ceiling, and because it obeys the
+            // same two rules as the login callback: cleared before it is acted on, so a recreation
+            // cannot replay it, and matched on scheme AND host, so `districtai://evil` is still
+            // nobody's. Everything about whether it is OURS (the pending state, the nonce's shape,
+            // once only) is decided by HandOffCallbacks, which logs the outcome and never the values.
+            // ⚠️ `getQueryParameter` is safe: a URI with a host is hierarchical, never opaque.
+            ApiEnvironment.HANDOFF_CALLBACK_HOST -> {
+                intent.data = null
+                container.handOffCallbacks.deliver(
+                    state = uri.getQueryParameter("state"),
+                    nonce = uri.getQueryParameter("nonce"),
+                )
+            }
+            else -> Unit
+        }
     }
 
     /**
@@ -382,10 +402,12 @@ class MainActivity : ComponentActivity() {
  * API 26 path. Neither unlocks the phone: what the user sees is the call, and leaving it returns
  * them to the lock screen. ⚠️ A file-level function rather than a member because the Activity is at
  * detekt's function ceiling, and this needs nothing of it beyond its public API.
+ *
+ * @param sdkInt ⚠️ injectable so the API 26 path runs under the one Robolectric level the tests use.
  */
 @Suppress("DEPRECATION")
-private fun ComponentActivity.showOverLockScreen(show: Boolean) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+internal fun ComponentActivity.showOverLockScreen(show: Boolean, sdkInt: Int = Build.VERSION.SDK_INT) {
+    if (hasActivityLockScreenApis(sdkInt)) {
         setShowWhenLocked(show)
         setTurnScreenOn(show)
     } else {
@@ -393,3 +415,7 @@ private fun ComponentActivity.showOverLockScreen(show: Boolean) {
         if (show) window.addFlags(flags) else window.clearFlags(flags)
     }
 }
+
+/** ⚠️ The SDK check lint reads through its annotation; see [showOverLockScreen]. */
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O_MR1)
+internal fun hasActivityLockScreenApis(sdkInt: Int): Boolean = sdkInt >= Build.VERSION_CODES.O_MR1

@@ -32,7 +32,7 @@ import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.SupportMessage
 import com.distronode.districtai.core.model.SupportMessageRole
-import com.distronode.districtai.l10n.supportStatusText
+import com.distronode.districtai.l10n.supportStatusLabel
 import com.distronode.districtai.ui.CenteredState
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.FailureText
@@ -138,7 +138,7 @@ private fun RequestHeader(state: SupportRequestUiState.Content, onClose: () -> U
                 color = DistrictTheme.colors.foreground,
             )
             DistrictBadge(
-                text = supportStatusText(request.statusName),
+                text = stringResource(supportStatusLabel(request.statusName, request.statusCategory)),
                 tone = if (request.isResolved) Tone.Success else Tone.District,
                 modifier = Modifier
                     .padding(top = DistrictTheme.spacing.hairline)

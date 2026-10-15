@@ -79,14 +79,65 @@ internal fun inboxChannelLabel(channel: String): String =
 internal fun messagingChannelLabel(channel: String): String = valueLabel(MESSAGING_CHANNEL_LABELS, channel)
 
 /**
- * A support request's status. The desk's own word is shown as sent, as the portal shows it (the live
- * workflow is localised by the desk); the one status the SERVER writes, "Received" for a request the
- * desk has not synced yet, is the app's to translate.
+ * The label for a support request's status, in the app's language: `stringResource` of this.
+ *
+ * ⛔ THE DESK'S RAW WORD IS NEVER SHOWN (3.0.1). It used to be, on the reasoning that the desk
+ * localises its own workflow, but the desk answers in ITS language, not the user's: a French screen
+ * printed "In Progress" and "Done". So the word is looked up ([SUPPORT_STATUS_LABELS],
+ * case-insensitive), and a word the app does not know falls back to Atlassian's language-independent
+ * status CATEGORY ([SUPPORT_CATEGORY_LABELS]), which is the one stable signal (the live desk has
+ * answered in Chinese), and only then to a generic "Unknown".
+ *
+ * ⚠️ A RESOURCE ID, NOT A @Composable STRING: pure, so every branch is testable without a
+ * composition, and the call sites keep the one `stringResource` they already had.
  */
-@Composable
-@ReadOnlyComposable
-internal fun supportStatusText(statusName: String): String =
-    if (statusName == SUPPORT_STATUS_RECEIVED) stringResource(R.string.support_status_received) else statusName
+@StringRes
+internal fun supportStatusLabel(statusName: String, statusCategory: String): Int =
+    SUPPORT_STATUS_LABELS[statusName.trim().lowercase(Locale.ROOT)]
+        ?: SUPPORT_CATEGORY_LABELS[statusCategory.trim().uppercase(Locale.ROOT)]
+        ?: R.string.support_status_unknown
 
 /** What `lib/jira/helpdesk.ts` writes for a request the desk has not synced yet. */
 internal const val SUPPORT_STATUS_RECEIVED = "Received"
+
+/**
+ * The desk's status words the app knows, lower-cased: the server's own [SUPPORT_STATUS_RECEIVED],
+ * the live desk's workflow (Atlassian's customer-service template: Open, In Progress, Escalated,
+ * Waiting for customer, Done), and the other Jira Service Management templates' customer-facing
+ * names. ⚠️ Keyed by the desk's spelling, mapped to the app's: "In Progress" and "Work in progress"
+ * are one state to a customer.
+ */
+internal val SUPPORT_STATUS_LABELS: Map<String, Int> = mapOf(
+    SUPPORT_STATUS_RECEIVED.lowercase(Locale.ROOT) to R.string.support_status_received,
+    "open" to R.string.support_status_open,
+    "new" to R.string.support_status_open,
+    "to do" to R.string.support_status_open,
+    "in progress" to R.string.support_status_in_progress,
+    "work in progress" to R.string.support_status_in_progress,
+    "under review" to R.string.support_status_in_progress,
+    "escalated" to R.string.support_status_escalated,
+    "waiting for customer" to R.string.support_status_waiting_for_customer,
+    "waiting for reply" to R.string.support_status_waiting_for_customer,
+    "waiting for support" to R.string.support_status_waiting_for_support,
+    "pending" to R.string.support_status_pending,
+    "done" to R.string.support_status_done,
+    "completed" to R.string.support_status_done,
+    "resolved" to R.string.support_status_resolved,
+    "closed" to R.string.support_status_closed,
+    "canceled" to R.string.support_status_canceled,
+    "cancelled" to R.string.support_status_canceled,
+    "declined" to R.string.support_status_declined,
+    "won't do" to R.string.support_status_declined,
+)
+
+/**
+ * Atlassian's status categories, upper-cased as the server stores them (`lib/jira/status-category`):
+ * NEW, INDETERMINATE and DONE from the desk, and the server's synthetic PENDING for a request that is
+ * not filed yet.
+ */
+internal val SUPPORT_CATEGORY_LABELS: Map<String, Int> = mapOf(
+    "NEW" to R.string.support_status_open,
+    "INDETERMINATE" to R.string.support_status_in_progress,
+    "DONE" to R.string.support_status_closed,
+    "PENDING" to R.string.support_status_received,
+)

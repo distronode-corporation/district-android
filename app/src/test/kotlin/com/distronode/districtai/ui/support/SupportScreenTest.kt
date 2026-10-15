@@ -120,16 +120,17 @@ class SupportScreenTest {
     }
 
     @Test
-    fun `the status badge shows the desk's own word, not a translated one`() {
+    fun `the status badge is in the app's language, never the desk's raw word`() {
+        // ⛔ 3.0.1: THE DESK ANSWERS IN ITS OWN LANGUAGE, so its raw word put English on French
+        // screens (and French on English ones). A word the app does not know reads as its category.
         renderList(
             SupportUiState.Content(
                 requests = listOf(open.copy(statusName = "Terminé", statusCategory = "DONE")),
             ),
         )
 
-        // ⛔ SUBSTITUTING "Closed" WOULD PRINT ENGLISH over a status Atlassian spells in another
-        // language, on a screen whose whole point is telling a customer where their request stands.
-        composeRule.onNodeWithText("Terminé").assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.support_status_closed)).assertIsDisplayed()
+        composeRule.onNodeWithText("Terminé").assertDoesNotExist()
     }
 
     @Test
@@ -384,5 +385,38 @@ class SupportScreenTest {
 
         assertEquals(emptyList<String>(), first)
         assertEquals(listOf("open", "compose"), second)
+    }
+
+    @Test
+    fun `the same list handed new handlers, then a new list, redraws with both`() {
+        // ⚠️ THE TWO WAYS A HOST RECOMPOSES THIS LIST: the SAME state with new handlers (a recreated
+        // ViewModel), and a NEW state (a refresh). Each must draw what it was given.
+        val content = SupportUiState.Content(requests = listOf(open))
+        val taps = mutableListOf<String>()
+        var state by mutableStateOf<SupportUiState>(content)
+        var onOpen by mutableStateOf<(SupportRequestSummary) -> Unit>({ taps += "first" })
+        composeRule.setContent {
+            DistrictTheme {
+                SupportScreen(
+                    state = state,
+                    canUse = true,
+                    onOpenRequest = onOpen,
+                    onCompose = {},
+                    onRetry = {},
+                    onSignIn = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        onOpen = { taps += "second" }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Calls drop").performClick()
+        state = SupportUiState.Content(requests = listOf(open, unfiled), refreshing = true)
+        composeRule.waitForIdle()
+
+        assertEquals(listOf("second"), taps)
+        composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertIsDisplayed()
+        composeRule.onNodeWithText("Billing question").assertIsDisplayed()
     }
 }

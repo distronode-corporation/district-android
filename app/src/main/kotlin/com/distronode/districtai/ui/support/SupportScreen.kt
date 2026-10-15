@@ -33,7 +33,7 @@ import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.SkeletonBlock
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.SupportRequestSummary
-import com.distronode.districtai.l10n.supportStatusText
+import com.distronode.districtai.l10n.supportStatusLabel
 import com.distronode.districtai.ui.CenteredState
 import com.distronode.districtai.ui.FailureState
 
@@ -183,11 +183,8 @@ private fun RequestRow(request: SupportRequestSummary, onClick: () -> Unit) {
         onClick = onClick,
         trailing = {
             DistrictBadge(
-                // ⛔ THE DESK'S OWN WORD, SHOWN AS SENT. The live workflow is localised, so
-                // substituting "Closed" would print English over a status Atlassian spells in
-                // another language. The server's own "Received" is the one exception; see
-                // [supportStatusText].
-                text = supportStatusText(request.statusName),
+                // ⛔ IN THE APP'S LANGUAGE, NEVER THE DESK'S RAW WORD: see [supportStatusLabel].
+                text = stringResource(supportStatusLabel(request.statusName, request.statusCategory)),
                 tone = if (request.isResolved) Tone.Success else Tone.District,
                 modifier = Modifier.testTag(SUPPORT_STATUS_DESCRIPTION),
             )

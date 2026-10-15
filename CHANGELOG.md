@@ -12,11 +12,15 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ### Fixed
 
-- Incoming calls now ring. Your ringtone plays and the phone vibrates as your sound settings
-  allow, and silent mode and Do Not Disturb are respected.
-- On a locked phone, an incoming call now opens full screen when Android allows it.
-- Your devices stop ringing as soon as a call is answered on another device or the caller hangs
-  up.
+- Incoming calls now ring, as your sound settings allow, and respect silent mode and Do Not
+  Disturb.
+- On a locked phone, an incoming call opens full screen when Android allows it.
+- Your devices stop ringing as soon as a call is answered elsewhere or the caller hangs up.
+- Support request statuses now appear in your language.
+
+### Security
+
+- Opening the web dashboard from the app is now more secure.
 
 ## [3.0.0] - 2026-10-15
 

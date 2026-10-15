@@ -353,6 +353,23 @@ class DistrictApiClientTest {
     }
 
     @Test
+    fun `a blank code in the body falls through to the header, and to nothing without one`() = runTest {
+        // ⚠️ A BLANK BODY CODE IS NO CODE: it must neither hide the header's code nor reach a caller
+        // as an empty string that matches nothing.
+        server.enqueue(
+            MockResponse(
+                code = 409,
+                headers = Headers.headersOf(ApiErrorEnvelope.CODE_HEADER, "conflict"),
+                body = """{"error":"Already booked","code":" "}""",
+            ),
+        )
+        server.enqueue(MockResponse(code = 409, body = """{"error":"Already booked","code":""}"""))
+
+        assertEquals(ApiResult.HttpFailure(409, "Already booked", "conflict"), get()())
+        assertEquals(ApiResult.HttpFailure(409, "Already booked", null), get()())
+    }
+
+    @Test
     fun `the body's code wins over the header's, and either can mark degraded regions`() = runTest {
         server.enqueue(
             MockResponse(

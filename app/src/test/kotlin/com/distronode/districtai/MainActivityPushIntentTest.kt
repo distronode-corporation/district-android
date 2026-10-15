@@ -2,6 +2,8 @@ package com.distronode.districtai
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
+import android.view.WindowManager
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.push.InboxDeepLink
@@ -180,6 +182,20 @@ class MainActivityPushIntentTest {
         compose.waitForIdle()
         assertFalse(shadowOf(harness.activity).showWhenLocked)
         assertFalse(shadowOf(harness.activity).turnScreenOn)
+    }
+
+    @Test
+    fun `on API 26 the lock-screen switch is the window flags, set and cleared`() {
+        // ⚠️ THE PRE-27 PATH: the activity methods do not exist there, so the window carries it.
+        harness.signedOut()
+        harness.launch()
+        val flags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+
+        harness.activity.showOverLockScreen(show = true, sdkInt = Build.VERSION_CODES.O)
+        assertEquals(flags, harness.activity.window.attributes.flags and flags)
+
+        harness.activity.showOverLockScreen(show = false, sdkInt = Build.VERSION_CODES.O)
+        assertEquals(0, harness.activity.window.attributes.flags and flags)
     }
 
     @Test

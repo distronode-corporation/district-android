@@ -23,6 +23,8 @@ contracts/               Server-generated API fixtures. Never edited by hand.
 l10n/                    android.toml, the catalog every user-visible string comes from, and
                          scheduling.toml, the native scheduling admin's own catalog.
 tools/l10n/              The catalog tools, vendored from the maintainers' monorepo.
+i18n/fr-CA/              signoff.json, the release's French sign-off, which
+                         scripts/check-fr-signoff.py holds the catalogs to on a tag.
 parity/                  Snapshot of the iOS client's endpoint list.
 release-notes/           Google Play release notes for languages other than en-US,
                          <language>/<version>.txt (en-US is the CHANGELOG section).
@@ -65,6 +67,8 @@ python3 tools/l10n/l10n.py check l10n/numbers.toml --gen android:l10n/res --opt 
 python3 tools/l10n/l10n.py check l10n/api_errors.toml --gen android:l10n/res --opt name=api_errors
 python3 tools/l10n/l10n.py check l10n/wire_labels.toml --gen android:l10n/res --opt name=wire_labels
 python3 tools/l10n/l10n.py check l10n/scheduling.toml --gen android:l10n/res --opt name=scheduling
+python3 tools/l10n/frcheck.py all --termbase '' --tm '' .
+python3 scripts/check-fr-signoff.py --self-test
 ./gradlew detekt lintDebug testDebugUnitTest assembleDebug
 # then: at least one test result must exist (CI sums every module's result XMLs)
 ./gradlew :koverLogUnit :koverVerifyUnit
@@ -139,6 +143,16 @@ generates `sign_in_action`), so a key never changes once code uses it. A test th
 own copy reads it with `str(R.string.x)` (`app/src/test/.../TestStrings.kt`) rather than spelling
 the English out, and a stable handle for a test is a `Modifier.testTag`, never a
 `contentDescription`, which TalkBack reads aloud.
+
+CI also runs `tools/l10n/frcheck.py all`, the French rules (typography, terms, one French version
+of an English string across catalogs), over every catalog; an error fails it, a warning does not.
+
+The French is signed off per release. `i18n/fr-CA/signoff.json` names who signed it off, the
+release and commit the catalogs were read at, and the SHA-256 of every catalog in `l10n/`;
+`python3 scripts/check-fr-signoff.py` fails, naming each catalog, when one differs, is missing or
+is not listed. `release.yml` runs it on a tag, never on pull requests, because catalogs change
+between releases. A release whose catalogs changed (French, or English the French follows) needs
+the manager's review of the French and a new `signoff.json` before it is tagged.
 
 ## API contract fixtures
 

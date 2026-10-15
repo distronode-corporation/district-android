@@ -1,0 +1,27 @@
+{
+  "signed_off_by": "xhigh manager review (monorepo docs/i18n_fr_ca_signoff_v3.md)",
+  "release": "v3.0.0",
+  "commit": "c36e998a5c45064cb6c86a00f4521f458704cb88",
+  "catalogs": [
+    {
+      "path": "l10n/android.toml",
+      "sha256": "9660ff2442b24e52e095263dc028e3190ef356e0d9e9219f32c8619354db2f98"
+    },
+    {
+      "path": "l10n/api_errors.toml",
+      "sha256": "410257b338cbd4412b321379892d92edc5550fae6e43da14eb1f536369ea0a5d"
+    },
+    {
+      "path": "l10n/numbers.toml",
+      "sha256": "ac690123032cdee9958f1baa0bc519305ba3d4c47448ee810c1307d133f4295f"
+    },
+    {
+      "path": "l10n/scheduling.toml",
+      "sha256": "9628f914763277ca8768cf3d49a688a8cb360f8ab629fa389f20894e97b67ef4"
+    },
+    {
+      "path": "l10n/wire_labels.toml",
+      "sha256": "4846966d954e8a0f877e27816e530bd72f924b6c293c8b5c43763b4c4fb301c1"
+    }
+  ]
+}

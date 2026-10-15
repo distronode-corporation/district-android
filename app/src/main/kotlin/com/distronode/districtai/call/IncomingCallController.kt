@@ -115,7 +115,7 @@ internal class IncomingCallController(
     /**
      * ⚠️ A BUNDLE RATHER THAN FOUR PARAMETERS, AND THE detekt CEILING THAT FORCED IT IS WORTH
      * RESPECTING RATHER THAN SUPPRESSING — the same call [InboundCallSessionFactory] and
-     * `SoftphoneSessionFactory` make. The four things it holds are one concept: everything that has
+     * `SoftphoneSessionFactory` make. The things it holds are one concept: everything that has
      * to be told about a call ON THE DEVICE, as opposed to [repository], which is the one thing that
      * talks to the server. See [IncomingCallSurfaces].
      */
@@ -130,6 +130,7 @@ internal class IncomingCallController(
     private val notifier: PushNotifier get() = surfaces.notifier
     private val sessions: InboundCallSessionFactory get() = surfaces.sessions
     private val foreground: ForegroundCallHost get() = surfaces.foreground
+    private val ringer: IncomingRinger get() = surfaces.ringer
 
     private val _state = MutableStateFlow<IncomingCallUiState?>(null)
 
@@ -191,6 +192,11 @@ internal class IncomingCallController(
         )
         telecom.startIncoming(onSystemAnswer = ::answer, onSystemHangUp = ::decline)
         notifier.showIncomingCall(workspaceId, callId)
+        // ⛔ THE APP RINGS ITS OWN SELF-MANAGED CALL; TELECOM DOES NOT. See [IncomingRinger]: 3.0.0
+        // left this out and every inbound call rang silently. ⚠️ Started even when Telecom refused
+        // the call, for the degraded-first reason above: the notification is still answerable. The
+        // ringer itself declines to sound during a phone call (it is refused audio focus).
+        ringer.start()
         ringTimeout = scope.launch {
             delay(ringTimeoutMillis)
             // ⛔ IDENTICAL TO A DECLINE, DELIBERATELY AND VISIBLY. See the ⛔ on the class: the two
@@ -377,9 +383,20 @@ internal class IncomingCallController(
         update { copy(phase = IncomingCallPhase.ENDED, message = message) }
     }
 
+    /**
+     * The phone stops ringing: the timeout and the ringer.
+     *
+     * ⛔ THE RINGER STOPS HERE AND ONLY HERE, AND THIS IS REACHED FROM EVERY PATH THAT ENDS A RING.
+     * [answer] calls it at the press; [finish] (decline, the timeout, a hang-up from a system surface
+     * or a headset, a refused answer, a caller who hung up first, a failed join) calls it on the way
+     * out. One place means a new exit cannot forget the sound. ⚠️ There is no push for "the caller
+     * hung up" or "answered on another device"; the server sends only `incoming_call`, so those two
+     * end the ring at the timeout, or at the Answer press when the answer route says the call is gone.
+     */
     private fun clearRing() {
         ringTimeout?.cancel()
         ringTimeout = null
+        ringer.stop()
     }
 
     internal companion object {
@@ -398,8 +415,8 @@ internal class IncomingCallController(
  * THAT RESULTED IS A REAL ONE RATHER THAN AN ARBITRARY BAG. [IncomingCallController] talks to
  * exactly two worlds: the SERVER (one repository, one route, one authenticated round trip) and the
  * DEVICE (the OS's call registry, the notification shade, the media stack, the process's foreground
- * status). Every member here is the second world, and each is an interface or a factory precisely so
- * the controller's transitions can be driven without any of it.
+ * status, the ringer). Every member here is the second world, and each is an interface or a
+ * factory precisely so the controller's transitions can be driven without any of it.
  *
  * ⚠️ NOT A "DEPENDENCIES" BAG TO GROW. If something arrives that is neither of those two worlds, it
  * belongs as its own parameter — the point of the bundle is that its members share a reason, not
@@ -414,6 +431,8 @@ internal data class IncomingCallSurfaces(
     val sessions: InboundCallSessionFactory,
     /** ⛔ Started only after media is up, stopped on every terminal path. See [ForegroundCallHost]. */
     val foreground: ForegroundCallHost,
+    /** ⛔ The ringtone and the vibration: started with the ring, stopped with it. See [IncomingRinger]. */
+    val ringer: IncomingRinger,
 )
 
 /**

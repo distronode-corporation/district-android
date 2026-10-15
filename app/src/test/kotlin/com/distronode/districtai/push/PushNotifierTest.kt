@@ -9,8 +9,10 @@ import com.distronode.districtai.R
 import com.distronode.districtai.call.ongoingCallNotification
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -148,6 +150,39 @@ class PushNotifierTest {
         assertEquals(2, notification.actions.size)
         assertEquals(context.getString(R.string.push_call_answer), notification.actions[0].title)
         assertEquals(context.getString(R.string.push_call_decline), notification.actions[1].title)
+    }
+
+    @Test
+    fun `a ring carries a full-screen intent that shows the call, when the app may use one`() {
+        // ⛔ ON A LOCKED PHONE THE FULL-SCREEN INTENT IS WHAT PUTS THE RINGING SCREEN UP. 3.0.0 had
+        // none (fullScreenIntent=null in the 2026-10-15 ring test), so a locked phone showed only a
+        // line on the lock screen.
+        val granted = AndroidPushNotifier(context, canUseFullScreenIntent = { true })
+
+        granted.showIncomingCall("ws-1", "CA1")
+
+        val notification = posted().single()
+        assertNotNull(notification.fullScreenIntent)
+        val launched = shadowOf(notification.fullScreenIntent).savedIntent
+        assertEquals("CA1", launched.getStringExtra(PushIntents.EXTRA_CALL_ID))
+        assertEquals("ws-1", launched.getStringExtra(PushIntents.EXTRA_WORKSPACE_ID))
+        // ⛔ IT SHOWS THE RING AND NEVER ANSWERS IT: the same intent as the body tap.
+        assertFalse(launched.hasExtra(PushIntents.EXTRA_ANSWER))
+        assertTrue(notification.fullScreenIntent == notification.contentIntent)
+    }
+
+    @Test
+    fun `without the full-screen grant the ring is the heads-up alone`() {
+        // ⚠️ ANDROID 14+ WITHOUT THE GRANT: the intent is left off rather than attached and demoted,
+        // and everything else about the ring is unchanged.
+        val refused = AndroidPushNotifier(context, canUseFullScreenIntent = { false })
+
+        refused.showIncomingCall("ws-1", "CA1")
+
+        val notification = posted().single()
+        assertNull(notification.fullScreenIntent)
+        assertEquals(Notification.CATEGORY_CALL, notification.category)
+        assertEquals(2, notification.actions.size)
     }
 
     @Test

@@ -27,7 +27,6 @@ import com.distronode.districtai.ui.scheduling.admin.SchedulingRemoval
 import com.distronode.districtai.ui.scheduling.admin.SchedulingSectionLoading
 import com.distronode.districtai.ui.scheduling.admin.SectionState
 import com.distronode.districtai.ui.scheduling.admin.schedulingDateTime
-import com.distronode.districtai.ui.scheduling.admin.schedulingUnknownValue
 
 /** The keys this tenancy has minted: names and dates only, never key material. */
 @Composable
@@ -219,7 +218,9 @@ private fun WebhookRow(
             },
         )
     }
-    SchedulingHint(schedulingUnknownValue(hook.events.joinToString(", ")))
+    // ⛔ API IDENTIFIERS, NOT WIRE VALUES: an event name is what the receiving code matches on, so it
+    // reads as the identifier itself in every language (as district-ios and district-linux show it).
+    SchedulingHint(hook.events.joinToString(", "))
     Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
         DeveloperRowButton(
             text = stringResource(R.string.scheduling_admin_developer_deliveries),

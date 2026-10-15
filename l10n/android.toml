@@ -596,7 +596,7 @@ ctx = "label"
 screen = "billing"
 tier = "T1"
 args = { coupon = "str", money = "str" }
-state = "draft"
+state = "reviewed"
 note = "French only in practice: a coupon's amount off when the server sent the currency. {money} is already formatted with its currency (\"20,00 $ US\"). English keeps billing.discount_amount (English prices stay as they are in 3.0)."
 
 [billing.money_monthly]
@@ -606,7 +606,7 @@ ctx = "label"
 screen = "billing"
 tier = "T1"
 args = { money = "str" }
-state = "draft"
+state = "reviewed"
 note = "French only in practice: a subscription's monthly price when the server sent the currency. {money} is already formatted with its currency (\"249,00 $ US\", \"249,00 $ CA\"). English keeps billing.amount_monthly (English prices stay as they are in 3.0)."
 
 [billing.money_tax]
@@ -616,7 +616,7 @@ ctx = "label"
 screen = "billing"
 tier = "T1"
 args = { money = "str" }
-state = "draft"
+state = "reviewed"
 note = "French only in practice: an invoice's tax when the server sent the currency. {money} is already formatted with its currency (\"32,37 $ US\"). English keeps billing.invoice_tax (English prices stay as they are in 3.0)."
 
 [billing.open]

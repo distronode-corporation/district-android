@@ -51,6 +51,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -321,6 +322,25 @@ class SchedulingDeveloperScreenTest {
         composeRule.onNodeWithText(rejected).assertIsDisplayed()
         composeRule.onNodeWithText("bounced").assertIsDisplayed()
         composeRule.onNodeWithTag("$DEVELOPER_DELIVERY_TAG-d6").assertExists()
+    }
+
+    @Test
+    @Config(qualifiers = "+en-rXA")
+    fun `event and field names are API identifiers, shown as themselves in any language`() {
+        // ⛔ IN A PSEUDOLOCALE, where every app string is accented, so the generic unknown-value label
+        // (« Valeur inconnue : … » in French) can be told apart from the identifier itself.
+        assertNotEquals("booking.created", str(R.string.scheduling_admin_common_unknown_value, "booking.created"))
+        state = state.copy(tab = SchedulingDeveloperTab.WEBHOOKS, webhooks = SectionState.Ready(listOf(hook)))
+        show()
+        composeRule.onNodeWithText("booking.created, booking.paid").assertExists()
+        writes.webhooks.openEdit(hook)
+        settle()
+        composeRule.onNodeWithTag("$DEVELOPER_WEBHOOK_EVENT_TAG-booking.reminder").assertExists()
+        composeRule.onNodeWithText("booking.created").assertExists()
+        composeRule.onNodeWithText("booking.reminder").assertExists()
+        composeRule.onNodeWithText("attendee_email").assertExists()
+        composeRule.onNodeWithText(str(R.string.scheduling_admin_common_unknown_value, "booking.reminder"))
+            .assertDoesNotExist()
     }
 
     @Test

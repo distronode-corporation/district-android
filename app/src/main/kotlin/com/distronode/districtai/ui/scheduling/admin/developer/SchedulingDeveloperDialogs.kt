@@ -41,7 +41,6 @@ import com.distronode.districtai.ui.scheduling.admin.SchedulingTextField
 import com.distronode.districtai.ui.scheduling.admin.SchedulingToggleRow
 import com.distronode.districtai.ui.scheduling.admin.SchedulingWriteDialog
 import com.distronode.districtai.ui.scheduling.admin.isWorking
-import com.distronode.districtai.ui.scheduling.admin.schedulingUnknownValue
 import kotlinx.coroutines.launch
 
 /** Whichever developer dialog [writes] has open. */
@@ -191,6 +190,9 @@ private fun WebhookDialog(dialog: DeveloperDialog.Webhook, writes: SchedulingDev
 /**
  * The event and field ticks, each named by its wire value as the receiving code knows it.
  *
+ * ⛔ THE NAME ITSELF, IN EVERY LANGUAGE (`booking.created`, `attendee_email`): these are API
+ * identifiers, not wire-vocabulary values, so French never wraps them in the unknown-value label.
+ *
  * ⚠️ Only the offered events have a tick; one the row already holds beyond them stays in the draft
  * and is sent back unchanged (see [SchedulingWebhookDraft.from]).
  */
@@ -203,7 +205,7 @@ private fun WebhookChoices(dialog: DeveloperDialog.Webhook, writes: SchedulingDe
     )
     SchedulingWebhookEvent.OFFERED.forEach { event ->
         SchedulingToggleRow(
-            label = schedulingUnknownValue(event.wire),
+            label = event.wire,
             checked = event in dialog.draft.events,
             onCheckedChange = @DontMemoize { writes.webhooks.toggleEvent(event, it) },
             tag = "$DEVELOPER_WEBHOOK_EVENT_TAG-${event.wire}",
@@ -219,7 +221,7 @@ private fun WebhookChoices(dialog: DeveloperDialog.Webhook, writes: SchedulingDe
     )
     SchedulingWebhookFields.ALL.forEach { field ->
         SchedulingToggleRow(
-            label = schedulingUnknownValue(field),
+            label = field,
             checked = field in dialog.draft.fields,
             onCheckedChange = @DontMemoize { writes.webhooks.toggleField(field, it) },
             tag = "$DEVELOPER_WEBHOOK_FIELD_TAG-$field",

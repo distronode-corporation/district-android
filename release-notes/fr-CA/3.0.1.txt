@@ -1,0 +1,2 @@
+• Les appels entrants font maintenant sonner votre appareil. Votre sonnerie joue et l'appareil vibre selon vos paramètres de son, dans le respect du mode silencieux et du mode Ne pas déranger.
+• Sur un appareil verrouillé, un appel entrant s'affiche maintenant en plein écran lorsqu'Android le permet.

@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.call.IncomingCallController
 import com.distronode.districtai.call.IncomingCallPhase
 import com.distronode.districtai.call.IncomingCallSurfaces
+import com.distronode.districtai.call.RecordingRinger
 import com.distronode.districtai.call.InboundCallSessionFactory
 import com.distronode.districtai.core.data.InboundCallRepository
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -64,6 +65,7 @@ class IncomingCallHostTest {
             notifier = RecordingPushNotifier(),
             sessions = InboundCallSessionFactory(CallEngineFactory { FakeCallEngine() }, telecom),
             foreground = {},
+            ringer = RecordingRinger(),
         ),
         scope = scope,
     )

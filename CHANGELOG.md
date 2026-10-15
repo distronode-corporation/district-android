@@ -8,6 +8,14 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-10-15
+
+### Fixed
+
+- Incoming calls now ring. Your ringtone plays and the phone vibrates as your sound settings
+  allow, and silent mode and Do Not Disturb are respected.
+- On a locked phone, an incoming call now opens full screen when Android allows it.
+
 ## [3.0.0] - 2026-10-15
 
 District AI is now in Canadian French.
@@ -96,7 +104,9 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v2.2...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/distronode-corporation/district-android/compare/v3.0.0...v3.0.1
+[3.0.0]: https://github.com/distronode-corporation/district-android/compare/v2.2...v3.0.0
 [2.2]: https://github.com/distronode-corporation/district-android/compare/v2.1...v2.2
 [2.1]: https://github.com/distronode-corporation/district-android/compare/v2.0...v2.1
 [2.0]: https://github.com/distronode-corporation/district-android/compare/v1.2...v2.0

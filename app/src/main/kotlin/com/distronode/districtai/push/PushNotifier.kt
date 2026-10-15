@@ -30,12 +30,12 @@ internal interface PushNotifier {
     /**
      * A call is ringing.
      *
-     * ⛔ HEADS-UP WITH Answer/Decline, AND DELIBERATELY **NO** `USE_FULL_SCREEN_INTENT` THIS BATCH.
-     * The permission's auto-grant requires the app's core functionality to be calling, and a
-     * nineteen-section business dashboard will not clear that bar — so on Android 14+ a full-screen
-     * intent would be DEMOTED to a heads-up notification anyway, and the app would carry a
-     * permission it was refused for nothing. The heads-up path is the one that is guaranteed to
-     * work, which is why it is the one that is built.
+     * ⛔ HEADS-UP WITH Answer/Decline EVERYWHERE, AND FULL SCREEN WHERE THE APP MAY USE IT. On a
+     * locked phone a heads-up is a line on the lock screen; the full-screen intent is what puts the
+     * ringing screen up, as the system dialler does. `USE_FULL_SCREEN_INTENT` is an install-time
+     * grant below Android 14 and a grant the user (or Play's calling-app auto-grant) controls from
+     * 14, so it is attached only when `canUseFullScreenIntent` says it will be honoured; without
+     * it the notification is exactly the 3.0.0 heads-up, which is the guaranteed floor.
      */
     fun showIncomingCall(workspaceId: String, callId: String)
 
@@ -68,7 +68,14 @@ internal interface PushNotifier {
  * the visual half is absent. The grant is requested at the first post-sign-in landing — see the nav
  * host — because a permission dialog with no visible reason is the one users deny permanently.
  */
-internal class AndroidPushNotifier(context: Context) : PushNotifier {
+internal class AndroidPushNotifier(
+    context: Context,
+    /**
+     * ⚠️ A SEAM BECAUSE THE ANSWER IS THE USER'S AND THE DEVICE'S, NOT THIS CODE'S: always true below
+     * API 34, and on 34+ whatever Settings > Special app access says. Tests drive both answers.
+     */
+    private val canUseFullScreenIntent: (NotificationManagerCompat) -> Boolean = { it.canUseFullScreenIntent() },
+) : PushNotifier {
 
     private val appContext = context.applicationContext
     private val manager = NotificationManagerCompat.from(appContext)
@@ -129,7 +136,12 @@ internal class AndroidPushNotifier(context: Context) : PushNotifier {
     }
 
     override fun showIncomingCall(workspaceId: String, callId: String) {
-        val notification = Notification.Builder(appContext, CHANNEL_INCOMING_CALLS)
+        val showCall = PushIntents.activity(
+            appContext,
+            PushIntents.REQUEST_SHOW_CALL,
+            PushIntents.showIncomingCall(appContext, workspaceId, callId),
+        )
+        val builder = Notification.Builder(appContext, CHANNEL_INCOMING_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(appContext.getString(R.string.push_call_title))
             .setContentText(appContext.getString(R.string.push_call_body))
@@ -140,13 +152,7 @@ internal class AndroidPushNotifier(context: Context) : PushNotifier {
             // ⚠️ CATEGORY_CALL is what lets the platform rank this above ordinary heads-up
             // notifications and show it through some Do Not Disturb configurations.
             .setCategory(Notification.CATEGORY_CALL)
-            .setContentIntent(
-                PushIntents.activity(
-                    appContext,
-                    PushIntents.REQUEST_SHOW_CALL,
-                    PushIntents.showIncomingCall(appContext, workspaceId, callId),
-                ),
-            )
+            .setContentIntent(showCall)
             .addAction(
                 Notification.Action.Builder(
                     null,
@@ -169,8 +175,13 @@ internal class AndroidPushNotifier(context: Context) : PushNotifier {
                     ),
                 ).build(),
             )
-            .build()
-        notify(NOTIFICATION_ID_INCOMING_CALL, notification)
+        // ⛔ THE SAME PENDING INTENT AS THE BODY TAP, SO A FULL-SCREEN LAUNCH SHOWS THE RING AND
+        // NEVER ANSWERS IT (see `PushIntents.EXTRA_ANSWER`). `MainActivity` puts itself over the
+        // keyguard while the call is live. ⚠️ Omitted, not attached and left to be demoted, when the
+        // grant is missing: what the platform does with a refused full-screen intent has changed
+        // between releases, and the heads-up alone is a known shape.
+        if (canUseFullScreenIntent(manager)) builder.setFullScreenIntent(showCall, true)
+        notify(NOTIFICATION_ID_INCOMING_CALL, builder.build())
     }
 
     override fun cancelIncomingCall() {

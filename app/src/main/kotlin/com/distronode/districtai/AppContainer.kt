@@ -39,6 +39,7 @@ import com.distronode.districtai.ui.scheduling.admin.reportUnknownSchedulingOp
 import com.distronode.districtai.core.data.SetupRepository
 import com.distronode.districtai.core.data.SupportRepository
 import com.distronode.districtai.call.AndroidForegroundCallHost
+import com.distronode.districtai.call.AndroidIncomingRinger
 import com.distronode.districtai.call.InboundCallSessionFactory
 import com.distronode.districtai.call.IncomingCallController
 import com.distronode.districtai.call.IncomingCallSurfaces
@@ -633,6 +634,7 @@ class AppContainer(
                 notifier = pushNotifier,
                 sessions = InboundCallSessionFactory(callEngineFactory, telecomBridge),
                 foreground = AndroidForegroundCallHost(appContext),
+                ringer = AndroidIncomingRinger(appContext),
             ),
             scope = appScope,
         )

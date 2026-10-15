@@ -27,8 +27,8 @@ being backported.
 
 | Version | Supported |
 | --- | --- |
-| 3.0.0 | Yes |
-| 2.2 (on Google Play until 3.0.0 is published) | Yes |
+| 3.0.1 | Yes |
+| 3.0.0 and 2.2 (on Google Play until 3.0.1 is published) | Yes |
 | Anything older | No |
 
 ## Security model

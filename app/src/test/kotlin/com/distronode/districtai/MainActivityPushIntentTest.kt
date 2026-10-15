@@ -163,6 +163,26 @@ class MainActivityPushIntentTest {
     }
 
     @Test
+    fun `a live call shows over the lock screen, and an ended one goes back behind it`() {
+        // ⛔ THE FULL-SCREEN INTENT OPENS THIS ACTIVITY ON A LOCKED PHONE, and without
+        // show-when-locked it opens behind the keyguard. ⚠️ And only while the call is live: the
+        // ended summary, with the dashboard under it, must not be reachable on a locked phone.
+        harness.signedOut()
+        harness.launch()
+        assertFalse(shadowOf(harness.activity).showWhenLocked)
+
+        harness.container.incomingCallController.onIncomingCall("ws-1", "call-7")
+        compose.waitForIdle()
+        assertTrue(shadowOf(harness.activity).showWhenLocked)
+        assertTrue(shadowOf(harness.activity).turnScreenOn)
+
+        harness.container.incomingCallController.decline()
+        compose.waitForIdle()
+        assertFalse(shadowOf(harness.activity).showWhenLocked)
+        assertFalse(shadowOf(harness.activity).turnScreenOn)
+    }
+
+    @Test
     fun `extras that are not a notification's are ignored`() {
         harness.signedOut()
 

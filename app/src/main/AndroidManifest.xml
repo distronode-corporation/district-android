@@ -99,16 +99,22 @@
          at launch — the same rule RECORD_AUDIO follows at the room and at the dialler. A denial is
          not fatal: `notify` becomes a silent no-op, the Telecom connection still rings and the call
          is still answerable from the OS's own call surfaces.
-      ⛔ THERE IS DELIBERATELY NO USE_FULL_SCREEN_INTENT. Its auto-grant requires the app's core
-         functionality to be calling, and a nineteen-section business dashboard will not clear that
-         bar — so on Android 14+ a full-screen intent would be DEMOTED to the heads-up notification
-         this app draws anyway, and the app would carry a permission it was refused for nothing. The
-         heads-up Answer/Decline path is the guaranteed one, and it is the one that is built.
+      ⚠️ USE_FULL_SCREEN_INTENT (3.0.1) PUTS THE RINGING SCREEN UP ON A LOCKED PHONE. It is an
+         install-time grant below Android 14; from 14 Play auto-grants it only to apps whose core
+         function is calling or alarms, and otherwise the user grants it in Settings. The
+         notification attaches the intent only when `canUseFullScreenIntent()` says it will be
+         honoured, so without the grant the ring is the heads-up Answer/Decline, the guaranteed
+         floor. ⛔ DECLARING IT IS A PLAY CONSOLE OBLIGATION: apps targeting 34+ that declare it
+         must complete the full-screen intent declaration before a release goes out.
+      ⚠️ VIBRATE (3.0.1) IS THE CALL VIBRATION. A self-managed call's ring, sound and vibration both,
+         is the app's to play (see `IncomingRinger`); VIBRATE is a normal, install-time permission.
     -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!--
          ⛔ REMOVED, NOT DECLARED, AND IT IS NOT OURS TO BEGIN WITH. The LiveKit SDK's

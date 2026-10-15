@@ -1,7 +1,9 @@
 package com.distronode.districtai
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,6 +26,7 @@ import com.distronode.districtai.applinks.AppLinkDestination
 import com.distronode.districtai.applinks.appLinkDestination
 import com.distronode.districtai.auth.CustomTabsLauncher
 import com.distronode.districtai.auth.LoginController
+import com.distronode.districtai.call.IncomingCallPhase
 import com.distronode.districtai.push.InboxDeepLink
 import com.distronode.districtai.push.PushIntentAction
 import com.distronode.districtai.push.PushIntents
@@ -163,6 +166,17 @@ class MainActivity : ComponentActivity() {
                     // second answer to a question that already has one, and the two could disagree.
                     IncomingCallHost(controller = container.incomingCallController)
                 }
+            }
+        }
+
+        // ⛔ OVER THE LOCK SCREEN WHILE A CALL IS LIVE, AND ONLY THEN. The ringing notification's
+        // full-screen intent opens this Activity on a locked phone, and without this it would open
+        // behind the keyguard, which is a ring the user cannot see. ⚠️ LIVE MEANS RINGING, ANSWERING
+        // OR IN_CALL: the ended summary, and everything under it, goes back behind the lock, because
+        // a Dismiss on a locked phone must not land a stranger on the dashboard.
+        lifecycleScope.launch {
+            container.incomingCallController.state.collect { call ->
+                showOverLockScreen(call != null && call.phase != IncomingCallPhase.ENDED)
             }
         }
 
@@ -358,5 +372,24 @@ class MainActivity : ComponentActivity() {
                 container.appLinkDeepLinks.offer(destination.section)
             }
         }
+    }
+}
+
+/**
+ * Show (or stop showing) this Activity over the keyguard, and wake the screen for it.
+ *
+ * ⚠️ API 27 MOVED THIS FROM WINDOW FLAGS TO ACTIVITY METHODS, and minSdk is 26, so the flags are the
+ * API 26 path. Neither unlocks the phone: what the user sees is the call, and leaving it returns
+ * them to the lock screen. ⚠️ A file-level function rather than a member because the Activity is at
+ * detekt's function ceiling, and this needs nothing of it beyond its public API.
+ */
+@Suppress("DEPRECATION")
+private fun ComponentActivity.showOverLockScreen(show: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        setShowWhenLocked(show)
+        setTurnScreenOn(show)
+    } else {
+        val flags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        if (show) window.addFlags(flags) else window.clearFlags(flags)
     }
 }

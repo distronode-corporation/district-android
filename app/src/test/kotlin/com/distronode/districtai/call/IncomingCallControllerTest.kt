@@ -112,6 +112,7 @@ class IncomingCallControllerTest {
         val telecom = FakeTelecomBridge()
         val notifier = RecordingPushNotifier()
         val foreground = RecordingForegroundHost()
+        val ringer = RecordingRinger()
         val controller = IncomingCallController(
             repository = InboundCallRepository(api),
             surfaces = IncomingCallSurfaces(
@@ -133,6 +134,7 @@ class IncomingCallControllerTest {
                     tickMillis = 1_000L,
                 ),
                 foreground = foreground,
+                ringer = ringer,
             ),
             scope = controllerScope,
             ringTimeoutMillis = RING_MILLIS,
@@ -735,6 +737,99 @@ class IncomingCallControllerTest {
         assertEquals("CA2", h.controller.state.value?.callId)
         assertEquals(IncomingCallPhase.RINGING, h.controller.state.value?.phase)
         assertNull(h.controller.state.value?.message)
+    }
+
+    @Test
+    fun `a push starts the ringer, and a second push while ringing does not start it twice`() = callTest { h ->
+        // ⛔ THE 3.0.0 BUG: a self-managed call rang silently, because Telecom leaves the ringtone of
+        // a self-managed call to the app and the app played none.
+        h.controller.onIncomingCall("ws-1", "CA1")
+        assertEquals(listOf("start"), h.ringer.calls)
+
+        h.controller.onIncomingCall("ws-1", "CA2")
+        assertEquals(listOf("start"), h.ringer.calls)
+    }
+
+    @Test
+    fun `the ringer stops at the answer press, before the round trip`() = callTest { h ->
+        val gate = CompletableDeferred<Unit>()
+        h.answerable()
+        h.api.pushApi.answerGate = gate
+        h.controller.onIncomingCall("ws-1", "CA1")
+
+        h.controller.answer()
+
+        // ⚠️ ASSERTED BEFORE THE ANSWER RESOLVES: a ringtone over the join would play on into the
+        // conversation's first second.
+        assertFalse(h.ringer.ringing)
+        gate.complete(Unit)
+        settle()
+        assertEquals(IncomingCallPhase.IN_CALL, h.controller.state.value?.phase)
+        assertFalse(h.ringer.ringing)
+    }
+
+    @Test
+    fun `the ringer stops on a decline`() = callTest { h ->
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.decline()
+
+        assertEquals(listOf("start", "stop"), h.ringer.calls)
+    }
+
+    @Test
+    fun `the ringer stops at the ring timeout`() = callTest { h ->
+        // ⚠️ ALSO THE PATH FOR A CALLER WHO HUNG UP, AND FOR A CALL ANSWERED ON ANOTHER DEVICE: the
+        // server pushes nothing for either, so the ring ends here.
+        h.controller.onIncomingCall("ws-1", "CA1")
+        advanceTimeBy(RING_MILLIS - 1)
+        runCurrent()
+        assertTrue(h.ringer.ringing)
+
+        advanceTimeBy(2)
+        runCurrent()
+
+        assertFalse(h.ringer.ringing)
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+    }
+
+    @Test
+    fun `the ringer stops on a hang-up or an answer from a system surface`() = callTest { h ->
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.telecom.systemHangUp()
+        assertFalse(h.ringer.ringing)
+
+        h.answerable()
+        h.controller.onIncomingCall("ws-1", "CA2")
+        assertTrue(h.ringer.ringing)
+        h.telecom.systemAnswer()
+        assertFalse(h.ringer.ringing)
+        settle()
+        assertEquals(IncomingCallPhase.IN_CALL, h.controller.state.value?.phase)
+    }
+
+    @Test
+    fun `the ringer stays stopped when the caller had already hung up`() = callTest { h ->
+        h.api.pushApi.answerResult = ApiResult.NotFound("Call not found")
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        advanceUntilIdle()
+
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+        assertFalse(h.ringer.ringing)
+        assertEquals("start", h.ringer.calls.first())
+        assertFalse("never restarted", h.ringer.calls.drop(1).contains("start"))
+    }
+
+    @Test
+    fun `a missed ring stops, and the next push rings again`() = callTest { h ->
+        h.controller.onIncomingCall("ws-1", "CA1")
+        advanceTimeBy(RING_MILLIS + 1)
+        runCurrent()
+        h.controller.onIncomingCall("ws-1", "CA2")
+
+        assertEquals("start", h.ringer.calls.first())
+        assertEquals("start", h.ringer.calls.last())
+        assertTrue(h.ringer.calls.contains("stop"))
     }
 
     /** Coroutines still running on the application scope the controller was given. */

@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.ContextWrapper
@@ -109,6 +110,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
     val container = AppContainer(
         ApplicationProvider.getApplicationContext(),
         seams = AppContainerSeams(
+            accountApi = FakeAccountApi(),
             tokenStore = EmptyTokenStore(),
             revokeApi = DoneRevokeApi(),
             pushTokenSource = { null },

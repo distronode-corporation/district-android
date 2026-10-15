@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import android.os.Looper
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollToNodeAction
@@ -169,6 +170,7 @@ class DistrictNavHostTest {
         container = AppContainer(
             ApplicationProvider.getApplicationContext(),
             seams = AppContainerSeams(
+                accountApi = FakeAccountApi(),
                 tokenStore = SignedOutTokenStore(heldReads),
                 revokeApi = NoRevokeApi(),
                 pushApi = FakeInboundPushApi(),

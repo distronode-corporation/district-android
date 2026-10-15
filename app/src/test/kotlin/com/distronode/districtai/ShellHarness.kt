@@ -1,5 +1,6 @@
 package com.distronode.districtai
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -60,6 +61,7 @@ internal class ShellTestApplication : Application(), AppContainerOwner {
         AppContainer(
             this,
             seams = AppContainerSeams(
+                accountApi = FakeAccountApi(),
                 tokenStore = store,
                 revokeApi = DoneRevokeApi,
                 pushTokenSource = { null },

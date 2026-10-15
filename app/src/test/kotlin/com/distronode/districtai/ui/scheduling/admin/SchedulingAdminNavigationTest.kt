@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.scheduling.admin
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -65,6 +66,7 @@ class SchedulingAdminNavigationTest {
         val container = AppContainer(
             ApplicationProvider.getApplicationContext(),
             seams = AppContainerSeams(
+                accountApi = FakeAccountApi(),
                 pushTokenSource = { null },
                 districtApi = rig.district,
                 schedulingAdminApi = rig.admin,

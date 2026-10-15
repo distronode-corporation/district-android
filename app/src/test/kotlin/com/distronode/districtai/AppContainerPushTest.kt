@@ -1,5 +1,6 @@
 package com.distronode.districtai
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.call.IncomingCallPhase
@@ -47,6 +48,7 @@ class AppContainerPushTest {
         ApplicationProvider.getApplicationContext(),
         appScope = scope,
         seams = AppContainerSeams(
+            accountApi = FakeAccountApi(),
             tokenStore = store,
             pushTokenSource = { null },
             districtApi = FakeDistrictApi(),

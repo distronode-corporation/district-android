@@ -17,9 +17,10 @@ import org.robolectric.annotation.Config
 /**
  * The language switch, wire labels and server error sentences.
  *
- * ⚠️ THE FRENCH BRANCHES ARE DRIVEN WITH AN EXPLICIT LANGUAGE. A unit-test build carries no French
- * resources (they join only with -Pdistrict.l10n.fr), so French resolution is asserted on what it
- * CHOOSES: which catalog entry, read here in its English, and never the server's literal.
+ * ⚠️ THE FRENCH BRANCHES ARE DRIVEN WITH AN EXPLICIT LANGUAGE. These tests run on an English (en-US)
+ * device, so French resolution is asserted on what it CHOOSES: which catalog entry, read here in its
+ * English, and never the server's literal. Which language a French device resolves to is
+ * ResolvedLanguageTest's.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
@@ -37,7 +38,7 @@ class AppLanguageTest {
     }
 
     @Test
-    fun `a build without French resources is English`() {
+    fun `an English device reads English`() {
         assertRendered("EN" to { appLanguage().name })
         assertEquals(AppLanguage.FR, languageOf("fr"))
         assertEquals(AppLanguage.EN, languageOf("en"))

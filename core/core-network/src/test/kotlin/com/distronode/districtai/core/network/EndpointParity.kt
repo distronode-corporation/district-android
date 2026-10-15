@@ -114,5 +114,9 @@ internal object EndpointParity {
         // `EndpointID.telemetryToken` in district-core-swift; the vendored snapshot predates it,
         // so this entry leaves when the snapshot is refreshed.
         "telemetryToken",
+        // ⚠️ THE ACCOUNT'S LANGUAGE (`POST /api/settings`). iOS has it as `EndpointID.saveLocale` in
+        // district-core-swift; the vendored snapshot predates it, so this entry leaves when the
+        // snapshot is refreshed.
+        "saveLocale",
     )
 }

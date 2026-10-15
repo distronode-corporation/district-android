@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config
  * The labels for values the server sends raw: the wire vocabulary's new categories and the app's own
  * tables for values the vocabulary lacks.
  *
- * ⚠️ IN ENGLISH, because a unit-test build carries no French resources (see AppLanguageTest). Each
+ * ⚠️ IN ENGLISH, because these tests run on an English (en-US) device (see AppLanguageTest). Each
  * case asserts what the label CHOOSES: a known value its own entry, an unknown one the generic label
  * with the value in it (which reads as the value in English and "Valeur inconnue : …" in French).
  */

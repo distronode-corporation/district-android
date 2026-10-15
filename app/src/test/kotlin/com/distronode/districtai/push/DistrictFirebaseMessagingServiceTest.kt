@@ -1,5 +1,6 @@
 package com.distronode.districtai.push
 
+import com.distronode.districtai.core.network.testing.FakeAccountApi
 import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
@@ -91,6 +92,7 @@ internal class PushTestApplication : Application(), AppContainerOwner {
             this,
             appScope = CoroutineScope(appJob + UnconfinedTestDispatcher()),
             seams = AppContainerSeams(
+                accountApi = FakeAccountApi(),
                 tokenStore = SessionTokenStore(session.takeIf { signedIn }) { readGate.await() },
                 pushApi = api.pushApi,
                 pushTokenSource = { null },

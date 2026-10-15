@@ -1,7 +1,7 @@
 package com.distronode.districtai
 
 import com.distronode.districtai.core.network.AccountApi
-import com.distronode.districtai.l10n.SavedAccountLocale
+import com.distronode.districtai.l10n.SavedLanguage
 import com.distronode.districtai.core.auth.RevokeApi
 import com.distronode.districtai.core.auth.TokenStore
 import com.distronode.districtai.core.media.CallEngineFactory
@@ -91,5 +91,5 @@ data class AppContainerSeams(
     val schedulingAdminApi: SchedulingAdminApi? = null,
     /** The account-language write, and where its last saved value is kept. */
     val accountApi: AccountApi? = null,
-    val savedAccountLocale: SavedAccountLocale? = null,
+    val savedLanguage: SavedLanguage? = null,
 )

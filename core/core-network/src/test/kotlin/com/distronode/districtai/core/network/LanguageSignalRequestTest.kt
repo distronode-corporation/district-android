@@ -65,7 +65,7 @@ class LanguageSignalRequestTest {
     fun `the account language is posted as profile locale, fr or en, and the answer decodes`() = runTest {
         // The body of contracts/district-settings-save.json (monorepo 49019be).
         server.enqueue(MockResponse(code = 200, body = """{"success":true,"message":"Settings saved successfully"}"""))
-        val result = HttpAccountApi(testApiClient(server)).saveLocale(ACCOUNT_LOCALE_FR)
+        val result = HttpAccountApi(testApiClient(server)).saveLocale(SETTINGS_LOCALE_FR)
 
         assertEquals(ApiResult.Success(AccountSettingsSaveResponse(true, "Settings saved successfully")), result)
         val recorded = server.takeRequest()
@@ -76,6 +76,6 @@ class LanguageSignalRequestTest {
         val profile = body.getValue("profile").jsonObject
         assertEquals(setOf("locale"), profile.keys)
         assertEquals("fr", profile.getValue("locale").jsonPrimitive.content)
-        assertEquals("en", ACCOUNT_LOCALE_EN)
+        assertEquals("en", SETTINGS_LOCALE_EN)
     }
 }

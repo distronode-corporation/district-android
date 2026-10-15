@@ -62,7 +62,7 @@ import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.DistrictHttp
 import com.distronode.districtai.core.network.HttpAccountApi
 import com.distronode.districtai.l10n.AccountLanguageReporter
-import com.distronode.districtai.l10n.PreferencesSavedAccountLocale
+import com.distronode.districtai.l10n.PreferencesSavedLanguage
 import com.distronode.districtai.l10n.acceptLanguage
 import com.distronode.districtai.l10n.resolvedLanguage
 import com.distronode.districtai.core.media.CallEngineFactory
@@ -590,7 +590,7 @@ class AppContainer(
     internal val accountLanguage: AccountLanguageReporter = AccountLanguageReporter(
         api = seams.accountApi ?: HttpAccountApi(apiClient),
         language = { appContext.resolvedLanguage() },
-        saved = seams.savedAccountLocale ?: PreferencesSavedAccountLocale(appContext),
+        saved = seams.savedLanguage ?: PreferencesSavedLanguage(appContext),
         scope = appScope,
         hasSession = ::hasStoredSession,
     )

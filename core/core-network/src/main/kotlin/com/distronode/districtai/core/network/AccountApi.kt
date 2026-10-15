@@ -4,10 +4,10 @@ import com.distronode.districtai.core.model.AccountSettingsSaveResponse
 import kotlinx.serialization.json.JsonPrimitive
 
 /** The value `POST /api/settings` stores for an English account. */
-const val ACCOUNT_LOCALE_EN: String = "en"
+const val SETTINGS_LOCALE_EN: String = "en"
 
 /** The value `POST /api/settings` stores for a French account. */
-const val ACCOUNT_LOCALE_FR: String = "fr"
+const val SETTINGS_LOCALE_FR: String = "fr"
 
 /**
  * The signed-in person's own settings, `/api/settings`: today only the language the account is in.
@@ -19,7 +19,7 @@ const val ACCOUNT_LOCALE_FR: String = "fr"
  */
 interface AccountApi {
 
-    /** Store [locale] ([ACCOUNT_LOCALE_EN] or [ACCOUNT_LOCALE_FR]) as the account's language. */
+    /** Store [locale] ([SETTINGS_LOCALE_EN] or [SETTINGS_LOCALE_FR]) as the account's language. */
     suspend fun saveLocale(locale: String): ApiResult<AccountSettingsSaveResponse>
 }
 

@@ -4,8 +4,8 @@ import android.content.Context
 import com.distronode.districtai.R
 import com.distronode.districtai.core.network.ACCEPT_LANGUAGE_EN
 import com.distronode.districtai.core.network.ACCEPT_LANGUAGE_FR_CA
-import com.distronode.districtai.core.network.ACCOUNT_LOCALE_EN
-import com.distronode.districtai.core.network.ACCOUNT_LOCALE_FR
+import com.distronode.districtai.core.network.SETTINGS_LOCALE_EN
+import com.distronode.districtai.core.network.SETTINGS_LOCALE_FR
 import com.distronode.districtai.core.network.AccountApi
 import com.distronode.districtai.core.network.ApiResult
 import kotlinx.coroutines.CoroutineScope
@@ -25,17 +25,17 @@ internal val AppLanguage.acceptLanguage: String
     get() = if (this == AppLanguage.FR) ACCEPT_LANGUAGE_FR_CA else ACCEPT_LANGUAGE_EN
 
 /** What `POST /api/settings` stores for [this]: `fr` or `en`, never a language tag. */
-internal val AppLanguage.accountLocale: String
-    get() = if (this == AppLanguage.FR) ACCOUNT_LOCALE_FR else ACCOUNT_LOCALE_EN
+internal val AppLanguage.settingsValue: String
+    get() = if (this == AppLanguage.FR) SETTINGS_LOCALE_FR else SETTINGS_LOCALE_EN
 
 /** The account language this installation last saved, so an unchanged one is not sent again. */
-interface SavedAccountLocale {
+interface SavedLanguage {
     fun read(): String?
     fun write(locale: String?)
 }
 
-/** [SavedAccountLocale] in its own small preferences file. */
-class PreferencesSavedAccountLocale(context: Context) : SavedAccountLocale {
+/** [SavedLanguage] in its own small preferences file. */
+class PreferencesSavedLanguage(context: Context) : SavedLanguage {
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
     override fun read(): String? = prefs.getString(KEY, null)
@@ -67,7 +67,7 @@ class PreferencesSavedAccountLocale(context: Context) : SavedAccountLocale {
 class AccountLanguageReporter(
     private val api: AccountApi,
     private val language: () -> AppLanguage,
-    private val saved: SavedAccountLocale,
+    private val saved: SavedLanguage,
     private val scope: CoroutineScope,
     private val hasSession: suspend () -> Boolean,
 ) {
@@ -89,7 +89,7 @@ class AccountLanguageReporter(
     }
 
     private suspend fun save(force: Boolean) = lock.withLock {
-        val locale = language().accountLocale
+        val locale = language().settingsValue
         if (!force && saved.read() == locale) return@withLock
         if (api.saveLocale(locale) is ApiResult.Success) saved.write(locale)
     }

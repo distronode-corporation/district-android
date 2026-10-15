@@ -16,7 +16,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class AccountLanguageReporterTest {
 
-    private class MemorySaved(var value: String? = null) : SavedAccountLocale {
+    private class MemorySaved(var value: String? = null) : SavedLanguage {
         override fun read(): String? = value
         override fun write(locale: String?) {
             value = locale
@@ -81,7 +81,7 @@ class AccountLanguageReporterTest {
     fun `the two spellings of each language`() {
         assertEquals("fr-CA", AppLanguage.FR.acceptLanguage)
         assertEquals("en", AppLanguage.EN.acceptLanguage)
-        assertEquals("fr", AppLanguage.FR.accountLocale)
-        assertEquals("en", AppLanguage.EN.accountLocale)
+        assertEquals("fr", AppLanguage.FR.settingsValue)
+        assertEquals("en", AppLanguage.EN.settingsValue)
     }
 }

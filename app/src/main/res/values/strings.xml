@@ -772,7 +772,7 @@
     <string name="scheduling_eyebrow">Booking page</string>
     <string name="scheduling_failed">Could not load scheduling</string>
     <string name="scheduling_handoff_rate_limited">Scheduling was opened several times just now. Try again shortly.</string>
-    <string name="scheduling_handoff_unconfirmed">Your browser did not confirm the sign-in to the dashboard. Try again, and keep the browser open until the dashboard appears.</string>
+    <string name="scheduling_handoff_unconfirmed">Your browser didn\'t respond to District AI in time, so the page wasn\'t opened. Try again, and let your browser open District AI if it asks.</string>
     <string name="scheduling_host">Served from %1$s</string>
     <string name="scheduling_last_checked">Last checked %1$s</string>
     <string name="scheduling_legacy">Scheduling is available for this workspace. Turn it on to give customers a booking page of their own.</string>
@@ -849,7 +849,7 @@
     <string name="support_status_pending">Pending</string>
     <string name="support_status_received">Received</string>
     <string name="support_status_resolved">Resolved</string>
-    <string name="support_status_unknown">Unknown</string>
+    <string name="support_status_unknown">Status unknown</string>
     <string name="support_status_waiting_for_customer">Waiting for your reply</string>
     <string name="support_status_waiting_for_support">Waiting for support</string>
     <string name="support_title">Support</string>

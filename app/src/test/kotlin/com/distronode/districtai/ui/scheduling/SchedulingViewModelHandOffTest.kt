@@ -50,7 +50,7 @@ class SchedulingViewModelHandOffTest {
 
     /** ⚠️ `ApiEnvironment.baseUrl`, as the production graph wires it. See [SchedulingViewModelTest]. */
     private fun repository(api: FakeDistrictApi) =
-        SchedulingRepository(api, ApiEnvironment.baseUrl, ApiEnvironment.HANDOFF_CALLBACK_URI)
+        SchedulingRepository(api, ApiEnvironment.baseUrl)
 
     /** What the hand-off recorded, across every model built from [callbacks]. */
     private val recorded = mutableListOf<HandOffEvent>()
@@ -66,9 +66,11 @@ class SchedulingViewModelHandOffTest {
 
     // ── The nonce-bound dashboard hand-off (security item S33) ───────────────
 
-    private fun FakeDistrictApi.servesLegOne() {
-        schedulingApi.schedulingHandOffStartResult =
-            ApiResult.Success("${ApiEnvironment.HANDOFF_CALLBACK_URI}?state=probe&nonce=$NONCE")
+    /** A browser that follows leg 1 back into the app at once, recording each URL it is given. */
+    private fun callingBrowser(delivered: MutableList<String>): (String) -> Boolean = { url ->
+        delivered += url
+        if (url.contains("/dashboard/handoff/start")) callbacks.deliver(url.substringAfter("state="), NONCE)
+        true
     }
 
     @Test
@@ -77,19 +79,12 @@ class SchedulingViewModelHandOffTest {
             schedulingApi.schedulingStatusResult = ApiResult.Success(
                 SchedulingStatusResponse(eligible = true, canManage = true, tenant = readyTenant),
             )
-            servesLegOne()
         }
         val viewModel = model(api)
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openDashboard { url ->
-            delivered += url
-            // The browser follows leg 1's redirect back into the app, carrying the state it was given.
-            val state = url.substringAfter("state=", missingDelimiterValue = "")
-            if (url.contains("/dashboard/handoff/start")) callbacks.deliver(state, NONCE)
-            true
-        }
+        viewModel.openDashboard(callingBrowser(delivered))
         advanceUntilIdle()
 
         assertEquals(2, delivered.size)
@@ -100,13 +95,12 @@ class SchedulingViewModelHandOffTest {
     }
 
     @Test
-    fun `the button stays busy while the browser leg is open, and settles when the wait runs out`() =
+    fun `a browser that never calls back mints nothing, and says to try again`() =
         runTest {
             val api = api {
                 schedulingApi.schedulingStatusResult = ApiResult.Success(
                     SchedulingStatusResponse(eligible = true, canManage = true, tenant = readyTenant),
                 )
-                servesLegOne()
             }
             val viewModel = model(api)
             advanceUntilIdle()
@@ -118,15 +112,19 @@ class SchedulingViewModelHandOffTest {
 
             advanceUntilIdle()
 
-            // ⛔ THE FALLBACK: the unbound code still opens, so a browser that never calls back
-            // costs the user ten seconds, not the dashboard.
-            assertEquals(2, delivered.size)
-            assertNull(api.schedulingApi.schedulingHandOffs.single().nonce)
+            // ⛔ NO UNBOUND FALLBACK (S33): only leg 1 was opened, nothing was minted, and the
+            // retryable sentence is on screen with the button live again.
+            assertEquals(1, delivered.size)
+            assertTrue(api.schedulingApi.schedulingHandOffs.isEmpty())
             assertFalse(viewModel.state.value.openingDashboard)
+            assertEquals(
+                R.string.scheduling_handoff_unconfirmed,
+                viewModel.state.value.notice?.resourceIdOrNull,
+            )
         }
 
     @Test
-    fun `the binding's two refusals say the browser did not confirm, never update the app`() = runTest {
+    fun `the binding's two refusals get the same retry sentence, never update the app`() = runTest {
         for (code in listOf("nonce_required", "invalid_nonce")) {
             val api = api {
                 schedulingApi.schedulingStatusResult = ApiResult.Success(
@@ -138,7 +136,7 @@ class SchedulingViewModelHandOffTest {
             val viewModel = model(api)
             advanceUntilIdle()
 
-            viewModel.openDashboard { true }
+            viewModel.openDashboard(callingBrowser(mutableListOf()))
             advanceUntilIdle()
 
             assertEquals(
@@ -163,7 +161,7 @@ class SchedulingViewModelHandOffTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { true }
+        viewModel.openDashboard(callingBrowser(mutableListOf()))
         advanceUntilIdle()
 
         assertEquals("workspaceId is required", viewModel.state.value.notice?.literalOrNull)
@@ -177,13 +175,13 @@ class SchedulingViewModelHandOffTest {
             schedulingApi.schedulingStatusResult = ApiResult.Success(
                 SchedulingStatusResponse(eligible = true, canManage = true, tenant = readyTenant),
             )
-            servesLegOne()
         }
         val first = model(api, "ws-1")
         val second = model(api, "ws-2")
         advanceUntilIdle()
 
-        first.openDashboard { true }
+        val delivered = mutableListOf<String>()
+        first.openDashboard { url -> delivered.add(url) }
         dispatcher.scheduler.runCurrent()
         second.openDashboard { true }
         dispatcher.scheduler.runCurrent()
@@ -192,8 +190,33 @@ class SchedulingViewModelHandOffTest {
         assertNull(second.state.value.notice)
         assertTrue(first.state.value.openingDashboard)
         assertTrue(HandOffEvent.ALREADY_RUNNING in recorded)
+        callbacks.deliver(delivered.single().substringAfter("state="), NONCE)
         advanceUntilIdle()
         assertEquals(listOf("ws-1"), api.schedulingApi.schedulingHandOffs.map { it.workspaceId })
+    }
+
+    @Test
+    fun `no press of the dashboard button ever mints without the browser's nonce`() = runTest {
+        // ⛔ THE S33 GUARANTEE ACROSS THE SCREEN'S PATHS: a calling browser, a silent one, and a
+        // refusal. Every mint that happened carries the nonce; the silent one mints nothing.
+        val api = api {
+            schedulingApi.schedulingStatusResult = ApiResult.Success(
+                SchedulingStatusResponse(eligible = true, canManage = true, tenant = readyTenant),
+            )
+        }
+        val viewModel = model(api)
+        advanceUntilIdle()
+
+        viewModel.openDashboard(callingBrowser(mutableListOf()))
+        advanceUntilIdle()
+        viewModel.openDashboard { true }
+        advanceUntilIdle()
+        api.schedulingApi.schedulingHandOffResult = ApiResult.Forbidden("Forbidden")
+        viewModel.openDashboard(callingBrowser(mutableListOf()))
+        advanceUntilIdle()
+
+        assertEquals(2, api.schedulingApi.schedulingHandOffs.size)
+        assertTrue(api.schedulingApi.schedulingHandOffs.all { it.nonce == NONCE })
     }
 
     private companion object {

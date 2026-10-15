@@ -21,7 +21,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * The activity is exported, so any app can fire `districtai://handoff?state=…&nonce=…`. One whose
  * state is not the pending one, or whose nonce is not 43 base64url characters, is ignored and the
  * real callback can still arrive; letting an injected callback END the attempt would let any app on
- * the device push every hand-off onto the unbound path. Nothing pending (a new process after the
+ * the device cancel every hand-off. Nothing pending (a new process after the
  * old one died with the browser open, or a stale intent) and a second callback for a hand-off that
  * already has one are dropped too: a nonce is only ever accepted once.
  *
@@ -101,7 +101,7 @@ class PendingHandOff(
      *
      * ⛔ THE WAIT IS SETTLED ON THE WAY OUT EITHER WAY, so a callback that turns up after the
      * timeout is answered ALREADY_SETTLED instead of completing a value nobody will read, and the
-     * hand-off that gave up on it goes ahead unbound without a late nonce racing it.
+     * hand-off that gave up on it ends without a late nonce racing it.
      */
     suspend fun awaitNonce(timeoutMillis: Long): String? = try {
         withTimeoutOrNull(timeoutMillis) { nonce.await() }

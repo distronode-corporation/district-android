@@ -68,7 +68,7 @@ class SchedulingAdminStateTest {
     @Test
     fun `access is the status read's answer, and closed when the read fails`() = runTest {
         val api = FakeDistrictApi()
-        val repository = SchedulingRepository(api, ApiEnvironment.baseUrl, ApiEnvironment.HANDOFF_CALLBACK_URI)
+        val repository = SchedulingRepository(api, ApiEnvironment.baseUrl)
         api.schedulingApi.schedulingStatusResult = ApiResult.Success(
             SchedulingStatusResponse(
                 eligible = true,

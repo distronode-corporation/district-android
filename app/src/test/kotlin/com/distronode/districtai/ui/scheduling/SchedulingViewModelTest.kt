@@ -62,7 +62,7 @@ class SchedulingViewModelTest {
      * here would exercise the check against a value nothing else in the build agrees with.
      */
     private fun repository(api: FakeDistrictApi) =
-        SchedulingRepository(api, ApiEnvironment.baseUrl, ApiEnvironment.HANDOFF_CALLBACK_URI)
+        SchedulingRepository(api, ApiEnvironment.baseUrl)
 
     /** What the hand-off recorded, across every model built from [callbacks]. */
     private val recorded = mutableListOf<HandOffEvent>()
@@ -75,6 +75,18 @@ class SchedulingViewModelTest {
 
     private fun model(api: FakeDistrictApi, workspaceId: String = "ws-1") =
         SchedulingViewModel(repository(api), handOff(api), workspaceId)
+
+    /**
+     * A browser that opens everything, records each URL into [delivered], and follows leg 1 back
+     * into the app at once, as a working one does.
+     *
+     * ⛔ THE ONLY WAY A DASHBOARD CODE IS MINTED: with no callback the hand-off ends unminted (S33).
+     */
+    private fun browser(delivered: MutableList<String>? = null): (String) -> Boolean = { url ->
+        delivered?.add(url)
+        if (url.contains(LEG_ONE_PATH)) callbacks.deliver(url.substringAfter("state="), NONCE)
+        true
+    }
 
     // ── The read ─────────────────────────────────────────────────────────────
 
@@ -339,7 +351,7 @@ class SchedulingViewModelTest {
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openDashboard { delivered.add(it) }
+        viewModel.openDashboard(browser(delivered))
         advanceUntilIdle()
 
         // ⛔ THE DASHBOARD ROUTE, NOT THE SSO ONE. The scheduler console is switched off region by
@@ -349,7 +361,7 @@ class SchedulingViewModelTest {
         assertEquals(emptyList<String>(), api.schedulingApi.schedulingSsoRequests)
         assertEquals(
             listOf("https://www.distronode.com/dashboard/handoff?code=stub&next=%2Fdashboard"),
-            delivered,
+            delivered.filterNot { it.contains(LEG_ONE_PATH) },
         )
         // ⛔ AND NOTHING ABOUT IT SURVIVES ON THE STATE. This code redeems into a SESSION COOKIE,
         // so parking it would leave a live credential in memory long after the browser closed.
@@ -374,7 +386,7 @@ class SchedulingViewModelTest {
             val viewModel = model(api)
             advanceUntilIdle()
 
-            viewModel.openDashboard { true }
+            viewModel.openDashboard(browser())
             advanceUntilIdle()
 
             assertEquals(
@@ -398,7 +410,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { true }
+        viewModel.openDashboard(browser())
         advanceUntilIdle()
 
         // ⚠️ AND IT IS ITS OWN SENTENCE RATHER THAN `scheduling_too_many_attempts`, which is about
@@ -422,7 +434,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { true }
+        viewModel.openDashboard(browser())
         advanceUntilIdle()
 
         assertEquals(R.string.failure_offline, viewModel.state.value.notice?.resourceIdOrNull)
@@ -440,8 +452,8 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { true }
-        viewModel.openDashboard { true }
+        viewModel.openDashboard(browser())
+        viewModel.openDashboard(browser())
         advanceUntilIdle()
 
         assertEquals(1, api.schedulingApi.schedulingHandOffs.size)
@@ -459,7 +471,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { true }
+        viewModel.openDashboard(browser())
         assertTrue(viewModel.state.value.openingDashboard)
         viewModel.openScheduler { true }
         assertTrue("the console hand-off started anyway", viewModel.state.value.openingConsole)
@@ -510,7 +522,7 @@ class SchedulingViewModelTest {
         val viewModel = model(api)
         advanceUntilIdle()
 
-        viewModel.openDashboard { true }
+        viewModel.openDashboard(browser())
         advanceUntilIdle()
         viewModel.openScheduler { true }
         advanceUntilIdle()
@@ -735,10 +747,10 @@ class SchedulingViewModelTest {
         advanceUntilIdle()
 
         val delivered = mutableListOf<String>()
-        viewModel.openDashboard { delivered.add(it) }
+        viewModel.openDashboard(browser(delivered))
         advanceUntilIdle()
 
-        assertEquals(1, delivered.size)
+        assertEquals("leg 1, then the code", 2, delivered.size)
         assertTrue(viewModel.state.value.consoleRetired)
     }
 
@@ -781,6 +793,9 @@ class SchedulingViewModelTest {
     }
 
     private companion object {
+        const val NONCE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ0123456"
+        const val LEG_ONE_PATH = "/dashboard/handoff/start"
+
         /**
          * ⛔ THE WEBSITE'S EXACT SENTENCE. It is fixed and hostname-free precisely so a client can
          * pin it; if this literal ever has to change, the copy changed on the server and this app's

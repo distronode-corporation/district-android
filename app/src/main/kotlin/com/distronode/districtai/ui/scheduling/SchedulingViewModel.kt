@@ -56,7 +56,7 @@ import kotlinx.coroutines.launch
 class SchedulingViewModel(
     private val repository: SchedulingRepository,
     /**
-     * The nonce-bound dashboard hand-off and its unbound fallback.
+     * The nonce-bound dashboard hand-off (security item S33), which has no unbound fallback.
      *
      * ⚠️ HANDED IN RATHER THAN BUILT HERE, because it is process-scoped: the browser's callback
      * reaches it through `MainActivity`, which knows nothing of this ViewModel. See [DashboardHandOff].
@@ -122,11 +122,14 @@ class SchedulingViewModel(
         _state.value = _state.value.copy(openingDashboard = true, notice = null)
         viewModelScope.launch {
             // ⚠️ THE BUTTON STAYS BUSY FOR THE WHOLE HAND-OFF, browser leg included: up to the
-            // probe's and the callback's budgets, then the mint. That is this press's single-flight;
-            // the process-wide one is DashboardHandOff's.
+            // callback's budget, then the mint. That is this press's single-flight; the
+            // process-wide one is DashboardHandOff's.
             val notice = when (val outcome = dashboardHandOff.open(workspaceId, launch)) {
                 is DashboardHandOff.Outcome.Launched -> noticeAfterLaunch(outcome.opened)
                 is DashboardHandOff.Outcome.Refused -> dashboardNotice(outcome.failure)
+                // ⛔ NOTHING WAS MINTED: the browser never called back, and there is no unbound code
+                // to fall back to (S33). The button is live again, and a press starts a fresh leg 1.
+                DashboardHandOff.Outcome.Unanswered -> UiText.Resource(R.string.scheduling_handoff_unconfirmed)
                 // ⚠️ Another workspace's screen is mid-hand-off; this press did nothing, so it says
                 // nothing, and whatever was already showing stays.
                 DashboardHandOff.Outcome.AlreadyRunning -> _state.value.notice
@@ -290,14 +293,12 @@ class SchedulingViewModel(
 
         /**
          * ⛔ THE TWO 400s OF THE NONCE BINDING, AND NEITHER MEANS "UPDATE THE APP" FROM THIS BUILD.
-         * `nonce_required` is the server refusing the unbound flow once its flag is on; this build
-         * only sends that flow when the browser's leg 1 did not deliver a nonce (the probe failed,
-         * or the browser never called back), so the honest sentence is "the browser did not
-         * confirm, try again", which is what a retry from leg 1 can fix. `invalid_nonce` is a nonce
-         * the server could not read, which [com.distronode.districtai.handoff.HandOffTokens] makes
-         * unreachable from a well-formed callback, so it is drift and gets the same retry sentence
-         * rather than the shared mapping's echo of a 4xx body that carries no `error` at all.
-         * ⚠️ ON THE CODE, NOT THE STATUS: a bare 400 is an ordinary client error.
+         * This build never mints without a nonce (`nonce_required` is unreachable by type) and only
+         * sends one [com.distronode.districtai.handoff.HandOffTokens] found well-formed
+         * (`invalid_nonce` is unreachable from a real callback), so either is drift. It gets the
+         * same retry sentence as a browser that never called back, because a retry from leg 1 is
+         * what can fix it, rather than the shared mapping's echo of a 4xx body that carries no
+         * `error` at all. ⚠️ ON THE CODE, NOT THE STATUS: a bare 400 is an ordinary client error.
          */
         private val HANDOFF_BINDING_CODES = setOf("nonce_required", "invalid_nonce")
 

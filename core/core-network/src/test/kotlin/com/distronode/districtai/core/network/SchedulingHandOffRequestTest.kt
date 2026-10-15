@@ -64,6 +64,7 @@ class SchedulingHandOffRequestTest {
             val result = schedulingApi().schedulingHandOff(
                 SchedulingHandOffRequest(
                     workspaceId = "ws-1",
+                    nonce = NONCE,
                     next = "/dashboard/district/scheduling",
                 ),
             )
@@ -76,8 +77,8 @@ class SchedulingHandOffRequestTest {
             assertEquals("", recorded.url.encodedQuery.orEmpty())
 
             val body = Json.parseToJsonElement(recorded.body?.utf8().orEmpty()) as JsonObject
-            // ⛔ EXACTLY TWO KEYS, AND `deviceId` IS NOT ONE OF THEM. See the class doc.
-            assertEquals(setOf("workspaceId", "next"), body.keys)
+            // ⛔ EXACTLY THREE KEYS, AND `deviceId` IS NOT ONE OF THEM. See the class doc.
+            assertEquals(setOf("workspaceId", "nonce", "next"), body.keys)
             assertEquals("ws-1", (body["workspaceId"] as JsonPrimitive).content)
             assertEquals(
                 "/dashboard/district/scheduling",
@@ -96,12 +97,12 @@ class SchedulingHandOffRequestTest {
         // than a field it never received, and the route's own default only applies to the second.
         server.enqueue(MockResponse(code = 200, body = """{"url":"https://x.test/d","expiresIn":60}"""))
 
-        schedulingApi().schedulingHandOff(SchedulingHandOffRequest(workspaceId = "ws-1"))
+        schedulingApi().schedulingHandOff(SchedulingHandOffRequest(workspaceId = "ws-1", nonce = NONCE))
 
         val body = Json.parseToJsonElement(
             server.takeRequest().body?.utf8().orEmpty(),
         ) as JsonObject
-        assertEquals(setOf("workspaceId"), body.keys)
+        assertEquals(setOf("workspaceId", "nonce"), body.keys)
     }
 
     @Test
@@ -113,7 +114,7 @@ class SchedulingHandOffRequestTest {
         // nothing in this app reads.
         server.enqueue(MockResponse(code = 200, body = """{"url":"https://x.test/d"}"""))
 
-        val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1"))
+        val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1", NONCE))
 
         assertEquals("https://x.test/d", (result as ApiResult.Success).value.url)
         assertEquals(0, result.value.expiresIn)
@@ -125,7 +126,7 @@ class SchedulingHandOffRequestTest {
         // into an empty string that the repository is then asked to verify and a browser to open.
         server.enqueue(MockResponse(code = 200, body = """{"expiresIn":60}"""))
 
-        val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1"))
+        val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1", NONCE))
 
         assertTrue("a body with no url must not decode", result is ApiResult.DecodeFailure)
     }
@@ -144,7 +145,7 @@ class SchedulingHandOffRequestTest {
             ),
         )
 
-        val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1"))
+        val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1", NONCE))
 
         assertEquals("rate_limited", (result as ApiResult.RateLimited).message)
     }
@@ -157,20 +158,20 @@ class SchedulingHandOffRequestTest {
             // sentence is "sign in again" rather than "ask an admin".
             server.enqueue(MockResponse(code = 403, body = """{"error":"Forbidden"}"""))
 
-            val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1"))
+            val result = schedulingApi().schedulingHandOff(SchedulingHandOffRequest("ws-1", NONCE))
 
             assertEquals("Forbidden", (result as ApiResult.Forbidden).message)
         }
 
     @Test
-    fun `a nonce from the browser's leg 1 is a third body key, and only when there is one`() = runTest {
+    fun `the nonce from the browser's leg 1 travels in the body, never in the query`() = runTest {
         // ⛔ THE BINDING TRAVELS IN THE BODY, never in the query string, which is the half of a
-        // request that reaches access logs. Its ABSENCE is the unbound flow, which the test above
-        // already pins as exactly `workspaceId` and `next`.
+        // request that reaches access logs. ⛔ And there is no request without one: the type
+        // requires it, which is what makes an unbound mint impossible rather than avoided.
         server.enqueue(MockResponse(code = 200, body = """{"url":"https://x.test/d","expiresIn":60}"""))
 
         schedulingApi().schedulingHandOff(
-            SchedulingHandOffRequest(workspaceId = "ws-1", next = "/dashboard/district/scheduling", nonce = NONCE),
+            SchedulingHandOffRequest(workspaceId = "ws-1", nonce = NONCE, next = "/dashboard/district/scheduling"),
         )
 
         val recorded = server.takeRequest()
@@ -181,15 +182,13 @@ class SchedulingHandOffRequestTest {
     }
 
     @Test
-    fun `printing the request says whether a nonce is present and never what it is`() {
+    fun `printing the request never prints the nonce`() {
         // ⛔ A DATA CLASS PRINTS EVERY FIELD, and a request object is exactly what ends up in a log
         // line or an assertion message. The nonce is half of a credential.
-        val bound = SchedulingHandOffRequest(workspaceId = "ws-1", next = "/n", nonce = NONCE).toString()
-        val unbound = SchedulingHandOffRequest(workspaceId = "ws-1").toString()
+        val printed = SchedulingHandOffRequest(workspaceId = "ws-1", nonce = NONCE, next = "/n").toString()
 
-        assertTrue(bound, !bound.contains(NONCE))
-        assertEquals("SchedulingHandOffRequest(workspaceId=ws-1, next=/n, nonce=present)", bound)
-        assertEquals("SchedulingHandOffRequest(workspaceId=ws-1, next=null, nonce=absent)", unbound)
+        assertTrue(printed, !printed.contains(NONCE))
+        assertEquals("SchedulingHandOffRequest(workspaceId=ws-1, next=/n, nonce=<redacted>)", printed)
     }
 
     private companion object {

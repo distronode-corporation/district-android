@@ -17,11 +17,11 @@ enum class HandOffEvent {
     /** The browser called back with this hand-off's state and a well-formed nonce; the code is bound. */
     BOUND,
 
-    /** The leg-1 probe did not answer a redirect onto the callback (an older server, or no network). */
-    FALLBACK_START_UNAVAILABLE,
-
-    /** Leg 1 was opened in the browser and no acceptable callback arrived in time. */
-    FALLBACK_NO_CALLBACK,
+    /**
+     * Leg 1 was opened in the browser and no acceptable callback arrived in time, so the hand-off
+     * was given up and nothing was minted.
+     */
+    NO_CALLBACK,
 
     /** A second hand-off was asked for while one was running, and was not started. */
     ALREADY_RUNNING,
@@ -51,7 +51,7 @@ fun interface HandOffLog {
  * Logcat, at INFO, with the event's name as the whole message.
  *
  * ⚠️ INFO RATHER THAN DEBUG because the one thing this is for is telling, from a user's
- * `adb logcat` during the release-order window, whether their hand-offs are bound or falling back.
+ * `adb logcat`, whether their hand-offs are bound or their browser never called back.
  */
 internal object LogcatHandOffLog : HandOffLog {
     const val TAG = "DistrictHandOff"

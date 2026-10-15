@@ -180,52 +180,6 @@ class DistrictApiClient(
     }
 
     /**
-     * GET [segments] WITHOUT A BEARER and return the `Location` it redirects to, of any scheme,
-     * without following it.
-     *
-     * ⛔ THE ONE REQUEST IN THIS CLASS THAT CARRIES NO CREDENTIAL, AND THAT IS ITS WHOLE REASON TO
-     * EXIST. It serves a browser route the app only probes (the hand-off's leg 1, see
-     * [SchedulingApi.schedulingHandOffStart]). Going through [authorizedCall] would attach the
-     * access token to a request that needs none, and would spend a token refresh on it when the
-     * cached one is stale. So there is no 401 retry either: nothing here can be refreshed.
-     *
-     * ⛔ ANY SCHEME IS RETURNED, UNLIKE [redirectTarget], because the answer this is asked for is a
-     * custom-scheme callback (`districtai://handoff?...`) and the caller is what checks it. It is
-     * never handed to another app from here. ⚠️ It may still carry a value the caller must not
-     * log, so nothing here quotes it, and a refusal reports only the status.
-     *
-     * ⚠️ A NON-REDIRECT IS NOT READ. A 404 or 400 here is an HTML page (the route is a browser
-     * route, or absent on an older server), so the body is closed unread and the answer is an
-     * [ApiResult.HttpFailure] carrying the status: the caller's question is only "did it redirect".
-     *
-     * ⚠️ NO COOKIE JAR: the shared client has none (see this class's header), so a `Set-Cookie` on
-     * the answer is dropped, which is what the probe wants.
-     */
-    suspend fun anonymousRedirectTarget(
-        segments: List<String>,
-        query: Map<String, String?> = emptyMap(),
-    ): ApiResult<String> = withContext(io) {
-        // ⛔ A CLONE, for the reason redirectTarget clones: the shared client follows redirects for
-        // every other request in the app. ⚠️ And `withContext(io)` here as well as in authorizedCall,
-        // because this request never reaches that funnel and its read must not run on Main.
-        val noRedirects = httpClient.newBuilder().followRedirects(false).build()
-        val request = Request.Builder().url(buildUrl(baseUrl, segments, query)).get().build()
-        val response = try {
-            noRedirects.newCall(request).await()
-        } catch (e: IOException) {
-            return@withContext ApiResult.NetworkFailure(e)
-        }
-        response.use {
-            val location = it.header("Location")
-            if (it.isRedirect && !location.isNullOrBlank()) {
-                ApiResult.Success(location)
-            } else {
-                ApiResult.HttpFailure(it.code, NOT_A_REDIRECT_MESSAGE)
-            }
-        }
-    }
-
-    /**
      * Send a request with a JSON body (or none) and decode a 2xx body with [serializer].
      *
      * ⛔ THIS API HAS NO SINGLE MUTATION CONVENTION, so the method is a parameter rather than being
@@ -561,9 +515,6 @@ class DistrictApiClient(
 
         /** ⛔ The SHAPE of a refused redirect, never its value; see [redirectTarget]. */
         private const val REDIRECT_NOT_HTTPS_PREVIEW = "RedirectTarget{scheme!=https}"
-
-        /** ⚠️ The status is the whole answer; see [anonymousRedirectTarget] for why no body is read. */
-        private const val NOT_A_REDIRECT_MESSAGE = "The server did not answer with a redirect."
 
         private const val HTTPS_PREFIX = "https://"
 

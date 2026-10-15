@@ -1103,26 +1103,6 @@ class FakeSchedulingApi : SchedulingApi {
         schedulingHandOffGate?.await()
         return schedulingHandOffResult
     }
-
-    /**
-     * ⛔ DEFAULTS TO TODAY'S PRODUCTION, WHICH HAS NO `/dashboard/handoff/start`: a 404. So every
-     * test that never mentions the nonce-bound flow drives the unbound fallback, exactly as an
-     * installed build does against a server that has not shipped leg 1, and a test that wants the
-     * bound flow has to say so by stubbing a `districtai://handoff` `Location` here.
-     */
-    var schedulingHandOffStartResult: ApiResult<String> = ApiResult.NotFound("no handoff start route")
-
-    /** The probe's `state` per call; ⚠️ the probe's own, never the browser leg's. */
-    val schedulingHandOffStarts: MutableList<String> = mutableListOf()
-
-    /** ⚠️ Holds the probe open, so a test can let virtual time pass while it is in flight. */
-    var schedulingHandOffStartGate: CompletableDeferred<Unit>? = null
-
-    override suspend fun schedulingHandOffStart(state: String): ApiResult<String> {
-        schedulingHandOffStarts += state
-        schedulingHandOffStartGate?.await()
-        return schedulingHandOffStartResult
-    }
 }
 
 class FakeMessagingApi : MessagingApi {

@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.marketplace
 
+import com.distronode.districtai.l10n.wireLabel
+import com.distronode.districtai.l10n.WireCategory
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -58,9 +60,10 @@ private fun A2PCard(draft: A2PDraft, write: NumberWriteState, handlers: Provisio
         NumberField(draft.sampleTwo, {
             update(draft.copy(sampleTwo = it))
         }, R.string.numbers_a2p_sample_two_label, editable, false)
-        // ⚠️ THE CAMPAIGN TYPES ARE WIRE VALUES, SHOWN AS THEY ARE, as iOS shows them.
+        // ⚠️ THE CAMPAIGN TYPE IS SENT AS ITS WIRE VALUE AND SHOWN WITH ITS LABEL ("Customer Care",
+        // « Service à la clientèle »), as the portal shows it; the raw CUSTOMER_CARE read as a code.
         Choices(
-            values = A2P_CAMPAIGN_TYPES.associateWith { it },
+            values = A2P_CAMPAIGN_TYPES.associateWith { wireLabel(WireCategory.A2P_CAMPAIGN_TYPE, it) },
             selected = draft.campaignType,
             enabled = editable,
         ) { update(draft.copy(campaignType = it)) }

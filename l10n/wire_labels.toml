@@ -3,50 +3,50 @@ catalog = "wire_labels"
 platform = "android"
 
 [wire.a2p_campaign_type_customer_care]
-en = "CUSTOMER_CARE"
+en = "Customer Care"
 fr = "Service à la clientèle"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, A2P 10DLC registration"
 tier = "T3"
 state = "reviewed"
-note = "The a2pCampaignType value `CUSTOMER_CARE` as the server sends it. This app has always shown it as sent. The portal's English label is \"Customer Care\"."
+note = "The a2pCampaignType value `CUSTOMER_CARE` as the server sends it, shown with the portal's label (\"Customer Care\")."
 
 [wire.a2p_campaign_type_low_volume]
-en = "LOW_VOLUME"
+en = "Low Volume Mixed (Under 15k msgs/mo)"
 fr = "Faible volume mixte (moins de 15 k messages/mois)"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, A2P 10DLC registration"
 tier = "T3"
 state = "reviewed"
-note = "The a2pCampaignType value `LOW_VOLUME` as the server sends it. This app has always shown it as sent. The portal's English label is \"Low Volume Mixed (Under 15k msgs/mo)\"."
+note = "The a2pCampaignType value `LOW_VOLUME` as the server sends it, shown with the portal's label (\"Low Volume Mixed (Under 15k msgs/mo)\")."
 
 [wire.a2p_campaign_type_marketing]
-en = "MARKETING"
+en = "Marketing / Promotions"
 fr = "Marketing / promotions"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, A2P 10DLC registration"
 tier = "T3"
 state = "reviewed"
-note = "The a2pCampaignType value `MARKETING` as the server sends it. This app has always shown it as sent. The portal's English label is \"Marketing / Promotions\"."
+note = "The a2pCampaignType value `MARKETING` as the server sends it, shown with the portal's label (\"Marketing / Promotions\")."
 
 [wire.a2p_campaign_type_unknown]
 en = "{value}"
 fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, A2P 10DLC registration"
 tier = "T3"
 args = { value = "str" }
 state = "reviewed"
 note = "A a2pCampaignType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.a2p_campaign_type_v_2_fa]
-en = "2FA"
+en = "2FA / OTP Alerts"
 fr = "Alertes 2FA / mot de passe à usage unique"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, A2P 10DLC registration"
 tier = "T3"
 state = "reviewed"
-note = "The a2pCampaignType value `2FA` as the server sends it. This app has always shown it as sent. The portal's English label is \"2FA / OTP Alerts\"."
+note = "The a2pCampaignType value `2FA` as the server sends it, shown with the portal's label (\"2FA / OTP Alerts\")."
 
 [wire.a2p_registration_status_failed]
 en = "FAILED"
@@ -944,37 +944,40 @@ state = "reviewed"
 note = "The numberCapability value `voice` as the server sends it. This app has always shown it as sent. The portal has no label for it."
 
 [wire.number_provider_sinch]
-en = "sinch"
+en = "Sinch"
 fr = "Sinch"
 ctx = "label"
-screen = "phone numbers"
+screen = "phone numbers, carrier, number search"
 tier = "T3"
 state = "reviewed"
-note = "The numberProvider value `sinch` as the server sends it. This app has always shown it as sent. The portal's English label is \"Sinch\"."
+same_ok = true
+note = "The numberProvider value `sinch` as the server sends it, shown with the portal's label (\"Sinch\")."
 
 [wire.number_provider_telnyx]
-en = "telnyx"
+en = "Telnyx"
 fr = "Telnyx"
 ctx = "label"
-screen = "phone numbers"
+screen = "phone numbers, carrier, number search"
 tier = "T3"
 state = "reviewed"
-note = "The numberProvider value `telnyx` as the server sends it. This app has always shown it as sent. The portal's English label is \"Telnyx\"."
+same_ok = true
+note = "The numberProvider value `telnyx` as the server sends it, shown with the portal's label (\"Telnyx\")."
 
 [wire.number_provider_twilio]
-en = "twilio"
+en = "Twilio"
 fr = "Twilio"
 ctx = "label"
-screen = "phone numbers"
+screen = "phone numbers, carrier, number search"
 tier = "T3"
 state = "reviewed"
-note = "The numberProvider value `twilio` as the server sends it. This app has always shown it as sent. The portal's English label is \"Twilio\"."
+same_ok = true
+note = "The numberProvider value `twilio` as the server sends it, shown with the portal's label (\"Twilio\")."
 
 [wire.number_provider_unknown]
 en = "{value}"
 fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
-screen = "phone numbers"
+screen = "phone numbers, carrier, number search"
 tier = "T3"
 args = { value = "str" }
 state = "reviewed"
@@ -984,11 +987,11 @@ note = "A numberProvider value this app does not know, passed through as {value}
 en = "unknown"
 fr = "Inconnu"
 ctx = "label"
-screen = "phone numbers"
+screen = "phone numbers, carrier, number search"
 tier = "T3"
 state = "reviewed"
 fr_variant = "numberProvider: a status label, capitalized like the provider names (the contract has no French for `unknown`)"
-note = "The numberProvider value `unknown` as the server sends it. This app has always shown it as sent. The portal has no label for it."
+note = "The numberProvider value `unknown` as the server sends it, shown with the portal's label; the portal has none, so English shows the value as sent."
 
 [wire.number_status_active]
 en = "active"
@@ -1461,19 +1464,19 @@ state = "reviewed"
 note = "A sentiment value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.sip_trunk_status_active]
-en = "active"
+en = "Active"
 fr = "Actif"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, carrier, SIP trunks"
 tier = "T3"
 state = "reviewed"
-note = "The sipTrunkStatus value `active` as the server sends it. This app has always shown it as sent. The portal's English label is \"Active\"."
+note = "The sipTrunkStatus value `active` as the server sends it, shown with the portal's label (\"Active\")."
 
 [wire.sip_trunk_status_unknown]
 en = "{value}"
 fr = "Valeur inconnue\u00A0: {value}"
 ctx = "label"
-screen = "not shown in this app yet"
+screen = "phone numbers, carrier, SIP trunks"
 tier = "T3"
 args = { value = "str" }
 state = "reviewed"

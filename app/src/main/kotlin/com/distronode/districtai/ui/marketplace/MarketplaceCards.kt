@@ -127,7 +127,9 @@ internal fun SearchResults(state: SearchState.Ready) {
         ) {
             // ⚠️ The carrier that ACTUALLY answered, which need not be the one the operator
             // expected: the resolved credentials decide, not the request.
-            state.provider?.let { Eyebrow(stringResource(R.string.marketplace_provider, it)) }
+            state.provider?.let {
+                Eyebrow(stringResource(R.string.marketplace_provider, wireLabel(WireCategory.NUMBER_PROVIDER, it)))
+            }
 
             if (state.numbers.isEmpty()) {
                 // ⚠️ Reachable only once a search SUCCEEDED, so it genuinely means the carrier

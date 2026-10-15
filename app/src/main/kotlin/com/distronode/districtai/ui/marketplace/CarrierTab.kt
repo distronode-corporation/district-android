@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.marketplace
 
+import com.distronode.districtai.l10n.wireLabel
+import com.distronode.districtai.l10n.WireCategory
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -88,7 +90,8 @@ private fun CarrierRow(name: String, entry: ProviderStatusEntry) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         ) {
-            Text(text = name, style = MaterialTheme.typography.titleSmall)
+            // The carrier by its name ("Twilio"), not the key the server files it under.
+            Text(text = wireLabel(WireCategory.NUMBER_PROVIDER, name), style = MaterialTheme.typography.titleSmall)
             DistrictBadge(
                 text = stringResource(
                     if (entry.connected) R.string.numbers_carrier_connected else R.string.numbers_carrier_refused_badge,
@@ -188,7 +191,13 @@ private fun SipTrunkRow(trunk: SipTrunk) {
         )
     Column(modifier = Modifier.fillMaxWidth().padding(top = DistrictTheme.spacing.tight)) {
         Text(text = trunk.domain, style = MaterialTheme.typography.bodyMedium)
-        Muted(stringResource(R.string.numbers_sip_trunk_meta_line, trunk.status, addresses))
+        Muted(
+            stringResource(
+                R.string.numbers_sip_trunk_meta_line,
+                wireLabel(WireCategory.SIP_TRUNK_STATUS, trunk.status),
+                addresses,
+            ),
+        )
         if (trunk.domainSid == null && trunk.ipAclSid == null) Muted(stringResource(R.string.numbers_sip_unprovisioned))
     }
 }

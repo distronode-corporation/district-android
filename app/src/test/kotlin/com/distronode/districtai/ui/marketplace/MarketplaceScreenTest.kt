@@ -233,6 +233,12 @@ class MarketplaceScreenTest {
         )
 
         composeRule.onNodeWithText("+14165550111").assertIsDisplayed()
+        // The carrier that answered, by its name ("Carrier: Twilio"). The eyebrow is upper-cased, so
+        // English cannot tell it from the key; CarrierLabelsScreenTest checks it in a pseudolocale.
+        composeRule.onNodeWithText(
+            str(R.string.marketplace_provider, str(R.string.wire_number_provider_twilio)),
+            ignoreCase = true,
+        ).assertIsDisplayed()
         composeRule.onNodeWithText("1.15 USD").assertIsDisplayed()
         composeRule.onNodeWithText("+18005550122").assertIsDisplayed()
         composeRule.onNodeWithText("0").assertDoesNotExist()

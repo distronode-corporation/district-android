@@ -141,11 +141,12 @@ note = "Metered usage over recent months, the web console's three-month trend."
 
 [analytics.metric_abandoned]
 en = "Abandoned"
-fr = "Abandonné"
+fr = "Abandonnés"
 ctx = "label"
 screen = "analytics"
 tier = "T3"
 state = "reviewed"
+fr_variant = "analytics count of calls (plural), not the call status"
 note = "KPI tiles. Labels and captions match the web console word for word so an operator moving between the two reads the same thing."
 
 [analytics.metric_abandoned_caption]
@@ -698,7 +699,7 @@ note = "⛔ THE CAPTION THAT MAKES THE ABSENCE OF CONTROLS DELIBERATE, and it is
 
 [billing.read_only_viewer]
 en = "This screen is read-only. Ask an agency or client member of this workspace to change the plan."
-fr = "Cet écran est en lecture seule. Demandez à un membre ayant le rôle Agence ou Client de cet espace de travail de changer de forfait."
+fr = "Cet écran est en lecture seule. Demandez à un membre ayant le rôle Administrateur ou Membre de cet espace de travail de changer de forfait."
 ctx = "body"
 screen = "billing"
 tier = "T1"
@@ -1174,7 +1175,7 @@ note = "── Call handling and availability ───────────�
 
 [call_handling.viewer_note]
 en = "Only agency and client members can change call handling."
-fr = "Seuls les membres ayant le rôle Agence ou Client peuvent changer la gestion des appels."
+fr = "Seuls les membres ayant le rôle Administrateur ou Membre peuvent changer la gestion des appels."
 ctx = "body"
 screen = "call handling"
 tier = "T3"
@@ -1845,7 +1846,7 @@ note = "Contact detail"
 
 [contact_detail.timeline]
 en = "Timeline"
-fr = "Chronologie"
+fr = "Échéancier"
 ctx = "label"
 screen = "contact detail"
 tier = "T3"
@@ -2462,17 +2463,17 @@ note = "══ District Desk ═════════════════
 
 [desk.status_open]
 en = "Open"
-fr = "Ouverte"
+fr = "Ouvert"
 ctx = "button"
 screen = "customer desk"
 tier = "T3"
 state = "reviewed"
-fr_variant = "desk ticket status (contract label), not the verb"
+fr_variant = "Desk ticket status: a « billet », masculine (contract deskTicketStatus since main 43eed5fd6)"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means."
 
 [desk.status_resolved]
 en = "Resolved"
-fr = "Réglée"
+fr = "Réglé"
 ctx = "label"
 screen = "customer desk"
 tier = "T3"
@@ -2508,7 +2509,7 @@ note = "══ District Desk ═════════════════
 
 [desk.viewer_body]
 en = "The customer desk holds your customers' contact details and correspondence, so it is limited to agency and client seats. Ask someone on your team to change your role if you need it."
-fr = "Le comptoir clients contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Agence ou Client. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle."
+fr = "Le comptoir clients contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Administrateur ou Membre. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle."
 ctx = "body"
 screen = "customer desk, customer desk settings, customer desk ticket"
 tier = "T3"
@@ -3750,7 +3751,7 @@ note = "── Knowledge base ────────────────�
 
 [knowledge.mode_internal]
 en = "Your own knowledge base (recommended)"
-fr = "Votre propre base de connaissances (recommandé)"
+fr = "Votre propre base de connaissances (recommandée)"
 ctx = "label"
 screen = "knowledge"
 tier = "T3"
@@ -4382,7 +4383,7 @@ note = "⛔ OUR OWN WORDING FOR THE TWO 409s, NOT THE SERVER'S. The server write
 
 [members.error_last_agency]
 en = "Every workspace needs at least one agency member."
-fr = "Un espace de travail exige au moins un membre ayant le rôle Agence."
+fr = "Un espace de travail exige au moins un membre ayant le rôle Administrateur."
 ctx = "error"
 screen = "members"
 tier = "T2"
@@ -4454,7 +4455,7 @@ note = "Button in the role picker dialog that saves the chosen role."
 
 [members.role_agency]
 en = "Agency"
-fr = "Agence"
+fr = "Administrateur"
 ctx = "label"
 screen = "members"
 tier = "T3"
@@ -4472,12 +4473,11 @@ note = "── Members and the workspace name ───────────�
 
 [members.role_client]
 en = "Client"
-fr = "Client"
+fr = "Membre"
 ctx = "label"
 screen = "members"
 tier = "T3"
 state = "reviewed"
-same_ok = true
 note = "── Members and the workspace name ──────────────────────────────────── ⛔ THE MEMBERSHIP WRITES ARE AGENCY-ONLY, the narrowest guard in the API: these rows are what every other permission check is derived from. The RENAME is wider (agency or client) and the roster READ is wider still (viewers see it too), so this screen carries three different audiences and the copy has to work for all of them."
 
 [members.role_client_help]
@@ -4604,6 +4604,7 @@ ctx = "label"
 screen = "messaging accounts"
 tier = "T3"
 state = "reviewed"
+fr_variant = "messaging channel name: the portal's channel badge (messagingI18n.ts badgeSms), as the « SMS » channel label elsewhere"
 note = "The channel `sms`, as a heading and inside Send {channel} from. English is the value as the app has always shown it; the French is the portal's channel badge (messagingI18n.ts badgeSms)."
 
 [messaging.channel_title]
@@ -5123,11 +5124,12 @@ note = "── Devices ───────────────────
 
 [nav.overview]
 en = "Overview"
-fr = "Vue d'ensemble"
+fr = "Aperçu"
 ctx = "menu"
 screen = "navigation"
 tier = "T3"
 state = "reviewed"
+fr_variant = "bottom navigation label: « Vue d'ensemble » splits mid-word at 360dp (W4 Android visual review)"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. The persistent navigation bar. Without it the only way to reach a top-level screen is an inline link on the overview, and the Contacts one is below the fold. Text rather than icons, matching the web nav and dashboard sidebar."
 
 [overview.badge_transfer_failed]
@@ -7420,11 +7422,12 @@ note = "══ Support (this workspace's requests with Distronode) ════�
 
 [support.section_resolved]
 en = "Resolved"
-fr = "Réglée"
+fr = "Réglées"
 ctx = "label"
 screen = "support"
 tier = "T3"
 state = "reviewed"
+fr_variant = "support requests resolved (section heading, plural)"
 note = "══ Support (this workspace's requests with Distronode) ════════════════ ⛔ NOT THE DESK. See the header above."
 
 [support.status_received]
@@ -7434,6 +7437,7 @@ ctx = "label"
 screen = "support, support request"
 tier = "T3"
 state = "reviewed"
+fr_variant = "support request status (« demande », feminine): the portal's statusUnsynced"
 note = "The status the server sends for a request the desk has not synced yet (helpdesk.ts writes \"Received\"). Every other status is the desk's own word and is shown as sent, as the portal does. The French is the portal's statusUnsynced (lib/i18n/pages/support.ts)."
 
 [support.title]
@@ -7456,7 +7460,7 @@ note = "══ Support (this workspace's requests with Distronode) ════�
 
 [support.viewer_body]
 en = "Support requests are correspondence with Distronode, so they are limited to agency and client seats. Ask someone on your team to change your role if you need it."
-fr = "Les demandes de soutien sont des échanges avec Distronode\u00A0: elles sont donc réservées aux rôles Agence et Client. Au besoin, demandez à un membre de votre équipe de changer votre rôle."
+fr = "Les demandes de soutien sont des échanges avec Distronode\u00A0: elles sont donc réservées aux rôles Administrateur et Membre. Au besoin, demandez à un membre de votre équipe de changer votre rôle."
 ctx = "body"
 screen = "support, support request"
 tier = "T3"
@@ -7572,6 +7576,7 @@ ctx = "label"
 screen = "message thread"
 tier = "T3"
 state = "reviewed"
+fr_variant = "the chip on a call in a thread (a noun, the event), not the verb"
 note = "The chip on a call in a conversation thread: the event, not the action. thread.call is the button."
 
 [thread.call_missed]
@@ -7939,7 +7944,7 @@ note = "── The always-on SDR campaign ────────────�
 
 [workflows.campaign_read_only_viewer]
 en = "You are in this workspace as a viewer. Ask an agency or client member to change the campaign."
-fr = "Votre rôle dans cet espace de travail est Lecteur. Demandez à un membre ayant le rôle Agence ou Client de modifier la campagne."
+fr = "Votre rôle dans cet espace de travail est Lecteur. Demandez à un membre ayant le rôle Administrateur ou Membre de modifier la campagne."
 ctx = "body"
 screen = "workflows"
 tier = "T3"

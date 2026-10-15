@@ -45,7 +45,7 @@
     <string name="numbers_lookup_number_label">Numéro de téléphone complet</string>
     <string name="numbers_managed_no_release">Cette ligne est détenue sur le compte de transporteur de Distronode\u00A0: vous pouvez l\'utiliser, mais pas la libérer ni la reconfigurer.</string>
     <string name="numbers_read_only">Les nouveaux numéros s\'achètent sur le Web. Tout le reste concernant un numéro, y compris ses inscriptions et sa libération, se fait ici.</string>
-    <string name="numbers_read_only_viewer">Modifier un numéro exige un rôle Agence ou Client. Demandez à un membre de cet espace de travail qui en a un.</string>
+    <string name="numbers_read_only_viewer">Modifier un numéro exige un rôle Administrateur ou Membre. Demandez à un membre de cet espace de travail qui en a un.</string>
     <string name="numbers_ready_buy_today">Achat immédiat</string>
     <string name="numbers_registration_country_label">Pays (deux lettres)</string>
     <string name="numbers_registration_document_filed">Déposé chez le transporteur</string>
@@ -126,7 +126,7 @@
     <string name="numbers_verify_eyebrow">Codes à usage unique</string>
     <string name="numbers_verify_off">Non activé</string>
     <string name="numbers_verify_on">Activé</string>
-    <string name="numbers_viewer_cannot_provision">Les inscriptions, la configuration du transporteur et la gestion des numéros exigent le rôle Agence ou Client. Demandez à un membre qui a l\'un de ces rôles.</string>
+    <string name="numbers_viewer_cannot_provision">Les inscriptions, la configuration du transporteur et la gestion des numéros exigent le rôle Administrateur ou Membre. Demandez à un membre qui a l\'un de ces rôles.</string>
     <string name="numbers_write_unrepeatable">Nous n\'avons pas pu confirmer si l\'opération a abouti; elle n\'est donc pas proposée de nouveau. Actualisez pour voir où en sont les choses.</string>
     <string name="numbers_your_approvals">Vos approbations</string>
 </resources>

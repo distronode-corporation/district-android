@@ -323,11 +323,12 @@ note = "Bookings list filter: every booking, whatever its status or date."
 
 [scheduling_admin.bookings.view_cancelled]
 en = "Cancelled"
-fr = "Annulé"
+fr = "Annulés"
 ctx = "label"
 screen = "scheduling bookings"
 tier = "T3"
 state = "reviewed"
+fr_variant = "bookings filter (plural rendez-vous), beside Passés"
 note = "Bookings list filter: the bookings that were cancelled."
 
 [scheduling_admin.bookings.view_past]
@@ -2896,7 +2897,7 @@ note = "A date override whose reason is out of office: not bookable that day."
 
 [scheduling_admin.hours.override_add]
 en = "Add override"
-fr = "Ajouter l'exception"
+fr = "Ajouter une exception"
 ctx = "button"
 screen = "scheduling working hours"
 tier = "T3"
@@ -4681,7 +4682,7 @@ state = "reviewed"
 
 [scheduling_admin.team.role_agency]
 en = "Agency"
-fr = "Agence"
+fr = "Administrateur"
 ctx = "label"
 screen = "scheduling team"
 tier = "T3"
@@ -4690,12 +4691,11 @@ note = "A workspace role: the agency that manages the workspace."
 
 [scheduling_admin.team.role_client]
 en = "Client"
-fr = "Client"
+fr = "Membre"
 ctx = "label"
 screen = "scheduling team"
 tier = "T3"
 state = "reviewed"
-same_ok = true
 note = "A workspace role: the business the workspace belongs to."
 
 [scheduling_admin.team.role_removed]

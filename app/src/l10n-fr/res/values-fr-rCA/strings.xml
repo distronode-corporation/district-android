@@ -16,7 +16,7 @@
     <string name="analytics_history_minutes">Minutes d\'appel mesurées</string>
     <string name="analytics_history_none">Aucune utilisation n\'a encore été mesurée ces derniers mois.</string>
     <string name="analytics_history_title">Derniers mois</string>
-    <string name="analytics_metric_abandoned">Abandonné</string>
+    <string name="analytics_metric_abandoned">Abandonnés</string>
     <string name="analytics_metric_abandoned_caption">L\'appelant a raccroché</string>
     <string name="analytics_metric_avg_duration">Durée moyenne des appels</string>
     <string name="analytics_metric_avg_duration_caption">Sur les séances terminées</string>
@@ -78,7 +78,7 @@
     <string name="billing_plan_none">Aucun forfait pour cet espace de travail</string>
     <string name="billing_plan_title">Forfait</string>
     <string name="billing_read_only">Cette application ne permet pas de changer de forfait, de gérer les moyens de paiement ni de résilier. Cet écran est en lecture seule.</string>
-    <string name="billing_read_only_viewer">Cet écran est en lecture seule. Demandez à un membre ayant le rôle Agence ou Client de cet espace de travail de changer de forfait.</string>
+    <string name="billing_read_only_viewer">Cet écran est en lecture seule. Demandez à un membre ayant le rôle Administrateur ou Membre de cet espace de travail de changer de forfait.</string>
     <string name="billing_renews_on">Renouvellement le %1$s</string>
     <string name="billing_status_active">Actif</string>
     <string name="billing_status_canceled">Annulé</string>
@@ -131,7 +131,7 @@
     <string name="call_handling_section_availability">Votre disponibilité</string>
     <string name="call_handling_section_mode">Qui répond en premier</string>
     <string name="call_handling_title">Gestion des appels</string>
-    <string name="call_handling_viewer_note">Seuls les membres ayant le rôle Agence ou Client peuvent changer la gestion des appels.</string>
+    <string name="call_handling_viewer_note">Seuls les membres ayant le rôle Administrateur ou Membre peuvent changer la gestion des appels.</string>
     <string name="call_log_failed">Impossible de charger le journal des appels.</string>
     <string name="call_log_notice">Cet appel figure dans le journal des appels de l\'espace de travail.</string>
     <string name="call_log_open">Journal des appels</string>
@@ -206,7 +206,7 @@
     <string name="contact_detail_rename">Renommer</string>
     <string name="contact_detail_rename_label">Nom du contact</string>
     <string name="contact_detail_save">Enregistrer</string>
-    <string name="contact_detail_timeline">Chronologie</string>
+    <string name="contact_detail_timeline">Échéancier</string>
     <string name="contact_detail_title">Contact</string>
     <string name="contact_detail_website">Site</string>
     <string name="contact_video_action">Appel vidéo</string>
@@ -275,12 +275,12 @@
     <string name="desk_settings_save">Enregistrer</string>
     <string name="desk_settings_saving">Sauvegarde…</string>
     <string name="desk_settings_title">Paramètres du comptoir</string>
-    <string name="desk_status_open">Ouverte</string>
-    <string name="desk_status_resolved">Réglée</string>
+    <string name="desk_status_open">Ouvert</string>
+    <string name="desk_status_resolved">Réglé</string>
     <string name="desk_status_waiting">En attente</string>
     <string name="desk_ticket_title">Billet</string>
     <string name="desk_title">Comptoir clients</string>
-    <string name="desk_viewer_body">Le comptoir clients contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Agence ou Client. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
+    <string name="desk_viewer_body">Le comptoir clients contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Administrateur ou Membre. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
     <string name="desk_viewer_title">Non disponible avec le rôle Lecteur</string>
     <string name="devices_confirm_all">Vous déconnecter de District AI sur tous les appareils, y compris celui-ci?</string>
     <string name="devices_confirm_device">Déconnecter cet appareil? Il devra se reconnecter pour utiliser District AI.</string>
@@ -419,7 +419,7 @@
     <string name="knowledge_linked_confirm_action">Envoyer les questions à Atlassian</string>
     <string name="knowledge_linked_confirm_body">Les réponses seront rédigées par l\'assistant du service de soutien de Distronode, ce qui signifie que chaque question d\'un appelant est transmise à Atlassian. Vos documents téléversés restent en place et ne servent plus à répondre.</string>
     <string name="knowledge_linked_confirm_title">Envoyer les questions à Atlassian?</string>
-    <string name="knowledge_mode_internal">Votre propre base de connaissances (recommandé)</string>
+    <string name="knowledge_mode_internal">Votre propre base de connaissances (recommandée)</string>
     <string name="knowledge_mode_internal_help">Les réponses proviennent uniquement des documents que vous téléversez ici, récupérés dans votre propre région. Rien n\'est transmis à un tiers pour rédiger la réponse.</string>
     <string name="knowledge_mode_linked">Base de connaissances du soutien liée</string>
     <string name="knowledge_mode_linked_help">Les réponses sont rédigées par l\'assistant de notre service de soutien à partir du contenu lié du centre d\'aide. Couverture plus large, sans téléversement, mais les questions sont transmises à Atlassian pour y répondre.</string>
@@ -489,7 +489,7 @@
     <string name="members_empty_body">Nous n\'avons trouvé personne dans cet espace de travail, ce qui ne devrait pas arriver. Réessayez et, si le problème persiste, signalez-le à Distronode.</string>
     <string name="members_empty_title">Aucun membre trouvé</string>
     <string name="members_error_duplicate">Déjà membre.</string>
-    <string name="members_error_last_agency">Un espace de travail exige au moins un membre ayant le rôle Agence.</string>
+    <string name="members_error_last_agency">Un espace de travail exige au moins un membre ayant le rôle Administrateur.</string>
     <string name="members_remove">Retirer</string>
     <string name="members_remove_confirm_body">%1$s perdra immédiatement l\'accès à cet espace de travail. L\'ajouter de nouveau plus tard créera une nouvelle adhésion.</string>
     <string name="members_remove_confirm_title">Retirer ce membre?</string>
@@ -497,9 +497,9 @@
     <string name="members_rename_current">Nom actuel\u00A0: «\u00A0%1$s\u00A0».</string>
     <string name="members_rename_label">Nouveau nom de l\'espace</string>
     <string name="members_role_action">Enregistrer</string>
-    <string name="members_role_agency">Agence</string>
+    <string name="members_role_agency">Administrateur</string>
     <string name="members_role_agency_help">Accès complet, y compris qui fait partie de l\'espace de travail et ce que fait la réceptionniste IA.</string>
-    <string name="members_role_client">Client</string>
+    <string name="members_role_client">Membre</string>
     <string name="members_role_client_help">Usage courant\u00A0: appels, contacts, messages et paramètres de l\'espace de travail, sans pouvoir changer qui en fait partie.</string>
     <string name="members_role_title">Changer le rôle</string>
     <string name="members_role_unknown">Rôle non reconnu\u00A0: «\u00A0%1$s\u00A0»</string>
@@ -573,7 +573,7 @@
     <string name="nav_calls">Appels</string>
     <string name="nav_contacts">Contacts</string>
     <string name="nav_inbox">Boîte de réception</string>
-    <string name="nav_overview">Vue d\'ensemble</string>
+    <string name="nav_overview">Aperçu</string>
     <string name="overview_badge_transfer_failed">Échec du transfert</string>
     <string name="overview_badge_transferred">Transféré</string>
     <plurals name="overview_billing_body">
@@ -828,11 +828,11 @@
     <string name="support_reply_sending">Envoi en cours…</string>
     <string name="support_request_title">Demande</string>
     <string name="support_section_open">Ouvertes</string>
-    <string name="support_section_resolved">Réglée</string>
+    <string name="support_section_resolved">Réglées</string>
     <string name="support_status_received">Reçue</string>
     <string name="support_title">Soutien</string>
     <string name="support_unfiled">En cours d\'ouverture</string>
-    <string name="support_viewer_body">Les demandes de soutien sont des échanges avec Distronode\u00A0: elles sont donc réservées aux rôles Agence et Client. Au besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
+    <string name="support_viewer_body">Les demandes de soutien sont des échanges avec Distronode\u00A0: elles sont donc réservées aux rôles Administrateur et Membre. Au besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
     <string name="support_viewer_title">Non disponible avec le rôle Lecteur</string>
     <string name="thread_ai_draft">Ébaucher une réponse</string>
     <string name="thread_ai_drafting">Ébauche en cours…</string>
@@ -889,7 +889,7 @@
     <string name="workflows_campaign_pause_title">Mettre la campagne sortante en pause?</string>
     <string name="workflows_campaign_paused">En pause</string>
     <string name="workflows_campaign_read_only">L\'objectif et la taille de lot de la campagne ne se modifient pas dans cette application.</string>
-    <string name="workflows_campaign_read_only_viewer">Votre rôle dans cet espace de travail est Lecteur. Demandez à un membre ayant le rôle Agence ou Client de modifier la campagne.</string>
+    <string name="workflows_campaign_read_only_viewer">Votre rôle dans cet espace de travail est Lecteur. Demandez à un membre ayant le rôle Administrateur ou Membre de modifier la campagne.</string>
     <string name="workflows_campaign_resume">Reprendre la campagne</string>
     <string name="workflows_campaign_resume_body">Le moteur de prospection recommence à appeler vos contacts et à leur envoyer des messages, ce qui consomme du crédit d\'appels et de messages.</string>
     <string name="workflows_campaign_resume_title">Reprendre la campagne sortante?</string>

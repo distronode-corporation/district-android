@@ -188,6 +188,7 @@
     <string name="wire_workflow_action_reason_contact_not_found">Contact introuvable</string>
     <string name="wire_workflow_action_reason_dnc">Liste d\'exclusion</string>
     <string name="wire_workflow_action_reason_dormant">Inactif</string>
+    <string name="wire_workflow_action_reason_email_misconfigured">Courriel mal configuré</string>
     <string name="wire_workflow_action_reason_empty_body">Message vide</string>
     <string name="wire_workflow_action_reason_empty_subject">Objet vide</string>
     <string name="wire_workflow_action_reason_empty_tag">Étiquette vide</string>
@@ -201,6 +202,7 @@
     <string name="wire_workflow_action_reason_report_recipient_refused">Destinataire du rapport refusé</string>
     <string name="wire_workflow_action_reason_report_unavailable">Rapport indisponible</string>
     <string name="wire_workflow_action_reason_send_failed">Échec d\'envoi</string>
+    <string name="wire_workflow_action_reason_ses_missing">SES non configuré</string>
     <string name="wire_workflow_action_reason_tag_already_present">Étiquette déjà présente</string>
     <string name="wire_workflow_action_reason_tag_not_present">Étiquette absente</string>
     <string name="wire_workflow_action_reason_unknown">Valeur inconnue\u00A0: %1$s</string>

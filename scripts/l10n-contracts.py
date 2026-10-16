@@ -209,7 +209,7 @@ def core_label(value: str) -> str:
 
 
 # Words a humanized value writes in capitals.
-INITIALISMS = {w.lower(): w for w in ("SMS", "MMS", "OK", "HTTP", "URL", "API", "CRM", "DNC", "AI")}
+INITIALISMS = {w.lower(): w for w in ("SMS", "MMS", "OK", "HTTP", "URL", "API", "CRM", "DNC", "AI", "SES")}
 
 
 def humanize(key: str) -> str:

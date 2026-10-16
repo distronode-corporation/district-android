@@ -95,6 +95,7 @@
     <string name="api_error_security_check_failed">The security check did not pass. Please try again.</string>
     <string name="api_error_security_check_required">Complete the security check and try again.</string>
     <string name="api_error_sending_domain_missing">No sending domain is connected to this workspace.</string>
+    <string name="api_error_sending_domain_provider_changed">This sending domain was set up with a different email provider. Remove it and connect it again to get the new DNS records.</string>
     <string name="api_error_server_error">Something went wrong on our side. Please try again.</string>
     <string name="api_error_service_not_configured">That is not set up on this deployment yet.</string>
     <string name="api_error_service_unavailable">That is temporarily unavailable. Please try again shortly.</string>

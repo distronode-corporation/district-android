@@ -1739,6 +1739,15 @@ tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `dormant` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
+[wire.workflow_action_reason_email_misconfigured]
+en = "Email misconfigured"
+fr = "Courriel mal configuré"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `email-misconfigured` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
 [wire.workflow_action_reason_empty_body]
 en = "Empty body"
 fr = "Message vide"
@@ -1856,6 +1865,15 @@ screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `send-failed` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
+[wire.workflow_action_reason_ses_missing]
+en = "SES missing"
+fr = "SES non configuré"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `ses-missing` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_tag_already_present]
 en = "Tag already present"

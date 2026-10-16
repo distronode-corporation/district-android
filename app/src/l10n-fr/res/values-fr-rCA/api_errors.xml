@@ -95,6 +95,7 @@
     <string name="api_error_security_check_failed">La vérification de sécurité a échoué. Veuillez réessayer.</string>
     <string name="api_error_security_check_required">Complétez la vérification de sécurité, puis réessayez.</string>
     <string name="api_error_sending_domain_missing">Aucun domaine d\'envoi n\'est connecté à cet espace de travail.</string>
+    <string name="api_error_sending_domain_provider_changed">Ce domaine d\'envoi a été configuré avec un autre fournisseur de courriel. Retirez-le, puis connectez-le de nouveau pour obtenir les nouvelles entrées DNS.</string>
     <string name="api_error_server_error">Une erreur est survenue de notre côté. Veuillez réessayer.</string>
     <string name="api_error_service_not_configured">Cela n\'est pas encore configuré sur ce déploiement.</string>
     <string name="api_error_service_unavailable">Cela est temporairement indisponible. Veuillez réessayer sous peu.</string>

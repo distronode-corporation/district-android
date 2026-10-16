@@ -1459,7 +1459,7 @@ fr = "Capacité non reconnue"
 ctx = "label"
 screen = "capabilities"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "── Agent capabilities ──────────────────────────────────────────────── The title of a row for a capability stored for the workspace that this version of the app has no name for. Until 3.0.1 the row was titled with the raw identifier (`transfer_to_creator`; visual QA AC5)."
 
 [capabilities.unknown_tool]

@@ -121,10 +121,10 @@ androidxLifecycle = "2.11.0"
 composeBom = "2026.09.00"
 # ⚠️ ONE VERSION FOR paging-runtime AND paging-compose. They drifted apart historically
 # (paging-compose sat on its own 1.x line), which is why a stale guide will show two
-# versions — they have shared this one since 3.3.0 and 3.5.1 is the latest stable for
-# both, confirmed from the Google Maven metadata. Do not reintroduce a
+# versions — they have shared this one since 3.3.0 and 3.5.3 is the latest stable for
+# both, confirmed from the Google Maven metadata on 2026-10-16. Do not reintroduce a
 # separate pagingCompose version.
-androidxPaging = "3.5.1"
+androidxPaging = "3.5.3"
 # ⚠️ Navigation 2.10.2, the latest STABLE of the Navigation 2 line, resolved from the Google
 # Maven metadata on 2026-09-26. Its runtime asks for kotlin-stdlib 2.1.20 and lifecycle 2.11.0,
 # both satisfied here. Navigation 3 (androidx.navigation3) exists, has stable releases by now
@@ -163,7 +163,7 @@ okhttp = "5.5.0"
 # when the compiler changes rather than when the tests do. Kover is Kotlin-aware and
 # is what the Kotlin toolchain ships for this.
 #
-# ⚠️ 0.9.9 is the latest stable (0.8.x is the previous line and its DSL differs —
+# ⚠️ 0.9.11 is the latest stable (Maven Central metadata, 2026-10-16) (0.8.x is the previous line and its DSL differs —
 # `koverReport { }` was replaced by `kover { reports { } }`, so a 0.8-era snippet does
 # not compile here).
 #
@@ -197,16 +197,18 @@ livekit = "2.29.0"
 # build deliberately does not depend on a committed one). Adding the
 # plugin would reintroduce a build-time file dependency that nothing needs.
 #
-# ⚠️ 25.1.3 is the latest stable, resolved from the Google Maven metadata on 2026-09-26.
+# ⚠️ 26.0.0 is the latest stable, resolved from the Google Maven metadata on 2026-10-16. Its one
+# breaking change (BoM 35.0.0 release notes) is minSdk 24, below this app's 26; its POM asks for
+# kotlin-stdlib 2.1.21, within the Kotlin hold above.
 # firebase-common and the Play-services
 # dependencies arrive transitively; none of them is declared here, because a
 # transitive coordinate declared explicitly is a second place to forget to bump.
-firebaseMessaging = "25.1.3"
+firebaseMessaging = "26.0.0"
 
 # ── Crash reporting ──────────────────────────────────────────────────────────
-# ⚠️ 8.58.0 is the latest stable `io.sentry:sentry-android-core` (and `io.sentry:sentry`),
-# resolved from the Maven Central metadata on 2026-09-26. It is also the exact
-# `io.sentry:sentry` version the 6.23.0 Gradle plugin below carries as a runtime dependency
+# ⚠️ 8.61.0 is the latest stable `io.sentry:sentry-android-core` (and `io.sentry:sentry`),
+# resolved from the Maven Central metadata on 2026-10-16. It is also the exact
+# `io.sentry:sentry` version the 6.24.0 Gradle plugin below carries as a runtime dependency
 # (read from that plugin's POM), so the two lines move together: a plugin newer than the SDK
 # uploads a mapping keyed to a UUID the SDK does not report.
 #
@@ -234,7 +236,7 @@ firebaseMessaging = "25.1.3"
 # directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
 # reporter is a worse outcome than the coordinate. With no native code here it parses
 # nothing.
-sentry = "8.58.0"
+sentry = "8.61.0"
 
 # ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
 # renames every class in the release build, so a crash report without the mapping is a
@@ -249,7 +251,7 @@ sentry = "8.58.0"
 # source of truth and silently disagree with the lockfiles; `tracingInstrumentation`
 # rewrites bytecode to add performance spans, which is ingest this account is not
 # paying for. See the `sentry { }` block for the rest.
-sentryGradlePlugin = "6.23.0"
+sentryGradlePlugin = "6.24.0"
 
 # ── Forced transitive versions ───────────────────────────────────────────────
 # ⛔ NO LIBRARY ENTRY USES THIS, AND THAT IS DELIBERATE. bouncycastle is never declared

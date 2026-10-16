@@ -30,6 +30,15 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - Billing: a plan's price stays on the plan name's first line when the name wraps.
 - Members and carrier accounts: the action buttons share a right edge.
 - The sign-in note under the button is start-aligned, as the text above it is.
+- French: a call's length no longer breaks between the minutes and the seconds
+  (« 1 min 5 s », a no-break space between each number and its unit and between the
+  two parts; it had an ordinary space in the middle), as the service's format vectors now
+  say.
+- The service's localization facts from its ecf098046 (`contracts/i18n/`): a number whose
+  carrier reports it `in-use` has its own "Active" label (« Actif »); the contact dossier's
+  French headings for three research keys follow the portal's (« Évaluation DGI »,
+  « Profil du contact », « Renseignements sur l'appelant », which read « Valeur estimée »,
+  « Identité », « Profil de l'appelant »).
 
 ## [3.0.1] - 2026-10-15
 

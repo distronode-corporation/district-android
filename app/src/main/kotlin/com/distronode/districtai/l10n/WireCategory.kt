@@ -390,6 +390,7 @@ internal enum class WireCategory(
             "released" to R.string.wire_number_status_released,
             "suspended" to R.string.wire_number_status_suspended,
             "pending_verification" to R.string.wire_number_status_pending_verification,
+            "in-use" to R.string.wire_number_status_in_use,
         ),
         unknown = R.string.wire_number_status_unknown,
         upperCase = false,

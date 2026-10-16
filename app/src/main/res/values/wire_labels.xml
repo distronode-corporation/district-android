@@ -109,6 +109,7 @@
     <string name="wire_number_provider_unknown">%1$s</string>
     <string name="wire_number_provider_value_unknown">unknown</string>
     <string name="wire_number_status_active">Active</string>
+    <string name="wire_number_status_in_use">Active</string>
     <string name="wire_number_status_pending_verification">Pending verification</string>
     <string name="wire_number_status_released">Released</string>
     <string name="wire_number_status_suspended">Suspended</string>

@@ -42,12 +42,12 @@
     <string name="wire_call_type_missed">Manqué</string>
     <string name="wire_call_type_outbound">Sortant</string>
     <string name="wire_call_type_unknown">Valeur inconnue\u00A0: %1$s</string>
-    <string name="wire_contact_research_key_caller_intel">Profil de l\'appelant</string>
+    <string name="wire_contact_research_key_caller_intel">Renseignements sur l\'appelant</string>
     <string name="wire_contact_research_key_core_pain_points">Enjeux CRM déduits</string>
     <string name="wire_contact_research_key_dynamic_icebreakers">Amorces de conversation pour la direction</string>
-    <string name="wire_contact_research_key_estimated_value">Valeur estimée</string>
+    <string name="wire_contact_research_key_estimated_value">Évaluation DGI</string>
     <string name="wire_contact_research_key_executive_summary">Résumé du dossier</string>
-    <string name="wire_contact_research_key_person">Identité</string>
+    <string name="wire_contact_research_key_person">Profil du contact</string>
     <string name="wire_contact_research_key_recommended_greeting">Accueil suggéré pour la réceptionniste</string>
     <string name="wire_contact_research_key_unknown">Valeur inconnue\u00A0: %1$s</string>
     <string name="wire_desk_ticket_source_manual">Saisie manuelle</string>
@@ -109,6 +109,7 @@
     <string name="wire_number_provider_unknown">Valeur inconnue\u00A0: %1$s</string>
     <string name="wire_number_provider_value_unknown">Inconnu</string>
     <string name="wire_number_status_active">Actif</string>
+    <string name="wire_number_status_in_use">Actif</string>
     <string name="wire_number_status_pending_verification">Vérification en attente</string>
     <string name="wire_number_status_released">Libéré</string>
     <string name="wire_number_status_suspended">Suspendu</string>

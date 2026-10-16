@@ -25,10 +25,20 @@ internal val DEVICE_PLATFORM_LABELS: Map<String, Int> = mapOf(
     "windows" to R.string.devices_platform_windows,
 )
 
-/** A conversation's channels, as the inbox chip shows them. English is the value upper-cased. */
+/**
+ * A conversation's channels, as the inbox chip shows them: every value the server writes as a
+ * message's type. English is the word ("Email", "Voicemail", "WhatsApp"), and only the acronym SMS
+ * is in capitals.
+ *
+ * ⚠️ VOICEMAIL IS A CHANNEL (3.0.2): the voice agent writes a message left on a call as type
+ * `voicemail`, so a row that mixes it with SMS fell through to the unknown label, "VOICEMAIL" in
+ * English and « Valeur inconnue : VOICEMAIL » in French. WhatsApp did the same.
+ */
 internal val INBOX_CHANNEL_LABELS: Map<String, Int> = mapOf(
     "email" to R.string.inbox_channel_email,
     "sms" to R.string.inbox_channel_sms,
+    "voicemail" to R.string.inbox_channel_voicemail,
+    "whatsapp" to R.string.inbox_channel_whatsapp,
 )
 
 /** The channels a messaging account can be the default sender for (`MESSAGING_CHANNELS`). */
@@ -67,7 +77,7 @@ internal fun valueLabel(labels: Map<String, Int>, value: String, shown: String =
 @ReadOnlyComposable
 internal fun devicePlatformLabel(platform: String): String = valueLabel(DEVICE_PLATFORM_LABELS, platform)
 
-/** A conversation's channel chip: "EMAIL" / « Courriel », "SMS"; an unknown one upper-cased in English. */
+/** A conversation's channel chip: "Email" / « Courriel », "SMS"; an unknown one upper-cased in English. */
 @Composable
 @ReadOnlyComposable
 internal fun inboxChannelLabel(channel: String): String =

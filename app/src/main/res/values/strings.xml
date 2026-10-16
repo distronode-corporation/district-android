@@ -132,6 +132,7 @@
     <string name="call_handling_section_mode">Who answers first</string>
     <string name="call_handling_title">Call handling</string>
     <string name="call_handling_viewer_note">Only agency and client members can change call handling.</string>
+    <string name="call_log_empty_title">No calls yet</string>
     <string name="call_log_failed">Could not load the call log.</string>
     <string name="call_log_notice">This call is in the workspace call log.</string>
     <string name="call_log_open">Call Logs</string>
@@ -364,7 +365,7 @@
     <string name="hq_send">Send</string>
     <string name="hq_thinking">Thinking…</string>
     <string name="hq_title">District HQ</string>
-    <string name="inbox_channel_email">EMAIL</string>
+    <string name="inbox_channel_email">Email</string>
     <string name="inbox_channel_sms">SMS</string>
     <string name="inbox_compose_cancel">Cancel</string>
     <string name="inbox_compose_change">Change</string>
@@ -957,4 +958,5 @@
     <string name="workspace_settings_unsaved_title">Discard your changes?</string>
     <string name="workspace_settings_viewer_note">You have read-only access to this workspace. The agent\'s persona, capabilities, transfer directory and routing are not shown.</string>
     <string name="workspace_settings_voice_studio_subtitle">Recipes, the signal chain, voices and tuning, with how fast the agent replies.</string>
+    <string name="workspace_settings_workspace_heading">Workspace</string>
 </resources>

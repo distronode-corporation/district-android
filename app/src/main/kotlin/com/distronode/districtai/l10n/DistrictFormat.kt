@@ -202,17 +202,20 @@ internal object DistrictFormat {
 
     /**
      * The portal's reading of a duration: "1m 5s" / "1 min 5 s", "5s" under a minute, "60m" with no
-     * seconds left over, "0m" for nothing.
+     * seconds left over, "0m" for nothing. French never breaks a length: a no-break space sits
+     * between each number and its unit and between the minutes and the seconds.
      */
     fun minutesSeconds(seconds: Int, language: AppLanguage): String {
         val m = seconds / SECONDS_PER_MINUTE
         val s = seconds % SECONDS_PER_MINUTE
-        val (min, sec) = if (language == AppLanguage.FR) "${NBSP}min" to "${NBSP}s" else "m" to "s"
+        val french = language == AppLanguage.FR
+        val (min, sec) = if (french) "${NBSP}min" to "${NBSP}s" else "m" to "s"
+        val between = if (french) NBSP.toString() else " "
         return when {
             m == 0 && s == 0 -> "0$min"
             m == 0 -> "$s$sec"
             s == 0 -> "$m$min"
-            else -> "$m$min $s$sec"
+            else -> "$m$min$between$s$sec"
         }
     }
 

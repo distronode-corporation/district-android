@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,9 +42,15 @@ fun BlockedBadge(modifier: Modifier = Modifier) {
 @Composable
 fun BlockControl(blocked: Boolean, enabled: Boolean, onSetBlocked: (Boolean) -> Unit) {
     var confirming by rememberSaveable { mutableStateOf(false) }
+    // Blocking is the destructive way and is inked so (visual QA AA6); unblocking is not.
     TextButton(
         onClick = { confirming = true },
         enabled = enabled,
+        colors = if (blocked) {
+            ButtonDefaults.textButtonColors()
+        } else {
+            ButtonDefaults.textButtonColors(contentColor = DistrictTheme.colors.destructive)
+        },
         modifier = Modifier.testTag(if (blocked) UNBLOCK_TAG else BLOCK_TAG),
     ) {
         Text(stringResource(if (blocked) R.string.contact_block_unblock else R.string.contact_block_block))

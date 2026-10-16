@@ -1182,6 +1182,15 @@ tier = "T3"
 state = "reviewed"
 note = "── Call handling and availability ─────────────────────────────────── ⛔ TWO SCOPES. The mode is the WORKSPACE's; availability is this person's own membership row, and its route takes no identity at all."
 
+[call_log.empty_title]
+en = "No calls yet"
+fr = "Aucun appel"
+ctx = "title"
+screen = "call log"
+tier = "T3"
+state = "reviewed"
+note = "The call log with no calls in it, named as the other lists' empty states name theirs (\"No contacts yet\", « Aucun contact »), where it reused the overview's generic \"Nothing here yet\" (visual QA AC11)."
+
 [call_log.failed]
 en = "Could not load the call log."
 fr = "Impossible de charger le journal des appels."
@@ -3212,13 +3221,13 @@ same_ok = true
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ── District HQ (Task A7) ───────────────────────────────────────────── The agentic console. One route, two turns: a prompt runs the model, and a confirm applies a change the operator explicitly approved."
 
 [inbox.channel_email]
-en = "EMAIL"
+en = "Email"
 fr = "Courriel"
 ctx = "label"
 screen = "inbox"
 tier = "T3"
 state = "reviewed"
-note = "The chip on a conversation that has email in it. English is the value upper-cased, as the app has always shown it."
+note = "The chip on a conversation that has email in it. English is the word, not the value upper-cased: \"EMAIL\" beside \"SMS\" read as a second acronym, and French reads « Courriel » (visual QA AA20). \"SMS\" stays in capitals, an acronym in both languages."
 
 [inbox.channel_sms]
 en = "SMS"
@@ -8447,3 +8456,13 @@ screen = "workspace settings"
 tier = "T3"
 state = "reviewed"
 note = "── Voice Studio ───────────────────────────────────────────────────── ⛔ THE STUDIO'S OWN LABELS ARRIVE FROM THE SERVER IN THE READER'S PORTAL LANGUAGE and are shown verbatim. Only this app's chrome is here: the title before the read lands, the hub row, the change count, and a meter for an unsaved edit the server has not described. The numbers in those are measured medians the server sent; nothing here estimates one."
+
+[workspace_settings.workspace_heading]
+en = "Workspace"
+fr = "Espace de travail"
+ctx = "title"
+screen = "workspace settings"
+tier = "T3"
+state = "reviewed"
+waive = { LEN = "a settings group heading, with room; the same words as every app's Workspace heading" }
+note = "The heading over the second group of workspace settings (transfer directory to phone numbers), as \"District Studio\" heads the first, so the two groups do not run together after an unlabelled gap (visual QA AC21)."

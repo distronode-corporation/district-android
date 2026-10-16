@@ -90,7 +90,13 @@ fun DialerScreen(
  */
 @Composable
 private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
-    DistrictCard(modifier = Modifier.testTag(DIALER_ENTRY_CARD_DESCRIPTION)) {
+    // The gutter the heading and the rows below keep (visual QA AA13): the card no longer runs to
+    // the screen's edges.
+    DistrictCard(
+        modifier = Modifier
+            .padding(horizontal = DistrictTheme.spacing.gutter)
+            .testTag(DIALER_ENTRY_CARD_DESCRIPTION),
+    ) {
         Eyebrow(stringResource(R.string.dialer_number_label))
         OutlinedTextField(
             value = state.entry,

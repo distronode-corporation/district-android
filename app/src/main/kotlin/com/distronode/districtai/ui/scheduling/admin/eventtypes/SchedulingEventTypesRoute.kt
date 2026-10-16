@@ -133,8 +133,13 @@ private fun EventTypeRows(
             SchedulingHint(
                 text = schedulingBookingPage(item, publicHost)
                     ?: stringResource(R.string.scheduling_admin_event_types_not_public),
+                // Room under the booking page's address before the row's divider (visual QA AB17).
                 modifier = Modifier
-                    .padding(horizontal = DistrictTheme.spacing.gutter)
+                    .padding(
+                        start = DistrictTheme.spacing.gutter,
+                        end = DistrictTheme.spacing.gutter,
+                        bottom = DistrictTheme.spacing.row,
+                    )
                     .testTag("$SCHEDULING_EVENT_TYPES_PAGE_TAG-${item.slug}"),
             )
         }

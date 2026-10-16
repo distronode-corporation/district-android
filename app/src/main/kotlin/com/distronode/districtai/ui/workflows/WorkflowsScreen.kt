@@ -106,7 +106,12 @@ fun WorkflowsScreen(
             // ⚠️ Padding on the CONTENT rather than the modifier: a modifier padding clips the
             // scroll container, so an expanded run panel scrolling past the bottom edge would be
             // cut rather than sliding out.
-            contentPadding = PaddingValues(bottom = DistrictTheme.spacing.header),
+            // The first card starts a gutter below the top bar, as the scheduling screens' do (visual
+            // QA AB15).
+            contentPadding = PaddingValues(
+                top = DistrictTheme.spacing.gutter,
+                bottom = DistrictTheme.spacing.header,
+            ),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
         ) {
             item { ContentContainer { CampaignSection(state, canToggle, onRetry, campaign) } }

@@ -104,6 +104,7 @@ internal val API_ERROR_SENTENCES: Map<String, Int> = mapOf(
     "messaging_provider_not_configured" to R.string.api_error_messaging_provider_not_configured,
     "no_sending_number" to R.string.api_error_no_sending_number,
     "sending_domain_missing" to R.string.api_error_sending_domain_missing,
+    "sending_domain_provider_changed" to R.string.api_error_sending_domain_provider_changed,
     "whatsapp_unsupported" to R.string.api_error_whatsapp_unsupported,
     "verify_not_enabled" to R.string.api_error_verify_not_enabled,
     "TRUST_BUNDLES_NOT_APPROVED" to R.string.api_error_upper_trust_bundles_not_approved,

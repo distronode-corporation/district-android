@@ -70,7 +70,12 @@ internal fun SdrCampaignCard(
     DistrictCard(
         modifier = Modifier.testTag(WORKFLOWS_CAMPAIGN_DESCRIPTION),
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        // A gap between the heading and its badge, which met at 200% font (visual QA AC12).
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Eyebrow(
                 text = stringResource(R.string.workflows_campaign_label),
                 modifier = Modifier.weight(1f),

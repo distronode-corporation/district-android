@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.billing
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -81,7 +82,13 @@ internal fun SubscriptionsCard(detail: StripeBilling) {
 private fun SubscriptionRow(subscription: BillingSubscription) {
     val language = appLanguage()
     Column(modifier = Modifier.padding(top = DistrictTheme.spacing.tight)) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        // Top-aligned with a gap: centred against a plan name that wraps at a large font, the price
+        // landed on its middle line and read as part of the name (visual QA AB6).
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            verticalAlignment = Alignment.Top,
+        ) {
             Text(
                 text = subscription.tierName,
                 style = MaterialTheme.typography.bodyMedium,

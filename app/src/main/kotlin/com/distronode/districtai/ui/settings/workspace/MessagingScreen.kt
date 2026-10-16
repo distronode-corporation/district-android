@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
@@ -270,7 +271,12 @@ private fun AccountRow(
             account.phoneNumbers.size,
         ),
         trailing = {
-            Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+            // End-aligned, so the Default marker and buttons of different widths share a right edge
+            // (visual QA AC14).
+            Column(
+                verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+                horizontalAlignment = Alignment.End,
+            ) {
                 if (isDefault) {
                     Text(
                         text = stringResource(R.string.messaging_default_badge),

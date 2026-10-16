@@ -109,6 +109,7 @@
     <string name="wire_number_provider_unknown">%1$s</string>
     <string name="wire_number_provider_value_unknown">unknown</string>
     <string name="wire_number_status_active">Active</string>
+    <string name="wire_number_status_in_use">Active</string>
     <string name="wire_number_status_pending_verification">Pending verification</string>
     <string name="wire_number_status_released">Released</string>
     <string name="wire_number_status_suspended">Suspended</string>
@@ -188,6 +189,7 @@
     <string name="wire_workflow_action_reason_contact_not_found">Contact not found</string>
     <string name="wire_workflow_action_reason_dnc">DNC</string>
     <string name="wire_workflow_action_reason_dormant">Dormant</string>
+    <string name="wire_workflow_action_reason_email_misconfigured">Email misconfigured</string>
     <string name="wire_workflow_action_reason_empty_body">Empty body</string>
     <string name="wire_workflow_action_reason_empty_subject">Empty subject</string>
     <string name="wire_workflow_action_reason_empty_tag">Empty tag</string>
@@ -201,6 +203,7 @@
     <string name="wire_workflow_action_reason_report_recipient_refused">Report recipient refused</string>
     <string name="wire_workflow_action_reason_report_unavailable">Report unavailable</string>
     <string name="wire_workflow_action_reason_send_failed">Send failed</string>
+    <string name="wire_workflow_action_reason_ses_missing">SES missing</string>
     <string name="wire_workflow_action_reason_tag_already_present">Tag already present</string>
     <string name="wire_workflow_action_reason_tag_not_present">Tag not present</string>
     <string name="wire_workflow_action_reason_unknown">%1$s</string>

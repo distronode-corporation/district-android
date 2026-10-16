@@ -2,6 +2,7 @@ package com.distronode.districtai.ui.analytics
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -146,6 +147,8 @@ private fun MeteredRow(@StringRes labelRes: Int, amount: Double?) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = DistrictTheme.spacing.hairline),
+        // A gap between a wrapped label and its value (visual QA AC9: "minutes318.5").
+        horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         Text(
             text = stringResource(labelRes),

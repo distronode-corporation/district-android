@@ -111,7 +111,7 @@ class LabelsTest {
     @Test
     fun `an inbox channel chip, a messaging channel and a support status read as the portal names them`() {
         assertRendered(
-            "EMAIL" to { inboxChannelLabel("email") },
+            "Email" to { inboxChannelLabel("email") },
             "SMS" to { inboxChannelLabel("sms") },
             unknown("WHATSAPP") to { inboxChannelLabel("whatsapp") },
             // The portal's channel names since 3.0.1 (visual QA AC4), no longer the raw value.

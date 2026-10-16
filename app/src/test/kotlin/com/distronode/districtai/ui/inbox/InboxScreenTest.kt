@@ -142,7 +142,7 @@ class InboxScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("EMAIL").assertIsDisplayed()
+        composeRule.onNodeWithText("Email").assertIsDisplayed()
     }
 
     @Test
@@ -359,11 +359,15 @@ class InboxScreenTest {
         )
     }
 
-    private fun renderWithCompose(compose: InboxCompose?, search: InboxSearchState = InboxSearchState()) {
+    private fun renderWithCompose(
+        compose: InboxCompose?,
+        search: InboxSearchState = InboxSearchState(),
+        conversations: List<ConversationSummary> = listOf(thread()),
+    ) {
         composeRule.setContent {
             DistrictTheme {
                 InboxScreen(
-                    state = InboxUiState.Content(conversations = listOf(thread()), partial = false),
+                    state = InboxUiState.Content(conversations = conversations, partial = false),
                     onOpenThread = {},
                     onRetry = {},
                     onSignIn = {},
@@ -400,6 +404,24 @@ class InboxScreenTest {
         renderWithCompose(compose = null)
 
         composeRule.onNodeWithTag(COMPOSE_OPEN_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `an empty inbox offers a new message to a role that can send`() {
+        // Visual QA AC11: the empty state names its way out, as the empty contacts list does.
+        val actions = OpenCounter()
+        renderWithCompose(InboxCompose(ComposeUiState(), actions.bound) {}, conversations = emptyList())
+
+        composeRule.onNodeWithTag(INBOX_EMPTY_COMPOSE_DESCRIPTION).assertIsDisplayed().performClick()
+        assertEquals(1, actions.opened)
+    }
+
+    @Test
+    fun `an empty inbox offers nothing to a role that cannot send`() {
+        renderWithCompose(compose = null, conversations = emptyList())
+
+        composeRule.onNodeWithTag(INBOX_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_EMPTY_COMPOSE_DESCRIPTION).assertDoesNotExist()
     }
 
     @Test

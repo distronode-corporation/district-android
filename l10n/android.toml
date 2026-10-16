@@ -1188,7 +1188,7 @@ fr = "Aucun appel"
 ctx = "title"
 screen = "call log"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The call log with no calls in it, named as the other lists' empty states name theirs (\"No contacts yet\", « Aucun contact »), where it reused the overview's generic \"Nothing here yet\" (visual QA AC11)."
 
 [call_log.failed]
@@ -8463,6 +8463,6 @@ fr = "Espace de travail"
 ctx = "title"
 screen = "workspace settings"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 waive = { LEN = "a settings group heading, with room; the same words as every app's Workspace heading" }
 note = "The heading over the second group of workspace settings (transfer directory to phone numbers), as \"District Studio\" heads the first, so the two groups do not run together after an unlabelled gap (visual QA AC21)."

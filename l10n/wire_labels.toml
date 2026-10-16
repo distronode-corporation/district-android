@@ -386,7 +386,7 @@ fr = "Renseignements sur l'appelant"
 ctx = "label"
 screen = "contact dossier"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contactResearchKey value `callerIntel` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"Caller intelligence\"."
 
 [wire.contact_research_key_core_pain_points]
@@ -413,7 +413,7 @@ fr = "Évaluation DGI"
 ctx = "label"
 screen = "contact dossier"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contactResearchKey value `estimatedValue` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"DGI Evaluation\"."
 
 [wire.contact_research_key_executive_summary]
@@ -431,7 +431,7 @@ fr = "Profil du contact"
 ctx = "label"
 screen = "contact dossier"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The contactResearchKey value `person` as the server sends it. This app has always shown it as sent (as a heading, split into words). The portal's English label is \"Contact Profile\"."
 
 [wire.contact_research_key_recommended_greeting]
@@ -1013,7 +1013,7 @@ fr = "Actif"
 ctx = "label"
 screen = "phone numbers"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberStatus value `in-use` as the server sends it, shown with the portal's label (\"Active\")."
 
 [wire.number_status_pending_verification]
@@ -1754,7 +1754,7 @@ fr = "Courriel mal configuré"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `email-misconfigured` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_empty_body]
@@ -1881,7 +1881,7 @@ fr = "SES non configuré"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `ses-missing` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_tag_already_present]

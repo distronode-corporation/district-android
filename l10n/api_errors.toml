@@ -855,7 +855,7 @@ fr = "Ce domaine d'envoi a été configuré avec un autre fournisseur de courrie
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 fr_variant = "« entrées DNS » where the server says « enregistrements DNS »: the glossary bans « enregistrement » (the product records nothing) and frcheck fails on it; the server's French should follow."
 note = "The sentence for the server's error code `sending_domain_provider_changed`, verbatim from contracts/i18n/api-errors.json."
 

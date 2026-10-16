@@ -363,6 +363,8 @@
     <string name="hq_title">District HQ</string>
     <string name="inbox_channel_email">Courriel</string>
     <string name="inbox_channel_sms">SMS</string>
+    <string name="inbox_channel_voicemail">Boîte vocale</string>
+    <string name="inbox_channel_whatsapp">WhatsApp</string>
     <string name="inbox_compose_cancel">Annuler</string>
     <string name="inbox_compose_change">Changer</string>
     <string name="inbox_compose_channel_email">Courriel</string>

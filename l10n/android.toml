@@ -3239,6 +3239,25 @@ state = "reviewed"
 same_ok = true
 note = "The chip on a conversation that has text messages in it. English is the value upper-cased, as the app has always shown it."
 
+[inbox.channel_voicemail]
+en = "Voicemail"
+fr = "Boîte vocale"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+note = "The chip on a conversation that has a voicemail in it (the message the voice agent takes on a call). English is the word, as for Email (visual QA AA20), not the value upper-cased. The French is the glossary's term, as the call disposition reads it (wire.disposition_voicemail) and the portal's « Boîte vocale et messages »."
+
+[inbox.channel_whatsapp]
+en = "WhatsApp"
+fr = "WhatsApp"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+same_ok = true
+note = "The chip on a conversation that has WhatsApp messages in it. The product's own name in both languages, as messaging.channel_whatsapp shows it."
+
 [inbox.compose_cancel]
 en = "Cancel"
 fr = "Annuler"

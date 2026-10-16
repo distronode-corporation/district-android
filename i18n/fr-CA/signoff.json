@@ -1,11 +1,11 @@
 {
   "signed_off_by": "v3 manager (Opus 5.5 xhigh), final French review, 2026-10-15",
   "release": "v3.0.1",
-  "commit": "24f90c9a044663388ae117ae714f16f91b651938",
+  "commit": "760f890eeb358dad3dd310dfe8bfa4464a4ca8f7",
   "catalogs": [
     {
       "path": "l10n/android.toml",
-      "sha256": "7ec8d5a04f5f609cca25529980990881d6139d4b3a5ea47fbc0feba8a0a6a31d"
+      "sha256": "b3fb0d784d80582f99076f73755ad7b1cfa647a45d14209d19b6d68d265caa10"
     },
     {
       "path": "l10n/api_errors.toml",
@@ -21,7 +21,7 @@
     },
     {
       "path": "l10n/wire_labels.toml",
-      "sha256": "4846966d954e8a0f877e27816e530bd72f924b6c293c8b5c43763b4c4fb301c1"
+      "sha256": "06a0a42ca0317700d68826c9d5591029aa3bbdb0b837665ac6f879c222bc1a2c"
     }
   ]
 }

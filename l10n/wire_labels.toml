@@ -49,21 +49,21 @@ state = "reviewed"
 note = "The a2pCampaignType value `2FA` as the server sends it, shown with the portal's label (\"2FA / OTP Alerts\")."
 
 [wire.a2p_registration_status_failed]
-en = "FAILED"
-fr = "ÉCHEC"
+en = "Failed"
+fr = "Échec"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The a2pRegistrationStatus value `FAILED` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.a2p_registration_status_in_progress]
-en = "IN PROGRESS"
-fr = "EN COURS"
+en = "In progress"
+fr = "En cours"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The a2pRegistrationStatus value `IN_PROGRESS` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.a2p_registration_status_unknown]
@@ -77,12 +77,12 @@ state = "reviewed"
 note = "A a2pRegistrationStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.a2p_registration_status_verified]
-en = "VERIFIED"
-fr = "VÉRIFIÉE"
+en = "Verified"
+fr = "Vérifiée"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The a2pRegistrationStatus value `VERIFIED` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.analytics_sentiment_friction_sentiment]
@@ -910,21 +910,23 @@ state = "reviewed"
 note = "A messagingCredentialSource value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.number_capability_mms]
-en = "Mms"
+en = "MMS"
 fr = "MMS"
 ctx = "label"
 screen = "workspace settings, messaging; phone numbers, search results"
 tier = "T3"
 state = "reviewed"
+same_ok = true
 note = "The numberCapability value `mms` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.number_capability_sms]
-en = "Sms"
+en = "SMS"
 fr = "Texto"
 ctx = "label"
 screen = "workspace settings, messaging; phone numbers, search results"
 tier = "T3"
 state = "reviewed"
+fr_variant = "number capability: the reviewed capability word (Texto), where a messaging channel or inbox chip names the channel SMS"
 note = "The numberCapability value `sms` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.number_capability_unknown]
@@ -1490,39 +1492,39 @@ state = "reviewed"
 note = "A sipTrunkStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.toll_free_verification_status_in_review]
-en = "IN REVIEW"
-fr = "EN EXAMEN"
+en = "In review"
+fr = "En examen"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The tollFreeVerificationStatus value `IN_REVIEW` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.toll_free_verification_status_pending_review]
-en = "PENDING REVIEW"
-fr = "EXAMEN EN ATTENTE"
+en = "Pending review"
+fr = "Examen en attente"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The tollFreeVerificationStatus value `PENDING_REVIEW` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.toll_free_verification_status_twilio_approved]
-en = "TWILIO APPROVED"
-fr = "APPROUVÉE PAR TWILIO"
+en = "Twilio approved"
+fr = "Approuvée par Twilio"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The tollFreeVerificationStatus value `TWILIO_APPROVED` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.toll_free_verification_status_twilio_rejected]
-en = "TWILIO REJECTED"
-fr = "REFUSÉE PAR TWILIO"
+en = "Twilio rejected"
+fr = "Refusée par Twilio"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The tollFreeVerificationStatus value `TWILIO_REJECTED` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.toll_free_verification_status_unknown]
@@ -1682,12 +1684,13 @@ state = "reviewed"
 note = "The workflowActionOutcome value `failed` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_outcome_ok]
-en = "Ok"
+en = "OK"
 fr = "OK"
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
 state = "reviewed"
+same_ok = true
 note = "The workflowActionOutcome value `ok` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_outcome_skipped]
@@ -1719,7 +1722,7 @@ state = "reviewed"
 note = "The workflowActionReason value `contact-not-found` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_dnc]
-en = "Dnc"
+en = "DNC"
 fr = "Liste d'exclusion"
 ctx = "label"
 screen = "not shown in this app yet"
@@ -1764,12 +1767,13 @@ state = "reviewed"
 note = "The workflowActionReason value `empty-tag` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_http_status]
-en = "Http {{status}}"
+en = "HTTP {{status}}"
 fr = "HTTP {{status}}"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
+same_ok = true
 note = "The workflowActionReason value `http-{status}` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_invalid_recipient]
@@ -1782,7 +1786,7 @@ state = "reviewed"
 note = "The workflowActionReason value `invalid-recipient` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_missing_webhook_url]
-en = "Missing webhook url"
+en = "Missing webhook URL"
 fr = "URL du webhook manquante"
 ctx = "label"
 screen = "not shown in this app yet"

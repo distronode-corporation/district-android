@@ -514,7 +514,10 @@
     <string name="members_section_rename">Workspace name</string>
     <string name="members_section_roster">Who is in this workspace</string>
     <string name="members_title">Members</string>
-    <string name="messaging_account_subtitle">%1$s · %2$s · %3$d numbers</string>
+    <plurals name="messaging_account_subtitle">
+        <item quantity="one">%1$s · %2$s · %3$d number</item>
+        <item quantity="other">%1$s · %2$s · %3$d numbers</item>
+    </plurals>
     <string name="messaging_add">Add carrier account</string>
     <string name="messaging_add_title">Add a carrier account</string>
     <string name="messaging_cancel">Cancel</string>
@@ -546,7 +549,10 @@
     <string name="messaging_field_project_id">Project ID</string>
     <string name="messaging_make_default">Send from this account by default</string>
     <string name="messaging_make_default_action">Make default</string>
-    <string name="messaging_managed_subtitle">%1$d numbers on our carrier account</string>
+    <plurals name="messaging_managed_subtitle">
+        <item quantity="one">%1$d number on our carrier account</item>
+        <item quantity="other">%1$d numbers on our carrier account</item>
+    </plurals>
     <string name="messaging_numbers_help">Leave this alone to keep the numbers as they are. Editing it replaces the list, and any number you remove is released.</string>
     <string name="messaging_provider_section">Carrier</string>
     <string name="messaging_provider_sinch">Sinch</string>

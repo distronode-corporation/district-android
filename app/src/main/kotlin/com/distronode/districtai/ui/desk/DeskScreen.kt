@@ -22,10 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
-import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictFilterChip
 import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
@@ -213,10 +213,11 @@ private fun FilterChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    DistrictButton(
-        text = stringResource(R.string.desk_filter_label, stringResource(statusLabel(status)), count),
+    // ⚠️ A FILTER CHIP, NOT A GHOST BUTTON: with no filter chosen the three read as plain text.
+    DistrictFilterChip(
+        label = stringResource(R.string.desk_filter_label, stringResource(statusLabel(status)), count),
+        selected = selected,
         onClick = onClick,
-        variant = if (selected) ButtonVariant.Primary else ButtonVariant.Ghost,
         modifier = Modifier.testTag("$DESK_FILTER_DESCRIPTION-${status.wire}"),
     )
 }

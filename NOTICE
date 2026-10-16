@@ -15,9 +15,9 @@ projects intend:
     project's OFL.txt, is in third_party/geist/OFL.txt and ships inside the
     app as core/core-designsystem/src/main/res/raw/license_geist.txt.
 
-  - Path data of twelve Material Icons (the 24dp "baseline" set: arrow
+  - Path data of thirteen Material Icons (the 24dp "baseline" set: arrow
     back, home, inbox, call, person, account circle, settings, edit,
-    refresh, flag, block and more vert), in
+    refresh, flag, block, check and more vert), in
     core/core-designsystem/src/main/kotlin/com/distronode/districtai/core/
     designsystem/DistrictIcons.kt, Copyright Google LLC
     (https://github.com/google/material-design-icons), licensed under the

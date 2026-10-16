@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
@@ -258,8 +259,10 @@ private fun AccountRow(
         title = account.label.orEmpty().ifBlank {
             account.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }.orEmpty()
         },
-        subtitle = stringResource(
-            R.string.messaging_account_subtitle,
+        // ⚠️ A PLURAL: "1 numbers" (visual QA AC6).
+        subtitle = pluralStringResource(
+            R.plurals.messaging_account_subtitle,
+            account.phoneNumbers.size,
             account.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }
                 ?: stringResource(R.string.messaging_provider_unknown),
             account.credentialSource?.let { wireLabel(WireCategory.MESSAGING_CREDENTIAL_SOURCE, it) }
@@ -357,8 +360,9 @@ private fun ManagedSection(managed: ManagedAccount) {
         DistrictListRow(
             title = managed.provider?.let { wireLabel(WireCategory.MESSAGING_CARRIER, it) }
                 ?: stringResource(R.string.messaging_provider_unknown),
-            subtitle = stringResource(
-                R.string.messaging_managed_subtitle,
+            subtitle = pluralStringResource(
+                R.plurals.messaging_managed_subtitle,
+                managed.phoneNumbers.size,
                 managed.phoneNumbers.size,
             ),
             modifier = Modifier.testTag(MESSAGING_MANAGED_DESCRIPTION),

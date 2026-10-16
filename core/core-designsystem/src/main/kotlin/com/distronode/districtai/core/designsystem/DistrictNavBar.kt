@@ -20,6 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +36,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -67,23 +76,71 @@ fun DistrictNavBar(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
 ) {
+    DistrictNavBar(modifier = modifier, labelSizes = remember { NavLabelSizes() }, content = content)
+}
+
+/** The bar with the shared label size held by the caller, so a test can read what each label settled on. */
+@Composable
+internal fun DistrictNavBar(
+    modifier: Modifier,
+    labelSizes: NavLabelSizes,
+    content: @Composable RowScope.() -> Unit,
+) {
     val colors = DistrictTheme.colors
-    Column(modifier = modifier.fillMaxWidth().background(colors.surface)) {
-        HorizontalDivider(color = colors.border)
-        ContentContainer(
-            contentPadding = PaddingValues(
-                horizontal = DistrictTheme.spacing.tight,
-                vertical = DistrictTheme.spacing.tight,
-            ),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().heightIn(min = ITEM_MIN_HEIGHT),
-                horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
-                verticalAlignment = Alignment.Top,
-                content = content,
-            )
+    CompositionLocalProvider(LocalNavLabelSizes provides labelSizes) {
+        Column(modifier = modifier.fillMaxWidth().background(colors.surface)) {
+            HorizontalDivider(color = colors.border)
+            ContentContainer(
+                contentPadding = PaddingValues(
+                    horizontal = DistrictTheme.spacing.tight,
+                    vertical = DistrictTheme.spacing.tight,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = ITEM_MIN_HEIGHT),
+                    horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
+                    verticalAlignment = Alignment.Top,
+                    content = content,
+                )
+            }
         }
     }
+}
+
+/**
+ * ⛔ ONE LABEL SIZE FOR THE WHOLE BAR. Each label used to settle on its own size, so at 200% font the
+ * bar mixed sizes (« Réception » and « Contacts » small beside a large « Aperçu »). Every item registers
+ * its label here, and every label's fit is tried against ALL the bar's labels at each size, so each
+ * settles on the same size: the largest at which every label fits. The items share one width (each has
+ * weight 1), which is what makes one label's constraints valid for another.
+ */
+@Stable
+internal class NavLabelSizes {
+    /** The bar's labels, in the order their items joined. */
+    val labels = mutableStateListOf<String>()
+
+    private val settled = mutableMapOf<String, TextUnit>()
+
+    fun join(label: String) {
+        labels.add(label)
+    }
+
+    fun leave(label: String) {
+        labels.remove(label)
+        settled.remove(label)
+    }
+
+    /** Records the size a label's layout settled on; read by tests. */
+    fun settle(label: String, size: TextUnit) {
+        settled[label] = size
+    }
+
+    fun settled(): Map<String, TextUnit> = settled.toMap()
+}
+
+/** ⚠️ No default: a [DistrictNavItem] only exists inside a [DistrictNavBar], which provides one. */
+private val LocalNavLabelSizes = staticCompositionLocalOf<NavLabelSizes> {
+    error("DistrictNavItem outside a DistrictNavBar")
 }
 
 /**
@@ -134,20 +191,36 @@ fun RowScope.DistrictNavItem(
         }
         val style = MaterialTheme.typography.labelMedium
         val floor = with(LocalDensity.current) { LABEL_FLOOR.toSp() }
-        Text(
-            text = label,
-            style = style,
-            autoSize = remember(style.fontSize, floor) {
-                WholeWordAutoSize(max = style.fontSize, floor = floor)
-            },
-            // ⚠️ `mutedForeground` when inactive, not `foreground`. Five equally-loud labels give the
-            // eye nothing to land on, and the active one stops reading as active.
-            color = ink,
-            textAlign = TextAlign.Center,
-            maxLines = LABEL_MAX_LINES,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),
-        )
+        val sizes = LocalNavLabelSizes.current
+        DisposableEffect(sizes, label) {
+            sizes.join(label)
+            onDispose { sizes.leave(label) }
+        }
+        // The bar's other labels, which this one must fit beside at the same size.
+        val others = sizes.labels.filter { it != label }
+        val measurer = rememberTextMeasurer()
+        val together = remember(others, measurer, style) {
+            others.takeIf { it.isNotEmpty() }?.let { Together(it, measurer, style, LABEL_MAX_LINES) }
+        }
+        // ⚠️ KEYED ON THE OTHER LABELS: a Text whose `autoSize` changes keeps its settled size (Compose
+        // does not measure it again), so a new set of labels gets a new Text.
+        key(others) {
+            Text(
+                text = label,
+                style = style,
+                autoSize = remember(style.fontSize, floor, together) {
+                    WholeWordAutoSize(max = style.fontSize, floor = floor, together = together)
+                },
+                onTextLayout = { sizes.settle(label, it.layoutInput.style.fontSize) },
+                // ⚠️ `mutedForeground` when inactive, not `foreground`. Five equally-loud labels give the
+                // eye nothing to land on, and the active one stops reading as active.
+                color = ink,
+                textAlign = TextAlign.Center,
+                maxLines = LABEL_MAX_LINES,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = DistrictTheme.spacing.hairline),
+            )
+        }
     }
 }
 
@@ -163,20 +236,48 @@ fun RowScope.DistrictNavItem(
  * needs no `BoxWithConstraints`. A version that measured inside one left five of the app's
  * navigation-graph tests waiting out their timeouts on paged lists.
  */
-internal class WholeWordAutoSize(private val max: TextUnit, private val floor: TextUnit) : TextAutoSize {
+internal class WholeWordAutoSize(
+    private val max: TextUnit,
+    private val floor: TextUnit,
+    private val together: Together? = null,
+) : TextAutoSize {
 
     override fun TextAutoSizeLayoutScope.getFontSize(constraints: Constraints, text: AnnotatedString): TextUnit {
         var size = max
-        while (size.value - 1f >= floor.value && performLayout(constraints, text, size).doesNotFit()) {
+        while (size.value - 1f >= floor.value &&
+            (performLayout(constraints, text, size).doesNotFit() || together?.anyDoesNotFit(constraints, size) == true)
+        ) {
             size = (size.value - 1f).sp
         }
         return size
     }
 
     override fun equals(other: Any?): Boolean =
-        other is WholeWordAutoSize && other.max == max && other.floor == floor
+        other is WholeWordAutoSize && other.max == max && other.floor == floor && other.together == together
 
-    override fun hashCode(): Int = 31 * max.hashCode() + floor.hashCode()
+    override fun hashCode(): Int = (31 * max.hashCode() + floor.hashCode()) * 31 + together.hashCode()
+}
+
+/**
+ * The other labels a size must also fit, measured with the label's own style and line limit.
+ *
+ * ⚠️ A TEXT MEASURER, NOT `performLayout`: the auto-size scope lays out its own node's text whatever
+ * text it is handed, so the other labels have to be measured apart.
+ */
+internal data class Together(
+    val labels: List<String>,
+    val measurer: TextMeasurer,
+    val style: TextStyle,
+    val maxLines: Int,
+) {
+    fun anyDoesNotFit(constraints: Constraints, size: TextUnit): Boolean = labels.any {
+        measurer.measure(
+            text = it,
+            style = style.copy(fontSize = size),
+            maxLines = maxLines,
+            constraints = constraints,
+        ).doesNotFit()
+    }
 }
 
 /** Whether this layout splits a word, or has more lines than its `maxLines` let it draw. */

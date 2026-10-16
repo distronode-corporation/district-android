@@ -20,3 +20,7 @@ fun str(@StringRes id: Int, vararg args: Any): String =
 /** A plural from the app's resources; [count] selects the form and is the first format argument. */
 fun plural(@PluralsRes id: Int, count: Int): String =
     ApplicationProvider.getApplicationContext<Context>().resources.getQuantityString(id, count, count)
+
+/** A plural with format arguments of its own: [count] selects the form, [args] fill it. */
+fun plural(@PluralsRes id: Int, count: Int, vararg args: Any): String =
+    ApplicationProvider.getApplicationContext<Context>().resources.getQuantityString(id, count, *args)

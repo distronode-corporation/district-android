@@ -68,7 +68,7 @@ def fresh() -> dict:
         "meta": {"catalog": "wire_labels", "platform": "android"},
         "wire": {
             "call_status_completed": gen.entry("completed", "Terminé", "label", "call log", "T3", "new note"),
-            "call_status_failed": gen.entry("Failed", "Échec", "label", "call log", "T3", "new note"),
+            "call_status_failed": gen.entry("Call failed", "Échec", "label", "call log", "T3", "new note"),
             "call_status_unknown": gen.entry("{value}", None, "label", "call log", "T3", "new note", {"value": "str"}),
             "call_status_busy": gen.entry("busy", "Occupé", "label", "call log", "T3", "new note"),
             # Moved from the raw value to the portal's label in 3.0.1: the generator records what it was.
@@ -101,7 +101,7 @@ class KeepTranslationsTest(unittest.TestCase):
 
     def test_changed_english_takes_the_contract_french_as_draft(self) -> None:
         e = self.kept()["call_status_failed"]
-        self.assertEqual((e["en"], e["fr"], e["state"]), ("Failed", "Échec", "draft"))
+        self.assertEqual((e["en"], e["fr"], e["state"]), ("Call failed", "Échec", "draft"))
 
     def test_new_entry_takes_the_contract(self) -> None:
         e = self.kept()["call_status_busy"]
@@ -111,6 +111,12 @@ class KeepTranslationsTest(unittest.TestCase):
         e = self.kept()["call_status_no_answer"]
         self.assertEqual((e["en"], e["fr"], e["state"]), ("No answer", "Sans réponse (révisé)", "reviewed"))
         self.assertNotIn(gen.WAS, e, "the earlier English is read, never written")
+
+    def test_a_change_of_letter_case_alone_keeps_the_french(self) -> None:
+        data = fresh()
+        data["wire"]["call_status_completed"]["en"] = "COMPLETED"
+        e = gen.keep_translations(data, self.previous)["wire"]["call_status_completed"]
+        self.assertEqual((e["fr"], e["state"]), ("Terminé (révisé)", "reviewed"))
 
     def test_no_committed_catalog(self) -> None:
         expected = fresh()
@@ -148,7 +154,7 @@ class WireLabelsTest(unittest.TestCase):
 
     def test_a_brace_in_a_value_is_literal(self) -> None:
         self.assertEqual(gen.display("http-{status}", "raw"), "http-{{status}}")
-        self.assertEqual(self.table["workflow_action_reason_http_status"]["en"], "Http {{status}}")
+        self.assertEqual(self.table["workflow_action_reason_http_status"]["en"], "HTTP {{status}}")
         self.assertIn('"http-{status}" to R.string.wire_workflow_action_reason_http_status,', self.kotlin)
 
     def test_a_dossier_key_reads_as_the_app_shows_its_heading(self) -> None:
@@ -190,6 +196,14 @@ class WireLabelsTest(unittest.TestCase):
         self.assertEqual(self.table["number_status_pending_verification"]["en"], "Pending verification")
         self.assertEqual(self.table["messaging_credential_source_byok"]["en"], "Bring Your Own Keys")
         self.assertEqual(gen.core_label(" not-interested "), "Not interested")
+        # An upper-case enum is sentence-cased, never shown in capitals.
+        self.assertEqual(self.table["a2p_registration_status_in_progress"]["en"], "In progress")
+        self.assertEqual(self.table["toll_free_verification_status_twilio_approved"]["en"], "Twilio approved")
+        self.assertEqual(gen.core_label("2FA"), "2fa")
+        # Initialisms stay in capitals.
+        self.assertEqual(self.table["number_capability_sms"]["en"], "SMS")
+        self.assertEqual(self.table["workflow_action_outcome_ok"]["en"], "OK")
+        self.assertEqual(gen.core_label("missing-webhook-url"), "Missing webhook URL")
         # The region chip and the dossier headings keep their own display.
         self.assertEqual(self.table["region_ca"]["en"], "CA")
         # Every moved entry carries its earlier English for keep_translations, and only those.

@@ -510,7 +510,11 @@
     <string name="members_section_rename">Nom de l\'espace</string>
     <string name="members_section_roster">Membres de cet espace de travail</string>
     <string name="members_title">Membres</string>
-    <string name="messaging_account_subtitle">%1$s · %2$s · numéros\u00A0: %3$d</string>
+    <plurals name="messaging_account_subtitle">
+        <item quantity="one">%1$s · %2$s · numéros\u00A0: %3$d</item>
+        <item quantity="many">%1$s · %2$s · numéros\u00A0: %3$d</item>
+        <item quantity="other">%1$s · %2$s · numéros\u00A0: %3$d</item>
+    </plurals>
     <string name="messaging_add">Ajouter un compte</string>
     <string name="messaging_add_title">Ajouter un compte de transporteur</string>
     <string name="messaging_cancel">Annuler</string>
@@ -542,7 +546,11 @@
     <string name="messaging_field_project_id">ID de projet</string>
     <string name="messaging_make_default">Par défaut, envoyer à partir de ce compte</string>
     <string name="messaging_make_default_action">Définir par défaut</string>
-    <string name="messaging_managed_subtitle">Numéros sur le compte de transporteur de Distronode\u00A0: %1$d</string>
+    <plurals name="messaging_managed_subtitle">
+        <item quantity="one">Numéros sur le compte de transporteur de Distronode\u00A0: %1$d</item>
+        <item quantity="many">Numéros sur le compte de transporteur de Distronode\u00A0: %1$d</item>
+        <item quantity="other">Numéros sur le compte de transporteur de Distronode\u00A0: %1$d</item>
+    </plurals>
     <string name="messaging_numbers_help">Ne modifiez pas ce champ pour conserver les numéros tels quels. Le modifier remplace la liste, et tout numéro retiré est libéré.</string>
     <string name="messaging_provider_section">Transporteur</string>
     <string name="messaging_provider_sinch">Sinch</string>

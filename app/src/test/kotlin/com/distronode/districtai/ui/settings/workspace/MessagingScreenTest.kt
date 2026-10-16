@@ -19,6 +19,7 @@ import com.distronode.districtai.core.model.ManagedAccount
 import com.distronode.districtai.core.model.MessagingAccount
 import com.distronode.districtai.core.model.MessagingResponse
 import com.distronode.districtai.R
+import com.distronode.districtai.plural
 import com.distronode.districtai.str
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
@@ -128,11 +129,11 @@ class MessagingScreenTest {
             .assertIsDisplayed()
         // ⚠️ `byok` vs `managed` is what tells an operator whose carrier account is being billed.
         composeRule.onNodeWithText(
-            str(R.string.messaging_account_subtitle, "Twilio", "Bring Your Own Keys", 2),
+            plural(R.plurals.messaging_account_subtitle, 2, "Twilio", "Bring Your Own Keys", 2),
             substring = true,
         ).assertIsDisplayed()
         composeRule.onNodeWithText(
-            str(R.string.messaging_account_subtitle, "Telnyx", "Managed Service", 1),
+            plural(R.plurals.messaging_account_subtitle, 1, "Telnyx", "Managed Service", 1),
             substring = true,
         )
             .assertIsDisplayed()
@@ -155,7 +156,9 @@ class MessagingScreenTest {
         render(ready())
 
         composeRule.onNodeWithTag(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText(str(R.string.messaging_managed_subtitle, 1), substring = true)
+        // ⚠️ "1 number", never "1 numbers" (visual QA AC6).
+        assertEquals("1 number on our carrier account", plural(R.plurals.messaging_managed_subtitle, 1))
+        composeRule.onNodeWithText(plural(R.plurals.messaging_managed_subtitle, 1), substring = true)
             .assertIsDisplayed()
     }
 
@@ -595,7 +598,7 @@ class MessagingScreenTest {
         render(MessagingUiState(load = MessagingLoadState.Ready(bare), canEdit = true))
 
         composeRule.onNodeWithText(
-            str(R.string.messaging_account_subtitle, "unknown", "unknown", 0),
+            plural(R.plurals.messaging_account_subtitle, 0, "unknown", "unknown", 0),
         ).assertIsDisplayed()
         composeRule.onNodeWithTag(MESSAGING_MANAGED_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithTag(messagingChannelDescription("voice")).assertIsDisplayed()

@@ -16,6 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
 
 /**
  * Token colours for a Material `Switch`. Pass it as `colors =` on every switch.
@@ -80,3 +86,50 @@ fun DistrictRadioRow(
 }
 
 private val RADIO_ROW_MIN_HEIGHT = 48.dp
+
+/**
+ * A filter chip: an outlined chip that fills with the accent and shows a check when chosen.
+ *
+ * ⛔ A FILTER MUST LOOK LIKE ONE, CHOSEN OR NOT. The desk's status filters were Ghost buttons, so with
+ * nothing chosen « Ouvert 1 / En attente 1 / Réglé 1 » read as plain text, with no outline and no
+ * selected state (3.0.1 review). The outline is `--muted-foreground` so it holds 3:1 against the page in
+ * both modes; the chosen chip adds the accent fill, the accent ink and a check, so the state does not
+ * rest on colour alone. Material's chip reserves the 48dp touch target and reports `selected`.
+ */
+@Composable
+fun DistrictFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = DistrictTheme.colors
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text = label, style = MaterialTheme.typography.labelLarge) },
+        modifier = modifier,
+        leadingIcon = if (selected) {
+            { Icon(DistrictIcons.Check, contentDescription = null, modifier = Modifier.size(CHIP_ICON_SIZE)) }
+        } else {
+            null
+        },
+        shape = RoundedCornerShape(CHIP_RADIUS),
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = Color.Transparent,
+            labelColor = colors.foreground,
+            selectedContainerColor = colors.district.copy(alpha = ACCENT_CONTAINER_ALPHA),
+            selectedLabelColor = colors.district,
+            selectedLeadingIconColor = colors.district,
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = colors.mutedForeground,
+            selectedBorderColor = colors.district,
+        ),
+    )
+}
+
+private val CHIP_RADIUS = 8.dp
+private val CHIP_ICON_SIZE = 18.dp

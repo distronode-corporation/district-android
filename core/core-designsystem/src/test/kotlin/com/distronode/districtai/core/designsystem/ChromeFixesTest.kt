@@ -172,6 +172,7 @@ class ChromeFixesTest {
                     DistrictRadioRow("A question", chosen == "a", { chosen = "a" }, Modifier.testTag("a"))
                     DistrictRadioRow("A suggestion", chosen == "b", { chosen = "b" }, Modifier.testTag("b"))
                     DistrictRadioRow("Off", false, {}, Modifier.testTag("off"), enabled = false)
+                    DistrictRadioRow("Untagged", selected = false, onClick = {})
                 }
             }
         }
@@ -256,6 +257,7 @@ class ChromeFixesTest {
             DistrictIcons.Back, DistrictIcons.Home, DistrictIcons.Inbox, DistrictIcons.Call,
             DistrictIcons.Person, DistrictIcons.AccountCircle, DistrictIcons.Settings, DistrictIcons.Edit,
             DistrictIcons.Refresh, DistrictIcons.Flag, DistrictIcons.Block, DistrictIcons.MoreVert,
+            DistrictIcons.Check,
         )
         composeRule.setContent {
             DistrictTheme { Column { icons.forEach { Icon(it, contentDescription = it.name) } } }
@@ -266,6 +268,73 @@ class ChromeFixesTest {
             composeRule.onNodeWithContentDescription(it.name).assertIsDisplayed()
         }
         assertEquals(listOf(true), icons.filter { it.autoMirror }.map { it.name == "Back" })
+    }
+
+    /** ⛔ One label size for the whole bar at 200% (3.0.1 review): the largest at which every label fits. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun `at 200 percent every nav label settles on one size`() {
+        val sizes = NavLabelSizes()
+        var labels by mutableStateOf(listOf("Aperçu", "Réception", "Appels", "Contacts", "Compte"))
+        composeRule.setContent {
+            AtFontScale(2f) {
+                Box(Modifier.width(411.dp)) {
+                    DistrictNavBar(modifier = Modifier, labelSizes = sizes) {
+                        labels.forEach {
+                            DistrictNavItem(label = it, icon = DistrictIcons.Home, selected = false, onClick = {})
+                        }
+                    }
+                }
+            }
+        }
+        composeRule.waitForIdle()
+
+        val settled = sizes.settled()
+        assertEquals(5, settled.size)
+        assertEquals(settled.toString(), 1, settled.values.distinct().size)
+
+        // A label that leaves takes its entry with it.
+        labels = labels.drop(1)
+        composeRule.waitForIdle()
+        assertFalse("Aperçu" in sizes.settled())
+        assertFalse("Aperçu" in sizes.labels)
+    }
+
+    @Test
+    fun `a filter chip reports its selection and shows a check only when chosen`() {
+        var chosen by mutableStateOf(false)
+        composeRule.setContent {
+            DistrictTheme {
+                Column {
+                    DistrictFilterChip(
+                        label = "Ouvert 1",
+                        selected = chosen,
+                        onClick = { chosen = !chosen },
+                        modifier = Modifier.testTag("chip"),
+                    )
+                    DistrictFilterChip(label = "Réglé 1", selected = true, onClick = {})
+                }
+            }
+        }
+
+        composeRule.onNodeWithTag("chip").assertIsNotSelected().assertTouchHeightIsEqualTo(48.dp)
+        composeRule.onNodeWithText("Ouvert 1").performClick()
+        composeRule.onNodeWithTag("chip").assertIsSelected()
+    }
+
+    @Test
+    fun `two auto-sizes fitting different label sets are different auto-sizes`() {
+        lateinit var measurer: androidx.compose.ui.text.TextMeasurer
+        composeRule.setContent { measurer = androidx.compose.ui.text.rememberTextMeasurer() }
+        composeRule.waitForIdle()
+        val style = TextStyle(fontSize = 12.sp)
+        val one = Together(listOf("Compte"), measurer, style, 2)
+        val sized = WholeWordAutoSize(12.sp, 5.sp, one)
+        val same = WholeWordAutoSize(12.sp, 5.sp, one.copy())
+        assertEquals(sized, same)
+        assertEquals(sized.hashCode(), same.hashCode())
+        assertFalse(sized == WholeWordAutoSize(12.sp, 5.sp))
+        assertFalse(sized == WholeWordAutoSize(12.sp, 5.sp, one.copy(labels = listOf("Appels"))))
     }
 
     @Composable

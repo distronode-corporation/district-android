@@ -195,9 +195,21 @@ def display(value: str, rule: str) -> str:
 
 def core_label(value: str) -> str:
     """The cores' English for a value the portal has no label for (district-core-swift gen-l10n.py's
-    `humanize`): hyphens and underscores as spaces, the first letter capitalized."""
+    `humanize`): hyphens and underscores as spaces, the first letter capitalized.
+
+    ⚠️ AN ALL-CAPS VALUE IS SENTENCE-CASED FIRST ("IN_PROGRESS" -> "In progress", as the in-progress call
+    status reads), so an upper-case enum never reaches a screen in capitals."""
     words = value.strip().replace("-", " ").replace("_", " ")
-    return words[:1].upper() + words[1:]
+    if not any(c.islower() for c in words):
+        words = words.lower()
+    words = words[:1].upper() + words[1:]
+    # ⚠️ AN INITIALISM STAYS IN CAPITALS ("sms" -> "SMS", "ok" -> "OK", "http-{status}" -> "HTTP {status}"),
+    # where the cores' plain rule wrote "Sms" and "Ok".
+    return " ".join(INITIALISMS.get(w.lower(), w) for w in words.split(" "))
+
+
+# Words a humanized value writes in capitals.
+INITIALISMS = {w.lower(): w for w in ("SMS", "MMS", "OK", "HTTP", "URL", "API", "CRM", "DNC", "AI")}
 
 
 def humanize(key: str) -> str:
@@ -361,8 +373,8 @@ KEPT = ("fr", "state", "same_ok", "fr_variant", "waive", "max", "id")
 
 def keep_translations(data: dict, previous: Path) -> dict:
     """`data` with the translation fields of `previous` (the committed catalog) put back on every
-    entry whose English is unchanged, or whose English moved from the raw value to the portal's label
-    (the French named the same value all along). A changed English, or an entry the catalog has no
+    entry whose English is unchanged (letter case aside), or whose English moved from the raw value to the
+    portal's label (the French named the same value all along). A changed English, or an entry the catalog has no
     French for, takes the contract's French."""
     old = (
         {e.key: e.fields for e in l10n.load_catalog(previous).entries.values()} if previous.is_file() else {}
@@ -373,7 +385,8 @@ def keep_translations(data: dict, previous: Path) -> dict:
         for seg, fields in table.items():
             was = fields.pop(WAS, None)
             before = old.get(f"{group}.{seg}")
-            if before is None or before.get("en") not in (fields["en"], was):
+            # ⚠️ A CHANGE OF LETTER CASE ALONE ("Sms" -> "SMS") keeps the French too: the words are the same.
+            if before is None or before.get("en", "").casefold() not in (fields["en"].casefold(), (was or "").casefold()):
                 continue
             for field in KEPT:
                 if field in before:

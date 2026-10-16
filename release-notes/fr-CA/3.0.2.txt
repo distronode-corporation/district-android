@@ -1,0 +1,5 @@
+• Le procès-verbal d'une réunion n'est proposé qu'une fois la réunion terminée.
+• Une boîte de réception vide propose « Nouveau message », et un journal des appels vide affiche « Aucun appel ».
+• La durée d'un appel ne se coupe plus entre deux lignes (1 min 5 s).
+• Les numéros en service affichent « Actif », et les en-têtes de la fiche de recherche suivent ceux du Web.
+• « Supprimer le contact » et « Bloquer l'appelant » s'affichent en rouge, et l'espacement est corrigé.

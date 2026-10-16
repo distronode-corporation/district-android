@@ -8,37 +8,21 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-10-16
+
 ### Fixed
 
-- Meeting rooms offer "Read the minutes" only once a meeting has ended, and a summary
-  preview the service cut short ends in an ellipsis.
-- The billing and usage month reads "Aug 2026" in English, as it reads « août 2026 » in
-  French, instead of "2026-08".
-- An empty inbox offers New message, for a role that can send, as the empty contacts list
-  offers Add a contact; an empty call log is titled "No calls yet" (« Aucun appel »).
+- Meeting rooms offer the minutes only after a meeting ends.
+- The billing month reads "Aug 2026" in English.
+- An empty inbox offers New message, and an empty call log reads "No calls yet".
+- In French, a call's length no longer breaks across lines.
 
 ### Changed
 
-- The add-contact button shows an add icon instead of a plus sign typed as text.
-- The email chip in the inbox reads "Email" instead of "EMAIL".
-- Delete contact and Block caller are drawn in the destructive colour.
-- Workspace settings head their second group "Workspace" (« Espace de travail »).
-- Spacing: the dialler's number card keeps the screen's side margin; Workflows and
-  Billing start below the top bar with a gap; usage figures keep a gap from their
-  labels; the outbound campaign's heading keeps a gap from its badge; a booking page's
-  address keeps a gap from the divider under it.
-- Billing: a plan's price stays on the plan name's first line when the name wraps.
-- Members and carrier accounts: the action buttons share a right edge.
-- The sign-in note under the button is start-aligned, as the text above it is.
-- French: a call's length no longer breaks between the minutes and the seconds
-  (« 1 min 5 s », a no-break space between each number and its unit and between the
-  two parts; it had an ordinary space in the middle), as the service's format vectors now
-  say.
-- The service's localization facts from its ecf098046 (`contracts/i18n/`): a number whose
-  carrier reports it `in-use` has its own "Active" label (« Actif »); the contact dossier's
-  French headings for three research keys follow the portal's (« Évaluation DGI »,
-  « Profil du contact », « Renseignements sur l'appelant », which read « Valeur estimée »,
-  « Identité », « Profil de l'appelant »).
+- Numbers in use are labelled Active.
+- Delete contact and Block caller are shown in red, and Add contact has an icon.
+- Workspace settings have a Workspace heading, the Email chip is no longer in capitals, and
+  spacing is fixed.
 
 ## [3.0.1] - 2026-10-15
 
@@ -142,7 +126,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.2...HEAD
+[3.0.2]: https://github.com/distronode-corporation/district-android/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/distronode-corporation/district-android/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/distronode-corporation/district-android/compare/v2.2...v3.0.0
 [2.2]: https://github.com/distronode-corporation/district-android/compare/v2.1...v2.2

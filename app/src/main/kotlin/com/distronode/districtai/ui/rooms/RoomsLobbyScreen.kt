@@ -154,7 +154,7 @@ private fun MeetingCard(
             // ⛔ NAMED AS A PREVIEW, and the "no minutes yet" case gets its own sentence rather
             // than an empty line — an in-progress meeting has no summary and that is normal, not
             // a fault. See MeetingSummary.summaryPreview.
-            text = meeting.summaryPreview?.let { stringResource(R.string.rooms_preview, it) }
+            text = meeting.summaryPreview?.let { stringResource(R.string.rooms_preview, previewShown(it)) }
                 ?: stringResource(
                     if (live) R.string.rooms_no_minutes_yet else R.string.rooms_no_minutes,
                 ),
@@ -169,13 +169,17 @@ private fun MeetingCard(
             horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         ) {
-            DistrictButton(
-                text = stringResource(R.string.rooms_open_meeting),
-                onClick = { onOpenMeeting(meeting.id) },
-                variant = ButtonVariant.Ghost,
-                size = ButtonSize.Sm,
-                modifier = Modifier.testTag(meetingOpenDescription(meeting.id)),
-            )
+            // "Read the minutes" only once there are minutes: a running meeting's card says they are
+            // written when it ends (visual QA AA19).
+            if (!live) {
+                DistrictButton(
+                    text = stringResource(R.string.rooms_open_meeting),
+                    onClick = { onOpenMeeting(meeting.id) },
+                    variant = ButtonVariant.Ghost,
+                    size = ButtonSize.Sm,
+                    modifier = Modifier.testTag(meetingOpenDescription(meeting.id)),
+                )
+            }
             // ⛔ REJOIN IS OFFERED ONLY FOR A MEETING STILL RUNNING. Joining the room of a finished
             // meeting is not an error server-side — the name is still valid — so nothing would
             // stop it; it would just silently start a SECOND meeting under the name whose minutes
@@ -255,3 +259,13 @@ internal fun RoomsLobbyScreenPreview() {
         )
     }
 }
+
+/** The longest preview the service sends: it cuts a longer summary to this many characters. */
+internal const val SUMMARY_PREVIEW_MAX = 220
+
+/**
+ * A preview as the card shows it: one the service cut short ends in an ellipsis, so it does not
+ * read as a sentence that stops mid-way (visual QA AA19).
+ */
+internal fun previewShown(preview: String): String =
+    if (preview.length >= SUMMARY_PREVIEW_MAX) preview.trimEnd() + "\u2026" else preview

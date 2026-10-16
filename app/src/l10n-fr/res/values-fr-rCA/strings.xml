@@ -132,6 +132,7 @@
     <string name="call_handling_section_mode">Qui répond en premier</string>
     <string name="call_handling_title">Gestion des appels</string>
     <string name="call_handling_viewer_note">Seuls les membres ayant le rôle Administrateur ou Membre peuvent changer la gestion des appels.</string>
+    <string name="call_log_empty_title">Aucun appel</string>
     <string name="call_log_failed">Impossible de charger le journal des appels.</string>
     <string name="call_log_notice">Cet appel figure dans le journal des appels de l\'espace de travail.</string>
     <string name="call_log_open">Journal des appels</string>
@@ -951,4 +952,5 @@
     <string name="workspace_settings_unsaved_title">Abandonner vos modifications?</string>
     <string name="workspace_settings_viewer_note">Vous avez accès en lecture seule à cet espace de travail. La persona, les capacités, le répertoire de transfert et l\'acheminement de l\'agent ne sont pas affichés.</string>
     <string name="workspace_settings_voice_studio_subtitle">Points de départ, chaîne de traitement, voix et ajustements, avec la vitesse de réponse de l\'agent.</string>
+    <string name="workspace_settings_workspace_heading">Espace de travail</string>
 </resources>

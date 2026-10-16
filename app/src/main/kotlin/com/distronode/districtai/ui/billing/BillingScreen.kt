@@ -125,7 +125,9 @@ private fun ContentState(
     Column(
         modifier = inset
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            // A gutter under the top bar before the first card (visual QA AB15).
+            .padding(top = DistrictTheme.spacing.gutter),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
     ) {
         if (state.refreshing) {

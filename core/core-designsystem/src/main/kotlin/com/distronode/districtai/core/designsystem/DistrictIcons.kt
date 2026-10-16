@@ -110,6 +110,9 @@ object DistrictIcons {
     }
 
     /** A chosen filter. */
+    /** The contacts list's add button (visual QA AA14: it drew a text "+"). */
+    val Add: ImageVector by lazy { icon("Add", "M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z") }
+
     val Check: ImageVector by lazy { icon("Check", "M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41,-1.41z") }
 
     /** An overflow menu. */

@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -323,9 +324,11 @@ private fun MutationControls(
         }
     }
 
+    // In the destructive ink, so it does not read like Rename beside it (visual QA AA6).
     TextButton(
         onClick = onRequestDelete,
         enabled = !saving,
+        colors = ButtonDefaults.textButtonColors(contentColor = DistrictTheme.colors.destructive),
         modifier = Modifier.testTag(CONTACT_DETAIL_DELETE_DESCRIPTION),
     ) {
         Text(stringResource(R.string.contact_detail_delete))

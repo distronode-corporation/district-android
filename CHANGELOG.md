@@ -8,6 +8,29 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Fixed
+
+- Meeting rooms offer "Read the minutes" only once a meeting has ended, and a summary
+  preview the service cut short ends in an ellipsis.
+- The billing and usage month reads "Aug 2026" in English, as it reads « août 2026 » in
+  French, instead of "2026-08".
+- An empty inbox offers New message, for a role that can send, as the empty contacts list
+  offers Add a contact; an empty call log is titled "No calls yet" (« Aucun appel »).
+
+### Changed
+
+- The add-contact button shows an add icon instead of a plus sign typed as text.
+- The email chip in the inbox reads "Email" instead of "EMAIL".
+- Delete contact and Block caller are drawn in the destructive colour.
+- Workspace settings head their second group "Workspace" (« Espace de travail »).
+- Spacing: the dialler's number card keeps the screen's side margin; Workflows and
+  Billing start below the top bar with a gap; usage figures keep a gap from their
+  labels; the outbound campaign's heading keeps a gap from its badge; a booking page's
+  address keeps a gap from the divider under it.
+- Billing: a plan's price stays on the plan name's first line when the name wraps.
+- Members and carrier accounts: the action buttons share a right edge.
+- The sign-in note under the button is start-aligned, as the text above it is.
+
 ## [3.0.1] - 2026-10-15
 
 ### Fixed

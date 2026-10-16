@@ -402,7 +402,7 @@ class AnalyticsScreenTest {
         render(content())
 
         composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "2026-08")).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "Aug 2026")).assertIsDisplayed()
         // Whole amounts print whole; fractional ones keep their decimals — these are billing
         // figures and a truncation is a wrong number.
         composeRule.onNodeWithText("412").assertIsDisplayed()
@@ -568,7 +568,7 @@ class AnalyticsScreenTest {
         composeRule.onNodeWithTag(ANALYTICS_HISTORY_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "2026-08")).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "Aug 2026")).assertIsDisplayed()
         composeRule.onNodeWithTag(ANALYTICS_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
@@ -583,7 +583,7 @@ class AnalyticsScreenTest {
         composeRule.onNodeWithTag(ANALYTICS_ANALYTICS_FAILURE_DESCRIPTION)
             .assertIsDisplayed()
         composeRule.onNodeWithTag(ANALYTICS_USAGE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "2026-08")).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.analytics_usage_month, "Aug 2026")).assertIsDisplayed()
         // And the whole-screen failure state is NOT what was shown.
         composeRule.onNodeWithTag(ANALYTICS_FAILED_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }

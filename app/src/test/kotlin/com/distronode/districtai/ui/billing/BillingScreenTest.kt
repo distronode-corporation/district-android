@@ -602,7 +602,7 @@ class BillingScreenTest {
     @Test
     fun `the billing month is named when it is known`() {
         render(content())
-        composeRule.onNodeWithText(string(R.string.billing_meter_month, "2026-08")).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.billing_meter_month, "Aug 2026")).assertIsDisplayed()
     }
 
     @Test

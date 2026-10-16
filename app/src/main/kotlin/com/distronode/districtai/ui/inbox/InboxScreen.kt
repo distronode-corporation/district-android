@@ -24,6 +24,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
+import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
@@ -124,7 +125,7 @@ fun InboxScreen(
                                 conversations = state.conversations.filterNot { it.contactId in blockedContactIds },
                             )
                             if (visible.conversations.isEmpty()) {
-                                InboxEmpty()
+                                InboxEmpty(onCompose = compose?.actions?.open)
                             } else {
                                 Loaded(visible, onOpenThread)
                             }
@@ -348,7 +349,7 @@ private fun InboxLoading() {
 }
 
 @Composable
-private fun InboxEmpty() {
+private fun InboxEmpty(onCompose: (() -> Unit)?) {
     ContentContainer(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -356,9 +357,20 @@ private fun InboxEmpty() {
                 .testTag(INBOX_EMPTY_DESCRIPTION),
             verticalArrangement = Arrangement.Center,
         ) {
+            // The way out of an empty inbox is the top bar's New message: offered here too, as the
+            // empty contacts list offers Add a contact (visual QA AC11).
             EmptyState(
                 title = stringResource(R.string.inbox_empty_title),
                 body = stringResource(R.string.inbox_empty),
+                action = onCompose?.let { open ->
+                    {
+                        DistrictButton(
+                            text = stringResource(R.string.inbox_compose_open),
+                            onClick = open,
+                            modifier = Modifier.testTag(INBOX_EMPTY_COMPOSE_DESCRIPTION),
+                        )
+                    }
+                },
             )
         }
     }
@@ -371,6 +383,7 @@ private val SKELETON_ROW_HEIGHT = 56.dp
 const val INBOX_ROOT_DESCRIPTION: String = "district-inbox-root"
 const val INBOX_LOADING_DESCRIPTION: String = "district-inbox-loading"
 const val INBOX_EMPTY_DESCRIPTION: String = "district-inbox-empty"
+const val INBOX_EMPTY_COMPOSE_DESCRIPTION: String = "district-inbox-empty-compose"
 const val INBOX_FAILURE_DESCRIPTION: String = "district-inbox-failure"
 const val INBOX_PARTIAL_DESCRIPTION: String = "district-inbox-partial"
 const val INBOX_UNREAD_DESCRIPTION: String = "district-inbox-unread"

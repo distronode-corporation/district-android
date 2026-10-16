@@ -222,6 +222,13 @@ private fun WorkspaceRows(
     onOpenNumbers: () -> Unit,
     onOpenSection: (String) -> Unit,
 ) {
+    // Headed as the studio group is, so the two do not run together (visual QA AC21).
+    Eyebrow(
+        text = stringResource(R.string.workspace_settings_workspace_heading),
+        modifier = Modifier
+            .padding(horizontal = DistrictTheme.spacing.gutter, vertical = DistrictTheme.spacing.row)
+            .semantics { heading() },
+    )
     if (canMutate) {
         DistrictListRow(
             title = stringResource(R.string.directory_title),

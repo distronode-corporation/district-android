@@ -385,6 +385,8 @@ internal fun UsageCard(usage: UsageData?) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = DistrictTheme.spacing.hairline),
+                // A gap between a wrapped label and its value (visual QA AC9: "minutes318.5").
+                horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
                 Text(
                     text = stringResource(labelRes),

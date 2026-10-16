@@ -89,11 +89,14 @@ internal fun stampDateTimeText(
     return DistrictFormat.dateTime(instant, zone, language)
 }
 
-/** A billing month the app has always printed as sent ("2026-08"): unchanged in English, "août 2026" in French. */
+/**
+ * A billing month the service sends as "2026-08": "Aug 2026" / "août 2026", as the analytics history
+ * labels its months. English used to print it as sent beside a French "août 2026" (visual QA AB10,
+ * AC7). Anything else as sent.
+ */
 @Composable
 @ReadOnlyComposable
 internal fun yearMonthText(raw: String, language: AppLanguage = appLanguage()): String {
-    if (language == AppLanguage.EN) return raw
     val match = YEAR_MONTH.matchEntire(raw.trim()) ?: return raw
     val month = match.groupValues[2].toInt()
     if (month !in 1..MONTHS) return raw

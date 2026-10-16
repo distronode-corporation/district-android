@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -154,7 +154,10 @@ fun ContactsScreen(
                         .padding(DistrictTheme.spacing.section)
                         .testTag(CONTACTS_ADD_DESCRIPTION),
                 ) {
-                    Text("+")
+                    Icon(
+                        imageVector = DistrictIcons.Add,
+                        contentDescription = stringResource(R.string.contacts_create_action),
+                    )
                 }
             }
         }

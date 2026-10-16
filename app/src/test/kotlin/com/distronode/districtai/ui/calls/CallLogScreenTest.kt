@@ -112,6 +112,8 @@ class CallLogScreenTest {
         render(emptyList())
 
         composeRule.onNodeWithTag(CALL_LOG_EMPTY_DESCRIPTION).assertIsDisplayed()
+        // Named as the other lists' empty states are (visual QA AC11).
+        composeRule.onNodeWithText(str(R.string.call_log_empty_title)).assertIsDisplayed()
     }
 
     @Test

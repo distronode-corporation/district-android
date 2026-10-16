@@ -88,7 +88,7 @@ fun CallLogScreen(
                         // ⚠️ Only reachable once refresh SUCCEEDED, so this means "no calls".
                         PagedListEmpty(
                             description = CALL_LOG_EMPTY_DESCRIPTION,
-                            title = stringResource(R.string.overview_recent_empty_title),
+                            title = stringResource(R.string.call_log_empty_title),
                             body = stringResource(R.string.overview_recent_empty),
                         )
                     } else {

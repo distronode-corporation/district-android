@@ -87,11 +87,11 @@ fun SignInScreen(
                     // ⚠️ The browser hand-off is stated up front. Sign-in leaves the app, and a user
                     // who is not expecting that reads the browser opening as a crash or a redirect
                     // they did not ask for.
+                    // Start-aligned, as the title and the line under it are (visual QA AC22).
                     Text(
                         text = stringResource(R.string.sign_in_browser_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.mutedForeground,
-                        textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = DistrictTheme.spacing.row),

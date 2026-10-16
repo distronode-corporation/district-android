@@ -137,6 +137,24 @@ class RoomsLobbyScreenTest {
     }
 
     @Test
+    fun `the minutes are offered only once a meeting has ended`() {
+        // Visual QA AA19: the running meeting's card says its minutes come at the end.
+        render(ready(liveMeeting, doneMeeting))
+
+        composeRule.onNodeWithTag(meetingOpenDescription("m-done")).assertExists()
+        composeRule
+            .onNodeWithTag(meetingOpenDescription("m-live"), useUnmergedTree = true)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a preview the service cut short ends in an ellipsis`() {
+        val cut = "a".repeat(SUMMARY_PREVIEW_MAX - 5) + " the "
+        assertEquals("a".repeat(SUMMARY_PREVIEW_MAX - 5) + " the\u2026", previewShown(cut))
+        assertEquals("Short and whole.", previewShown("Short and whole."))
+    }
+
+    @Test
     fun `an in-progress meeting says its minutes are still to come`() {
         // ⚠️ AN EMPTY LINE WOULD READ AS A FAULT. A meeting that has not ended genuinely has no
         // summary, and that deserves its own sentence.

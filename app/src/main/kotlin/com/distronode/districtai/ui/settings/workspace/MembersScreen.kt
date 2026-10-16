@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -226,7 +227,11 @@ private fun MemberRow(
         },
         trailing = {
             if (state.canManage) {
-                Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+                // End-aligned, so buttons of different widths share a right edge (visual QA AC14).
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+                    horizontalAlignment = Alignment.End,
+                ) {
                     DistrictButton(
                         text = stringResource(R.string.members_change_role),
                         onClick = { onRequestRole(member) },

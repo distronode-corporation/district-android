@@ -32,7 +32,12 @@ version: 2
 # SECURITY updates, which Dependabot opens as soon as an advisory lands.
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    # `/` covers .github/workflows only. A composite action under .github/actions/ carries its
+    # own SHA-pinned `uses:` (play-submit pins google-github-actions/auth), and Dependabot reads
+    # it only when its directory is listed. The glob picks up any action added later.
+    directories:
+      - /
+      - /.github/actions/*
     schedule:
       interval: weekly
     cooldown:

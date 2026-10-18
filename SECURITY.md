@@ -126,6 +126,9 @@ Secret scanners flag these. Each is deliberate:
   `PersonaOptionsContractFixtureTest`, `CallEngineModelsTest`, `LiveKitCallEngineTest`). They
   are produced by the server's test suite from fixed test inputs, are reproducible from those
   inputs, and protect no room.
+- **The sentry-cli checksum** in `.github/workflows/release.yml` (`SENTRY_CLI_SHA256`). The
+  SHA-256 of the public sentry-cli release binary, checked before it runs; the Sentry token rule
+  matches it only because of the variable name beside it.
 
 `.gitleaks.toml` allowlists exactly these values, by file and by value, so a real key added
 next to them is still reported. The Secret scan workflow (`.github/workflows/gitleaks.yml`)

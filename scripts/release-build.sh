@@ -3,7 +3,7 @@
 # Build the signed release bundle in release.yml, with the upload key and the Sentry values
 # borrowed from Google Secret Manager for this one run.
 #
-#   GCP_TOKEN=<token> VERSION_CODE=<n> DISTRICT_FRENCH=false scripts/release-build.sh
+#   GCP_TOKEN=<token> VERSION_CODE=<n> VERSION_NAME=<name> DISTRICT_FRENCH=false scripts/release-build.sh
 #
 # Output: app/build/outputs/bundle/release/app-release.aab and
 # app/build/outputs/mapping/release/mapping.txt.
@@ -15,6 +15,7 @@
 #   ANDROID_UPLOAD_KEY_ALIAS          environment of this script and Gradle only
 #   ANDROID_SENTRY_DSN                the DSN baked into the app (public client configuration)
 #   SENTRY_EU_AUTH_TOKEN              SENTRY_AUTH_TOKEN, so the Sentry plugin uploads the mapping
+#                                     and the source bundle, and sentry-cli creates the release
 # Each value is masked in the job log before anything else can print it, and GCP_TOKEN is dropped
 # from the environment before Gradle starts, so no build plugin can see the credential that
 # reads these.
@@ -29,6 +30,18 @@
 # by default since 3.0, so leaving the property off would build French in).
 # Anything else, or nothing, is refused before a secret is read, because a release whose language
 # nobody chose is not one to build. release.yml's French guard reads the same value.
+#
+# ── The Sentry release, with its commits ────────────────────────────────────────────────────────
+# After the build, the release this bundle reports as gets HEAD's commit (sentry-cli releases new,
+# set-commits, finalize), which is what gives an issue its suspect commits and "fixed in release";
+# Sentry fetches the range since the previous release from GitHub. ⛔ THE NAME IS THE SDK'S
+# DEFAULT, `<applicationId>@<versionName>+<versionCode>`, from the values this build was given:
+# VERSION_CODE (forced into the bundle by -PdistrictVersionCode), VERSION_NAME (release-version.sh,
+# which reads app/build.gradle.kts) and the one applicationId line in app/build.gradle.kts. A name
+# one character off is a second, empty release that no event lands in. sentry-cli takes its host,
+# org and project from the DISTRICT_SENTRY_* values release.yml gives the plugin.
+# ⚠️ NON-FATAL. A crash still deobfuscates without the release; it only loses its commits, so a
+# failure is a `::warning::` and the bundle goes on to Play.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -100,3 +113,28 @@ mapping=app/build/outputs/mapping/release/mapping.txt
 # this one carries a signature rather than finding out from Play.
 unzip -l "$aab" | grep -Eq 'META-INF/[^/]+\.(RSA|EC|DSA)$' || fail "$aab carries no signature."
 echo "Built $aab (versionCode $VERSION_CODE), signed, with its mapping."
+
+sentry_release() {
+    local application_id release sha value
+    [ -n "${VERSION_NAME:-}" ] || { echo "release-build: VERSION_NAME is unset." >&2; return 1; }
+    for value in "${DISTRICT_SENTRY_URL:-}" "${DISTRICT_SENTRY_ORG:-}" "${DISTRICT_SENTRY_PROJECT:-}"; do
+        [ -n "$value" ] || { echo "release-build: a DISTRICT_SENTRY_* value is unset." >&2; return 1; }
+    done
+    command -v sentry-cli > /dev/null || { echo "release-build: sentry-cli is not on PATH." >&2; return 1; }
+    application_id=$(sed -n 's/^[[:space:]]*applicationId = "\([^"]*\)"[[:space:]]*$/\1/p' app/build.gradle.kts 2> /dev/null) ||
+        application_id=""
+    [ -n "$application_id" ] && [ "$(printf '%s\n' "$application_id" | wc -l | tr -d ' ')" = "1" ] || {
+        echo "release-build: not exactly one applicationId = \"...\" line in app/build.gradle.kts." >&2
+        return 1
+    }
+    release="$application_id@$VERSION_NAME+$VERSION_CODE"
+    sha=$(git rev-parse HEAD) || return 1
+    echo "Sentry release: $release (commit $sha)"
+    SENTRY_URL=$DISTRICT_SENTRY_URL sentry-cli releases new --org "$DISTRICT_SENTRY_ORG" \
+        --project "$DISTRICT_SENTRY_PROJECT" "$release" &&
+        SENTRY_URL=$DISTRICT_SENTRY_URL sentry-cli releases set-commits --org "$DISTRICT_SENTRY_ORG" \
+            "$release" --commit "distronode-corporation/district-android@$sha" --ignore-missing &&
+        SENTRY_URL=$DISTRICT_SENTRY_URL sentry-cli releases finalize --org "$DISTRICT_SENTRY_ORG" "$release"
+}
+sentry_release ||
+    echo "::warning::the Sentry release for versionCode $VERSION_CODE was not created or has no commits; crashes still deobfuscate, but carry no suspect commits."

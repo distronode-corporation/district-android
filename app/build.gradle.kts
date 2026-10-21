@@ -289,11 +289,23 @@ sentry {
     // build.
     includeDependenciesReport.set(false)
 
-    // ⛔ SOURCE CONTEXT OFF. It uploads the actual SOURCE of every frame to Sentry so the UI can
-    // show it inline. That is a source-code egress decision nobody has made, and it is not
-    // needed to read a stack trace — the mapping plus the kept line numbers (see
-    // app/proguard-rules.pro) already give file and line.
-    includeSourceContext.set(false)
+    // SOURCE CONTEXT ON, WITH THE TOKEN, decided 2026-10-18. The plugin bundles the source of
+    // the app and of the core modules and uploads it beside the mapping, so an issue shows the
+    // lines around each frame and Seer can read them, where the mapping and the kept line
+    // numbers (see app/proguard-rules.pro) give only file and line. The repository is public,
+    // so the bundle holds nothing that is not already published. Tied to the token as the
+    // mapping upload is: a build without one, such as CI's release minification check, bundles
+    // and uploads nothing.
+    includeSourceContext.set(sentryAuthTokenPresent)
+
+    // ⚠️ THE CORE MODULES' SOURCE IS NOT THE APP MODULE'S, so the plugin, which collects this
+    // variant's own source sets, would leave every frame in them without context. Paths are
+    // relative to this module's directory, as the plugin resolves them.
+    additionalSourceDirsForSourceContext.set(
+        listOf("auth", "data", "designsystem", "media", "model", "network")
+            .map { "../core/core-$it/src/main/kotlin" }
+            .toSet(),
+    )
 
     // ⛔ PLUGIN TELEMETRY OFF, AND THIS IS THE PREFLIGHT THE TOKEN CANNOT PASS. Enabled, the
     // plugin opens its own Sentry transaction against the configured org before doing work,

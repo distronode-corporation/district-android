@@ -156,7 +156,7 @@ for a fork signed with your own key:
   | `districtSentryUrl` | `DISTRICT_SENTRY_URL` | The Sentry host for the organisation's region, e.g. `https://de.sentry.io` for an EU organisation. |
   | `districtSentryOrg` | `DISTRICT_SENTRY_ORG` | The organisation slug the mapping is uploaded to. |
   | `districtSentryProject` | `DISTRICT_SENTRY_PROJECT` | The project slug the mapping is uploaded to. |
-  | (none) | `SENTRY_AUTH_TOKEN` | The upload token. Without it the mapping is packaged but not uploaded. |
+  | (none) | `SENTRY_AUTH_TOKEN` | The upload token. With it the mapping and a bundle of the app's and core modules' source (source context) are uploaded; without it the mapping is packaged but not uploaded, and no source is bundled. |
 
   `release.yml` supplies all five for Distronode's own releases.
 

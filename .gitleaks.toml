@@ -41,3 +41,14 @@ regexes = [
   '''^YfxKDUkaaGp2WrLLGHCHbe2nn5ArCWBd\+x\+k7EzDr/8=$''',
   '''^CgAZ6Mja5niqpHLjUH0iEwcJVPHbcGBtE51R056G4OE=$''',
 ]
+
+# The published SHA-256 of the sentry-cli release binary that release.yml pins and checks before
+# running it. A checksum of a public download, not a credential; the Sentry token rule matches it
+# only because of the variable name beside it.
+[[allowlists]]
+description = "sentry-cli release checksum pinned in release.yml (public SHA-256)"
+targetRules = ["sentry-access-token"]
+condition = "AND"
+paths = ['''(^|/)\.github/workflows/release\.yml$''']
+regexTarget = "secret"
+regexes = ['''^13f8cb34ae01a6a272d7d7c22e277a105286615b4020de900ea95a8de47cdbb6$''']

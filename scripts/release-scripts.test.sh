@@ -431,7 +431,7 @@ out=$(ghrel build-run v1.2)
 check "no such run: prints nothing" test -z "$out"
 
 # ── release-build.sh ──────────────────────────────────────────────────────────
-# Only the French switch is tested here: DISTRICT_FRENCH must be true or false, and reaches Gradle
+# The French switch and the Sentry release are tested here: DISTRICT_FRENCH must be true or false, and reaches Gradle
 # by value as -Pdistrict.l10n.fr=true or =false (French is on by default since 3.0). Secret Manager, keytool and Gradle are stubs; the
 # stub Gradle records its argv and writes a signed-looking bundle and a mapping.
 echo "release-build.sh"
@@ -480,6 +480,57 @@ check "  (Gradle never ran)" test ! -e "$work/rblog/gradle-args"
 refuses "DISTRICT_FRENCH=yes is refused" rbrun yes
 check "  (the message quotes the value)" grep -q "DISTRICT_FRENCH is 'yes'" "$work/out"
 check "  (Gradle never ran)" test ! -e "$work/rblog/gradle-args"
+
+# The Sentry release after the build: the SDK's name, HEAD's commit, the EU host from
+# DISTRICT_SENTRY_URL, the token only in the environment, and never a failed build. sentry-cli and
+# git are stubs in a directory of their own, so the cases above see no sentry-cli at all.
+rbsentry="$work/rbsentry"
+mkdir -p "$rbsentry" "$rb/app"
+printf '        applicationId = "com.distronode.districtai"\n' > "$rb/app/build.gradle.kts"
+cat > "$rbsentry/sentry-cli" << 'EOF2'
+#!/usr/bin/env bash
+echo "$* | SENTRY_URL=${SENTRY_URL:-unset} token=${SENTRY_AUTH_TOKEN:+set}" >> "$RB_LOG/sentry-calls"
+[ "$1 $2" != "releases ${RB_SENTRY_FAIL:-none}" ]
+EOF2
+cat > "$rbsentry/git" << 'EOF2'
+#!/usr/bin/env bash
+[ "$*" = "rev-parse HEAD" ] && echo feedfacefeedfacefeedfacefeedfacefeedface
+EOF2
+chmod +x "$rbsentry/sentry-cli" "$rbsentry/git"
+rbsentryrun() { # extra NAME=value pairs for env
+    rm -rf "$work/rblog"
+    mkdir -p "$work/rblog"
+    env PATH="$rbsentry:$rbbin:$PATH" RB_LOG="$work/rblog" RUNNER_TEMP="$work/rbtmp" GCP_TOKEN=t \
+        VERSION_CODE=4262 VERSION_NAME=3.0.2 DISTRICT_FRENCH=true \
+        DISTRICT_SENTRY_URL=https://de.sentry.io DISTRICT_SENTRY_ORG=stub-org DISTRICT_SENTRY_PROJECT=stub-project \
+        "$@" "$rb/scripts/release-build.sh"
+}
+release=com.distronode.districtai@3.0.2+4262
+passes "the Sentry release is created after the build" rbsentryrun
+check "  (it prints the release name and the commit)" \
+    grep -qx "Sentry release: $release (commit feedfacefeedfacefeedfacefeedfacefeedface)" "$work/out"
+check "  (releases new: the argv is exact)" grep -qxF \
+    "releases new --org stub-org --project stub-project $release | SENTRY_URL=https://de.sentry.io token=set" \
+    "$work/rblog/sentry-calls"
+check "  (releases set-commits: the argv is exact)" grep -qxF \
+    "releases set-commits --org stub-org $release --commit distronode-corporation/district-android@feedfacefeedfacefeedfacefeedfacefeedface --ignore-missing | SENTRY_URL=https://de.sentry.io token=set" \
+    "$work/rblog/sentry-calls"
+check "  (releases finalize: the argv is exact)" grep -qxF \
+    "releases finalize --org stub-org $release | SENTRY_URL=https://de.sentry.io token=set" \
+    "$work/rblog/sentry-calls"
+check "  (three calls, in that order)" test "$(cut -d' ' -f2 "$work/rblog/sentry-calls" | tr '\n' ' ')" = "new set-commits finalize "
+check "  (the token is never an argument)" bash -c "! grep -q stub-SENTRY_EU_AUTH_TOKEN '$work/rblog/sentry-calls'"
+check "  (no warning)" bash -c "! grep -q '::warning::' '$work/out'"
+passes "a failed set-commits warns and the build still succeeds" rbsentryrun RB_SENTRY_FAIL=set-commits
+check "  (the warning names the versionCode)" grep -q "::warning::the Sentry release for versionCode 4262" "$work/out"
+check "  (nothing is finalized after it)" bash -c "! grep -q '^releases finalize' '$work/rblog/sentry-calls'"
+passes "no VERSION_NAME warns and creates no release under a guessed name" rbsentryrun VERSION_NAME=
+check "  (it warns)" grep -q "::warning::the Sentry release" "$work/out"
+check "  (sentry-cli never ran)" test ! -e "$work/rblog/sentry-calls"
+rm -f "$rb/app/build.gradle.kts"
+passes "no applicationId line warns and creates no release" rbsentryrun
+check "  (it names the line it looked for)" grep -q "not exactly one applicationId" "$work/out"
+check "  (sentry-cli never ran)" test ! -e "$work/rblog/sentry-calls"
 
 # ── french-guard.sh ───────────────────────────────────────────────────────────
 # A tree of its own: the guard reads the app's keys from app/src/main/res/values beside it. The

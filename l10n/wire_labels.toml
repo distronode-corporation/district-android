@@ -525,34 +525,34 @@ ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `booked` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `booked` as the server sends it, shown with the portal's label (\"Booked\")."
 
 [wire.disposition_callback]
-en = "Callback"
+en = "Callback requested"
 fr = "À rappeler"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `callback` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `callback` as the server sends it, shown with the portal's label (\"Callback requested\")."
 
 [wire.disposition_escalated]
-en = "Escalated"
+en = "Passed to a person"
 fr = "Transmis à l'équipe"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `escalated` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `escalated` as the server sends it, shown with the portal's label (\"Passed to a person\")."
 
 [wire.disposition_info]
-en = "Info"
+en = "Information only"
 fr = "Information"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `info` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `info` as the server sends it, shown with the portal's label (\"Information only\")."
 
 [wire.disposition_interested]
 en = "Interested"
@@ -561,7 +561,7 @@ ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `interested` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `interested` as the server sends it, shown with the portal's label (\"Interested\")."
 
 [wire.disposition_not_interested]
 en = "Not interested"
@@ -570,7 +570,7 @@ ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `not-interested` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `not-interested` as the server sends it, shown with the portal's label (\"Not interested\")."
 
 [wire.disposition_other]
 en = "Other"
@@ -579,7 +579,7 @@ ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `other` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `other` as the server sends it, shown with the portal's label (\"Other\")."
 
 [wire.disposition_unknown]
 en = "{value}"
@@ -598,7 +598,7 @@ ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `voicemail` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `voicemail` as the server sends it, shown with the portal's label (\"Voicemail\")."
 
 [wire.disposition_wrong_number]
 en = "Wrong number"
@@ -607,7 +607,7 @@ ctx = "label"
 screen = "call detail"
 tier = "T3"
 state = "reviewed"
-note = "The disposition value `wrong-number` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+note = "The disposition value `wrong-number` as the server sends it, shown with the portal's label (\"Wrong number\")."
 
 [wire.funnel_stage_connected_calls]
 en = "Connected Calls"
@@ -1674,6 +1674,15 @@ tier = "T3"
 state = "reviewed"
 note = "The workflowAction value `add_crm_tag` as the server sends it, shown with the portal's label (\"Add CRM Tag\")."
 
+[wire.workflow_action_notify_member_push]
+en = "Notify the Team in the App"
+fr = "Notifier l'équipe dans l'application"
+ctx = "label"
+screen = "workflows, run history"
+tier = "T3"
+state = "draft"
+note = "The workflowAction value `notify_member_push` as the server sends it, shown with the portal's label (\"Notify the Team in the App\")."
+
 [wire.workflow_action_notify_ops]
 en = "Notify Ops Webhook"
 fr = "Notifier le webhook des opérations"
@@ -1784,6 +1793,42 @@ tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `empty-tag` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
+[wire.workflow_action_reason_fallback_email]
+en = "Not texted, so it was emailed instead"
+fr = "Texto non envoyé, l'alerte est partie par courriel à la place"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `fallback-email` as the server sends it, shown with the portal's label (\"Not texted, so it was emailed instead\")."
+
+[wire.workflow_action_reason_fallback_email_push]
+en = "Not texted, so it was emailed and sent to the app instead"
+fr = "Texto non envoyé, l'alerte est partie par courriel et dans l'application à la place"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `fallback-email-push` as the server sends it, shown with the portal's label (\"Not texted, so it was emailed and sent to the app instead\")."
+
+[wire.workflow_action_reason_fallback_failed]
+en = "Not texted, and the email and app fallback failed too"
+fr = "Texto non envoyé, et le courriel et l'application de secours ont aussi échoué"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `fallback-failed` as the server sends it, shown with the portal's label (\"Not texted, and the email and app fallback failed too\")."
+
+[wire.workflow_action_reason_fallback_push]
+en = "Not texted and the email failed, so it was sent to the app instead"
+fr = "Texto non envoyé et courriel en échec, l'alerte est partie dans l'application à la place"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `fallback-push` as the server sends it, shown with the portal's label (\"Not texted and the email failed, so it was sent to the app instead\")."
+
 [wire.workflow_action_reason_http_status]
 en = "HTTP {{status}}"
 fr = "HTTP {{status}}"
@@ -1811,6 +1856,20 @@ screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `missing-webhook-url` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
+[wire.workflow_action_reason_no_devices]
+en = "No devices"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+note = "The workflowActionReason value `no-devices` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
+[wire.workflow_action_reason_no_message]
+en = "No message"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+note = "The workflowActionReason value `no-message` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_no_provider_credentials]
 en = "No provider credentials"
@@ -1848,6 +1907,38 @@ tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `postmark-missing` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
+[wire.workflow_action_reason_push_lookup_failed]
+en = "Push lookup failed"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+note = "The workflowActionReason value `push-lookup-failed` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
+[wire.workflow_action_reason_push_not_delivered]
+en = "Push not delivered"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+note = "The workflowActionReason value `push-not-delivered` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
+[wire.workflow_action_reason_recipient_not_member]
+en = "The person to text is no longer a member of this workspace"
+fr = "La personne à qui envoyer le texto n'est plus membre de cet espace de travail"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `recipient-not-member` as the server sends it, shown with the portal's label (\"The person to text is no longer a member of this workspace\")."
+
+[wire.workflow_action_reason_recipient_number_held]
+en = "Not sent: the person's mobile is a business number on District"
+fr = "Non envoyé\u00A0: le cellulaire de cette personne est un numéro d'entreprise sur District"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `recipient-number-held` as the server sends it, shown with the portal's label (\"Not sent: the person's mobile is a business number on District\")."
+
 [wire.workflow_action_reason_report_recipient_refused]
 en = "Report recipient refused"
 fr = "Destinataire du rapport refusé"
@@ -1883,6 +1974,13 @@ screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `ses-missing` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+
+[wire.workflow_action_reason_signing_unavailable]
+en = "Signing unavailable"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+note = "The workflowActionReason value `signing-unavailable` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_tag_already_present]
 en = "Tag already present"
@@ -2078,6 +2176,15 @@ tier = "T3"
 state = "reviewed"
 note = "The workflowTrigger value `call_ended_unanswered` as the server sends it, shown with the portal's label (\"When a Call Goes Unanswered\")."
 
+[wire.workflow_trigger_call_triaged]
+en = "When a Call is Triaged (urgency, type, details)"
+fr = "Quand un appel est trié (urgence, type, détails)"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowTrigger value `call_triaged` as the server sends it, shown with the portal's label (\"When a Call is Triaged (urgency, type, details)\")."
+
 [wire.workflow_trigger_contact_created]
 en = "When New Contact Created"
 fr = "Quand un contact est créé"
@@ -2104,6 +2211,15 @@ screen = "not shown in this app yet"
 tier = "T3"
 state = "reviewed"
 note = "The workflowTrigger value `intent_detected` as the server sends it, shown with the portal's label (\"When Specific Intent Detected\")."
+
+[wire.workflow_trigger_message_taken]
+en = "When a Message is Taken During a Call"
+fr = "Quand un message est pris pendant un appel"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowTrigger value `message_taken` as the server sends it, shown with the portal's label (\"When a Message is Taken During a Call\")."
 
 [wire.workflow_trigger_negative_sentiment]
 en = "When Call Sentiment is Negative"

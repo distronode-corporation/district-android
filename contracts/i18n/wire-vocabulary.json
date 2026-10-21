@@ -180,7 +180,7 @@
             "distronode-website/prisma/schema.prisma"
           ],
           "en": "Booked",
-          "fr": "Réservé"
+          "fr": "Rendez-vous pris"
         },
         {
           "value": "interested",
@@ -225,7 +225,7 @@
             "distronode-website/prisma/schema.prisma"
           ],
           "en": "Voicemail",
-          "fr": "Messagerie vocale"
+          "fr": "Boîte vocale"
         },
         {
           "value": "wrong-number",

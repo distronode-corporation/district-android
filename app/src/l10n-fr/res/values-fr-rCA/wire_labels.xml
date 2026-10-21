@@ -181,6 +181,7 @@
     <string name="wire_transfer_status_success">Transféré</string>
     <string name="wire_transfer_status_unknown">Valeur inconnue\u00A0: %1$s</string>
     <string name="wire_workflow_action_add_crm_tag">Ajouter une étiquette CRM</string>
+    <string name="wire_workflow_action_notify_member_push">Notifier l\'équipe dans l\'application</string>
     <string name="wire_workflow_action_notify_ops">Notifier le webhook des opérations</string>
     <string name="wire_workflow_action_outcome_failed">Échec</string>
     <string name="wire_workflow_action_outcome_ok">OK</string>
@@ -193,6 +194,10 @@
     <string name="wire_workflow_action_reason_empty_body">Message vide</string>
     <string name="wire_workflow_action_reason_empty_subject">Objet vide</string>
     <string name="wire_workflow_action_reason_empty_tag">Étiquette vide</string>
+    <string name="wire_workflow_action_reason_fallback_email">Texto non envoyé, l\'alerte est partie par courriel à la place</string>
+    <string name="wire_workflow_action_reason_fallback_email_push">Texto non envoyé, l\'alerte est partie par courriel et dans l\'application à la place</string>
+    <string name="wire_workflow_action_reason_fallback_failed">Texto non envoyé, et le courriel et l\'application de secours ont aussi échoué</string>
+    <string name="wire_workflow_action_reason_fallback_push">Texto non envoyé et courriel en échec, l\'alerte est partie dans l\'application à la place</string>
     <string name="wire_workflow_action_reason_http_status">HTTP {status}</string>
     <string name="wire_workflow_action_reason_invalid_recipient">Destinataire invalide</string>
     <string name="wire_workflow_action_reason_missing_webhook_url">URL du webhook manquante</string>
@@ -200,6 +205,8 @@
     <string name="wire_workflow_action_reason_no_recipient">Aucun destinataire</string>
     <string name="wire_workflow_action_reason_no_sending_number">Aucun numéro d\'envoi</string>
     <string name="wire_workflow_action_reason_postmark_missing">Postmark non configuré</string>
+    <string name="wire_workflow_action_reason_recipient_not_member">La personne à qui envoyer le texto n\'est plus membre de cet espace de travail</string>
+    <string name="wire_workflow_action_reason_recipient_number_held">Non envoyé\u00A0: le cellulaire de cette personne est un numéro d\'entreprise sur District</string>
     <string name="wire_workflow_action_reason_report_recipient_refused">Destinataire du rapport refusé</string>
     <string name="wire_workflow_action_reason_report_unavailable">Rapport indisponible</string>
     <string name="wire_workflow_action_reason_send_failed">Échec d\'envoi</string>
@@ -225,9 +232,11 @@
     <string name="wire_workflow_trigger_call_ended">Quand un appel se termine (répondu ou non)</string>
     <string name="wire_workflow_trigger_call_ended_answered">Quand un appel répondu se termine</string>
     <string name="wire_workflow_trigger_call_ended_unanswered">Quand un appel reste sans réponse</string>
+    <string name="wire_workflow_trigger_call_triaged">Quand un appel est trié (urgence, type, détails)</string>
     <string name="wire_workflow_trigger_contact_created">Quand un contact est créé</string>
     <string name="wire_workflow_trigger_dnc_registered">Quand un contact s\'inscrit à la liste d\'exclusion</string>
     <string name="wire_workflow_trigger_intent_detected">Quand une intention précise est détectée</string>
+    <string name="wire_workflow_trigger_message_taken">Quand un message est pris pendant un appel</string>
     <string name="wire_workflow_trigger_negative_sentiment">Quand le sentiment de l\'appel est négatif</string>
     <string name="wire_workflow_trigger_neutral_sentiment">Quand le sentiment de l\'appel est neutre</string>
     <string name="wire_workflow_trigger_positive_sentiment">Quand le sentiment de l\'appel est positif</string>

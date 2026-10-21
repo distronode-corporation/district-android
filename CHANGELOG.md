@@ -8,6 +8,13 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Changed
+
+- Call outcomes use the portal's labels in English: Callback requested, Passed to a person and
+  Information only.
+- The error-code and wire-label catalogs follow the service's contracts as of monorepo
+  38f0f356 (44 new error codes, new workflow triggers, actions and reasons).
+
 ## [3.0.2] - 2026-10-16
 
 ### Fixed

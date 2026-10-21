@@ -468,7 +468,7 @@
     },
     "transfer_managed_only": {
       "en": "Bringing your existing number is available to workspaces on our managed phone service.",
-      "fr": "Le transfert d'un numéro existant est offert aux espaces de travail qui utilisent notre service téléphonique géré."
+      "fr": "Le transfert d'un numéro existant est accessible aux espaces de travail qui utilisent notre service téléphonique géré."
     },
     "transfer_region_unsupported": {
       "en": "This workspace's region cannot take that number in a transfer yet.",

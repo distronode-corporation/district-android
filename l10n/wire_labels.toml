@@ -1858,18 +1858,22 @@ state = "reviewed"
 note = "The workflowActionReason value `missing-webhook-url` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_no_devices]
-en = "No devices"
+en = "No team member has the app on a device that can receive notifications"
+fr = "Aucun membre de l'équipe n'a l'application sur un appareil qui peut recevoir des notifications"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-note = "The workflowActionReason value `no-devices` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+state = "draft"
+note = "The workflowActionReason value `no-devices` as the server sends it, shown with the portal's label (\"No team member has the app on a device that can receive notifications\")."
 
 [wire.workflow_action_reason_no_message]
-en = "No message"
+en = "Notifying the team works only with the trigger for a message taken during a call"
+fr = "La notification de l'équipe ne fonctionne qu'avec le déclencheur d'un message pris pendant un appel"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-note = "The workflowActionReason value `no-message` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+state = "draft"
+note = "The workflowActionReason value `no-message` as the server sends it, shown with the portal's label (\"Notifying the team works only with the trigger for a message taken during a call\")."
 
 [wire.workflow_action_reason_no_provider_credentials]
 en = "No provider credentials"
@@ -1908,18 +1912,22 @@ state = "reviewed"
 note = "The workflowActionReason value `postmark-missing` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_push_lookup_failed]
-en = "Push lookup failed"
+en = "The list of team devices could not be read"
+fr = "La liste des appareils de l'équipe n'a pas pu être lue"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-note = "The workflowActionReason value `push-lookup-failed` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+state = "draft"
+note = "The workflowActionReason value `push-lookup-failed` as the server sends it, shown with the portal's label (\"The list of team devices could not be read\")."
 
 [wire.workflow_action_reason_push_not_delivered]
-en = "Push not delivered"
+en = "No device accepted the notification"
+fr = "Aucun appareil n'a accepté la notification"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-note = "The workflowActionReason value `push-not-delivered` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+state = "draft"
+note = "The workflowActionReason value `push-not-delivered` as the server sends it, shown with the portal's label (\"No device accepted the notification\")."
 
 [wire.workflow_action_reason_recipient_not_member]
 en = "The person to text is no longer a member of this workspace"
@@ -1976,11 +1984,13 @@ state = "reviewed"
 note = "The workflowActionReason value `ses-missing` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
 [wire.workflow_action_reason_signing_unavailable]
-en = "Signing unavailable"
+en = "Not sent: the webhook signing secret could not be read"
+fr = "Non envoyé\u00A0: le secret de signature des webhooks n'a pas pu être lu"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-note = "The workflowActionReason value `signing-unavailable` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
+state = "draft"
+note = "The workflowActionReason value `signing-unavailable` as the server sends it, shown with the portal's label (\"Not sent: the webhook signing secret could not be read\")."
 
 [wire.workflow_action_reason_tag_already_present]
 en = "Tag already present"

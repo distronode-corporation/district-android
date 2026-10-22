@@ -113,7 +113,9 @@ class LabelsTest {
         assertRendered(
             "Email" to { inboxChannelLabel("email") },
             "SMS" to { inboxChannelLabel("sms") },
-            unknown("WHATSAPP") to { inboxChannelLabel("whatsapp") },
+            "WhatsApp" to { inboxChannelLabel("whatsapp") },
+            "Voicemail" to { inboxChannelLabel("voicemail") },
+            unknown("RCS") to { inboxChannelLabel("rcs") },
             // The portal's channel names since 3.0.1 (visual QA AC4), no longer the raw value.
             "SMS" to { messagingChannelLabel("sms") },
             "Voice" to { messagingChannelLabel("voice") },
@@ -127,6 +129,7 @@ class LabelsTest {
                 stringResource(supportStatusLabel("In Progress", "INDETERMINATE"))
             },
         )
+        assertEquals(setOf("sms", "email", "whatsapp", "voicemail"), INBOX_CHANNEL_LABELS.keys)
         assertEquals(R.string.messaging_channel_sms, MESSAGING_CHANNEL_LABELS["sms"])
         assertEquals(MESSAGING_CHANNELS.toSet(), MESSAGING_CHANNEL_LABELS.keys)
     }
@@ -246,6 +249,18 @@ class LabelsTest {
             "Terminée" to { stringResource(supportStatusLabel("Done", "DONE")) },
             "État inconnu" to { stringResource(supportStatusLabel("Triage", "unknown")) },
             "Reçue" to { stringResource(supportStatusLabel("Received", "PENDING")) },
+        )
+    }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `a French inbox chip names every channel the server writes, voicemail included`() {
+        assertRendered(
+            "Courriel" to { inboxChannelLabel("email") },
+            "SMS" to { inboxChannelLabel("sms") },
+            "WhatsApp" to { inboxChannelLabel("whatsapp") },
+            "Boîte vocale" to { inboxChannelLabel("voicemail") },
+            "Valeur inconnue\u00A0: RCS" to { inboxChannelLabel("rcs") },
         )
     }
 }

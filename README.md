@@ -36,7 +36,7 @@ issues and pull requests live on GitHub) · [CHANGELOG](CHANGELOG.md)
 - **Android SDK** with platform `android-37.0` (compileSdk 37) and build tools `37.0.0`.
   `targetSdk` is 36 and `minSdk` is 26. Point the build at the SDK with `ANDROID_HOME` or a
   `local.properties` file containing `sdk.dir=...` (it is gitignored).
-- Nothing else. The Gradle wrapper (9.8.0, checksum-pinned) downloads Gradle itself; Android
+- Nothing else. The Gradle wrapper (9.8.1, checksum-pinned) downloads Gradle itself; Android
   Studio is optional.
 
 ## Build and test

@@ -37,16 +37,16 @@ import com.distronode.districtai.ui.InlineFailure
  * ⛔ EVERYTHING BUT BUYING IS HERE SINCE 3.0: a number's routing and release (an owned row opens its
  * actions), the filings, SIP, one-time passcodes, A2P, toll-free and the billed lookup. The writes
  * are [NumberProvisioningViewModel]'s, gated on the role and confirmed where billed, filed or
- * irreversible. ⛔ BUYING STAYS ON THE WEB, and the caption says so.
+ * irreversible. ⛔ BUYING STAYS ON THE WEB, and the hand-off's caption says so.
  *
  * ⛔ THE ONE AFFORDANCE THAT LEAVES IS A LINK, NOT A PURCHASE. Buying stays off the phone by an
  * owner decision recorded on [marketplaceWebUrl] — Play's Payments policy — so [PurchaseHandOff]
  * opens the web marketplace in a Custom Tab and this screen keeps no purchase state at all.
  *
  * ⛔ BOTH ROUTES BEHIND THIS SCREEN ADMIT `viewer`, so no READ is role-gated. The role decides the
- * CAPTION's wording — telling a viewer to "use the web dashboard" points them at a second refusal,
- * so they are told who can instead — and it decides whether the hand-off is offered at all, for
- * exactly the same reason.
+ * CAPTIONS — a viewer is told who can change a number (telling them to "use the web dashboard"
+ * points them at a second refusal), anyone else is told under the hand-off where numbers are
+ * bought — and it decides whether the hand-off is offered at all, for exactly the same reason.
  *
  * ⚠️ THE CARDS LIVE IN `MarketplaceCards.kt`. This file owns the shell: the scaffold, the two
  * segments, and the dispatch into each tab's states — the same split AnalyticsScreen.kt uses, and
@@ -92,7 +92,9 @@ fun MarketplaceScreen(
                 MarketplaceTab.CARRIER -> provisioning?.let { CarrierTab(it.state, it.canProvision, it.handlers) }
             }
 
-            ContentContainer { ReadOnlyCaption(role) }
+            if (!role.allowsMutation() && state.tab in VIEWER_CAPTION_TABS) {
+                ContentContainer { ViewerCaption() }
+            }
 
             ContentContainer { PurchaseHandOff(role, onOpenWeb) }
 
@@ -210,17 +212,18 @@ private fun SearchTab(
 }
 
 /**
- * ⛔ THE CAPTION THAT SAYS WHERE A NUMBER IS BOUGHT: on the web, while everything else about a
- * number is on these tabs. Worded per role, because a viewer may change nothing at all.
+ * What a viewer is told: who can change a number. ⚠️ ONLY ON THE TABS THAT DO NOT SAY IT THEMSELVES.
+ * Registrations and Carrier carry their own notice (`numbers_viewer_cannot_provision`), and this one
+ * under it repeated the same sentence a second time.
+ *
+ * ⚠️ A ROLE THAT MAY CHANGE NUMBERS GETS NO CAPTION HERE. Where a number is bought is said once, by
+ * [PurchaseHandOff]'s caption under its button; a caption above it ("New numbers are bought on the
+ * web") said it twice in a row.
  */
 @Composable
-private fun ReadOnlyCaption(role: WorkspaceRole?) {
+private fun ViewerCaption() {
     Text(
-        text = if (role.allowsMutation()) {
-            stringResource(R.string.numbers_read_only)
-        } else {
-            stringResource(R.string.numbers_read_only_viewer)
-        },
+        text = stringResource(R.string.numbers_read_only_viewer),
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.mutedForeground,
         modifier = Modifier
@@ -240,7 +243,7 @@ private fun ReadOnlyCaption(role: WorkspaceRole?) {
  * that failed.
  *
  * ⛔ NOT OFFERED TO A VIEWER. The web dashboard refuses them too, so the link would be a route to a
- * second refusal — the same reason [ReadOnlyCaption] tells a viewer who to ask instead of where to
+ * second refusal — the same reason [ViewerCaption] tells a viewer who to ask instead of where to
  * go. This is the one thing on this screen the role decides beyond wording.
  */
 @Composable
@@ -274,6 +277,9 @@ private fun PurchaseHandOff(role: WorkspaceRole?, onOpenWeb: () -> Unit) {
 internal fun typeDescription(type: String): String = "district-marketplace-type-$type"
 
 private const val SKELETON_ROWS = 4
+
+/** The tabs with no role notice of their own, where [ViewerCaption] is the only one. */
+private val VIEWER_CAPTION_TABS = setOf(MarketplaceTab.OWNED, MarketplaceTab.SEARCH)
 
 /** Stable handles for tests; a literal duplicated in a test drifts silently. */
 const val MARKETPLACE_ROOT_DESCRIPTION: String = "district-marketplace-root"

@@ -44,7 +44,6 @@
     <string name="numbers_lookup_invalid">Le transporteur n\'a pas reconnu ce numéro.</string>
     <string name="numbers_lookup_number_label">Numéro de téléphone complet</string>
     <string name="numbers_managed_no_release">Cette ligne est détenue sur le compte de transporteur de Distronode\u00A0: vous pouvez l\'utiliser, mais pas la libérer ni la reconfigurer.</string>
-    <string name="numbers_read_only">Les nouveaux numéros s\'achètent sur le Web. Tout le reste concernant un numéro, y compris ses inscriptions et sa libération, se fait ici.</string>
     <string name="numbers_read_only_viewer">Modifier un numéro exige un rôle Administrateur ou Membre. Demandez à un membre de cet espace de travail qui en a un.</string>
     <string name="numbers_ready_buy_today">Achat immédiat</string>
     <string name="numbers_registration_country_label">Pays (deux lettres)</string>

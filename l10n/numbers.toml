@@ -329,15 +329,6 @@ screen = "numbers"
 tier = "T1"
 state = "reviewed"
 
-[numbers.read_only]
-en = "New numbers are bought on the web. Everything else about a number, including its paperwork and releasing it, is here."
-fr = "Les nouveaux numéros s'achètent sur le Web. Tout le reste concernant un numéro, y compris ses inscriptions et sa libération, se fait ici."
-ctx = "body"
-screen = "numbers"
-tier = "T1"
-state = "reviewed"
-note = "Under the tabs, for a role that may change numbers. The web hand-off button sits below it."
-
 [numbers.read_only_viewer]
 en = "Changing a number needs an agency or client role. Ask someone on this workspace who has one."
 fr = "Modifier un numéro exige un rôle Administrateur ou Membre. Demandez à un membre de cet espace de travail qui en a un."

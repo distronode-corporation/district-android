@@ -109,7 +109,7 @@ class NumberManagementScreenTest {
         tap(MARKETPLACE_TAB_CARRIER_DESCRIPTION)
         tap(ownedNumberTag("+14165550142"))
         assertEquals(listOf(MarketplaceTab.REGISTRATIONS, MarketplaceTab.CARRIER, "open:+14165550142"), asked)
-        shows(str(R.string.numbers_read_only))
+        shows(str(R.string.marketplace_buy_web_caption))
     }
 
     @Test
@@ -312,6 +312,15 @@ class NumberManagementScreenTest {
         render(NumberProvisioningUiState(), MarketplaceTab.REGISTRATIONS, canProvision = false)
         shows(str(R.string.numbers_viewer_cannot_provision))
         composeRule.onNodeWithTag(REGISTRATION_START_TAG).assertDoesNotExist()
+        // ⛔ ONCE: the screen's own viewer caption under the tab said the same thing again.
+        composeRule.onNodeWithText(str(R.string.numbers_read_only_viewer)).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a viewer on the carrier tab is told who can change things once`() {
+        render(NumberProvisioningUiState(), MarketplaceTab.CARRIER, canProvision = false)
+        shows(str(R.string.numbers_viewer_cannot_provision))
+        composeRule.onNodeWithText(str(R.string.numbers_read_only_viewer)).assertDoesNotExist()
     }
 
     @Test

@@ -4244,7 +4244,7 @@ state = "reviewed"
 
 [scheduling_admin.settings.time_format_12h]
 en = "12-hour (2:30 pm)"
-fr = "12 heures (2:30 pm)"
+fr = "12 heures (2\u00A0h\u00A030\u00A0p.m.)"
 ctx = "label"
 screen = "scheduling settings"
 tier = "T3"
@@ -4253,7 +4253,7 @@ note = "Keep the sample time; it is what makes the choice clear."
 
 [scheduling_admin.settings.time_format_24h]
 en = "24-hour (14:30)"
-fr = "24 heures (14:30)"
+fr = "24 heures (14\u00A0h\u00A030)"
 ctx = "label"
 screen = "scheduling settings"
 tier = "T3"

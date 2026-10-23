@@ -503,8 +503,8 @@
     <string name="scheduling_admin_settings_tab_notifications">Vos notifications</string>
     <string name="scheduling_admin_settings_tab_profile">Votre profil</string>
     <string name="scheduling_admin_settings_terms_url">Lien vers les conditions</string>
-    <string name="scheduling_admin_settings_time_format_12h">12 heures (2:30 pm)</string>
-    <string name="scheduling_admin_settings_time_format_24h">24 heures (14:30)</string>
+    <string name="scheduling_admin_settings_time_format_12h">12 heures (2\u00A0h\u00A030\u00A0p.m.)</string>
+    <string name="scheduling_admin_settings_time_format_24h">24 heures (14\u00A0h\u00A030)</string>
     <string name="scheduling_admin_settings_time_format_required">Choisissez le format 12 heures ou 24 heures.</string>
     <string name="scheduling_admin_settings_timezone_hint">Un nom de fuseau IANA, comme America/Toronto.</string>
     <string name="scheduling_admin_settings_timezone_required">Choisissez votre fuseau horaire.</string>

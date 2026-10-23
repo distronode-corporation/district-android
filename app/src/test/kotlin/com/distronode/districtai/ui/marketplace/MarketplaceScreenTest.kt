@@ -104,13 +104,14 @@ class MarketplaceScreenTest {
     // ── The read-only boundary ───────────────────────────────────────────────
 
     @Test
-    fun `the read-only caption is always present`() {
-        // ⛔ WITHOUT IT, A LIST OF PURCHASABLE NUMBERS WITH NOTHING TO TAP READS AS A BROKEN
-        // SCREEN. The caption is what turns an absence of controls into a deliberate boundary.
+    fun `where a number is bought is said once, under the hand-off`() {
+        // ⛔ IT WAS SAID TWICE IN A ROW: a caption above the button ("New numbers are bought on the
+        // web") and the button's own ("Numbers are bought on the District AI website"). The button's
+        // stays, because it also says what tapping does; nothing else on the screen says it.
         render(MarketplaceUiState(owned = OwnedState.Ready(listOf(ownNumber))))
 
-        composeRule.onNodeWithTag(MARKETPLACE_READ_ONLY_DESCRIPTION)
-            .assertIsDisplayed()
+        composeRule.onAllNodesWithText(str(R.string.marketplace_buy_web_caption)).assertCountEquals(1)
+        composeRule.onNodeWithTag(MARKETPLACE_READ_ONLY_DESCRIPTION).assertDoesNotExist()
     }
 
     @Test
@@ -122,9 +123,7 @@ class MarketplaceScreenTest {
             role = WorkspaceRole.VIEWER,
         )
 
-        composeRule.onNodeWithText(
-            "Changing a number needs an agency or client role. Ask someone on this workspace who has one.",
-        ).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.numbers_read_only_viewer)).assertIsDisplayed()
     }
 
     // ── My numbers ───────────────────────────────────────────────────────────

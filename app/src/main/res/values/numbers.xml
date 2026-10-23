@@ -43,7 +43,6 @@
     <string name="numbers_lookup_invalid">The carrier could not recognise that number.</string>
     <string name="numbers_lookup_number_label">Phone number, in full</string>
     <string name="numbers_managed_no_release">This line is held on Distronode\'s carrier account, so it is yours to use and not to release or reconfigure.</string>
-    <string name="numbers_read_only">New numbers are bought on the web. Everything else about a number, including its paperwork and releasing it, is here.</string>
     <string name="numbers_read_only_viewer">Changing a number needs an agency or client role. Ask someone on this workspace who has one.</string>
     <string name="numbers_ready_buy_today">Ready to buy today</string>
     <string name="numbers_registration_country_label">Country (two letters)</string>

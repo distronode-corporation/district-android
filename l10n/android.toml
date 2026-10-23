@@ -2198,8 +2198,8 @@ state = "reviewed"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means."
 
 [desk.disabled_title]
-en = "The customer desk is off"
-fr = "Comptoir clients désactivé"
+en = "The Desk is off"
+fr = "Le comptoir est désactivé"
 ctx = "title"
 screen = "customer desk"
 tier = "T3"
@@ -2207,7 +2207,7 @@ state = "reviewed"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means. ⛔ THE DISABLED SCREEN, WHICH IS NOT THE EMPTY ONE. Nothing is being recorded, so \"no one has written in\" would be a claim we have no basis for."
 
 [desk.empty]
-en = "The desk is on. Tickets your customers raise, and any the receptionist takes during a call, appear here."
+en = "The Desk is on. Tickets your customers raise, and any the receptionist takes during a call, appear here."
 fr = "Le comptoir est activé. Les billets créés par vos clients, et ceux que la réceptionniste consigne pendant un appel, apparaissent ici."
 ctx = "body"
 screen = "customer desk"
@@ -2225,7 +2225,7 @@ state = "reviewed"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means."
 
 [desk.enable]
-en = "Turn the desk on"
+en = "Turn the Desk on"
 fr = "Activer le comptoir"
 ctx = "button"
 screen = "customer desk"
@@ -2372,8 +2372,8 @@ state = "reviewed"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means."
 
 [desk.open]
-en = "Open the customer desk"
-fr = "Ouvrir le comptoir clients"
+en = "Open the Desk"
+fr = "Ouvrir le comptoir"
 ctx = "button"
 screen = "overview"
 tier = "T3"
@@ -2517,8 +2517,8 @@ state = "reviewed"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means."
 
 [desk.title]
-en = "Customer desk"
-fr = "Comptoir clients"
+en = "Desk"
+fr = "Comptoir"
 ctx = "title"
 screen = "customer desk"
 tier = "T3"
@@ -2526,8 +2526,8 @@ state = "reviewed"
 note = "══ District Desk ══════════════════════════════════════════════════════ ⛔ THE DESK AND SUPPORT ARE TWO DIFFERENT PRODUCTS AND THEIR COPY MUST NEVER BORROW FROM EACH OTHER. The desk is the tenant's OWN customers writing to THEM; Support is the tenant writing to US. A bare \"Tickets\" on either surface collapses the distinction, which is why every string here says whose customers it means."
 
 [desk.viewer_body]
-en = "The customer desk holds your customers' contact details and correspondence, so it is limited to agency and client seats. Ask someone on your team to change your role if you need it."
-fr = "Le comptoir clients contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Administrateur ou Membre. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle."
+en = "The Desk holds your customers' contact details and correspondence, so it is limited to agency and client seats. Ask someone on your team to change your role if you need it."
+fr = "Le comptoir contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Administrateur ou Membre. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle."
 ctx = "body"
 screen = "customer desk, customer desk settings, customer desk ticket"
 tier = "T3"

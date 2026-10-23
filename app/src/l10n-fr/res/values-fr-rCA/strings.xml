@@ -246,7 +246,7 @@
     <string name="desk_created">Billet %1$s créé.</string>
     <string name="desk_created_duplicate">Ce billet a déjà été créé.</string>
     <string name="desk_disabled_body">Vos clients ne peuvent pas créer de billets, et rien n\'est consigné. Activer le comptoir démarre une file vide.</string>
-    <string name="desk_disabled_title">Comptoir clients désactivé</string>
+    <string name="desk_disabled_title">Le comptoir est désactivé</string>
     <string name="desk_empty">Le comptoir est activé. Les billets créés par vos clients, et ceux que la réceptionniste consigne pendant un appel, apparaissent ici.</string>
     <string name="desk_empty_title">Aucun billet pour l\'instant</string>
     <string name="desk_enable">Activer le comptoir</string>
@@ -265,7 +265,7 @@
     <string name="desk_no_requester">Aucune coordonnée</string>
     <string name="desk_not_notified">Aucun courriel envoyé à votre client.</string>
     <string name="desk_notified">Courriel envoyé à votre client.</string>
-    <string name="desk_open">Ouvrir le comptoir clients</string>
+    <string name="desk_open">Ouvrir le comptoir</string>
     <string name="desk_reply_label">Réponse à votre client</string>
     <string name="desk_reply_send">Envoyer</string>
     <string name="desk_reply_sending">Envoi en cours…</string>
@@ -281,8 +281,8 @@
     <string name="desk_status_resolved">Réglé</string>
     <string name="desk_status_waiting">En attente</string>
     <string name="desk_ticket_title">Billet</string>
-    <string name="desk_title">Comptoir clients</string>
-    <string name="desk_viewer_body">Le comptoir clients contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Administrateur ou Membre. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
+    <string name="desk_title">Comptoir</string>
+    <string name="desk_viewer_body">Le comptoir contient les coordonnées de vos clients et vos échanges avec eux; il est donc réservé aux membres ayant le rôle Administrateur ou Membre. Si vous en avez besoin, demandez à un membre de votre équipe de changer votre rôle.</string>
     <string name="desk_viewer_title">Non disponible avec le rôle Lecteur</string>
     <string name="devices_confirm_all">Vous déconnecter de District AI sur tous les appareils, y compris celui-ci?</string>
     <string name="devices_confirm_device">Déconnecter cet appareil? Il devra se reconnecter pour utiliser District AI.</string>

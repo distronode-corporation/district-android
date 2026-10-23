@@ -594,7 +594,7 @@ private fun ContentState(
                                 .testTag(OVERVIEW_OPEN_DIALER_DESCRIPTION),
                         )
                         // ⛔ THE TENTH AND ELEVENTH DESTINATIONS, INSIDE THE DIALLER'S GATE, AND
-                        // THEY ARE MIRROR IMAGES RATHER THAN A PAIR. "Customer desk" is the tickets
+                        // THEY ARE MIRROR IMAGES RATHER THAN A PAIR. "Desk" is the tickets
                         // this workspace's own CUSTOMERS have raised with THEM; "Support" is this
                         // workspace's requests with DISTRONODE. Neither may ever be labelled
                         // "Tickets" alone: an operator who opens the wrong one answers the wrong

@@ -33,7 +33,6 @@ import com.distronode.districtai.ui.scheduling.admin.SchedulingConfirmDialog
 import com.distronode.districtai.ui.scheduling.admin.SchedulingHint
 import com.distronode.districtai.ui.scheduling.admin.SchedulingRejection
 import com.distronode.districtai.ui.scheduling.admin.SchedulingRemoval
-import com.distronode.districtai.ui.scheduling.admin.SchedulingTextField
 import com.distronode.districtai.ui.scheduling.admin.SchedulingWriteDialog
 import com.distronode.districtai.ui.scheduling.admin.WriteState
 import com.distronode.districtai.ui.scheduling.admin.isWorking
@@ -219,19 +218,19 @@ private fun CustomHours(form: SchedulingOverrideForm, writes: SchedulingHoursOve
         Eyebrow(stringResource(R.string.scheduling_admin_hours_hours_label))
         Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
             Box(modifier = Modifier.weight(1f)) {
-                SchedulingTextField(
+                SchedulingClockField(
                     label = stringResource(R.string.scheduling_admin_hours_start_label),
-                    value = form.start,
-                    onValueChange = @DontMemoize { value -> writes.edit { it.copy(start = value) } },
+                    wire = form.start,
+                    onWireChange = @DontMemoize { value -> writes.edit { it.copy(start = value) } },
                     tag = SCHEDULING_OVERRIDE_START_TAG,
                     enabled = enabled,
                 )
             }
             Box(modifier = Modifier.weight(1f)) {
-                SchedulingTextField(
+                SchedulingClockField(
                     label = stringResource(R.string.scheduling_admin_hours_end_label),
-                    value = form.end,
-                    onValueChange = @DontMemoize { value -> writes.edit { it.copy(end = value) } },
+                    wire = form.end,
+                    onWireChange = @DontMemoize { value -> writes.edit { it.copy(end = value) } },
                     tag = SCHEDULING_OVERRIDE_END_TAG,
                     enabled = enabled,
                 )

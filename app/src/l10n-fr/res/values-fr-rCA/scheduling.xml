@@ -362,9 +362,10 @@
     <string name="scheduling_admin_hours_remove_range">Retirer</string>
     <string name="scheduling_admin_hours_saved">Heures de disponibilité enregistrées</string>
     <string name="scheduling_admin_hours_start_label">Début</string>
-    <string name="scheduling_admin_hours_time_format_error">Entrez une heure au format HH:MM.</string>
+    <string name="scheduling_admin_hours_time_format_error">Entrez une heure, par exemple 9 h ou 9 h 30.</string>
     <string name="scheduling_admin_hours_time_order_error">La fin doit être après le début.</string>
     <string name="scheduling_admin_hours_time_overlap_error">Ces heures chevauchent une autre plage de cette journée.</string>
+    <string name="scheduling_admin_hours_time_range_error">Entrez une heure entre 0 h et 23 h 59.</string>
     <string name="scheduling_admin_hours_unavailable">Indisponible</string>
     <string name="scheduling_admin_overview_booking">Rendez-vous</string>
     <string name="scheduling_admin_overview_booking_line">%1$s, %2$s, %3$s</string>

@@ -363,6 +363,7 @@
     <string name="scheduling_admin_hours_time_format_error">Enter a time as HH:MM.</string>
     <string name="scheduling_admin_hours_time_order_error">The end has to be after the start.</string>
     <string name="scheduling_admin_hours_time_overlap_error">These hours overlap another range on this day.</string>
+    <string name="scheduling_admin_hours_time_range_error">Enter a time between 00:00 and 23:59.</string>
     <string name="scheduling_admin_hours_unavailable">Unavailable</string>
     <string name="scheduling_admin_overview_booking">Booking</string>
     <string name="scheduling_admin_overview_booking_line">%1$s, %2$s, %3$s</string>

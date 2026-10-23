@@ -21,7 +21,6 @@ import com.distronode.districtai.ui.scheduling.admin.SchedulingHint
 import com.distronode.districtai.ui.scheduling.admin.SchedulingRejection
 import com.distronode.districtai.ui.scheduling.admin.SchedulingSectionFailure
 import com.distronode.districtai.ui.scheduling.admin.SchedulingSectionLoading
-import com.distronode.districtai.ui.scheduling.admin.SchedulingTextField
 import com.distronode.districtai.ui.scheduling.admin.SchedulingWriteDialog
 import com.distronode.districtai.ui.scheduling.admin.SectionState
 import com.distronode.districtai.ui.scheduling.admin.isWorking
@@ -31,9 +30,10 @@ import com.distronode.districtai.ui.scheduling.admin.schedulingWeekday
  * The weekly hours editor: seven days, Monday first, each with as many windows as the member wants.
  * The Android shape of district-ios's `SchedulingAvailabilityRulesSheet`.
  *
- * ⚠️ THE TIMES ARE TEXT FIELDS, NOT A TIME PICKER, as in the reference: they are zero-padded `HH:MM`
- * wall-clock strings in the member's scheduler zone, and a picker bound to an instant would have to
- * invent a day and a zone to hold one.
+ * ⚠️ THE TIMES ARE TEXT FIELDS, NOT A TIME PICKER, as in the reference: they are wall-clock times in
+ * the member's scheduler zone, and a picker bound to an instant would have to invent a day and a zone
+ * to hold one. They show and read the language's own spelling (« 9 h 30 ») and are stored as `HH:mm`
+ * ([SchedulingClockField]).
  */
 @Composable
 fun SchedulingHoursRulesDialog(editor: SchedulingRulesEditorState, actions: SchedulingHoursRulesEditor) {
@@ -126,19 +126,19 @@ private fun RangeEditor(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                SchedulingTextField(
+                SchedulingClockField(
                     label = stringResource(R.string.scheduling_admin_hours_start_label),
-                    value = range.start,
-                    onValueChange = @DontMemoize { actions.setTimes(day, range.key, it, range.end) },
+                    wire = range.start,
+                    onWireChange = @DontMemoize { actions.setTimes(day, range.key, it, range.end) },
                     tag = "$SCHEDULING_HOURS_RULES_START_TAG-$day-$index",
                     enabled = enabled,
                 )
             }
             Box(modifier = Modifier.weight(1f)) {
-                SchedulingTextField(
+                SchedulingClockField(
                     label = stringResource(R.string.scheduling_admin_hours_end_label),
-                    value = range.end,
-                    onValueChange = @DontMemoize { actions.setTimes(day, range.key, range.start, it) },
+                    wire = range.end,
+                    onWireChange = @DontMemoize { actions.setTimes(day, range.key, range.start, it) },
                     tag = "$SCHEDULING_HOURS_RULES_END_TAG-$day-$index",
                     enabled = enabled,
                 )

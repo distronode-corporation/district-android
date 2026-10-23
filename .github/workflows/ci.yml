@@ -78,7 +78,7 @@ jobs:
 
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.
-      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "21"
@@ -204,7 +204,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "21"
@@ -255,7 +255,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+      - uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
         with:
           version: 1.30.1
           advanced-security: false

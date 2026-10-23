@@ -36,9 +36,15 @@ sealed interface SchedulingClockInput {
 
 /** Read [text] as a time of day. Spaces may be plain, no-break (U+00A0) or narrow no-break (U+202F). */
 fun readSchedulingClock(text: String): SchedulingClockInput {
-    val normalized = text.trim().replace(' ', ' ').replace(' ', ' ').lowercase(Locale.ROOT)
+    val normalized = text.trim().replace('\u00A0', ' ').replace('\u202F', ' ').lowercase(Locale.ROOT)
     val match = CLOCK_INPUT.matchEntire(normalized) ?: return SchedulingClockInput.Malformed
-    val (hourText, colon, colonMinutes, h, hMinutes, meridiem) = match.destructured
+    val groups = match.groupValues
+    val hourText = groups[GROUP_HOUR]
+    val colon = groups[GROUP_COLON]
+    val colonMinutes = groups[GROUP_COLON_MINUTES]
+    val h = groups[GROUP_H]
+    val hMinutes = groups[GROUP_H_MINUTES]
+    val meridiem = groups[GROUP_MERIDIEM]
     val hasSeparator = colon.isNotEmpty() || h.isNotEmpty()
     // "9" alone is not a time; "9 am" is. "9 h pm" mixes two systems and is not one either.
     if (!hasSeparator && meridiem.isEmpty()) return SchedulingClockInput.Malformed
@@ -67,6 +73,10 @@ fun schedulingClockError(value: String): SchedulingRangeError? = when (readSched
 /**
  * A stored time as the edit field shows it: « 9 h 30 » in French, the wire value as always in
  * English. Anything that does not read as a time is shown as it is.
+ *
+ * ⛔ THE FRENCH SPACES ARE PLAIN U+0020, byte for byte the website's format vectors
+ * (`contracts/i18n/format-vectors.json`: "9 h", "0 h 05"), as every other French time in the app
+ * ([DistrictFormat.frenchClock]) and the cores write them.
  */
 fun schedulingClockFieldText(wire: String, language: AppLanguage): String {
     if (language == AppLanguage.EN) return wire
@@ -106,6 +116,12 @@ fun SchedulingClockField(
 }
 
 private const val HALF_DAY = 12
+private const val GROUP_HOUR = 1
+private const val GROUP_COLON = 2
+private const val GROUP_COLON_MINUTES = 3
+private const val GROUP_H = 4
+private const val GROUP_H_MINUTES = 5
+private const val GROUP_MERIDIEM = 6
 private const val LAST_HOUR = 23
 private const val LAST_MINUTE = 59
 

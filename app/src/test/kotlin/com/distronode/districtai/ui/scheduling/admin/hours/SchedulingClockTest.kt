@@ -14,7 +14,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.l10n.AppLanguage
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import java.io.File
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
@@ -46,8 +52,8 @@ class SchedulingClockTest {
             "9 H 30" to "09:30",
             "17 h" to "17:00",
             "0 h 15" to "00:15",
-            "9 h 30" to "09:30",
-            "9 h 30" to "09:30",
+            "9\u00A0h\u00A030" to "09:30",
+            "9\u202Fh\u202F30" to "09:30",
             // Colon forms, both languages
             "9:30" to "09:30",
             "09:30" to "09:30",
@@ -92,9 +98,31 @@ class SchedulingClockTest {
         assertEquals("17 h", schedulingClockFieldText("17:00", AppLanguage.FR))
         assertEquals("0 h 15", schedulingClockFieldText("00:15", AppLanguage.FR))
         assertEquals("25:00", schedulingClockFieldText("25:00", AppLanguage.FR))
+        // ⛔ The exact codepoint: a plain space (U+0020), never U+00A0 or U+202F.
+        assertEquals(listOf(0x39, 0x20, 0x68), schedulingClockFieldText("09:00", AppLanguage.FR).map { it.code })
         assertEquals("09:00", schedulingClockFieldText("09:00", AppLanguage.EN))
         assertEquals("09:30", schedulingClockFieldText("09:30", AppLanguage.EN))
         assertEquals("17:00", schedulingClockFieldText("17:00", AppLanguage.EN))
+    }
+
+    @Test
+    fun `a French field writes every time vector byte for byte, and reads it back`() {
+        // ⛔ contracts/i18n/format-vectors.json is the website's, vendored byte for byte: «0 h 05»,
+        // «9 h», «13 h 30» with PLAIN spaces. The field must show what every other French screen does.
+        val dir = System.getProperty("district.contracts.dir")
+        assertTrue("district.contracts.dir is not set", !dir.isNullOrBlank())
+        val root = Json.parseToJsonElement(File(dir, "i18n/format-vectors.json").readText()).jsonObject
+        val times = root.getValue("categories").jsonArray.map { it.jsonObject }
+            .single { it.getValue("category").jsonPrimitive.content == "times" }
+            .getValue("vectors").jsonArray.map { it.jsonObject }
+            .filter { it.getValue("fn").jsonPrimitive.content == "formatTime" }
+        assertTrue("no formatTime vectors", times.isNotEmpty())
+        times.forEach { v ->
+            val local = v.getValue("local").jsonPrimitive.content
+            val french = v.getValue("fr").jsonPrimitive.content
+            assertEquals(v.toString(), french, schedulingClockFieldText(local, AppLanguage.FR))
+            assertEquals(v.toString(), valid(local), readSchedulingClock(french))
+        }
     }
 
     private var wire by mutableStateOf("09:00")

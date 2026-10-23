@@ -1,0 +1,3 @@
+• Les conversations de boîte vocale dans la boîte de réception affichent « Boîte vocale », et celles de WhatsApp, « WhatsApp », au lieu d'une valeur inconnue.
+• Les exécutions de flux de travail indiquent quand une alerte d'équipe est partie par courriel ou dans l'application plutôt que par texto.
+• Les composants de l'application sont à jour, y compris celui qui livre les notifications.

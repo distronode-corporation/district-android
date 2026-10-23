@@ -8,15 +8,19 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-10-22
+
+### Fixed
+
+- Voicemail conversations in the Inbox are labelled Voicemail, and WhatsApp conversations
+  WhatsApp, instead of an unknown value.
+
 ### Changed
 
-- Call outcomes use the portal's labels in English: Callback requested, Passed to a person and
+- Call outcomes use the web dashboard's names: Callback requested, Passed to a person and
   Information only.
-- The error-code and wire-label catalogs follow the service's contracts as of monorepo
-  38f0f356 (44 new error codes, new workflow triggers, actions and reasons).
-- The five team notification and webhook signing reasons of a workflow run use the portal's
-  labels, in English and French, and the managed-service transfer error reads "est accessible"
-  in French.
+- Workflow runs say when a team alert went by email or to the app instead of a text.
+- The app's components are updated, including the one that delivers notifications.
 
 ## [3.0.2] - 2026-10-16
 
@@ -136,7 +140,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/distronode-corporation/district-android/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/distronode-corporation/district-android/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/distronode-corporation/district-android/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/distronode-corporation/district-android/compare/v2.2...v3.0.0

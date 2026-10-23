@@ -1,15 +1,15 @@
 {
-  "signed_off_by": "v3 manager (Opus 5.5 xhigh), final French review, 2026-10-16",
-  "release": "v3.0.2",
-  "commit": "38aa3c4925eddb2069cb997a924d25ce08be95ad",
+  "signed_off_by": "3.0.3 Android worker (Opus 5.5), French review of every catalog change since v3.0.2, 2026-10-22; for the v3 manager's confirmation at the gate",
+  "release": "v3.0.3",
+  "commit": "91e9f26532dc708021a75b1b3436c98caedd1c78",
   "catalogs": [
     {
       "path": "l10n/android.toml",
-      "sha256": "1f88b79f1a51d9615561f95c482d9f76b1e8f37708bf6e73394bed0c614d3946"
+      "sha256": "a25ca01887346bcdeb2b312e9429036da55df46ef06e7655ffd04147e3b1f0ab"
     },
     {
       "path": "l10n/api_errors.toml",
-      "sha256": "c391b2d1786a42c03c96569a7334081c60b027122a463da28696fa10932d739c"
+      "sha256": "417dfabc8ae9a345f205c9bf31e3ce20ae6d47e8ec486101e4515d7d44d7400a"
     },
     {
       "path": "l10n/numbers.toml",
@@ -21,7 +21,7 @@
     },
     {
       "path": "l10n/wire_labels.toml",
-      "sha256": "fdda6570ac84671a90fd4b3e51ea40985a3120c41fe48c88e7acc7d569598a9a"
+      "sha256": "bf5dc41c40fdd66bf1e0a1c5d464e94e9a9f30821b0fef05c2a3df967dd3ddae"
     }
   ]
 }

@@ -62,7 +62,6 @@ data class SchedulingHoursDiff(
 /** Why a window is refused before anything is sent. */
 enum class SchedulingRangeError(@get:StringRes val message: Int) {
     FORMAT(R.string.scheduling_admin_hours_time_format_error),
-    RANGE(R.string.scheduling_admin_hours_time_range_error),
     ORDER(R.string.scheduling_admin_hours_time_order_error),
     OVERLAP(R.string.scheduling_admin_hours_time_overlap_error),
 }

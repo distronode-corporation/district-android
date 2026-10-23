@@ -63,11 +63,15 @@ fun readSchedulingClock(text: String): SchedulingClockInput {
 fun schedulingWireTime(value: String): String =
     (readSchedulingClock(value) as? SchedulingClockInput.Valid)?.wire ?: value
 
-/** Why [value] cannot be sent as a time, or null when it can. */
+/**
+ * Why [value] cannot be sent as a time, or null when it can.
+ *
+ * ⚠️ ONE ERROR FOR BOTH, as in district-core-swift: "25:00" and « 9 h 5 » are refused with the same
+ * sentence, whose example shows what a time looks like.
+ */
 fun schedulingClockError(value: String): SchedulingRangeError? = when (readSchedulingClock(value)) {
     is SchedulingClockInput.Valid -> null
-    SchedulingClockInput.Malformed -> SchedulingRangeError.FORMAT
-    SchedulingClockInput.OutOfRange -> SchedulingRangeError.RANGE
+    SchedulingClockInput.Malformed, SchedulingClockInput.OutOfRange -> SchedulingRangeError.FORMAT
 }
 
 /**

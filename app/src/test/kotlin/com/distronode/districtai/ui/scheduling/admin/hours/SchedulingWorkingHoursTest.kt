@@ -78,7 +78,7 @@ class SchedulingWorkingHoursTest {
             listOf(
                 SchedulingRangeError.FORMAT,
                 SchedulingRangeError.FORMAT,
-                SchedulingRangeError.RANGE,
+                SchedulingRangeError.FORMAT,
                 SchedulingRangeError.ORDER,
                 null,
             ),
@@ -256,7 +256,8 @@ class SchedulingWorkingHoursTest {
             custom.draft(),
         )
         assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(start = "9-00").error)
-        assertEquals(R.string.scheduling_admin_hours_time_range_error, custom.copy(end = "24 h").error)
+        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(end = "25:00").error)
+        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(end = "9:75").error)
         assertEquals(R.string.scheduling_admin_hours_time_order_error, custom.copy(end = "09:00").error)
         assertEquals(R.string.scheduling_admin_hours_time_order_error, custom.copy(start = "9 h", end = "8 h 30").error)
         // ⛔ Whatever was typed, the scheduler is sent `HH:mm`.

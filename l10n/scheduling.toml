@@ -3056,12 +3056,12 @@ note = "Field for the start of a bookable window, typed as HH:MM."
 
 [scheduling_admin.hours.time_format_error]
 en = "Enter a time as HH:MM."
-fr = "Entrez une heure, par exemple 9 h ou 9 h 30."
+fr = "Entrez une heure, par exemple 9 h ou 13 h 30."
 ctx = "error"
 screen = "scheduling working hours"
 tier = "T2"
 state = "reviewed"
-note = "The typed text is not a time. English shows and reads times as HH:MM (e.g. 09:00); French shows them as « 9 h », « 9 h 30 » and also accepts 9h30, 9:30 and 09:30, so the French example uses the French spelling."
+note = "The typed text is not a time, or no clock shows it (25:00, 9 h 5). English shows and reads times as HH:MM (e.g. 09:00); French shows them as « 9 h », « 13 h 30 » and also accepts 9h30, 9:30 and 09:30, so the French example uses the French spelling. Worded as district-core-swift."
 
 [scheduling_admin.hours.time_order_error]
 en = "The end has to be after the start."
@@ -3078,15 +3078,6 @@ ctx = "error"
 screen = "scheduling working hours"
 tier = "T2"
 state = "reviewed"
-
-[scheduling_admin.hours.time_range_error]
-en = "Enter a time between 00:00 and 23:59."
-fr = "Entrez une heure entre 0 h et 23 h 59."
-ctx = "error"
-screen = "scheduling working hours"
-tier = "T2"
-state = "reviewed"
-note = "The typed text is shaped like a time but no clock shows it (25:00, 9 h 75, 13 pm). Times are written the way each language writes them: 00:00 / 23:59 in English, « 0 h » / « 23 h 59 » in French."
 
 [scheduling_admin.hours.unavailable]
 en = "Unavailable"

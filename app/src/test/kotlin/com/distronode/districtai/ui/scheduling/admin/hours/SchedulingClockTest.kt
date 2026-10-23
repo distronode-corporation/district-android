@@ -79,7 +79,10 @@ class SchedulingClockTest {
         listOf("24:00", "25:00", "9:60", "9 h 75", "24 h", "13 pm", "0 am")
             .forEach { assertEquals(it, SchedulingClockInput.OutOfRange, readSchedulingClock(it)) }
         assertEquals(SchedulingRangeError.FORMAT, schedulingClockError("9-30"))
-        assertEquals(SchedulingRangeError.RANGE, schedulingClockError("25:00"))
+        // One error for both, as in district-core-swift.
+        assertEquals(SchedulingRangeError.FORMAT, schedulingClockError("25:00"))
+        assertEquals(SchedulingRangeError.FORMAT, schedulingClockError("9:75"))
+        assertEquals(SchedulingRangeError.FORMAT, schedulingClockError("9 h 5"))
         assertNull(schedulingClockError("9 h 30"))
     }
 

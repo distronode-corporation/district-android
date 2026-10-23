@@ -125,7 +125,7 @@ composeBom = "2026.09.00"
 # both that is at least 7 days old, confirmed from the Google Maven metadata on 2026-10-16
 # (3.5.3, 2026-10-12, waits out the cooldown). Do not reintroduce a
 # separate pagingCompose version.
-androidxPaging = "3.5.2"
+androidxPaging = "3.5.3"
 # ⚠️ Navigation 2.10.2, the latest STABLE of the Navigation 2 line, resolved from the Google
 # Maven metadata on 2026-09-26. Its runtime asks for kotlin-stdlib 2.1.20 and lifecycle 2.11.0,
 # both satisfied here. Navigation 3 (androidx.navigation3) exists, has stable releases by now
@@ -238,7 +238,7 @@ firebaseMessaging = "26.0.0"
 # directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
 # reporter is a worse outcome than the coordinate. With no native code here it parses
 # nothing.
-sentry = "8.58.0"
+sentry = "8.61.0"
 
 # ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
 # renames every class in the release build, so a crash report without the mapping is a

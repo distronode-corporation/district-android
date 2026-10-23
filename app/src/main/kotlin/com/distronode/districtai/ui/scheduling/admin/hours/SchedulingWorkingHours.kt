@@ -80,23 +80,18 @@ fun schedulingWeekFromRules(rules: List<SchedulingAvailabilityRule>): List<List<
 }
 
 /**
- * Zero-padded `HH:MM`. ⚠️ FORMAT ONLY, NOT A CLOCK CHECK: `25:99` passes, as it does in the browser
- * and in district-ios. The scheduler is the validator; what this catches is the shape it refuses for
- * certain, a dropped leading zero.
- */
-fun isWellFormedSchedulingTime(value: String): Boolean = TIME_SHAPE.matches(value)
-
-/**
  * One day's per-window complaints, null where a window is fine.
  *
  * ⚠️ AN OVERLAP IS REPORTED ON THE LATER WINDOW BY CLOCK ORDER, not by position in the list, and only
  * between two windows that are otherwise fine: reporting it on both would double every message.
  */
-fun schedulingRangeErrors(ranges: List<SchedulingHoursDraft>): List<SchedulingRangeError?> {
+fun schedulingRangeErrors(drafts: List<SchedulingHoursDraft>): List<SchedulingRangeError?> {
+    // ⚠️ COMPARED AS `HH:mm`: a stored "9:00" would otherwise sort after "17:00".
+    val ranges = drafts.map { it.copy(start = schedulingWireTime(it.start), end = schedulingWireTime(it.end)) }
     val errors = ranges.map { range ->
         when {
-            !isWellFormedSchedulingTime(range.start) || !isWellFormedSchedulingTime(range.end) ->
-                SchedulingRangeError.FORMAT
+            schedulingClockError(range.start) != null -> schedulingClockError(range.start)
+            schedulingClockError(range.end) != null -> schedulingClockError(range.end)
             range.end <= range.start -> SchedulingRangeError.ORDER
             else -> null
         }
@@ -131,7 +126,9 @@ fun schedulingHoursDiff(
     val creates = mutableListOf<SchedulingHoursCreate>()
     week.forEachIndexed { row, ranges ->
         val day = schedulingDayOfWeek(row)
-        ranges.forEach { range ->
+        ranges.forEach { draft ->
+            // ⛔ SENT AS `HH:mm`, WHATEVER WAS TYPED ("9 h 30" → "09:30"): the scheduler refuses "9:30".
+            val range = draft.copy(start = schedulingWireTime(draft.start), end = schedulingWireTime(draft.end))
             val before = range.ruleId?.let(own::get)
             when {
                 before == null -> creates += SchedulingHoursCreate(day, range.start, range.end)
@@ -194,6 +191,3 @@ suspend fun SchedulingAdminRepository.applyHoursDiff(
 }
 
 private const val WORKING_DAYS = 5
-
-/** The scheduler's own pattern (`admin-ops.ts`): ASCII digits only, as JavaScript's `\d` is. */
-private val TIME_SHAPE = Regex("[0-9]{2}:[0-9]{2}")

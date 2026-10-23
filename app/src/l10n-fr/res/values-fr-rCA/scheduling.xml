@@ -362,7 +362,7 @@
     <string name="scheduling_admin_hours_remove_range">Retirer</string>
     <string name="scheduling_admin_hours_saved">Heures de disponibilité enregistrées</string>
     <string name="scheduling_admin_hours_start_label">Début</string>
-    <string name="scheduling_admin_hours_time_format_error">Entrez une heure au format HH:MM.</string>
+    <string name="scheduling_admin_hours_time_format_error">Entrez une heure, par exemple 9 h ou 13 h 30.</string>
     <string name="scheduling_admin_hours_time_order_error">La fin doit être après le début.</string>
     <string name="scheduling_admin_hours_time_overlap_error">Ces heures chevauchent une autre plage de cette journée.</string>
     <string name="scheduling_admin_hours_unavailable">Indisponible</string>
@@ -502,8 +502,8 @@
     <string name="scheduling_admin_settings_tab_notifications">Vos notifications</string>
     <string name="scheduling_admin_settings_tab_profile">Votre profil</string>
     <string name="scheduling_admin_settings_terms_url">Lien vers les conditions</string>
-    <string name="scheduling_admin_settings_time_format_12h">12 heures (2:30 pm)</string>
-    <string name="scheduling_admin_settings_time_format_24h">24 heures (14:30)</string>
+    <string name="scheduling_admin_settings_time_format_12h">12 heures (2\u00A0h\u00A030\u00A0p.m.)</string>
+    <string name="scheduling_admin_settings_time_format_24h">24 heures (14\u00A0h\u00A030)</string>
     <string name="scheduling_admin_settings_time_format_required">Choisissez le format 12 heures ou 24 heures.</string>
     <string name="scheduling_admin_settings_timezone_hint">Un nom de fuseau IANA, comme America/Toronto.</string>
     <string name="scheduling_admin_settings_timezone_required">Choisissez votre fuseau horaire.</string>

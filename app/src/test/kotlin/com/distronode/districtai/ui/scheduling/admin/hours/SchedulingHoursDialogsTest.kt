@@ -104,7 +104,7 @@ class SchedulingHoursDialogsTest {
         settle()
 
         composeRule.onNodeWithTag("$SCHEDULING_HOURS_RULES_DAY_TAG-6").assertExists()
-        composeRule.onNodeWithTag("$SCHEDULING_HOURS_RULES_START_TAG-0-0").performTextReplacement("9:00")
+        composeRule.onNodeWithTag("$SCHEDULING_HOURS_RULES_START_TAG-0-0").performTextReplacement("9-00")
         composeRule.onNodeWithTag(SCHEDULING_WRITE_REJECTION_TAG)
             .assertTextEquals(str(R.string.scheduling_admin_hours_time_format_error))
         composeRule.onNodeWithTag(SCHEDULING_HOURS_RULES_SAVE_TAG).assertIsNotEnabled()

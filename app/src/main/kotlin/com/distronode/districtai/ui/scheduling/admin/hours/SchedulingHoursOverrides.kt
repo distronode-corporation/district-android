@@ -111,9 +111,10 @@ data class SchedulingOverrideForm(
     val error: Int?
         get() = when {
             date == null -> R.string.scheduling_admin_hours_date_missing
-            isCustomHours && !(isWellFormedSchedulingTime(start) && isWellFormedSchedulingTime(end)) ->
-                R.string.scheduling_admin_hours_time_format_error
-            isCustomHours && end <= start -> R.string.scheduling_admin_hours_time_order_error
+            isCustomHours && schedulingClockError(start) != null -> schedulingClockError(start)?.message
+            isCustomHours && schedulingClockError(end) != null -> schedulingClockError(end)?.message
+            isCustomHours && schedulingWireTime(end) <= schedulingWireTime(start) ->
+                R.string.scheduling_admin_hours_time_order_error
             !isCustomHours && endDate != null && endDate < date -> R.string.scheduling_admin_hours_end_before_start
             else -> null
         }
@@ -128,7 +129,13 @@ data class SchedulingOverrideForm(
         val first = date ?: return null
         if (error != null) return null
         return if (isCustomHours) {
-            SchedulingOverrideDraft(first.toString(), reason.wire, startTime = start, endTime = end)
+            // ⛔ SENT AS `HH:mm`, WHATEVER WAS TYPED: the scheduler refuses "9:30".
+            SchedulingOverrideDraft(
+                first.toString(),
+                reason.wire,
+                startTime = schedulingWireTime(start),
+                endTime = schedulingWireTime(end),
+            )
         } else {
             val last = endDate?.takeIf { it != first }
             SchedulingOverrideDraft(first.toString(), reason.wire, endDate = last?.toString())

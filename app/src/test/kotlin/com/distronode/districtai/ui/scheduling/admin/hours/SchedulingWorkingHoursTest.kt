@@ -73,23 +73,20 @@ class SchedulingWorkingHoursTest {
     }
 
     @Test
-    fun `a time is two digits, a colon and two digits, and the clock is the scheduler's to check`() {
-        assertTrue(isWellFormedSchedulingTime("09:00"))
-        assertTrue(isWellFormedSchedulingTime("25:99"))
-        assertFalse(isWellFormedSchedulingTime("9:00"))
-        assertFalse(isWellFormedSchedulingTime("09-00"))
-        assertFalse(isWellFormedSchedulingTime("0a:00"))
-        assertFalse(isWellFormedSchedulingTime("09:000"))
-    }
-
-    @Test
     fun `refusals are per window, and an overlap lands on the later window by clock order`() {
         assertEquals(
-            listOf(SchedulingRangeError.FORMAT, SchedulingRangeError.FORMAT, SchedulingRangeError.ORDER, null),
+            listOf(
+                SchedulingRangeError.FORMAT,
+                SchedulingRangeError.FORMAT,
+                SchedulingRangeError.FORMAT,
+                SchedulingRangeError.ORDER,
+                null,
+            ),
             schedulingRangeErrors(
                 listOf(
-                    draft(null, "9:00", "10:00"),
+                    draft(null, "9-00", "10:00"),
                     draft(null, "09:00", "1000"),
+                    draft(null, "09:00", "25:00"),
                     draft(null, "12:00", "12:00"),
                     draft(null, "13:00", "14:00"),
                 ),
@@ -109,6 +106,8 @@ class SchedulingWorkingHoursTest {
             listOf(null, SchedulingRangeError.ORDER),
             schedulingRangeErrors(listOf(draft(null, "09:00", "12:00"), draft(null, "10:00", "10:00"))),
         )
+        // ⚠️ Compared as `HH:mm`: as text, "9 h" would sort after "10 h 30" and read as backwards.
+        assertEquals(listOf<SchedulingRangeError?>(null), schedulingRangeErrors(listOf(draft(null, "9 h", "10 h 30"))))
         assertTrue(isValidSchedulingWeek(listOf(emptyList(), listOf(draft(null, "09:00", "10:00")))))
         assertFalse(isValidSchedulingWeek(listOf(listOf(draft(null, "10:00", "09:00")))))
     }
@@ -256,9 +255,16 @@ class SchedulingWorkingHoursTest {
             SchedulingOverrideDraft("2026-12-24", "custom_hours", startTime = "09:00", endTime = "17:00"),
             custom.draft(),
         )
-        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(start = "9:00").error)
-        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(end = "5pm").error)
+        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(start = "9-00").error)
+        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(end = "25:00").error)
+        assertEquals(R.string.scheduling_admin_hours_time_format_error, custom.copy(end = "9:75").error)
         assertEquals(R.string.scheduling_admin_hours_time_order_error, custom.copy(end = "09:00").error)
+        assertEquals(R.string.scheduling_admin_hours_time_order_error, custom.copy(start = "9 h", end = "8 h 30").error)
+        // ⛔ Whatever was typed, the scheduler is sent `HH:mm`.
+        assertEquals(
+            SchedulingOverrideDraft("2026-12-24", "custom_hours", startTime = "09:30", endTime = "17:00"),
+            custom.copy(start = "9 h 30", end = "5 pm").draft(),
+        )
     }
 
     @Test

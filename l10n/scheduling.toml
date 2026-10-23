@@ -3056,12 +3056,12 @@ note = "Field for the start of a bookable window, typed as HH:MM."
 
 [scheduling_admin.hours.time_format_error]
 en = "Enter a time as HH:MM."
-fr = "Entrez une heure au format HH:MM."
+fr = "Entrez une heure, par exemple 9 h ou 13 h 30."
 ctx = "error"
 screen = "scheduling working hours"
 tier = "T2"
 state = "reviewed"
-note = "HH:MM is the required shape (two-digit hour, colon, two-digit minutes), e.g. 09:00. Keep HH:MM as is."
+note = "The typed text is not a time, or no clock shows it (25:00, 9 h 5). English shows and reads times as HH:MM (e.g. 09:00); French shows them as « 9 h », « 13 h 30 » and also accepts 9h30, 9:30 and 09:30, so the French example uses the French spelling. Worded as district-core-swift."
 
 [scheduling_admin.hours.time_order_error]
 en = "The end has to be after the start."
@@ -4235,7 +4235,7 @@ state = "reviewed"
 
 [scheduling_admin.settings.time_format_12h]
 en = "12-hour (2:30 pm)"
-fr = "12 heures (2:30 pm)"
+fr = "12 heures (2\u00A0h\u00A030\u00A0p.m.)"
 ctx = "label"
 screen = "scheduling settings"
 tier = "T3"
@@ -4244,7 +4244,7 @@ note = "Keep the sample time; it is what makes the choice clear."
 
 [scheduling_admin.settings.time_format_24h]
 en = "24-hour (14:30)"
-fr = "24 heures (14:30)"
+fr = "24 heures (14\u00A0h\u00A030)"
 ctx = "label"
 screen = "scheduling settings"
 tier = "T3"

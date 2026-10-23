@@ -111,9 +111,9 @@ class DeskScreenTest {
         render(content(tickets = emptyList()))
 
         composeRule.onNodeWithTag(DESK_EMPTY_DESCRIPTION).assertIsDisplayed()
-        // ⛔ "The desk is on" is the load-bearing half of this sentence. It is what stops an
+        // ⛔ "Desk is on" is the load-bearing half of this sentence. It is what stops an
         // operator concluding their customers' tickets have been lost.
-        val onCopy = "The desk is on. Tickets your customers raise, and any the " +
+        val onCopy = "Desk is on. Tickets your customers raise, and any the " +
             "receptionist takes during a call, appear here."
         composeRule.onNodeWithText(onCopy).assertIsDisplayed()
     }

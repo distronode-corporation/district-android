@@ -14,7 +14,8 @@ import org.robolectric.annotation.Config
 /**
  * The product area's name: "Desk" in English and « Comptoir » in French, everywhere (owner decision,
  * 2026-10-23). It used to be "Customer desk" / « Comptoir clients » in places and "the desk" in
- * others.
+ * others. « Comptoir » as a title or label and « le comptoir » in running text (« Le comptoir … »
+ * at the start of a sentence); English capitalises it in running text too ("the Desk").
  *
  * ⚠️ ITS SETTINGS STAY « Paramètres du comptoir » ON ANDROID. The decision names « Réglages du
  * comptoir », but frcheck's OS-WORD rule (vendored, an error that cannot be waived) holds every
@@ -37,7 +38,7 @@ class DeskNamingTest {
         assertEquals("Desk", context.getString(R.string.desk_title))
         assertEquals("Desk settings", context.getString(R.string.desk_settings_title))
         assertEquals("Desk settings", context.getString(R.string.desk_settings_open))
-        assertEquals("Open Desk", context.getString(R.string.desk_open))
+        assertEquals("Open the Desk", context.getString(R.string.desk_open))
         val old = deskStrings().filterValues { it.contains("customer desk", ignoreCase = true) }
         assertTrue("old name left in $old", old.isEmpty())
     }

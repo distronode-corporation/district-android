@@ -1,6 +1,7 @@
 # District AI for Android
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/distronode-corporation/district-android/badge)](https://scorecard.dev/viewer/?uri=github.com/distronode-corporation/district-android)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15873/badge)](https://www.bestpractices.dev/projects/15873)
 
 The native Android client for [District AI](https://www.distronode.com/district-ai), by
 Distronode. It is the app published on

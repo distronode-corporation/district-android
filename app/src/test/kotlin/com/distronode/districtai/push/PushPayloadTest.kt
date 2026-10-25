@@ -176,6 +176,11 @@ class PushPayloadTest {
             PushEvent.RingCancelled("CA1", RingCancelReason.TIMEOUT),
             message(type, call, reason("timeout")),
         )
+        // ⚠️ THIS PERSON DECLINED ON ANOTHER DEVICE: its own reason, so it is not read as missed.
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.DECLINED),
+            message(type, call, reason("declined")),
+        )
     }
 
     @Test

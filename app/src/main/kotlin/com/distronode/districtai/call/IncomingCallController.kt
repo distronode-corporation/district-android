@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Where the app is in an inbound call.
@@ -65,13 +66,23 @@ data class IncomingCallUiState(
 /**
  * The inbound call state machine: ring, answer, decline, time out.
  *
- * ⛔ **NOTHING IS TOLD TO THE SERVER ON A DECLINE OR A TIMEOUT, AND THAT IS A PRIVACY PROPERTY
- * RATHER THAN AN OMISSION.** `POST /api/district/actions/ring-app` blocks on a Redis rendezvous for
- * ~25 seconds and falls back to PSTN when it expires, so the server already has everything it needs
- * from the ABSENCE of an answer. Reporting a decline would make a deliberate refusal
- * distinguishable from a phone in a pocket — to the agent, and through it to the caller — and there
- * is no version of that distinction the product wants. An unanswered ring and a declined one must
- * look identical from outside, and the only way to guarantee that is for neither to send anything.
+ * ⛔ **A PERSON'S DECLINE IS TOLD TO THE SERVER, ONCE; A TIMEOUT AND A WITHDRAWN RING ARE NOT.**
+ * (Sean, 2026-10-24, decisions log GitLab #2 note 4083623386, reversing the rule that neither was
+ * sent.) `POST /api/district/actions/ring-app` blocks on a Redis rendezvous for ~25 seconds; when
+ * every member it rang has declined, the server now ends the ring at once and the agent takes a
+ * message instead of holding the caller in silence for the rest of the window. So the two exits are
+ * kept apart on purpose:
+ *
+ * - [decline] is a PERSON: the ringing screen's Decline, the notification's Decline, or a hang-up
+ *   from a system surface (lock screen, headset, car, watch) while the call is still RINGING. It
+ *   sends `POST calls/{id}/decline` once, never retried; the route is idempotent and fails open.
+ * - The ring timeout and [onRingCancelled] are NOT a person and send nothing. A timeout reported as
+ *   a decline would end a ring another member was reaching for, and a withdrawn ring is the
+ *   server's own news.
+ *
+ * ⚠️ THE TRADE THE OLD RULE PROTECTED AGAINST IS NOW ACCEPTED: a deliberate refusal is
+ * distinguishable from a phone in a pocket, to the server and through the agent's wording to the
+ * caller ("they can't take it right now"). The decision log records it.
  *
  * ⛔ **THE RING IS BOUNDED HERE, LOCALLY, AND THE BOUND IS LONGER THAN THE SERVER'S ON PURPOSE.**
  * The rendezvous expires at 25s; this waits ~30. Timing out FIRST would take the Answer button away
@@ -204,6 +215,9 @@ internal class IncomingCallController(
             callId = callId,
             phase = IncomingCallPhase.RINGING,
         )
+        // ⚠️ A SYSTEM HANG-UP IS [decline], which sends only while the call is still RINGING: the
+        // lock screen's Decline, a headset button and a car all reach this, and each is a person.
+        // Once answered, the same callback is an ordinary hang-up and sends nothing.
         telecom.startIncoming(onSystemAnswer = ::answer, onSystemHangUp = ::decline)
         notifier.showIncomingCall(workspaceId, callId)
         // ⛔ THE APP RINGS ITS OWN SELF-MANAGED CALL; TELECOM DOES NOT. See [IncomingRinger]: 3.0.0
@@ -213,10 +227,10 @@ internal class IncomingCallController(
         ringer.start()
         ringTimeout = scope.launch {
             delay(ringTimeoutMillis)
-            // ⛔ IDENTICAL TO A DECLINE, DELIBERATELY AND VISIBLY. See the ⛔ on the class: the two
-            // must be indistinguishable from outside, so they share the code path rather than
-            // merely agreeing today.
-            decline()
+            // ⛔ NOT [decline], DELIBERATELY AND VISIBLY. Nobody refused this call; nobody was there.
+            // Reporting it as a decline would let the server end a ring another member was about to
+            // answer. See the ⛔ on the class.
+            hangUp()
         }
     }
 
@@ -226,11 +240,14 @@ internal class IncomingCallController(
      * ⛔ ONLY A CALL THAT IS STILL **RINGING HERE** IS ENDED. The cancellation goes to every device
      * the ring reached, the one that answered included, so on that device (ANSWERING or IN_CALL) it
      * must do nothing, and a cancellation for a call this device is not ringing (never rang, already
-     * ended, or another call) is a no-op too. ⛔ AND NOTHING IS SENT BACK, as on a decline.
+     * ended, or another call) is a no-op too. ⛔ AND NOTHING IS SENT BACK: a withdrawn ring is not a
+     * person declining, whatever the reason says.
      *
-     * ⚠️ The Telecom connection ends as ANSWERED_ELSEWHERE when another device answered and as
-     * MISSED otherwise (an unknown reason reads as WITHDRAWN; see [RingCancelReason]), so the OS's
-     * own surfaces say what happened rather than that this user hung up.
+     * ⚠️ The Telecom connection ends as ANSWERED_ELSEWHERE when another device answered, as
+     * REJECTED when this person declined on another of their devices ([RingCancelReason.DECLINED],
+     * which is not a missed call), and as MISSED otherwise (an unknown reason reads as WITHDRAWN;
+     * see [RingCancelReason]), so the OS's own surfaces say what happened rather than that this user
+     * hung up.
      *
      * ⛔ AND THE RINGING SCREEN IS WITHDRAWN, NOT TURNED INTO AN ENDED SUMMARY. The contract says
      * withdraw the incoming-call screen: there is nothing to summarise about a call this device never
@@ -242,10 +259,11 @@ internal class IncomingCallController(
         if (cancelledCalls.size > CANCELLED_MEMORY) cancelledCalls.removeFirst()
         val current = _state.value ?: return
         if (current.callId != callId || current.phase != IncomingCallPhase.RINGING) return
-        val cause = if (reason == RingCancelReason.ANSWERED) {
-            DisconnectCause.ANSWERED_ELSEWHERE
-        } else {
-            DisconnectCause.MISSED
+        val cause = when (reason) {
+            RingCancelReason.ANSWERED -> DisconnectCause.ANSWERED_ELSEWHERE
+            RingCancelReason.DECLINED -> DisconnectCause.REJECTED
+            RingCancelReason.TIMEOUT, RingCancelReason.CALL_ENDED, RingCancelReason.WITHDRAWN ->
+                DisconnectCause.MISSED
         }
         finish(null, cause)
         dismiss()
@@ -278,7 +296,7 @@ internal class IncomingCallController(
             // on the outcome after that joined the room with the microphone on, started the
             // `phoneCall` service and repainted IN_CALL for a call the user had ended; a late refusal
             // would end whatever call rang next. Nothing is owed to the server: its rendezvous has
-            // already been read, and a decline sends nothing by design.
+            // already been read, and a hang-up after the press is not a decline (see [decline]).
             val now = _state.value
             if (now == null || now.callId != current.callId || now.phase != IncomingCallPhase.ANSWERING) {
                 return@launch
@@ -313,15 +331,33 @@ internal class IncomingCallController(
     }
 
     /**
-     * The user refused, the ring timed out, or the OS ended it for us.
+     * A person refused the call: the ringing screen, the notification's Decline, or a system surface.
      *
-     * ⛔ NO SERVER CALL. See the ⛔ on the class — this is the whole reason the class doc leads with
-     * it. ⚠️ Reachable from a RINGING phase and from an OS callback at any phase, so it tears the
-     * live session down too rather than assuming there is not one.
+     * ⛔ SENDS `calls/{id}/decline` ONLY WHILE THE CALL IS RINGING, ONCE, AND NEVER RETRIED. See the
+     * ⛔ on the class. The request goes out on the application scope before the teardown, so it
+     * outlives the screen or the receiver that pressed it, and it is bounded by
+     * [DECLINE_BUDGET_MILLIS] so a dead network cannot hold the notification receiver open.
+     *
+     * ⚠️ Reachable from a RINGING phase and from an OS callback at any phase, so it tears the live
+     * session down too rather than assuming there is not one. Past RINGING it is a hang-up and sends
+     * nothing: the call was answered, so there is no ring left to decline.
+     *
+     * @return the decline request in flight, or null when nothing was sent. ⚠️ Read only by
+     *   [IncomingCallActionReceiver], which holds its broadcast open until the request is done.
      */
-    fun decline() {
-        if (_state.value == null) return
+    fun decline(): Job? {
+        val current = _state.value ?: return null
+        val sent = if (current.phase == IncomingCallPhase.RINGING) {
+            scope.launch {
+                withTimeoutOrNull(DECLINE_BUDGET_MILLIS) {
+                    repository.decline(current.workspaceId, current.callId)
+                }
+            }
+        } else {
+            null
+        }
         hangUp()
+        return sent
     }
 
     /**
@@ -453,6 +489,14 @@ internal class IncomingCallController(
 
         /** ⚠️ How many withdrawn rings [cancelledCalls] remembers; a delivery race, not a history. */
         const val CANCELLED_MEMORY: Int = 16
+
+        /**
+         * ⚠️ HOW LONG A DECLINE MAY TAKE BEFORE IT IS ABANDONED. Inside the ten seconds a foreground
+         * broadcast gets (a background one gets more), because the notification's Decline holds its
+         * broadcast open for the request. An abandoned decline costs the caller the rest of the ring, which is what every
+         * decline cost before the route existed.
+         */
+        const val DECLINE_BUDGET_MILLIS: Long = 8_000L
     }
 }
 

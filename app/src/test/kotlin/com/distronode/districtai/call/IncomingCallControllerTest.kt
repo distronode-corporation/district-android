@@ -52,12 +52,11 @@ private class RecordingForegroundHost : ForegroundCallHost {
 /**
  * The inbound call state machine: ring, answer, decline, time out.
  *
- * ⛔ THE MOST IMPORTANT ASSERTIONS IN THIS FILE ARE THAT **NOTHING IS SENT** ON A DECLINE AND ON A
- * TIMEOUT. `actions/ring-app` blocks on a Redis rendezvous for ~25 seconds and falls back to PSTN
- * when it expires, so the server already has everything it needs from the ABSENCE of an answer.
- * Reporting a decline would make a deliberate refusal distinguishable from a phone in a pocket — to
- * the agent, and through it to the caller — and there is no version of that distinction the product
- * wants.
+ * ⛔ THE MOST IMPORTANT ASSERTIONS IN THIS FILE ARE WHICH EXITS SEND A DECLINE. A PERSON'S decline
+ * while ringing sends `calls/{id}/decline` exactly once (Sean, 2026-10-24: when every member it rang
+ * has declined, the server ends the ring and the agent takes a message). A timeout, a withdrawn ring
+ * and a hang-up after the answer send NOTHING: reported as declines, they would let the server end
+ * a ring another member was about to answer.
  *
  * ⚠️ NONE OF THIS IS VERIFIABLE AT RUNTIME ON THIS MACHINE. Waydroid is API 33 with no Play
  * Services, so the push cannot be delivered, the foreground-service types are API 34 concepts, and
@@ -234,16 +233,17 @@ class IncomingCallControllerTest {
     }
 
     @Test
-    fun `declining sends nothing to the server and takes the ring away`() = callTest { h ->
-        // ⛔ THE PRIVACY PROPERTY, ASSERTED. An unanswered ring and a declined one must look
-        // identical from outside, and the only way to guarantee that is for neither to send
-        // anything.
+    fun `a person's decline tells the server once and takes the ring away`() = callTest { h ->
+        // ⛔ THE NEW RULE, ASSERTED: one decline, for the push's workspace, and never an answer.
         h.answerable()
 
         h.controller.onIncomingCall("ws-1", "CA1")
-        h.controller.decline()
+        val sent = h.controller.decline()
         advanceUntilIdle()
 
+        assertNotNull("a ringing decline hands back its request", sent)
+        assertTrue(sent!!.isCompleted)
+        assertEquals(listOf("CA1/ws-1"), h.api.pushApi.declineRequests)
         assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
         assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
         assertTrue(h.notifier.drawn.contains("cancel"))
@@ -251,18 +251,68 @@ class IncomingCallControllerTest {
     }
 
     @Test
-    fun `an unanswered ring times out exactly as a decline does`() = callTest { h ->
-        // ⛔ THE SAME CODE PATH, NOT MERELY THE SAME BEHAVIOUR TODAY. See the class doc: the two
-        // must be indistinguishable, and sharing the path is what guarantees it stays that way.
+    fun `a refused decline is not retried`() = callTest { h ->
+        h.api.pushApi.declineResult = ApiResult.HttpFailure(status = 503, message = "unavailable")
+
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.decline()
+        advanceUntilIdle()
+
+        assertEquals(listOf("CA1/ws-1"), h.api.pushApi.declineRequests)
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+    }
+
+    @Test
+    fun `a decline that never answers is abandoned at its budget`() = callTest { h ->
+        // ⚠️ THE NOTIFICATION'S RECEIVER HOLDS ITS BROADCAST OPEN FOR THIS REQUEST, so it must end
+        // inside the receiver's budget whatever the network does.
+        h.api.pushApi.declineGate = CompletableDeferred()
+
+        h.controller.onIncomingCall("ws-1", "CA1")
+        val sent = h.controller.decline()!!
+        advanceTimeBy(IncomingCallController.DECLINE_BUDGET_MILLIS - 1)
+        runCurrent()
+        assertFalse("still in flight just inside the budget", sent.isCompleted)
+
+        advanceTimeBy(2)
+        runCurrent()
+
+        assertTrue(sent.isCompleted)
+        assertEquals(listOf("CA1/ws-1"), h.api.pushApi.declineRequests)
+    }
+
+    @Test
+    fun `an unanswered ring times out without telling the server anything`() = callTest { h ->
+        // ⛔ NOBODY DECLINED. A timeout reported as a decline would let the server end a ring
+        // another member was about to answer.
         h.answerable()
 
         h.controller.onIncomingCall("ws-1", "CA1")
         advanceTimeBy(RING_MILLIS + 1)
         advanceUntilIdle()
 
+        assertEquals(emptyList<String>(), h.api.pushApi.declineRequests)
         assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
         assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
         assertTrue(h.notifier.drawn.contains("cancel"))
+    }
+
+    @Test
+    fun `a decline after the answer press is a hang-up and sends nothing`() = callTest { h ->
+        // ⚠️ THE RING IS OVER ONCE ANSWER IS PRESSED, so there is nothing left to decline: a headset
+        // button or the OS's surface reaching `decline` now is an ordinary hang-up.
+        h.answerable()
+        h.controller.onIncomingCall("ws-1", "CA1")
+        h.controller.answer()
+        settle()
+        assertEquals(IncomingCallPhase.IN_CALL, h.controller.state.value?.phase)
+
+        val sent = h.controller.decline()
+        settle()
+
+        assertNull(sent)
+        assertEquals(emptyList<String>(), h.api.pushApi.declineRequests)
+        assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
     }
 
     @Test
@@ -471,7 +521,9 @@ class IncomingCallControllerTest {
     }
 
     @Test
-    fun `a hang-up made on a system surface ends the call and sends nothing`() = callTest { h ->
+    fun `a hang-up made on a system surface while ringing is a person's decline`() = callTest { h ->
+        // ⛔ THE LOCK SCREEN'S DECLINE, A HEADSET, A CAR OR A WATCH: each is a person refusing the
+        // ring, and each reaches the controller through Telecom rather than through this app's UI.
         h.answerable()
 
         h.controller.onIncomingCall("ws-1", "CA1")
@@ -479,6 +531,7 @@ class IncomingCallControllerTest {
         advanceUntilIdle()
 
         assertEquals(IncomingCallPhase.ENDED, h.controller.state.value?.phase)
+        assertEquals(listOf("CA1/ws-1"), h.api.pushApi.declineRequests)
         assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
     }
 
@@ -542,12 +595,13 @@ class IncomingCallControllerTest {
         // ⚠️ REACHABLE: a system surface or a stale notification can fire any of these after the
         // screen was cleared, and none may conjure a call or send anything.
         h.controller.answer()
-        h.controller.decline()
+        assertNull("nothing to decline, so nothing sent", h.controller.decline())
         h.controller.dismiss()
         advanceUntilIdle()
 
         assertNull(h.controller.state.value)
         assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
+        assertEquals(emptyList<String>(), h.api.pushApi.declineRequests)
         assertEquals(emptyList<String>(), h.telecom.calls)
     }
 
@@ -846,8 +900,9 @@ class IncomingCallControllerTest {
         assertEquals(listOf("incoming", "disconnected:${DisconnectCause.ANSWERED_ELSEWHERE}"), h.telecom.calls)
         // ⛔ THE RINGING SCREEN IS WITHDRAWN, not left as an ended summary waiting for a Dismiss.
         assertNull(h.controller.state.value)
-        // ⛔ NOTHING IS SENT BACK, exactly as on a decline.
+        // ⛔ NOTHING IS SENT BACK: a withdrawn ring is the server's news, not a person declining.
         assertEquals(emptyList<String>(), h.api.pushApi.answerRequests)
+        assertEquals(emptyList<String>(), h.api.pushApi.declineRequests)
         assertEquals("the ring timeout went with it", 0, liveJobs())
     }
 
@@ -864,7 +919,25 @@ class IncomingCallControllerTest {
                 assertEquals("disconnected:${DisconnectCause.MISSED}", h.telecom.calls.last())
                 assertNull(h.controller.state.value)
             }
+        advanceUntilIdle()
+        assertEquals(emptyList<String>(), h.api.pushApi.declineRequests)
     }
+
+    @Test
+    fun `a decline made on another of this person's devices stops the ring as rejected, not missed`() =
+        callTest { h ->
+            // ⚠️ THE PERSON SAW IT AND SAID NO ELSEWHERE, so the OS's call log must not call it missed.
+            // ⛔ And this device sends nothing: the decline was already sent by the device that made it.
+            h.controller.onIncomingCall("ws-1", "CA1")
+
+            h.controller.onRingCancelled("CA1", RingCancelReason.DECLINED)
+            advanceUntilIdle()
+
+            assertFalse(h.ringer.ringing)
+            assertEquals(listOf("incoming", "disconnected:${DisconnectCause.REJECTED}"), h.telecom.calls)
+            assertNull(h.controller.state.value)
+            assertEquals(emptyList<String>(), h.api.pushApi.declineRequests)
+        }
 
     @Test
     fun `on the device that answered, the cancellation changes nothing`() {

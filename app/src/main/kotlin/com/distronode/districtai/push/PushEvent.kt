@@ -69,6 +69,15 @@ internal enum class RingCancelReason(val wire: String) {
     /** The caller hung up while it rang. */
     CALL_ENDED("call_ended"),
 
+    /**
+     * This person declined on another of their devices, so the ring stops here too.
+     *
+     * ⚠️ NOT A MISSED CALL: the person saw it and said no. Sent only to the decliner's own devices;
+     * a client older than this reason reads it as [WITHDRAWN], which also stops the ring.
+     */
+    DECLINED("declined"),
+
+
     /** The server stopped ringing app devices for any other reason. */
     WITHDRAWN("withdrawn"),
     ;

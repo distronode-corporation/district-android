@@ -8,6 +8,16 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-25
+
+### Added
+
+- Declining an incoming call now tells your AI attendant: once everyone the call rang has
+  declined, it takes a message right away instead of keeping the caller waiting.
+- Message notifications show the sender's name when the contact has one.
+- Urgent messages, and messages from your VIP contacts, get their own notification channel and
+  pop up on screen.
+
 ### Changed
 
 - When a voice engine is not available to the workspace yet, the app says so in its own
@@ -145,7 +155,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.3...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/distronode-corporation/district-android/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/distronode-corporation/district-android/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/distronode-corporation/district-android/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/distronode-corporation/district-android/compare/v3.0.0...v3.0.1

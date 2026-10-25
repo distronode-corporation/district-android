@@ -32,6 +32,7 @@
     <string name="api_error_do_not_call">That number has opted out of contact from this workspace.</string>
     <string name="api_error_emergency_acknowledgement_required">Confirm that you understand this number cannot be used to call 911 or other emergency services, then try again.</string>
     <string name="api_error_emergency_number">Emergency numbers cannot be dialled from this app. Use your phone\'s own dialer.</string>
+    <string name="api_error_engine_unavailable">This voice engine is not available for this workspace yet. Choose another engine.</string>
     <string name="api_error_eu_vat_required">In the European Union we sell to businesses only. Enter your VAT number and we invoice you under the reverse-charge rule.</string>
     <string name="api_error_file_required">Choose a file to upload.</string>
     <string name="api_error_file_too_large">That file is too large.</string>

@@ -32,6 +32,7 @@
     <string name="api_error_do_not_call">Ce numéro a retiré son consentement aux communications de cet espace de travail.</string>
     <string name="api_error_emergency_acknowledgement_required">Confirmez que vous comprenez que ce numéro ne peut pas servir à appeler le 9-1-1 ni aucun autre service d\'urgence, puis réessayez.</string>
     <string name="api_error_emergency_number">Les numéros d\'urgence ne peuvent pas être composés depuis cette application. Utilisez le composeur de votre téléphone.</string>
+    <string name="api_error_engine_unavailable">Ce moteur vocal n\'est pas encore offert pour cet espace de travail. Choisissez un autre moteur.</string>
     <string name="api_error_eu_vat_required">Dans l\'Union européenne, nous vendons uniquement aux entreprises. Saisissez votre numéro de TVA et nous vous facturons selon le régime de l\'autoliquidation.</string>
     <string name="api_error_file_required">Choisissez un fichier à téléverser.</string>
     <string name="api_error_file_too_large">Ce fichier est trop volumineux.</string>

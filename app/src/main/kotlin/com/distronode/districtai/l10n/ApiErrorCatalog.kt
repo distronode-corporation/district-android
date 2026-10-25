@@ -89,6 +89,7 @@ internal val API_ERROR_SENTENCES: Map<String, Int> = mapOf(
     "disclosure_required_in_region" to R.string.api_error_disclosure_required_in_region,
     "model_unavailable_in_region" to R.string.api_error_model_unavailable_in_region,
     "invalid_engine_mix" to R.string.api_error_invalid_engine_mix,
+    "engine_unavailable" to R.string.api_error_engine_unavailable,
     "language_unavailable" to R.string.api_error_language_unavailable,
     "setup_not_available" to R.string.api_error_setup_not_available,
     "forwarding_check_unavailable" to R.string.api_error_forwarding_check_unavailable,

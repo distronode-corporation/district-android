@@ -1616,6 +1616,15 @@ tier = "T2"
 state = "draft"
 note = "The sentence for the server's error code `workflow_conditions_not_allowed`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.workflow_member_push_roles_invalid]
+en = "Choose who gets the notification: administrators, members, or both."
+fr = "Choisissez qui reçoit la notification\u00A0: les administrateurs, les membres ou les deux."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `workflow_member_push_roles_invalid`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.workflow_sms_recipient_invalid]
 en = "A text can be sent to the caller, the owner or a team member only."
 fr = "Un texto ne peut être envoyé qu'à l'appelant, au propriétaire ou à un membre de l'équipe."

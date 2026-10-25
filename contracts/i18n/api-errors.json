@@ -247,6 +247,10 @@
       "en": "Notifying the team works only with the trigger for a message taken during a call.",
       "fr": "La notification de l'équipe ne fonctionne qu'avec le déclencheur d'un message pris pendant un appel."
     },
+    "workflow_member_push_roles_invalid": {
+      "en": "Choose who gets the notification: administrators, members, or both.",
+      "fr": "Choisissez qui reçoit la notification : les administrateurs, les membres ou les deux."
+    },
     "workflow_sms_recipient_invalid": {
       "en": "A text can be sent to the caller, the owner or a team member only.",
       "fr": "Un texto ne peut être envoyé qu'à l'appelant, au propriétaire ou à un membre de l'équipe."

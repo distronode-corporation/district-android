@@ -15,8 +15,14 @@ import org.junit.Test
 internal class RecordingPushNotifier : PushNotifier {
     val drawn: MutableList<String> = mutableListOf()
 
-    override fun showMessage(workspaceId: String, messageId: String) {
-        drawn += "message:$workspaceId:$messageId"
+    /**
+     * ⚠️ The name and the urgent flag are appended only when present, so a plain message records as
+     * it always has.
+     */
+    override fun showMessage(workspaceId: String, messageId: String, senderName: String?, interrupt: Boolean) {
+        drawn += "message:$workspaceId:$messageId" +
+            (senderName?.let { ":name=$it" } ?: "") +
+            (if (interrupt) ":interrupt" else "")
     }
 
     override fun showIncomingCall(workspaceId: String, callId: String) {
@@ -39,15 +45,22 @@ internal class RecordingPushNotifier : PushNotifier {
  */
 class PushMessageHandlerTest {
 
-    private class Harness(private val signedIn: Boolean = true) {
+    private class Harness(private val signedIn: Boolean = true, private val name: String? = null) {
         val notifier = RecordingPushNotifier()
         val calls: MutableList<PushEvent.IncomingCall> = mutableListOf()
         val cancellations: MutableList<PushEvent.RingCancelled> = mutableListOf()
+
+        /** Every sender lookup asked for, as `workspaceId/messageId`. */
+        val lookups: MutableList<String> = mutableListOf()
         val handler = PushMessageHandler(
             signedIn = { signedIn },
             notifier = notifier,
             onIncomingCall = { calls += it },
             onRingCancelled = { cancellations += it },
+            senderName = { workspaceId, messageId ->
+                lookups += "$workspaceId/$messageId"
+                name
+            },
         )
     }
 
@@ -72,6 +85,26 @@ class PushMessageHandlerTest {
         assertEquals(PushEvent.Message("ws-1", "msg-1"), event)
         assertEquals(listOf("message:ws-1:msg-1"), harness.notifier.drawn)
         assertEquals(emptyList<PushEvent.IncomingCall>(), harness.calls)
+        assertEquals(listOf("ws-1/msg-1"), harness.lookups)
+    }
+
+    @Test
+    fun `a message whose sender has a name is titled with it`() = runTest {
+        val harness = Harness(name = "Avery Contract")
+
+        harness.handler.handle(messagePayload())
+
+        assertEquals(listOf("message:ws-1:msg-1:name=Avery Contract"), harness.notifier.drawn)
+    }
+
+    @Test
+    fun `a message flagged as needing the person goes to the urgent channel`() = runTest {
+        val harness = Harness()
+
+        val event = harness.handler.handle(messagePayload() + (PushPayload.KEY_PRIORITY to "interrupt"))
+
+        assertEquals(PushEvent.Message("ws-1", "msg-1", interrupt = true), event)
+        assertEquals(listOf("message:ws-1:msg-1:interrupt"), harness.notifier.drawn)
     }
 
     @Test
@@ -103,6 +136,9 @@ class PushMessageHandlerTest {
 
         assertEquals(emptyList<String>(), harness.notifier.drawn)
         assertEquals(emptyList<PushEvent.IncomingCall>(), harness.calls)
+        // ⛔ AND NO SENDER LOOKUP: the gate comes before the request, so a signed-out device asks
+        // the server nothing about a message it will not show.
+        assertEquals(emptyList<String>(), harness.lookups)
     }
 
     @Test

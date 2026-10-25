@@ -666,8 +666,11 @@
     <string name="push_channel_calls_description">Calls transferred to you from the AI attendant.</string>
     <string name="push_channel_messages">Messages</string>
     <string name="push_channel_messages_description">New messages in your workspace inbox.</string>
+    <string name="push_channel_urgent_messages">Urgent messages</string>
+    <string name="push_channel_urgent_messages_description">Messages your AI attendant marks urgent, and messages from your VIP contacts.</string>
     <string name="push_message_body">Open District AI to read it.</string>
     <string name="push_message_title">New message</string>
+    <string name="push_message_title_named">New message · %1$s</string>
     <string name="push_ongoing_call_body">District AI is connected to a call.</string>
     <string name="push_ongoing_call_title">Call in progress</string>
     <string name="report_accepted">Reported. We\'ll review it.</string>

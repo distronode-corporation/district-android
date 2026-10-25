@@ -52,6 +52,7 @@ import com.distronode.districtai.core.data.PushTokenRepository
 import com.distronode.districtai.push.AndroidPushNotifier
 import com.distronode.districtai.push.FirebasePushTokenSource
 import com.distronode.districtai.push.PushDeepLinks
+import com.distronode.districtai.push.MessageSenderLookup
 import com.distronode.districtai.push.PushMessageHandler
 import com.distronode.districtai.push.PushNotifier
 import com.distronode.districtai.push.PushRegistrar
@@ -696,6 +697,7 @@ class AppContainer(
             onRingCancelled = { event ->
                 incomingCallController.onRingCancelled(event.callId, event.reason)
             },
+            senderName = MessageSenderLookup(inboxExtrasApi)::name,
         )
     }
 

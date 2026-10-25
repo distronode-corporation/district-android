@@ -25,8 +25,15 @@ internal sealed interface PushEvent {
      * threads server-side over a bounded window, so there is no client-side way to turn this into a
      * thread without a request. The notification therefore deep-links to the workspace's INBOX
      * rather than to a thread — see `PushIntents`.
+     *
+     * @property interrupt the server's "needs you" flag (`priority: "interrupt"`): an urgent message,
+     *   or one from a VIP contact. It picks the high-importance channel and nothing else.
      */
-    data class Message(val workspaceId: String, val messageId: String) : PushEvent
+    data class Message(
+        val workspaceId: String,
+        val messageId: String,
+        val interrupt: Boolean = false,
+    ) : PushEvent
 
     /**
      * A call is ringing and this workspace's devices are being asked to take it.
@@ -77,7 +84,6 @@ internal enum class RingCancelReason(val wire: String) {
      */
     DECLINED("declined"),
 
-
     /** The server stopped ringing app devices for any other reason. */
     WITHDRAWN("withdrawn"),
     ;
@@ -109,12 +115,20 @@ internal enum class RingCancelReason(val wire: String) {
  */
 internal object PushPayload {
 
-    /** ⚠️ These five names are the server's push-payload keys, verbatim. */
+    /** ⚠️ These six names are the server's push-payload keys, verbatim. */
     const val KEY_TYPE: String = "type"
     const val KEY_WORKSPACE_ID: String = "workspaceId"
     const val KEY_MESSAGE_ID: String = "messageId"
     const val KEY_CALL_ID: String = "callId"
     const val KEY_REASON: String = "reason"
+
+    /**
+     * ⚠️ OPTIONAL, AND ITS ONE VALUE IS [PRIORITY_INTERRUPT]. The server sends the key only when the
+     * "needs you" rule matches; every other payload is byte-identical to one without it. Any other
+     * value is read as absent, so a future value cannot promote a message by accident.
+     */
+    const val KEY_PRIORITY: String = "priority"
+    const val PRIORITY_INTERRUPT: String = "interrupt"
 
     const val TYPE_MESSAGE: String = "message"
     const val TYPE_INCOMING_CALL: String = "incoming_call"
@@ -138,7 +152,13 @@ internal object PushPayload {
         val workspaceId = data.value(KEY_WORKSPACE_ID) ?: return null
         return when (data.value(KEY_TYPE)) {
             TYPE_MESSAGE -> data.value(KEY_MESSAGE_ID)
-                ?.let { PushEvent.Message(workspaceId = workspaceId, messageId = it) }
+                ?.let {
+                    PushEvent.Message(
+                        workspaceId = workspaceId,
+                        messageId = it,
+                        interrupt = data.value(KEY_PRIORITY) == PRIORITY_INTERRUPT,
+                    )
+                }
             TYPE_INCOMING_CALL -> data.value(KEY_CALL_ID)
                 ?.let { PushEvent.IncomingCall(workspaceId = workspaceId, callId = it) }
             // ⛔ Includes a null type. See the ⛔ on the object: silence is forward compatibility.

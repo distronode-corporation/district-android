@@ -21,6 +21,7 @@ import com.distronode.districtai.core.model.UsageHistoryResponse
 import com.distronode.districtai.core.model.UsageResponse
 import com.distronode.districtai.core.model.ConversationsResponse
 import com.distronode.districtai.core.model.CallAnswerResponse
+import com.distronode.districtai.core.model.CallDeclineResponse
 import com.distronode.districtai.core.model.CallDetailResponse
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.model.CallTranscriptResponse
@@ -1047,6 +1048,17 @@ internal class HttpInboundCallApi(private val client: DistrictApiClient) : Inbou
             serializer = CallAnswerResponse.serializer(),
             body = request.toJson(CallAnswerRequest.serializer()),
         )
+
+    override suspend fun declineCall(
+        callId: String,
+        request: CallDeclineRequest,
+    ): ApiResult<CallDeclineResponse> =
+        client.send(
+            method = "POST",
+            segments = DistrictPaths.callDecline(callId),
+            serializer = CallDeclineResponse.serializer(),
+            body = request.toJson(CallDeclineRequest.serializer()),
+        )
 }
 
 /**
@@ -1383,6 +1395,13 @@ internal object DistrictPaths {
      * family and nothing else.
      */
     fun callAnswer(callId: String): List<String> = CALLS + callId + "answer"
+
+    /**
+     * ⛔ ONE SEGMENT FROM [callAnswer], AND THE TWO DO OPPOSITE THINGS: `answer` takes the call,
+     * `decline` tells the server this person will not. A function for the same reason [callAnswer]
+     * is one: the id sits in the middle of the path.
+     */
+    fun callDecline(callId: String): List<String> = CALLS + callId + "decline"
 
     /**
      * ⛔ UNDER [DISTRICT], WHICH IS THE OPPOSITE PREFIX FROM [NATIVE_DEVICES] DESPITE THE WORD

@@ -4,6 +4,7 @@ import com.distronode.districtai.core.model.AvailabilityResponse
 import com.distronode.districtai.core.model.CallHangUpResponse
 import com.distronode.districtai.core.model.CallHandlingResponse
 import com.distronode.districtai.core.model.MessageSearchResponse
+import com.distronode.districtai.core.model.MessageSenderResponse
 import com.distronode.districtai.core.model.MessageThreadResponse
 import com.distronode.districtai.core.model.PersonaOptionsResponse
 import com.distronode.districtai.core.model.PersonaPreviewForm
@@ -125,6 +126,22 @@ class FakeInboxExtrasApi : InboxExtrasApi {
     override suspend fun messageThread(workspaceId: String, messageId: String): ApiResult<MessageThreadResponse> {
         threadRequests += workspaceId to messageId
         return threadResult
+    }
+
+    /** ⚠️ No name by default: a test about the named title sets one. */
+    var senderResult: ApiResult<MessageSenderResponse> =
+        ApiResult.Success(MessageSenderResponse(success = true))
+
+    /** (workspaceId, messageId) pairs, as [threadRequests]. */
+    val senderRequests = mutableListOf<Pair<String, String>>()
+
+    /** When set, [messageSender] waits for it: a lookup still in flight, or one that never answers. */
+    var senderGate: CompletableDeferred<Unit>? = null
+
+    override suspend fun messageSender(workspaceId: String, messageId: String): ApiResult<MessageSenderResponse> {
+        senderRequests += workspaceId to messageId
+        senderGate?.await()
+        return senderResult
     }
 }
 

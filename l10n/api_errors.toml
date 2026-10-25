@@ -281,6 +281,15 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `emergency_number`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.engine_unavailable]
+en = "This voice engine is not available for this workspace yet. Choose another engine."
+fr = "Ce moteur vocal n'est pas encore offert pour cet espace de travail. Choisissez un autre moteur."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `engine_unavailable`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.eu_vat_required]
 en = "In the European Union we sell to businesses only. Enter your VAT number and we invoice you under the reverse-charge rule."
 fr = "Dans l'Union européenne, nous vendons uniquement aux entreprises. Saisissez votre numéro de TVA et nous vous facturons selon le régime de l'autoliquidation."

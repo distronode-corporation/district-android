@@ -350,6 +350,10 @@
       "en": "This voice chain could not be saved: one of its models, voices or locations is not available for this workspace and language. Choose another and save again.",
       "fr": "Cette chaîne vocale n'a pas pu être enregistrée : un de ses modèles, voix ou emplacements n'est pas offert pour cet espace de travail et cette langue. Choisissez-en un autre et enregistrez de nouveau."
     },
+    "engine_unavailable": {
+      "en": "This voice engine is not available for this workspace yet. Choose another engine.",
+      "fr": "Ce moteur vocal n'est pas encore offert pour cet espace de travail. Choisissez un autre moteur."
+    },
     "language_unavailable": {
       "en": "This language is not available for this workspace yet. Choose another language.",
       "fr": "Cette langue n'est pas encore offerte pour cet espace de travail. Choisissez une autre langue."

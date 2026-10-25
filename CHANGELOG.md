@@ -8,6 +8,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Changed
+
+- When a voice engine is not available to the workspace yet, the app says so in its own
+  words, in English and French, instead of the service's English.
+
 ## [3.0.3] - 2026-10-22
 
 ### Fixed

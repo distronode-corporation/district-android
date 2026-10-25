@@ -5868,16 +5868,16 @@ fr = "Messages urgents"
 ctx = "notification"
 screen = "push notifications"
 tier = "T0"
-state = "draft"
+state = "reviewed"
 note = "The Android notification channel for messages that need the person now (3.1): a message the AI attendant marked urgent, or one from a contact marked VIP. Shown in the system's notification settings, where the person can turn these down separately from ordinary messages."
 
 [push.channel_urgent_messages_description]
 en = "Messages your AI attendant marks urgent, and messages from your VIP contacts."
-fr = "Messages que votre réceptionniste IA juge urgents et messages de vos contacts VIP."
+fr = "Messages que votre réceptionniste IA marque comme urgents et ceux de vos contacts VIP."
 ctx = "notification"
 screen = "push notifications"
 tier = "T0"
-state = "draft"
+state = "reviewed"
 note = "The description of the urgent-messages channel in the system's notification settings. VIP is a tag the person puts on a contact in the web dashboard."
 
 [push.message_body]
@@ -5905,7 +5905,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 args = { name = "str" }
-state = "draft"
+state = "reviewed"
 note = "A message notification's title once the app has fetched the sender's name under its own session (3.1), the iOS wording verbatim. {name} is the contact's display name from the server, never translated, and never a number or an address (the server answers no name instead). The middle dot keeps the name out of the sentence, so French needs no elision before a vowel. Without a name the title stays push.message_title."
 
 [push.ongoing_call_body]

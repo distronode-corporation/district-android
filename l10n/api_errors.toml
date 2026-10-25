@@ -287,7 +287,7 @@ fr = "Ce moteur vocal n'est pas encore offert pour cet espace de travail. Choisi
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `engine_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.eu_vat_required]
@@ -1622,7 +1622,7 @@ fr = "Choisissez qui reçoit la notification\u00A0: les administrateurs, les mem
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_member_push_roles_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_sms_recipient_invalid]

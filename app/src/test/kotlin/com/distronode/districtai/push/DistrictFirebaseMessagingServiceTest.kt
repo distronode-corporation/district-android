@@ -31,6 +31,11 @@ import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import com.distronode.districtai.core.network.testing.FakeDistrictApi
+import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
+import com.distronode.districtai.core.model.MessageSenderResponse
+import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.R
+import android.app.Notification
 
 /**
  * A credential store holding a session, or none: all the push gate reads is whether one exists.
@@ -69,6 +74,12 @@ internal class PushTestApplication : Application(), AppContainerOwner {
 
     val appJob = SupervisorJob()
     val api = FakeDistrictApi()
+
+    /**
+     * ⛔ FAKED BECAUSE A MESSAGE DELIVERY NOW ASKS FOR THE SENDER'S NAME: left to the default, the
+     * real client would reach for production from a unit test.
+     */
+    val inboxExtras = FakeInboxExtrasApi()
     val telecom = FakeTelecomBridge()
     var signedIn = true
 
@@ -97,6 +108,7 @@ internal class PushTestApplication : Application(), AppContainerOwner {
                 pushApi = api.pushApi,
                 pushTokenSource = { null },
                 districtApi = api,
+                inboxExtrasApi = inboxExtras,
                 telecomBridge = telecom,
             ),
         )
@@ -199,6 +211,24 @@ class DistrictFirebaseMessagingServiceTest {
         assertEquals(1, drawn.size)
         assertEquals(AndroidPushNotifier.CHANNEL_MESSAGES, drawn.single().channelId)
         assertTrue(app.telecom.calls.isEmpty())
+    }
+
+    @Test
+    fun `a message is titled with its sender's name, fetched under the app's session`() {
+        app.inboxExtras.senderResult = ApiResult.Success(MessageSenderResponse(success = true, name = "Avery Contract"))
+
+        deliver(
+            service(),
+            mapOf("type" to "message", "workspaceId" to "ws-1", "messageId" to "m-1", "priority" to "interrupt"),
+        )
+
+        val drawn = posted().single()
+        assertEquals(listOf("ws-1" to "m-1"), app.inboxExtras.senderRequests)
+        assertEquals(
+            context.getString(R.string.push_message_title_named, "Avery Contract"),
+            drawn.extras.getCharSequence(Notification.EXTRA_TITLE).toString(),
+        )
+        assertEquals(AndroidPushNotifier.CHANNEL_URGENT_MESSAGES, drawn.channelId)
     }
 
     @Test

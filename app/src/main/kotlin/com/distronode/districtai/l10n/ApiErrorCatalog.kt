@@ -64,6 +64,7 @@ internal val API_ERROR_SENTENCES: Map<String, Int> = mapOf(
     "workflow_conditions_invalid" to R.string.api_error_workflow_conditions_invalid,
     "workflow_conditions_not_allowed" to R.string.api_error_workflow_conditions_not_allowed,
     "workflow_action_needs_message" to R.string.api_error_workflow_action_needs_message,
+    "workflow_member_push_roles_invalid" to R.string.api_error_workflow_member_push_roles_invalid,
     "workflow_sms_recipient_invalid" to R.string.api_error_workflow_sms_recipient_invalid,
     "workflow_sms_recipient_not_member" to R.string.api_error_workflow_sms_recipient_not_member,
     "rate_limited" to R.string.api_error_rate_limited,

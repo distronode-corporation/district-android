@@ -3,6 +3,7 @@ package com.distronode.districtai.core.data
 import com.distronode.districtai.core.model.CallAnswerResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.CallAnswerRequest
+import com.distronode.districtai.core.network.CallDeclineRequest
 import com.distronode.districtai.core.network.InboundCallApi
 
 /**
@@ -58,6 +59,26 @@ class InboundCallRepository(private val api: InboundCallApi) {
                 AnswerOutcome.NotAnswered(result)
             }
             is ApiResult.Failure -> AnswerOutcome.NotAnswered(result)
+        }
+
+    /**
+     * Tell the server this person refused [callId]'s ring.
+     *
+     * ⛔ ONLY FOR A PERSON'S DECLINE. A ring that timed out or that the server withdrew sends
+     * nothing: the server ends a ring early once every member it rang has declined, so a timeout
+     * reported as a decline could end a ring another member was reaching for. The caller of this
+     * function is what decides which is which (see `IncomingCallController.decline`).
+     *
+     * ⛔ ONE ATTEMPT AND NO RETRY, for the reason [answer] has none beyond the client's single 401
+     * refresh. Nothing reads the outcome: the route is idempotent and fails open, so a decline that
+     * is lost costs the caller the rest of the ring and nothing else.
+     *
+     * @return true when the server said `success`; for a test to read, since nothing else does.
+     */
+    suspend fun decline(workspaceId: String, callId: String): Boolean =
+        when (val result = api.declineCall(callId, CallDeclineRequest(workspaceId = workspaceId))) {
+            is ApiResult.Success -> result.value.success
+            is ApiResult.Failure -> false
         }
 
     /**

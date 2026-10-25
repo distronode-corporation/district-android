@@ -72,6 +72,12 @@ internal object ExtraPaths {
     fun messageThread(id: String): List<String> = MESSAGES + id
 
     /**
+     * `messages/{id}/sender`: the sender's display name for a notification title. ⛔ The id is a path
+     * segment arriving from a push, for the reason [messageThread]'s is.
+     */
+    fun messageSender(id: String): List<String> = MESSAGES + id + "sender"
+
+    /**
      * ⛔ ONE SEGMENT FROM `calls/{id}/answer` AND `calls/dial`, AND THE THREE DO OPPOSITE THINGS.
      * This one ENDS a call, `answer` takes one, and `dial` places one.
      */

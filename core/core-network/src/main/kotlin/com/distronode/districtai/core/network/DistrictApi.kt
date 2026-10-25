@@ -1703,6 +1703,30 @@ interface InboundCallApi {
         callId: String,
         request: CallAnswerRequest,
     ): ApiResult<com.distronode.districtai.core.model.CallAnswerResponse>
+
+    /**
+     * A person refused [callId]'s ring on this device.
+     *
+     * ⛔ SENT ONLY FOR A PERSON'S DECLINE, NEVER FOR A RING THAT TIMED OUT OR THAT THE SERVER
+     * WITHDREW (Sean, 2026-10-24, decisions log GitLab #2). The server records the decliner, and
+     * when every member it rang has declined it ends the ring at once and the agent takes a message
+     * instead of holding the caller for the rest of the rendezvous. A timeout reported as a decline
+     * would end a ring another member was about to answer.
+     *
+     * ⛔ ONCE, AND NEVER RETRIED ON TOP OF [DistrictApiClient.send]'S SINGLE 401 REFRESH. The route
+     * is idempotent and fails open (a Redis outage answers 200 and the ring simply runs to its
+     * timeout, as it did before the route existed), so a lost decline costs the caller a few seconds
+     * of ringing and nothing else.
+     *
+     * ⚠️ EXCLUDES `viewer` SERVER-SIDE, like [answerCall]: a viewer's decline is refused with a 403
+     * and the ring runs on, which is the behaviour the server wants for a role that cannot answer.
+     *
+     * @param callId a PATH SEGMENT, through `addPathSegment` like [answerCall]'s.
+     */
+    suspend fun declineCall(
+        callId: String,
+        request: CallDeclineRequest,
+    ): ApiResult<com.distronode.districtai.core.model.CallDeclineResponse>
 }
 
 /**
@@ -1713,6 +1737,16 @@ interface InboundCallApi {
  */
 @kotlinx.serialization.Serializable
 data class CallAnswerRequest(val workspaceId: String)
+
+/**
+ * The decline body: `{workspaceId}` and nothing else.
+ *
+ * ⚠️ ITS OWN TYPE RATHER THAN [CallAnswerRequest] REUSED, although the shapes agree today. The two
+ * routes do opposite things, and a shared type is one refactor away from a decline sending an
+ * answer's field.
+ */
+@kotlinx.serialization.Serializable
+data class CallDeclineRequest(val workspaceId: String)
 
 /**
  * This installation's push registration.

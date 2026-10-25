@@ -121,6 +121,32 @@ class InboxExtrasRequestTest {
     }
 
     @Test
+    fun `the sender lookup is a GET on the message's own sender path, with the workspace in the query`() =
+        runTest {
+            server.enqueue(MockResponse(code = 200, body = """{"success":true,"name":"Avery Contract"}"""))
+
+            val result = inbox().messageSender("ws-2", "msg_abc")
+
+            val recorded = server.takeRequest()
+            assertEquals("GET", recorded.method)
+            assertEquals("/api/district/messages/msg_abc/sender", recorded.url.encodedPath)
+            // ⚠️ THE PUSH'S WORKSPACE, for the reason the thread resolver sends it: omitted, the guard
+            // falls back to the caller's active workspace and the lookup 404s for a real message.
+            assertEquals(setOf("workspaceId"), recorded.url.queryParameterNames)
+            assertEquals("ws-2", recorded.url.queryParameter("workspaceId"))
+            assertEquals("Avery Contract", (result as ApiResult.Success).value.name)
+        }
+
+    @Test
+    fun `a hostile message id stays inside the sender path's one segment`() = runTest {
+        server.enqueue(MockResponse(code = 200, body = """{"success":true,"name":null}"""))
+
+        inbox().messageSender("ws-2", "../../calls/dial")
+
+        assertEquals("/api/district/messages/..%2F..%2Fcalls%2Fdial/sender", server.takeRequest().url.encodedPath)
+    }
+
+    @Test
     fun `the hang-up is a POST on the call's own hangup path, with the workspace in the body`() =
         runTest {
             server.enqueue(MockResponse(code = 200, body = """{"success":true,"ended":true}"""))

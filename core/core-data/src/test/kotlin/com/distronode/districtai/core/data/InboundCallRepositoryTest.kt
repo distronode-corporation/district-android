@@ -1,6 +1,7 @@
 package com.distronode.districtai.core.data
 
 import com.distronode.districtai.core.model.CallAnswerResponse
+import com.distronode.districtai.core.model.CallDeclineResponse
 import com.distronode.districtai.core.network.ApiResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -169,5 +170,34 @@ class InboundCallRepositoryTest {
         repository.answer("ws-1", "CA1")
 
         assertEquals(1, fake.pushApi.answerRequests.size)
+    }
+
+    @Test
+    fun `a decline is sent once, for the push's workspace, and reads the server's success`() = runTest {
+        val fake = FakeDistrictApi()
+
+        val sent = InboundCallRepository(fake).decline("ws-1", "CA1")
+
+        assertTrue(sent)
+        assertEquals(listOf("CA1/ws-1"), fake.pushApi.declineRequests)
+        // ⛔ A DECLINE NEVER WRITES THE ANSWER RENDEZVOUS.
+        assertEquals(emptyList<String>(), fake.pushApi.answerRequests)
+    }
+
+    @Test
+    fun `a refused or unsuccessful decline is not retried`() = runTest {
+        // ⛔ ONE ATTEMPT. The route fails open, so a lost decline costs the caller the rest of the
+        // ring and nothing else; a retry would be a second request for no gain.
+        val refused = FakeDistrictApi().apply {
+            pushApi.declineResult = ApiResult.HttpFailure(status = 503, message = "unavailable")
+        }
+        val unsuccessful = FakeDistrictApi().apply {
+            pushApi.declineResult = ApiResult.Success(CallDeclineResponse(success = false))
+        }
+
+        assertEquals(false, InboundCallRepository(refused).decline("ws-1", "CA1"))
+        assertEquals(false, InboundCallRepository(unsuccessful).decline("ws-1", "CA1"))
+        assertEquals(listOf("CA1/ws-1"), refused.pushApi.declineRequests)
+        assertEquals(listOf("CA1/ws-1"), unsuccessful.pushApi.declineRequests)
     }
 }

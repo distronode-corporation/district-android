@@ -1,16 +1,18 @@
 package com.distronode.districtai.core.network
 
 import com.distronode.districtai.core.model.MessageSearchResponse
+import com.distronode.districtai.core.model.MessageSenderResponse
 import com.distronode.districtai.core.model.MessageThreadResponse
 
 /**
- * The two Inbox reads that address a MESSAGE rather than a thread.
+ * The three Inbox reads that address a MESSAGE rather than a thread.
  *
  * ⛔ THEY BELONG ON `InboxApi` AND ARE HERE ONLY BECAUSE `DistrictApi.kt` IS THE ONE GUARANTEED
  * MERGE CONFLICT while several people are adding endpoints. See [ExtraPaths]. Folding them in is a
  * mechanical move when that stops being true.
  *
- * ⚠️ BOTH ADMIT `viewer`, like every other Inbox read and unlike every Inbox write.
+ * ⚠️ [searchMessages] AND [messageThread] ADMIT `viewer`, like every other Inbox read and unlike every
+ * Inbox write. [messageSender] does not; see its own note.
  */
 interface InboxExtrasApi {
 
@@ -42,4 +44,19 @@ interface InboxExtrasApi {
      * message that exists.
      */
     suspend fun messageThread(workspaceId: String, messageId: String): ApiResult<MessageThreadResponse>
+
+    /**
+     * The display name of the message's sender, for a notification's title.
+     *
+     * ⛔ READ UNDER THIS APP'S OWN SESSION, WHEN A MESSAGE PUSH ARRIVES, AND NEVER CARRIED IN THE
+     * PUSH. The payload stays identifiers only; the name is fetched by a request attributable to the
+     * signed-in person, and the route answers `name: null` rather than an address when the thread
+     * has no named contact, so a number or an email address never reaches the lock screen.
+     *
+     * ⚠️ `agency` AND `client` ONLY: a viewer gets a 403, and the notification keeps its generic
+     * title. The server no longer pushes message alerts to viewers, so that is a race, not a path.
+     *
+     * @param messageId a PATH SEGMENT arriving from a push, percent-encoded like [messageThread]'s.
+     */
+    suspend fun messageSender(workspaceId: String, messageId: String): ApiResult<MessageSenderResponse>
 }

@@ -665,8 +665,11 @@
     <string name="push_channel_calls_description">Appels que la réceptionniste IA vous transfère.</string>
     <string name="push_channel_messages">Messages</string>
     <string name="push_channel_messages_description">Nouveaux messages dans la boîte de réception de l\'espace de travail.</string>
+    <string name="push_channel_urgent_messages">Messages urgents</string>
+    <string name="push_channel_urgent_messages_description">Messages que votre réceptionniste IA marque comme urgents et ceux de vos contacts VIP.</string>
     <string name="push_message_body">Ouvrez District AI pour le lire.</string>
     <string name="push_message_title">Nouveau message</string>
+    <string name="push_message_title_named">Nouveau message · %1$s</string>
     <string name="push_ongoing_call_body">District AI est connecté à un appel.</string>
     <string name="push_ongoing_call_title">Appel en cours</string>
     <string name="report_accepted">Signalé. Nous allons l\'examiner.</string>

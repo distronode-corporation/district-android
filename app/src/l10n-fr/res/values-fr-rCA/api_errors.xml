@@ -180,6 +180,7 @@
     <string name="api_error_workflow_action_needs_message">La notification de l\'équipe ne fonctionne qu\'avec le déclencheur d\'un message pris pendant un appel.</string>
     <string name="api_error_workflow_conditions_invalid">Une des conditions de ce flux n\'est pas valide. Vérifiez chaque condition, puis réessayez.</string>
     <string name="api_error_workflow_conditions_not_allowed">Les conditions ne peuvent s\'ajouter qu\'à un flux qui s\'exécute après un appel.</string>
+    <string name="api_error_workflow_member_push_roles_invalid">Choisissez qui reçoit la notification\u00A0: les administrateurs, les membres ou les deux.</string>
     <string name="api_error_workflow_sms_recipient_invalid">Un texto ne peut être envoyé qu\'à l\'appelant, au propriétaire ou à un membre de l\'équipe.</string>
     <string name="api_error_workflow_sms_recipient_not_member">Cette personne n\'est pas membre de cet espace de travail, alors les textos des flux ne peuvent pas lui être envoyés.</string>
     <string name="api_error_workspace_access_denied">Vous n\'êtes pas membre de cet espace de travail.</string>

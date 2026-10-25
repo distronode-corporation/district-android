@@ -58,6 +58,12 @@ internal class PushMessageHandler(
      * this device is doing with that call, which only the controller knows.
      */
     private val onRingCancelled: (PushEvent.RingCancelled) -> Unit,
+    /**
+     * The sender's display name for a message, or null. ⚠️ BOUNDED AND NEVER THROWING: see
+     * [MessageSenderLookup], whose `name` this is in production. Asked only after the session gate,
+     * so a signed-out device makes no request.
+     */
+    private val senderName: suspend (workspaceId: String, messageId: String) -> String?,
 ) {
 
     /**
@@ -73,7 +79,12 @@ internal class PushMessageHandler(
         // that is not on this device any more.
         if (!signedIn()) return null
         when (event) {
-            is PushEvent.Message -> notifier.showMessage(event.workspaceId, event.messageId)
+            is PushEvent.Message -> notifier.showMessage(
+                workspaceId = event.workspaceId,
+                messageId = event.messageId,
+                senderName = senderName(event.workspaceId, event.messageId),
+                interrupt = event.interrupt,
+            )
             is PushEvent.IncomingCall -> onIncomingCall(event)
             is PushEvent.RingCancelled -> onRingCancelled(event)
         }

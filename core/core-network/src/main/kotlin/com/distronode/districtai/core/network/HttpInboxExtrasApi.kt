@@ -1,9 +1,10 @@
 package com.distronode.districtai.core.network
 
 import com.distronode.districtai.core.model.MessageSearchResponse
+import com.distronode.districtai.core.model.MessageSenderResponse
 import com.distronode.districtai.core.model.MessageThreadResponse
 
-/** [InboxExtrasApi] over [DistrictApiClient]. Two GETs; neither writes anything. */
+/** [InboxExtrasApi] over [DistrictApiClient]. Three GETs; none writes anything. */
 class HttpInboxExtrasApi(private val client: DistrictApiClient) : InboxExtrasApi {
 
     /**
@@ -30,6 +31,16 @@ class HttpInboxExtrasApi(private val client: DistrictApiClient) : InboxExtrasApi
             // arriving from a push cannot climb out of the `messages/` family.
             segments = ExtraPaths.messageThread(messageId),
             serializer = MessageThreadResponse.serializer(),
+            query = mapOf("workspaceId" to workspaceId),
+        )
+
+    override suspend fun messageSender(
+        workspaceId: String,
+        messageId: String,
+    ): ApiResult<MessageSenderResponse> =
+        client.get(
+            segments = ExtraPaths.messageSender(messageId),
+            serializer = MessageSenderResponse.serializer(),
             query = mapOf("workspaceId" to workspaceId),
         )
 }

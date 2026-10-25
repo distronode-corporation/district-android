@@ -1,0 +1,3 @@
+• Refuser un appel entrant avertit maintenant votre réceptionniste IA : dès que toutes les personnes sollicitées ont refusé l'appel, elle prend un message sur-le-champ au lieu de faire patienter l'appelant.
+• Les notifications de message affichent le nom du contact, s'il en a un.
+• Les messages urgents et ceux de vos contacts VIP ont leur propre canal de notification et apparaissent en haut de l'écran.

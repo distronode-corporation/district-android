@@ -8,6 +8,11 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Fixed
+
+- Voice Studio's time-to-first-word meter counts the brain's measured time again while you edit
+  an engine, instead of showing only "at least" a lower figure.
+
 ## [3.1.0] - 2026-10-25
 
 ### Added

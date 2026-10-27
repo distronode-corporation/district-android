@@ -17,8 +17,8 @@ import com.distronode.districtai.ui.settings.workspace.studio.StudioLegFacts.MEA
  * model's residency, a location's residency, a leg's latency text); every number is a measured
  * median the server sent. A stage with no measured median is MISSING, and a missing stage makes
  * the meter "at least". This is section 4 of the server's spec, ported: the chain meter is the
- * region's end-of-turn median, plus the brain's only at the region's own location with thinking
- * off (the setting it was measured on), plus the mouth's (per voice for Deepgram, per model for
+ * region's end-of-turn median, plus the brain's only at the region's own location at the fixed
+ * engines' thinking level (the setting it was measured on, [StudioLegFacts.measuredThinking]), plus the mouth's (per voice for Deepgram, per model for
  * the rest); a realtime meter is a missing end of turn plus the model's.
  */
 internal object StudioLocal {
@@ -65,7 +65,7 @@ internal object StudioLocal {
                 val legs = resolve(engine.mix, studio)
                 listOf(
                     labels.eou to studio.latency.eou?.takeIf { it.source == MEASURED },
-                    labels.llmTtft to legs?.let { StudioLegFacts.brainMeasured(engine.mix, it.brain) },
+                    labels.llmTtft to legs?.let { StudioLegFacts.brainMeasured(engine.mix, it.brain, studio) },
                     labels.ttsTtfb to legs?.let { StudioLegFacts.mouthMeasured(engine.mix, it.mouth, studio) },
                 )
             }
@@ -128,7 +128,8 @@ internal object StudioLocal {
                 labels.channels.stable, turn.detector.where, null, null, LatencyText.of(turn.latency),
             )
         }
-        val brainLatency = brain.latency?.takeIf { it.source != MEASURED || StudioLegFacts.brainLocal(mix, brain) }
+        val brainLatency =
+            brain.latency?.takeIf { it.source != MEASURED || StudioLegFacts.brainLocal(mix, brain, studio) }
         return listOf(
             BlockView(
                 "stt", labels.legs.stt, role(roles, "stt"), "${ear.providerLabel} ${ear.label}", ear.channel,

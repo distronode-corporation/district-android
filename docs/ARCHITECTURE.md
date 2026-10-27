@@ -52,7 +52,9 @@ module.
   through `CallEngine`.
 - **Push.** `push/` initialises Firebase from constants rather than a `google-services.json`,
   receives FCM messages whose payload carries ids only, and turns them into notifications and
-  deep links.
+  deep links. A message notification is titled with the sender's name when the app's own session
+  can fetch it within a few seconds, and goes to a high-importance channel when the payload flags
+  it as needing the person.
 - **Sign-in and app links.** `auth/` launches the server's login page in a Custom Tab and
   handles the `districtai://auth` return; `applinks/` resolves verified `https` links into
   in-app destinations.

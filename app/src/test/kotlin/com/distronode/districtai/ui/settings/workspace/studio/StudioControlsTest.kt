@@ -169,7 +169,7 @@ class StudioControlsTest {
 
         val brain = on(StudioLegEdits.BRAIN)
         val thinking = control(StudioTuningValues.THINKING, brain) as TuningControl.Choice
-        assertEquals(listOf("off", "dynamic"), thinking.options.map { it.value })
+        assertEquals(listOf("minimal", "low", "medium", "high"), thinking.options.map { it.value })
 
         val unknown = ready.withMix { it.copy(llm = it.llm.copy(model = "unknown")) }
         val none = StudioTuningControls.of(key(StudioTuningValues.THINKING), unknown, StudioTestActions(unknown))

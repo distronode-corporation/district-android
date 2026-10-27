@@ -111,6 +111,33 @@ class PushRequestTest {
     }
 
     @Test
+    fun `decline posts the call's own decline path with only the workspace in the body`() = runTest {
+        // ⛔ ONE SEGMENT FROM `answer`, AND THE TWO DO OPPOSITE THINGS. A decline built on the answer
+        // path would write the rendezvous and tell the agent a human took the call.
+        server.enqueue(ok("""{"success":true}"""))
+
+        val result = inbound().declineCall("CA1", CallDeclineRequest(workspaceId = "ws-1"))
+
+        val recorded = server.takeRequest()
+        assertEquals("POST", recorded.method)
+        assertEquals("/api/district/calls/CA1/decline", recorded.url.encodedPath)
+        assertTrue(recorded.url.queryParameterNames.isEmpty())
+        val body = Json.parseToJsonElement(recorded.body?.utf8().orEmpty()) as JsonObject
+        assertEquals(setOf("workspaceId"), body.keys)
+        assertEquals("ws-1", body["workspaceId"]?.jsonPrimitive?.content)
+        assertEquals(true, (result as ApiResult.Success).value.success)
+    }
+
+    @Test
+    fun `a decline call id containing slashes cannot escape its segment`() = runTest {
+        server.enqueue(ok("""{"success":true}"""))
+
+        inbound().declineCall("a/../../answer", CallDeclineRequest(workspaceId = "ws-1"))
+
+        assertEquals("/api/district/calls/a%2F..%2F..%2Fanswer/decline", server.takeRequest().url.encodedPath)
+    }
+
+    @Test
     fun `a call id containing slashes cannot escape its segment`() = runTest {
         // ⛔ THE `a/../../admin` CASE, WHICH ALREADY HAPPENED ONCE ON THE TRANSCRIPT ROUTE. OkHttp's
         // `addPathSegments` SPLITS on "/" instead of encoding it, and OkHttp then resolves "..", so

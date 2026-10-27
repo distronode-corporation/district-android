@@ -17,15 +17,29 @@ import com.distronode.districtai.R
  * behind this interface is how they are asserted. See [AndroidPushNotifier] for the half that
  * genuinely needs a device.
  *
- * ⛔ NOTHING HERE TAKES CONTENT, ONLY IDENTIFIERS, AND THAT IS THE SERVER'S PRIVACY DECISION
- * SURVIVING INTO THE UI. The payload carries no message body and no caller number precisely because
- * a notification is readable by the OS and by any notification-listener app; a signature here that
- * accepted a body would be an invitation to start sending one.
+ * ⛔ NOTHING HERE TAKES CONTENT FROM THE PAYLOAD, AND THE ONE THING THAT IS NOT AN IDENTIFIER IS
+ * FETCHED, NOT PUSHED. The payload carries no message body and no caller number precisely because a
+ * notification is readable by the OS and by any notification-listener app. The sender's display
+ * name on a message alert (3.1, matching iOS) is read by `MessageSenderLookup` under this app's own
+ * session after the push arrives, and the route answers null rather than an address for an unnamed
+ * sender, so a number or an email address still never reaches the shade. ⛔ A signature here that
+ * accepted a message body would be an invitation to start sending one.
  */
 internal interface PushNotifier {
 
-    /** A message arrived. ⚠️ Tapping it opens the workspace's INBOX, not a thread — see [PushEvent.Message]. */
-    fun showMessage(workspaceId: String, messageId: String)
+    /**
+     * A message arrived. ⚠️ Tapping it opens the workspace's INBOX, not a thread — see [PushEvent.Message].
+     *
+     * @param senderName the sender's display name, fetched under the app's session; null keeps the
+     *   generic title, which is also what every failure to fetch it falls back to.
+     * @param interrupt the server's "needs you" flag: posts to the high-importance channel.
+     */
+    fun showMessage(
+        workspaceId: String,
+        messageId: String,
+        senderName: String? = null,
+        interrupt: Boolean = false,
+    )
 
     /**
      * A call is ringing.
@@ -94,6 +108,20 @@ internal class AndroidPushNotifier(
         )
         manager.createNotificationChannel(
             NotificationChannel(
+                CHANNEL_URGENT_MESSAGES,
+                appContext.getString(R.string.push_channel_urgent_messages),
+                // ⛔ HIGH, AND A CHANNEL OF ITS OWN RATHER THAN A PRIORITY ON THE MESSAGES ONE.
+                // Importance belongs to the channel, not the notification, from API 26, and the user
+                // owns it afterwards: a separate channel is the only way to make "needs you" heads-up
+                // while letting a person who finds it too loud turn just these down, and to leave
+                // ordinary messages exactly as quiet as they were.
+                NotificationManager.IMPORTANCE_HIGH,
+            ).apply {
+                description = appContext.getString(R.string.push_channel_urgent_messages_description)
+            },
+        )
+        manager.createNotificationChannel(
+            NotificationChannel(
                 CHANNEL_INCOMING_CALLS,
                 appContext.getString(R.string.push_channel_calls),
                 // ⛔ HIGH, WHICH IS WHAT MAKES IT A HEADS-UP. At DEFAULT the platform posts it to
@@ -117,11 +145,17 @@ internal class AndroidPushNotifier(
      * tap with its own message. ⚠️ Two messages whose ids hash to the same notification id still
      * share a pending intent, which is consistent: the second notification has replaced the first.
      */
-    override fun showMessage(workspaceId: String, messageId: String) {
+    override fun showMessage(workspaceId: String, messageId: String, senderName: String?, interrupt: Boolean) {
         val id = messageNotificationId(messageId)
-        val notification = Notification.Builder(appContext, CHANNEL_MESSAGES)
+        val channel = if (interrupt) CHANNEL_URGENT_MESSAGES else CHANNEL_MESSAGES
+        // ⚠️ THE NAME IS THE SERVER'S DISPLAY NAME, NEVER TRANSLATED; the middle dot keeps it out of
+        // the sentence, so the French needs no elision before a vowel (the iOS wording, verbatim).
+        val title = senderName
+            ?.let { appContext.getString(R.string.push_message_title_named, it) }
+            ?: appContext.getString(R.string.push_message_title)
+        val notification = Notification.Builder(appContext, channel)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(appContext.getString(R.string.push_message_title))
+            .setContentTitle(title)
             .setContentText(appContext.getString(R.string.push_message_body))
             .setAutoCancel(true)
             .setContentIntent(
@@ -219,6 +253,9 @@ internal class AndroidPushNotifier(
     internal companion object {
 
         const val CHANNEL_MESSAGES: String = "messages"
+
+        /** ⚠️ A NEW ID, never a renamed one: an existing channel's importance is the user's. */
+        const val CHANNEL_URGENT_MESSAGES: String = "messages_urgent"
         const val CHANNEL_INCOMING_CALLS: String = "incoming_calls"
 
         /**

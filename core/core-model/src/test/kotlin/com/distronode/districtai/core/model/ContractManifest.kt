@@ -30,7 +30,7 @@ internal object ContractManifest {
      * without re-counting. A new fixture should arrive DECODED by its own test, so the count moves
      * and [NOT_YET_MODELLED] does not grow, which it may not.
      */
-    const val EXPECTED_FIXTURE_COUNT: Int = 187
+    const val EXPECTED_FIXTURE_COUNT: Int = 192
 
     /**
      * ⛔ SHRINK-ONLY RATCHET. [NOT_YET_MODELLED] may LOSE entries and must never gain one.
@@ -59,14 +59,34 @@ internal object ContractManifest {
      */
     val NOT_YET_MODELLED: Set<String> = setOf(
         // ── Alternate branches of endpoints this client already decodes (4) ──────────────────
-        // ⚠️ NOT ONE MISSING TYPE BETWEEN THEM, AND THAT IS THE WHOLE REMAINING LIST. The two
-        // `*-patch` bodies are the bare `{"success": true}` a single `SuccessResponse` already
-        // covers, and `district-dial-dormant` / `district-workspace-list-partial` are the SECOND
-        // branch of a route whose first branch is gated today. What is missing is a test that
-        // reads the branch, not a DTO to read it with.
+        // ⚠️ NOT ONE MISSING TYPE BETWEEN THEM. The two `*-patch` bodies are the bare
+        // `{"success": true}` a single `SuccessResponse` already covers, and
+        // `district-dial-dormant` / `district-workspace-list-partial` are the SECOND branch of a
+        // route whose first branch is gated today. What is missing is a test that reads the
+        // branch, not a DTO to read it with.
         "district-dial-dormant.json",
         "district-directory-patch.json",
         "district-routing-patch.json",
         "district-workspace-list-partial.json",
+    )
+
+    /**
+     * Fixtures for routes Android never calls, because the feature is not on Android.
+     *
+     * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Both entries are the iOS Live Activity
+     * routes (the call card on the Lock Screen and its push-to-start token). A DTO and a decode
+     * test for a route nothing here calls would be coverage of nothing, so they are not in the
+     * shrink-only list either. They are here only because the corpus is shared with iOS and every
+     * file must be accounted for.
+     *
+     * ⛔ PINNED EXACTLY: [ContractManifestTest] fails on any entry not on disk, any entry that
+     * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
+     * to be absent from Android, written down in the entry's comment.
+     */
+    const val NOT_ON_ANDROID_COUNT: Int = 2
+
+    val NOT_ON_ANDROID: Set<String> = setOf(
+        "district-call-live-activity.json", // iOS Live Activity: the call card
+        "district-live-activity-start-token.json", // iOS Live Activity: push-to-start token
     )
 }

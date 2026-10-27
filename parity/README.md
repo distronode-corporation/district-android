@@ -1,43 +1,38 @@
 # parity/
 
-`EndpointID.swift` is a copy of the iOS client's closed list of API endpoints. It is read by
+`EndpointID.swift` is a copy of the Apple clients' closed list of API endpoints. It is read by
 `EndpointParityTest` in `:core:core-network`, which diffs it against this client's API
 interfaces so that an endpoint added on one platform cannot go unnoticed on the other. Nothing
 compiles it; only its `case` lines are read.
 
 ## Where it comes from
 
+The list lives in the shared Swift core that the iOS and macOS apps both build, not in the iOS
+app's repository (whose `Packages/DistrictCore` it left when the core moved out).
+
 | | |
 | --- | --- |
-| Upstream | the District iOS client, [`distronode-corporation/district-ios`](https://github.com/distronode-corporation/district-ios) |
-| Path upstream | `Packages/DistrictCore/Sources/DistrictNetwork/EndpointID.swift` |
-| Upstream commit | [`4be221e`](https://github.com/distronode-corporation/district-ios/commit/4be221e676b84e6c29723c9aad43fca9d23bba74) ("Initial public release", 2026-09-21) |
-| SHA-256 of this copy | `4cafe01bfca482388649c8a339d57fc77b8fe2afd2f43a2bdb54081dcd3fd7a6` |
+| Upstream | the shared Swift core, [`distronode-corporation/district-core-swift`](https://github.com/distronode-corporation/district-core-swift) |
+| Path upstream | `Sources/DistrictNetwork/EndpointID.swift` |
+| Upstream tag | [`8.0.0`](https://github.com/distronode-corporation/district-core-swift/blob/8.0.0/Sources/DistrictNetwork/EndpointID.swift) (commit [`dabfa0f`](https://github.com/distronode-corporation/district-core-swift/commit/dabfa0fffb76fe190f86be87cb69242e58e5da09), "8.0.0: decline, whisper, notify-read token and message sender") |
+| SHA-256 of this copy | `ede0a464f9239b1eb4aabe1ae664ff2badaa7f213c489ec9f740f0486b8a3b1d` |
 
 The file is copied byte for byte. Do not edit it here: a local edit makes the parity test
 compare this client against an iOS client that does not exist.
 
-## Cases the server has retired
-
-The snapshot still declares `callRecordingUrl` and `schedulingAdminDownload`. The server removed
-both routes (call recordings and the scheduler's recording download are gone), and this client
-has already dropped them; `EndpointParity.RETIRED_PENDING_IOS` records the two so the parity test
-passes until iOS drops them too. The refresh that follows that iOS change fails until the set is
-emptied, which is the intended reminder.
-
 ## Refreshing it
 
-From a checkout of district-ios at the commit you want:
+From a checkout of district-core-swift at the tag you want:
 
 ```sh
-cp ../district-ios/Packages/DistrictCore/Sources/DistrictNetwork/EndpointID.swift parity/EndpointID.swift
-sha256sum parity/EndpointID.swift
+cp ../district-core-swift/Sources/DistrictNetwork/EndpointID.swift parity/EndpointID.swift
+shasum -a 256 parity/EndpointID.swift
 ./gradlew :core:core-network:testDebugUnitTest --tests '*EndpointParityTest'
 ```
 
-Then update the commit and the SHA-256 in the table above, in the same commit as the copy. If the
-parity test fails after a refresh, iOS has gained or lost an endpoint: implement it here or
-record it in `EndpointParity.kt`, as the failure message says.
+Then update the tag, the commit and the SHA-256 in the table above, in the same commit as the
+copy. If the parity test fails after a refresh, the Apple clients have gained or lost an
+endpoint: implement it here or record it in `EndpointParity.kt`, as the failure message says.
 
 ## Testing against a live checkout without copying
 
@@ -45,7 +40,7 @@ record it in `EndpointParity.kt`, as the failure message says.
 this snapshot. A relative path resolves against the repository root.
 
 ```sh
-DISTRICT_IOS_ENDPOINT_IDS=../district-ios/Packages/DistrictCore/Sources/DistrictNetwork/EndpointID.swift \
+DISTRICT_IOS_ENDPOINT_IDS=../district-core-swift/Sources/DistrictNetwork/EndpointID.swift \
   ./gradlew :core:core-network:testDebugUnitTest --tests '*EndpointParityTest'
 ```
 

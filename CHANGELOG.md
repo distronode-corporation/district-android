@@ -8,6 +8,25 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Fixed
+
+- Voice Studio's time-to-first-word meter counts the brain's measured time again while you edit
+  an engine, instead of showing only "at least" a lower figure.
+
+## [3.1.0] - 2026-10-25
+
+### Added
+
+- Declining an incoming call now tells your AI attendant: once everyone the call rang has
+  declined, it takes a message right away instead of keeping the caller waiting.
+- Message notifications show the sender's name when the contact has one.
+- Urgent messages, and messages from your VIP contacts, get their own notification channel and
+  pop up on screen.
+
+### Changed
+
+- A voice engine your workspace cannot use yet is explained in your language.
+
 ## [3.0.3] - 2026-10-22
 
 ### Fixed
@@ -140,7 +159,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.0.3...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/distronode-corporation/district-android/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/distronode-corporation/district-android/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/distronode-corporation/district-android/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/distronode-corporation/district-android/compare/v3.0.0...v3.0.1

@@ -107,9 +107,10 @@ class DistrictConnectionService : android.telecom.ConnectionService() {
     /**
      * ⚠️ THE SAME CLEAN-UP, FOR THE INBOUND CASE. Telecom refuses an incoming call it cannot honour
      * — most commonly because a cellular call is already in progress, which is exactly when a
-     * softphone ring is least welcome. ⛔ Nothing is told to the server here on purpose: an incoming
-     * call the OS refused must look identical to one the user declined and to one nobody heard, so
-     * the rendezvous is left to time out. See `IncomingCallController`.
+     * softphone ring is least welcome. ⛔ Nothing is told to the server here on purpose: the OS
+     * refusing a call is not a person declining it, so it is treated like a ring nobody heard and
+     * the rendezvous is left to time out. Only a person's decline is sent; see
+     * `IncomingCallController`.
      */
     override fun onCreateIncomingConnectionFailed(
         connectionManagerPhoneAccount: PhoneAccountHandle?,

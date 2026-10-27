@@ -54,7 +54,7 @@ class ContractManifestTest {
      * ⛔ THE MANIFEST IS ITSELF A KOTLIN TEST SOURCE FULL OF FIXTURE NAMES, AND LEAVING IT IN THE
      * WALK RETIRES THE ENTIRE GATE. [ContractManifest.NOT_YET_MODELLED] is 4 quoted `.json`
      * literals under `core-model/src/test/` (it was 54 before the scheduling-admin, persona and
-     * message-thread packets), so a naive scan reads every recorded debt as decoded:
+     * message-thread packets) and [ContractManifest.NOT_ON_ANDROID] 2 more, so a naive scan reads every recorded debt as decoded:
      * the skip list looks 100% burned down, `unaccounted` comes out empty, and the whole thing
      * goes green while checking nothing. Caught here before this test ever ran, by counting the
      * scan's hits against `grep`.
@@ -140,7 +140,8 @@ class ContractManifestTest {
     fun `every fixture is decoded or recorded as not yet modelled`() {
         val onDisk = fixturesOnDisk()
         val decoded = decodedFixtures(onDisk)
-        val unaccounted = (onDisk - decoded - ContractManifest.NOT_YET_MODELLED).sorted()
+        val unaccounted =
+            (onDisk - decoded - ContractManifest.NOT_YET_MODELLED - ContractManifest.NOT_ON_ANDROID).sorted()
         assertEquals(
             "These fixtures are decoded by no Kotlin test and are not recorded in " +
                 "ContractManifest.NOT_YET_MODELLED, so nothing but a non-empty-directory check " +
@@ -193,6 +194,35 @@ class ContractManifestTest {
                 "92 entries and enforced nothing for months. Lower it to the list's size.",
             ContractManifest.NOT_YET_MODELLED.size,
             ContractManifest.NOT_YET_MODELLED_BASELINE,
+        )
+    }
+
+    @Test
+    fun `the not-on-android set is exact, on disk and decoded by nothing`() {
+        val onDisk = fixturesOnDisk()
+        val decoded = decodedFixtures(onDisk)
+        assertEquals(
+            "ContractManifest.NOT_ON_ANDROID changed size. It holds fixtures for features Android " +
+                "does not have; adding one needs that written down, and NOT_ON_ANDROID_COUNT moved " +
+                "in the same commit.",
+            ContractManifest.NOT_ON_ANDROID_COUNT,
+            ContractManifest.NOT_ON_ANDROID.size,
+        )
+        assertEquals(
+            "ContractManifest.NOT_ON_ANDROID names fixtures that are not on disk: delete them.",
+            emptyList<String>(),
+            (ContractManifest.NOT_ON_ANDROID - onDisk).sorted(),
+        )
+        assertEquals(
+            "These NOT_ON_ANDROID fixtures ARE decoded by a Kotlin test, so Android does use them: " +
+                "move them out of NOT_ON_ANDROID.",
+            emptyList<String>(),
+            ContractManifest.NOT_ON_ANDROID.filter { it in decoded }.sorted(),
+        )
+        assertEquals(
+            "A fixture is in both NOT_ON_ANDROID and NOT_YET_MODELLED; it belongs in one.",
+            emptyList<String>(),
+            (ContractManifest.NOT_ON_ANDROID intersect ContractManifest.NOT_YET_MODELLED).sorted(),
         )
     }
 }

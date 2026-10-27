@@ -176,6 +176,34 @@ class PushPayloadTest {
             PushEvent.RingCancelled("CA1", RingCancelReason.TIMEOUT),
             message(type, call, reason("timeout")),
         )
+        // ⚠️ THIS PERSON DECLINED ON ANOTHER DEVICE: its own reason, so it is not read as missed.
+        assertEquals(
+            PushEvent.RingCancelled("CA1", RingCancelReason.DECLINED),
+            message(type, call, reason("declined")),
+        )
+    }
+
+    @Test
+    fun `only the exact interrupt priority marks a message as needing the person`() {
+        val base = arrayOf(
+            PushPayload.KEY_TYPE to PushPayload.TYPE_MESSAGE,
+            PushPayload.KEY_WORKSPACE_ID to "ws-1",
+            PushPayload.KEY_MESSAGE_ID to "msg-1",
+        )
+
+        assertEquals(PushEvent.Message("ws-1", "msg-1"), message(*base))
+        assertEquals(
+            PushEvent.Message("ws-1", "msg-1", interrupt = true),
+            message(*base, PushPayload.KEY_PRIORITY to "interrupt"),
+        )
+        assertEquals(
+            PushEvent.Message("ws-1", "msg-1", interrupt = true),
+            message(*base, PushPayload.KEY_PRIORITY to " interrupt "),
+        )
+        // ⛔ A VALUE THIS BUILD DOES NOT KNOW PROMOTES NOTHING.
+        listOf("high", "INTERRUPT", "", "time-sensitive").forEach {
+            assertEquals(PushEvent.Message("ws-1", "msg-1"), message(*base, PushPayload.KEY_PRIORITY to it))
+        }
     }
 
     @Test

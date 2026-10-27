@@ -21,10 +21,12 @@ import com.distronode.districtai.push.PushIntents
  * and, on API 26+, would not be delivered to a manifest-registered receiver at all, so the feature
  * would fail in the ordinary case and leak the call id in the exotic one. See [PushIntents.declineCall].
  *
- * ⛔ **IT TELLS THE SERVER NOTHING**, which is the whole design and not an oversight of this class.
- * A declined ring and an unanswered one must be indistinguishable from outside — see
- * [IncomingCallController] — so this routes to the same `decline()` a timeout does, and that method
- * makes no request.
+ * ⛔ **A PERSON PRESSED IT, SO IT DECLINES: `decline()` SENDS `calls/{id}/decline` ONCE** (see
+ * [IncomingCallController]; a ring timeout takes a different exit and sends nothing). The request
+ * runs on the application scope, and this receiver holds its broadcast open with [goAsync] until it
+ * is done: a receiver's process may be reclaimed as soon as `onReceive` returns, which on a phone
+ * with no Activity up would cut the request off before the server heard it. The controller bounds
+ * the request well inside the receiver's budget.
  *
  * ⚠️ IT READS NO EXTRAS BEYOND THE ACTION. The call id travels on the intent for diagnostics and for
  * `PendingIntent` uniqueness, but there is at most one live inbound call by construction (one
@@ -40,6 +42,14 @@ class IncomingCallActionReceiver : BroadcastReceiver() {
         // broadcast and has no lifetime of its own. A null cast is only reachable under a test
         // harness with a stub application, and doing nothing is the right answer there.
         val container = (context.applicationContext as? AppContainerOwner)?.container ?: return
-        container.incomingCallController.decline()
+        // ⚠️ NULLABLE ON PURPOSE: `goAsync` answers null when the receiver was invoked directly
+        // rather than by the system (a test harness), and there is then nothing to hold open.
+        val pending: PendingResult? = goAsync()
+        val sent = container.incomingCallController.decline()
+        if (sent == null) {
+            pending?.finish()
+        } else {
+            sent.invokeOnCompletion { pending?.finish() }
+        }
     }
 }

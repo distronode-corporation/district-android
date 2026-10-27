@@ -1,23 +1,23 @@
 {
-  "signed_off_by": "3.0.3 Android worker (Opus 5.5), French review of every catalog change since v3.0.2, 2026-10-22; for the v3 manager's confirmation at the gate",
-  "release": "v3.0.3",
-  "commit": "91e9f26532dc708021a75b1b3436c98caedd1c78",
+  "signed_off_by": "ThinkPad manager session 78da7e6a (Opus 5.5), 2026-10-25: xhigh fr-CA review of every catalog change in feat/watch-round2, with Sean's choices applied (must-fix plus all suggestions; the service's copied French is fixed upstream in the next monorepo batch). The catalog changes since v3.0.3 from #88 and #90 were reviewed when they merged.",
+  "release": "v3.1.0",
+  "commit": "02702a0a13c9e2f9009022e7133801e0c4e2b756",
   "catalogs": [
     {
       "path": "l10n/android.toml",
-      "sha256": "a25ca01887346bcdeb2b312e9429036da55df46ef06e7655ffd04147e3b1f0ab"
+      "sha256": "4f8973b572d2c7f7f348444e0e4d3b9148562d49217f13bbb718990cb31d8516"
     },
     {
       "path": "l10n/api_errors.toml",
-      "sha256": "417dfabc8ae9a345f205c9bf31e3ce20ae6d47e8ec486101e4515d7d44d7400a"
+      "sha256": "3933ab6d8d3e2355de7989335165f3e12b89465000d5fb00422b734f77981c3f"
     },
     {
       "path": "l10n/numbers.toml",
-      "sha256": "ac690123032cdee9958f1baa0bc519305ba3d4c47448ee810c1307d133f4295f"
+      "sha256": "4b476f77bc6853b5102cb619df8145044741239c077910c8c10d4af77e4d905e"
     },
     {
       "path": "l10n/scheduling.toml",
-      "sha256": "9628f914763277ca8768cf3d49a688a8cb360f8ab629fa389f20894e97b67ef4"
+      "sha256": "92a9b5a44d6b275c6d0e1a3f8b4a7ef947fc8307c3d0ec6d1de5721f19686746"
     },
     {
       "path": "l10n/wire_labels.toml",

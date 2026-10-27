@@ -3,9 +3,9 @@ package com.distronode.districtai.core.network
 /**
  * The recorded difference between this client's endpoint surface and the iOS one.
  *
- * ⛔ WHY THIS EXISTS. `EndpointID.swift` holds 118 cases and this module declares 101 `suspend
- * fun`s across the API interfaces in ten files, and without [EndpointParityTest] NOTHING compares
- * the two. A hand-kept parity document can list endpoints as missing on the Kotlin side that
+ * ⛔ WHY THIS EXISTS. `EndpointID.swift` holds 124 cases (district-core-swift 8.0.0) and this
+ * module declares its `suspend fun`s across a dozen API interface files, and without
+ * [EndpointParityTest] NOTHING compares the two. A hand-kept parity document can list endpoints as missing on the Kotlin side that
  * already ship here. A parity claim nobody can re-derive rots, quietly, in the direction of
  * flattering whichever document was written last.
  *
@@ -25,13 +25,18 @@ internal object EndpointParity {
 
     /**
      * ⛔ SHRINK-ONLY RATCHET, the same contract as `ContractManifest.NOT_YET_MODELLED_BASELINE` in
-     * :core:core-model. [MISSING_ON_ANDROID] may LOSE entries and must never gain one: when an
-     * endpoint lands here, delete its line AND lower this literal in the same commit.
+     * :core:core-model. [MISSING_ON_ANDROID] may LOSE entries: when an endpoint lands here, delete
+     * its line AND lower this literal in the same commit.
+     *
+     * ⚠️ RAISED FROM 0 TO 3 ONCE, AT THE district-core-swift 8.0.0 REFRESH (Apple Watch round 2),
+     * and only for endpoints this client has no use for rather than ones it has yet to build; each
+     * entry says why. That is the one reason the ratchet may move up, and it is decided by the
+     * maintainers in review, never to get a red build green.
      *
      * ⚠️ KEPT EQUAL TO THE ENTRY COUNT, never above it. A baseline with slack is a budget rather
      * than a ratchet: it enforces nothing until the slack is used up.
      */
-    const val MISSING_ON_ANDROID_BASELINE: Int = 0
+    const val MISSING_ON_ANDROID_BASELINE: Int = 3
 
     /**
      * The places the clients spell the same endpoint differently, keyed by the KOTLIN function
@@ -74,20 +79,33 @@ internal object EndpointParity {
      * ⚠️ SELF-CLEANING. [EndpointParityTest] requires every entry to still be a case in the iOS
      * source AND absent here, so the snapshot refresh that follows the iOS removal fails until
      * this set is emptied. It may never gain an entry for any other reason.
+     *
+     * ⚠️ EMPTY SINCE THE district-core-swift 8.0.0 SNAPSHOT, which no longer declares
+     * `callRecordingUrl` or `schedulingAdminDownload`.
      */
-    val RETIRED_PENDING_IOS: Set<String> = setOf(
-        "callRecordingUrl",
-        "schedulingAdminDownload",
-    )
+    val RETIRED_PENDING_IOS: Set<String> = emptySet()
 
     /**
      * Endpoints iOS declares and this client does not, after normalisation.
      *
-     * ⚠️ EMPTY SINCE 3.0. The sixteen number, carrier and registration endpoints that sat here are
-     * on [NumberProvisioningApi] and [CarrierAccountApi]; buying a number stays on the web on both
-     * clients and has no case on either side.
+     * ⚠️ EVERY ENTRY IS ONE THIS CLIENT HAS NO USE FOR, NOT ONE IT HAS YET TO BUILD. The sixteen
+     * number, carrier and registration endpoints that sat here until 3.0 are on
+     * [NumberProvisioningApi] and [CarrierAccountApi].
      */
-    val MISSING_ON_ANDROID: Set<String> = emptySet()
+    val MISSING_ON_ANDROID: Set<String> = setOf(
+        // ⚠️ THE ACCOUNT'S OWN SETTINGS READ (`GET /api/settings`). The Apple clients read the stored
+        // language back from it; this client only writes the language (`saveLocale`) and keeps its
+        // last saved value on the device, so it never needs the read.
+        "accountSettings",
+        // ⚠️ iOS-ONLY BY DESIGN: the long-lived read token the iOS notification service extension
+        // spends on `messageSender`, because an extension runs outside the app and cannot use the
+        // app's session. This client builds its notifications in its own process, under its own
+        // session, and has no extension to hand a second credential to.
+        "notifyToken",
+        // ⚠️ THE WATCH'S "STEER THE AGENT" LINE (`POST calls/whisper`), used by the Apple Watch live
+        // transcript. This client has no live-call steering surface; the entry leaves if one is built.
+        "whisper",
+    )
 
     /**
      * Endpoints this client declares and iOS does not.
@@ -105,18 +123,5 @@ internal object EndpointParity {
         // leave by DELETION here rather than by arriving on iOS, and when it does, this set
         // becomes empty rather than shorter.
         "schedulingSsoTarget",
-        // ⚠️ THE NATIVE VOICE STUDIO READ (`GET workspace/persona/voice-studio`), built for all
-        // three apps at once. The vendored iOS snapshot predates it; this entry leaves when the
-        // snapshot is refreshed from an iOS build that has it (under this name, or recorded in
-        // SPELLING_DELTAS if iOS spells it differently).
-        "personaVoiceStudio",
-        // ⚠️ THE LIVE TRANSCRIPT'S SOCKET CREDENTIAL (`POST telemetry/token`). iOS has it as
-        // `EndpointID.telemetryToken` in district-core-swift; the vendored snapshot predates it,
-        // so this entry leaves when the snapshot is refreshed.
-        "telemetryToken",
-        // ⚠️ THE ACCOUNT'S LANGUAGE (`POST /api/settings`). iOS has it as `EndpointID.saveLocale` in
-        // district-core-swift; the vendored snapshot predates it, so this entry leaves when the
-        // snapshot is refreshed.
-        "saveLocale",
     )
 }

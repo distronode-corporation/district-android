@@ -96,9 +96,11 @@ internal class DistrictConnection private constructor(
     /**
      * The user refused a RINGING call from a system surface.
      *
-     * ⚠️ ROUTED TO THE SAME HANDLER AS A HANG-UP, AND THE SERVER-SIDE CONSEQUENCE IS IDENTICAL BY
-     * DESIGN: nothing is told. A declined ring and an unanswered one must look the same from
-     * outside — see `IncomingCallController` — so there is no separate path for this to take.
+     * ⚠️ ROUTED TO THE SAME HANDLER AS A HANG-UP, WHICH FOR AN INBOUND CALL IS
+     * `IncomingCallController.decline`: while the call is still ringing that is a person's decline
+     * and tells the server once (`calls/{id}/decline`), and after an answer it is a hang-up and
+     * tells it nothing. One handler keeps that decision in the controller, the one place that knows
+     * the phase.
      */
     override fun onReject() {
         onHangUp()

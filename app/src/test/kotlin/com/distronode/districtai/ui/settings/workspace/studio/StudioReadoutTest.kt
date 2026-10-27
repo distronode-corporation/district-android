@@ -72,7 +72,7 @@ class StudioReadoutTest {
         assertEquals("Turn detector", blocks[1].model)
         assertNull("the turn detector runs in the voice agent", blocks[1].inRegion)
         assertEquals(LatencyText.Server("Median 400\u00a0ms over 200 calls"), blocks[1].latency)
-        assertEquals("Gemini 2.5 Flash", blocks[2].model)
+        assertEquals("Gemini 3.5 Flash", blocks[2].model)
         assertEquals(LatencyText.Server("Median 450\u00a0ms over 300 calls"), blocks[2].latency)
         assertEquals("Deepgram Aura-2", blocks[3].model)
         assertEquals(LatencyText.Server("Median 120\u00a0ms over 100 calls"), blocks[3].latency)
@@ -95,10 +95,11 @@ class StudioReadoutTest {
 
     @Test
     fun `a brain away from the region's own location, or thinking, is not measured`() {
-        // ⛔ THE BRAIN'S MEDIAN WAS MEASURED AT THE REGION'S OWN LOCATION WITH THINKING OFF.
+        // ⛔ THE BRAIN'S MEDIAN WAS MEASURED AT THE REGION'S OWN LOCATION AT THE FIXED ENGINES'
+        // THINKING LEVEL ("minimal", what every preset carries). Any other level is not measured.
         listOf(
             edited { it.copy(llm = it.llm.copy(location = "global")) },
-            edited { it.copy(llm = it.llm.copy(thinking = "dynamic")) },
+            edited { it.copy(llm = it.llm.copy(thinking = "low")) },
         ).forEach { engine ->
             val meter = StudioReadout.meter(engine, studio)
             assertEquals(MeterHeadline.Local(520.0, atLeast = true), meter.headline)
@@ -110,20 +111,56 @@ class StudioReadoutTest {
 
     @Test
     fun `the region's own location named explicitly is still the measured one`() {
-        val engine = edited { it.copy(llm = it.llm.copy(location = "us-east4"), preemptiveTts = true) }
+        val engine = edited { it.copy(llm = it.llm.copy(location = "us"), preemptiveTts = true) }
 
         assertEquals(MeterHeadline.Local(970.0, atLeast = false), StudioReadout.meter(engine, studio).headline)
     }
 
     @Test
+    fun `the measured thinking level is the one the fixed engines carry, never a copy of it`() {
+        // ⛔ THIS WAS A HARD-CODED "off" UNTIL THE SERVER MOVED THE PRESETS TO "minimal", and the
+        // copy then withheld the brain median from the very engine the server reports at 970 ms.
+        val atMinimal = edited { it.copy(preemptiveTts = true) }
+        val atLow = edited { it.copy(llm = it.llm.copy(thinking = "low"), preemptiveTts = true) }
+        val atOff = edited { it.copy(llm = it.llm.copy(thinking = "off"), preemptiveTts = true) }
+        assertEquals(MeterHeadline.Server(studio.latency.text), StudioReadout.meter(saved, studio).headline)
+        assertEquals(MeterHeadline.Local(970.0, atLeast = false), StudioReadout.meter(atMinimal, studio).headline)
+        assertEquals(MeterHeadline.Local(520.0, atLeast = true), StudioReadout.meter(atOff, studio).headline)
+
+        fun presetsAt(thinking: (Int) -> String) = studio.copy(
+            catalog = studio.catalog.copy(
+                presets = studio.catalog.presets.mapIndexed { i, preset ->
+                    preset.copy(
+                        engineMix = preset.engineMix.copy(
+                            llm = preset.engineMix.llm.copy(thinking = thinking(i)),
+                        ),
+                    )
+                },
+            ),
+        )
+        val movedToLow = presetsAt { "low" }
+        assertEquals(MeterHeadline.Local(970.0, atLeast = false), StudioReadout.meter(atLow, movedToLow).headline)
+        assertEquals(MeterHeadline.Local(520.0, atLeast = true), StudioReadout.meter(atMinimal, movedToLow).headline)
+
+        // Presets that disagree, or none at all, name no measured level: nothing is claimed.
+        val split = presetsAt { if (it == 0) "low" else "minimal" }
+        val none = studio.copy(catalog = studio.catalog.copy(presets = emptyList()))
+        listOf(split, none).forEach { response ->
+            assertEquals(MeterHeadline.Local(520.0, atLeast = true), StudioReadout.meter(atMinimal, response).headline)
+            assertEquals(LatencyText.None, StudioReadout.blocks(atMinimal, response)[2].latency)
+        }
+    }
+
+    @Test
     fun `a brain with no auto location is never at the region's own`() {
-        val engine =
-            edited { it.copy(llm = it.llm.copy(model = "gemini-3.5-flash", location = "northamerica-northeast1")) }
+        // Gemini 3.8 Flash offers only `global`. The thinking level stays the measured one, so
+        // the missing `auto` is the only reason its median is withheld.
+        val engine = edited { it.copy(llm = it.llm.copy(model = "gemini-3.8-flash", location = "global")) }
         val measured = VoiceStudioLatency("measured", 900.0, 10, "Median 900 ms over 10 calls")
         val withNumber = studio.copy(
             catalog = studio.catalog.copy(
                 llm = studio.catalog.llm.map {
-                    if (it.model == "gemini-3.5-flash") it.copy(latency = measured) else it
+                    if (it.model == "gemini-3.8-flash") it.copy(latency = measured) else it
                 },
             ),
         )
@@ -131,7 +168,7 @@ class StudioReadoutTest {
         assertEquals(LatencyText.None, StudioReadout.meter(engine, withNumber).stages[1].value)
         val residency = StudioReadout.residency(engine, withNumber)
         assertFalse(residency.inRegion)
-        assertEquals(listOf("Brain: Leaves your region: Canada"), residency.legsOut)
+        assertEquals(listOf("Brain: Leaves your region: global (Google)"), residency.legsOut)
     }
 
     @Test

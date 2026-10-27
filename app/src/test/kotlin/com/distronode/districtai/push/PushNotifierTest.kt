@@ -24,7 +24,7 @@ import org.robolectric.annotation.Implements
 import org.robolectric.shadows.ShadowNotificationManager
 
 /**
- * The two channels, the three notifications, and the ids that keep them apart.
+ * The three channels, the three notifications, and the ids that keep them apart.
  *
  * ⛔ THE CHANNEL IMPORTANCES ARE NOT COSMETIC. `incoming_calls` at anything below HIGH is posted to
  * the shade SILENTLY — so a ringing call arrives as a line the user finds later, while the server is
@@ -68,6 +68,44 @@ class PushNotifierTest {
         // ⛔ HIGH IS WHAT MAKES IT A HEADS-UP. At DEFAULT the platform posts it silently and the ring
         // is a line in the shade — for a call the server is actively holding a human for.
         assertEquals(NotificationManager.IMPORTANCE_HIGH, calls.importance)
+    }
+
+    @Test
+    fun `the urgent messages channel is its own, and heads-up`() {
+        // ⛔ A SEPARATE CHANNEL, so "needs you" can be loud while ordinary messages stay at DEFAULT,
+        // and a person who finds it too loud can turn just these down in the system settings.
+        val urgent = manager.getNotificationChannel(AndroidPushNotifier.CHANNEL_URGENT_MESSAGES)
+
+        assertNotNull(urgent)
+        assertEquals(NotificationManager.IMPORTANCE_HIGH, urgent.importance)
+        assertEquals(context.getString(R.string.push_channel_urgent_messages), urgent.name.toString())
+        assertEquals(
+            NotificationManager.IMPORTANCE_DEFAULT,
+            manager.getNotificationChannel(AndroidPushNotifier.CHANNEL_MESSAGES).importance,
+        )
+    }
+
+    @Test
+    fun `a message flagged as needing the person is posted on the urgent channel`() {
+        notifier.showMessage("ws-1", "msg-1", senderName = null, interrupt = true)
+
+        assertEquals(AndroidPushNotifier.CHANNEL_URGENT_MESSAGES, posted().single().channelId)
+    }
+
+    @Test
+    fun `a message whose sender's name was fetched is titled with it`() {
+        // ⚠️ THE iOS WORDING: "New message · {name}", the name never translated. The body stays the
+        // generic line: the name is the one thing fetched, and no content is.
+        notifier.showMessage("ws-1", "msg-1", senderName = "Avery Contract", interrupt = false)
+
+        val notification = posted().single()
+        val title = notification.extras.getCharSequence(Notification.EXTRA_TITLE).toString()
+        val text = notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString()
+
+        assertEquals(context.getString(R.string.push_message_title_named, "Avery Contract"), title)
+        assertTrue(title.endsWith("· Avery Contract"))
+        assertEquals(context.getString(R.string.push_message_body), text)
+        assertEquals(AndroidPushNotifier.CHANNEL_MESSAGES, notification.channelId)
     }
 
     @Test
@@ -124,8 +162,8 @@ class PushNotifierTest {
         // ⛔ THE SERVER'S IDS-ONLY DISCIPLINE REACHING THE SCREEN. A notification is readable by the
         // OS and by any installed notification-listener app, so the sender never puts a body, a
         // number or an address in the payload — and this is the surface where somebody would be
-        // tempted to add one back. The strings are fixed and take no format argument, which is what
-        // makes that impossible rather than merely discouraged.
+        // tempted to add one back. Without a fetched name the strings are fixed; the one format
+        // argument (the sender's name) is fetched under the app's session, never pushed.
         notifier.showMessage("ws-1", "msg-1")
 
         val notification = posted().single()

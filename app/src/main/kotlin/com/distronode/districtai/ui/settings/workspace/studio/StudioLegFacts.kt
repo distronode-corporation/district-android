@@ -13,7 +13,6 @@ internal object StudioLegFacts {
 
     const val MEASURED: String = "measured"
     private const val AUTO = "auto"
-    private const val THINKING_OFF = "off"
     private const val PER_VOICE_VENDOR = "deepgram"
 
     fun placed(
@@ -22,16 +21,29 @@ internal object StudioLegFacts {
         fallback: VoiceStudioResidency,
     ): VoiceStudioResidency = locations.firstOrNull { it.value == location }?.residency ?: fallback
 
-    fun brainLocal(mix: EngineMix, brain: VoiceStudioLlmModel): Boolean {
-        if (mix.llm.thinking != THINKING_OFF) return false
+    /**
+     * The thinking level a brain's median was measured at: the fixed engines' (the server's
+     * `PRESET_LLM`, which every preset's mix carries), or null when the presets do not agree on one.
+     *
+     * ⛔ READ FROM THE RESPONSE, NEVER A COPY OF THE SERVER'S CONSTANT. This was a hard-coded "off"
+     * until the website moved the fixed engines to Gemini 3.5 Flash at "minimal" (2026-10-25):
+     * the copy then refused the very setting the server measures, so every edited chain lost its
+     * brain median and read "at least", while a stray "off" would have claimed a number nobody
+     * measured. Null measures nothing, which is the rule's safe side.
+     */
+    fun measuredThinking(studio: VoiceStudioResponse): String? =
+        studio.catalog.presets.map { it.engineMix.llm.thinking }.distinct().singleOrNull()
+
+    fun brainLocal(mix: EngineMix, brain: VoiceStudioLlmModel, studio: VoiceStudioResponse): Boolean {
+        if (mix.llm.thinking != measuredThinking(studio)) return false
         if (mix.llm.location == AUTO) return true
         val auto = brain.locations.firstOrNull { it.value == AUTO }?.residency ?: return false
         val chosen = placed(brain.locations, mix.llm.location, brain.residency)
         return chosen.inRegion && chosen.processedIn == auto.processedIn
     }
 
-    fun brainMeasured(mix: EngineMix, brain: VoiceStudioLlmModel): VoiceStudioLatency? =
-        brain.latency?.takeIf { it.source == MEASURED && brainLocal(mix, brain) }
+    fun brainMeasured(mix: EngineMix, brain: VoiceStudioLlmModel, studio: VoiceStudioResponse): VoiceStudioLatency? =
+        brain.latency?.takeIf { it.source == MEASURED && brainLocal(mix, brain, studio) }
 
     /** The mouth's measured median: per voice for Deepgram, the model's for every other vendor. */
     fun mouthMeasured(mix: EngineMix, mouth: VoiceStudioTtsModel, studio: VoiceStudioResponse): VoiceStudioLatency? {

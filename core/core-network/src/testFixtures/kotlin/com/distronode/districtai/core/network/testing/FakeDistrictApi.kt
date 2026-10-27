@@ -15,6 +15,7 @@ import com.distronode.districtai.core.model.ClearIntelResponse
 import com.distronode.districtai.core.model.DeviceListResponse
 import com.distronode.districtai.core.model.DeviceRevokeResponse
 import com.distronode.districtai.core.model.CallAnswerResponse
+import com.distronode.districtai.core.model.CallDeclineResponse
 import com.distronode.districtai.core.model.DialResponse
 import com.distronode.districtai.core.model.PushRegistrationResponse
 import com.distronode.districtai.core.model.EnrichResponse
@@ -99,6 +100,7 @@ import com.distronode.districtai.core.network.ClearIntelRequest
 import com.distronode.districtai.core.network.CreateContactRequest
 import com.distronode.districtai.core.network.DeviceRevokeRequest
 import com.distronode.districtai.core.network.CallAnswerRequest
+import com.distronode.districtai.core.network.CallDeclineRequest
 import com.distronode.districtai.core.network.DialRequest
 import com.distronode.districtai.core.network.PushTokenRegisterRequest
 import com.distronode.districtai.core.network.DistrictApi
@@ -1225,6 +1227,27 @@ class FakeInboundPushApi : InboundCallApi, PushApi {
         answerRequests += "$callId/${request.workspaceId}"
         answerGate?.await()
         return answerResult
+    }
+
+    /**
+     * ⚠️ THE DECLINE DEFAULT SUCCEEDS: nothing reads its answer, so the assertions that matter are
+     * whether it was sent at all, and how many times.
+     */
+    var declineResult: ApiResult<CallDeclineResponse> = ApiResult.Success(CallDeclineResponse(success = true))
+
+    /** Every decline sent, as `callId/workspaceId`. ⛔ The count matters: nothing may retry one. */
+    val declineRequests: MutableList<String> = mutableListOf()
+
+    /** When set, [declineCall] waits for it: a decline still in flight. Recorded before the wait. */
+    var declineGate: CompletableDeferred<Unit>? = null
+
+    override suspend fun declineCall(
+        callId: String,
+        request: CallDeclineRequest,
+    ): ApiResult<CallDeclineResponse> {
+        declineRequests += "$callId/${request.workspaceId}"
+        declineGate?.await()
+        return declineResult
     }
 
     /**

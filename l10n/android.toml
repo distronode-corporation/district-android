@@ -5796,7 +5796,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.call_body]
 en = "Transferred from your AI attendant."
@@ -5805,7 +5805,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.call_decline]
 en = "Decline"
@@ -5814,7 +5814,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.call_title]
 en = "Incoming call"
@@ -5823,7 +5823,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.channel_calls]
 en = "Incoming calls"
@@ -5832,7 +5832,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.channel_calls_description]
 en = "Calls transferred to you from the AI attendant."
@@ -5841,7 +5841,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.channel_messages]
 en = "Messages"
@@ -5851,7 +5851,7 @@ screen = "push notifications"
 tier = "T0"
 state = "reviewed"
 same_ok = true
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.channel_messages_description]
 en = "New messages in your workspace inbox."
@@ -5860,7 +5860,25 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
+
+[push.channel_urgent_messages]
+en = "Urgent messages"
+fr = "Messages urgents"
+ctx = "notification"
+screen = "push notifications"
+tier = "T0"
+state = "reviewed"
+note = "The Android notification channel for messages that need the person now (3.1): a message the AI attendant marked urgent, or one from a contact marked VIP. Shown in the system's notification settings, where the person can turn these down separately from ordinary messages."
+
+[push.channel_urgent_messages_description]
+en = "Messages your AI attendant marks urgent, and messages from your VIP contacts."
+fr = "Messages que votre réceptionniste IA marque comme urgents et ceux de vos contacts VIP."
+ctx = "notification"
+screen = "push notifications"
+tier = "T0"
+state = "reviewed"
+note = "The description of the urgent-messages channel in the system's notification settings. VIP is a tag the person puts on a contact in the web dashboard."
 
 [push.message_body]
 en = "Open District AI to read it."
@@ -5869,7 +5887,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.message_title]
 en = "New message"
@@ -5878,7 +5896,17 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
+
+[push.message_title_named]
+en = "New message · {name}"
+fr = "Nouveau message · {name}"
+ctx = "notification"
+screen = "push notifications"
+tier = "T0"
+args = { name = "str" }
+state = "reviewed"
+note = "A message notification's title once the app has fetched the sender's name under its own session (3.1), the iOS wording verbatim. {name} is the contact's display name from the server, never translated, and never a number or an address (the server answers no name instead). The middle dot keeps the name out of the sentence, so French needs no elision before a vowel. Without a name the title stays push.message_title."
 
 [push.ongoing_call_body]
 en = "District AI is connected to a call."
@@ -5887,7 +5915,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [push.ongoing_call_title]
 en = "Call in progress"
@@ -5896,7 +5924,7 @@ ctx = "notification"
 screen = "push notifications"
 tier = "T0"
 state = "reviewed"
-note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A PERSON, A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more, which is also why none of them takes a format argument."
+note = "Push notifications and the inbound call. ⛔ NOTHING HERE NAMES A NUMBER OR A MESSAGE, AND THAT IS THE SERVER'S PRIVACY DECISION REACHING THE WORDING. The push payload carries identifiers only, because a notification is readable by the OS and by any installed notification-listener app, so the app genuinely does not know who is calling or what was said. These strings say what happened and nothing more; the one that names a person, push.message_title_named, uses a display name the app fetched under its own session, never one from the payload."
 
 [report.accepted]
 en = "Reported. We'll review it."

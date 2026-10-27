@@ -24,7 +24,9 @@ import com.google.firebase.messaging.RemoteMessage
  * ⚠️ `onMessageReceived` RUNS ON A BACKGROUND THREAD the SDK provides, and it is subject to a ~10
  * second budget on a backgrounded app before the OS may reclaim the process. Nothing here waits: the
  * handler posts a notification and, for a call, registers a Telecom connection — both of which are
- * fast — and the authenticated round trip only happens once a human presses Answer.
+ * fast. The one request on this path is a message's sender name, bounded at four seconds
+ * (`MessageSenderLookup`); a call's authenticated round trip only happens once a human presses
+ * Answer.
  *
  * ⚠️ THE PAYLOAD IS DATA-ONLY, WHICH IS WHY THIS CALLBACK IS REACHED AT ALL. A `notification` block
  * is rendered by the system tray and does NOT reliably invoke this method on a backgrounded app;

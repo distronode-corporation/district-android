@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.push.AndroidPushNotifier
 import com.distronode.districtai.push.PushIntents
 import com.distronode.districtai.push.PushTestApplication
+import com.distronode.districtai.push.RingCancelReason
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -24,9 +25,10 @@ import org.robolectric.annotation.Config
  * The Decline button on the ringing notification, through the application graph (with its network
  * and Telecom bridge faked, see [PushTestApplication]).
  *
- * ⛔ A DECLINE ENDS THE RING AND TELLS THE SERVER NOTHING. It routes to the same `decline()` a ring
- * timeout does; what is visible here is the ring notification going away and the controller moving
- * to ENDED. Anything that is not the app's own Decline action must do nothing at all.
+ * ⛔ A PERSON PRESSED DECLINE, SO THE RING ENDS AND THE SERVER IS TOLD ONCE (`calls/{id}/decline`).
+ * What is visible here is the request, the ring notification going away and the controller moving
+ * to ENDED. Anything that is not the app's own Decline action must do nothing at all, and send
+ * nothing.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK], application = PushTestApplication::class)
@@ -58,6 +60,20 @@ class IncomingCallActionReceiverTest {
 
         assertEquals(IncomingCallPhase.ENDED, controller.state.value?.phase)
         assertNull(ring())
+        assertEquals(listOf("CA1/ws-1"), application.api.pushApi.declineRequests)
+    }
+
+    @Test
+    fun `a Decline for a ring that already ended sends nothing`() {
+        // ⚠️ A STALE NOTIFICATION ACTION: the ring timed out or was answered elsewhere, and the
+        // broadcast arrives late. There is no ring left to decline.
+        val controller = ringingCall()
+        controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)
+
+        IncomingCallActionReceiver().onReceive(application, PushIntents.declineCall(application, "CA1"))
+
+        assertNull(controller.state.value)
+        assertEquals(emptyList<String>(), application.api.pushApi.declineRequests)
     }
 
     @Test
@@ -69,6 +85,7 @@ class IncomingCallActionReceiverTest {
 
         assertEquals(IncomingCallPhase.RINGING, controller.state.value?.phase)
         assertNotNull(ring())
+        assertEquals(emptyList<String>(), application.api.pushApi.declineRequests)
     }
 
     @Test

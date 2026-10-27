@@ -166,8 +166,8 @@ class VoiceStudioContractFixtureTest {
             request,
             """{"workspaceId":"ws_1","voice":"aura-2-asteria-en","modelId":"custom-pipeline",""" +
                 """"preemptiveTts":false,"engineMix":{"v":1,"stt":{"provider":"deepgram",""" +
-                """"model":"flux-general-en"},"llm":{"model":"gemini-2.5-flash","location":"auto",""" +
-                """"thinking":"off"},"tts":{"provider":"deepgram","model":"aura-2",""" +
+                """"model":"flux-general-en"},"llm":{"model":"gemini-3.5-flash","location":"auto",""" +
+                """"thinking":"minimal"},"tts":{"provider":"deepgram","model":"aura-2",""" +
                 """"voice":"aura-2-asteria-en"},"turn":{},"preemptiveTts":false},"bilingual":false}""",
         )
         assertFalse(request.engineMix!!.preemptiveTts)

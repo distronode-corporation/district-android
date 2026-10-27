@@ -71,7 +71,7 @@ class StudioLegsTest {
     fun `locations are the held model's own, and a vendor endpoint has none`() {
         assertTrue(StudioPickers.locations(StudioLegEdits.EAR, mix, studio).isEmpty())
         assertEquals(
-            listOf("auto", "us-east4", "northamerica-northeast1", "europe-west4", "asia-southeast1", "global"),
+            listOf("auto", "us", "europe-west3", "northamerica-northeast1", "asia-southeast1", "global"),
             StudioPickers.locations(StudioLegEdits.BRAIN, mix, studio).map { it.value },
         )
         val chirp = mix.copy(tts = mix.tts.copy(provider = "google-tts", model = "chirp-3-hd"))
@@ -156,12 +156,15 @@ class StudioLegsTest {
 
     @Test
     fun `a new brain keeps its location where offered and takes its own default thinking`() {
-        val next = StudioLegEdits.brainModel(mix, "gemini-3.5-flash", studio)
-        assertEquals("northamerica-northeast1", next.llm.location)
+        // Gemini 3.8 Flash runs only at `global`, so the held `auto` falls to its default.
+        val next = StudioLegEdits.brainModel(mix, "gemini-3.8-flash", studio)
+        assertEquals("global", next.llm.location)
         assertEquals("low", next.llm.thinking)
 
-        val global = StudioLegEdits.location(mix, StudioLegEdits.BRAIN, "global")
-        assertEquals("global", StudioLegEdits.brainModel(global, "gemini-3.8-flash", studio).llm.location)
+        // Back on Gemini 3.5 Flash, `global` is offered and kept over its `auto` default.
+        val back = StudioLegEdits.brainModel(next, "gemini-3.5-flash", studio)
+        assertEquals("global", back.llm.location)
+        assertEquals("minimal", back.llm.thinking)
         assertSame(mix, StudioLegEdits.brainModel(mix, "unknown", studio))
     }
 

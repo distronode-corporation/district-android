@@ -25,8 +25,8 @@ class StudioEdgesTest {
             catalog = studio.catalog.copy(
                 llm = studio.catalog.llm.map {
                     when (it.model) {
-                        "gemini-3.5-flash" -> it.copy(offered = false)
-                        "gemini-3.8-flash" -> it.copy(channel = "preview")
+                        "gemini-3.8-flash" -> it.copy(offered = false)
+                        "gemini-3.5-flash" -> it.copy(channel = "preview")
                         else -> it
                     }
                 },
@@ -34,10 +34,10 @@ class StudioEdgesTest {
         )
 
         val brains = StudioPickers.brainModels(mix, narrowed)
-        assertFalse("gemini-3.5-flash" in brains.map { it.value })
-        assertEquals(narrowed.labels.previewNote, brains.single { it.value == "gemini-3.8-flash" }.note)
-        val held = mix.copy(llm = mix.llm.copy(model = "gemini-3.5-flash"))
-        assertTrue("gemini-3.5-flash" in StudioPickers.brainModels(held, narrowed).map { it.value })
+        assertFalse("gemini-3.8-flash" in brains.map { it.value })
+        assertEquals(narrowed.labels.previewNote, brains.single { it.value == "gemini-3.5-flash" }.note)
+        val held = mix.copy(llm = mix.llm.copy(model = "gemini-3.8-flash"))
+        assertTrue("gemini-3.8-flash" in StudioPickers.brainModels(held, narrowed).map { it.value })
     }
 
     @Test

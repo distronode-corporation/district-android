@@ -707,7 +707,7 @@ note = "The sentence for the server's error code `last_agency_member`, verbatim 
 
 [api_error.live_changed]
 en = "Someone changed these settings since they were drafted. Rebase the draft on the live settings, review it, then publish."
-fr = "Quelqu'un a modifié ces réglages depuis la rédaction du brouillon. Réalignez le brouillon sur les réglages en ligne, relisez-le, puis publiez-le."
+fr = "Quelqu'un a modifié ces paramètres depuis la rédaction du brouillon. Réalignez le brouillon sur les paramètres en ligne, relisez-le, puis publiez-le."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"

@@ -2517,10 +2517,10 @@
       {
         "model": "claude-haiku-5-5",
         "label": "Claude Haiku 5.5",
-        "channel": "preview",
-        "channelLabel": "Preview",
-        "available": false,
-        "offered": false,
+        "channel": "latest",
+        "channelLabel": "Latest",
+        "available": true,
+        "offered": true,
         "defaultLocation": "auto",
         "locations": [
           {

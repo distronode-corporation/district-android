@@ -880,6 +880,14 @@
       "labelSource": "distronode-website/src/app/(en)/dashboard/district/workflows/workflowsI18n.ts reasonLabel",
       "values": [
         {
+          "value": "consent-check-failed",
+          "definedIn": [
+            "distronode-website/src/lib/district/workflows.ts"
+          ],
+          "en": "Not texted: the texting consent could not be checked",
+          "fr": "Texto non envoyé : le consentement aux textos n'a pas pu être vérifié"
+        },
+        {
           "value": "contact-not-found",
           "definedIn": [
             "distronode-website/src/lib/district/workflows.ts"
@@ -992,6 +1000,14 @@
           "fr": null
         },
         {
+          "value": "no-consent",
+          "definedIn": [
+            "distronode-website/src/lib/district/sms-consent.ts"
+          ],
+          "en": "Not texted: no call or text from them in the last 24 hours, and no consent on record",
+          "fr": "Texto non envoyé : aucun appel ni texto de cette personne depuis 24 heures, et aucun consentement au dossier"
+        },
+        {
           "value": "no-devices",
           "definedIn": [
             "distronode-website/src/lib/district/workflows.ts"
@@ -1055,6 +1071,14 @@
           ],
           "en": "No device accepted the notification",
           "fr": "Aucun appareil n'a accepté la notification"
+        },
+        {
+          "value": "quiet-hours",
+          "definedIn": [
+            "distronode-website/src/lib/district/sms-consent.ts"
+          ],
+          "en": "Not texted: it was outside 8am to 9pm where their phone may be",
+          "fr": "Texto non envoyé : il était en dehors de 8 h à 21 h là où se trouve peut-être son téléphone"
         },
         {
           "value": "recipient-not-member",

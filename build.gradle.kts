@@ -33,6 +33,14 @@
 // the patch-level bump is cheaper than explaining it. The numbers are in gradle/libs.versions.toml
 // beside `bouncyCastle`, and build-logic forces the same four.
 buildscript {
+    // ⛔ THE ONE PLACE THE KOTLIN COMPILER VERSION IS CHOSEN. AGP 9.5.0 depends on KGP 2.2.10 at
+    // runtime (built-in Kotlin); this entry is the route the AGP 9.0 release notes give for a higher
+    // KGP, and it lifts AGP's 2.2.10 to `kotlin` in gradle/libs.versions.toml (2.4.21, which
+    // kotlinx-serialization 1.12.0's 2.4 metadata needs). The Compose and serialization plugins in
+    // `plugins { }` below use the same number. `./gradlew buildEnvironment` shows the result.
+    dependencies {
+        classpath(libs.kotlin.gradlePlugin)
+    }
     configurations.classpath {
         resolutionStrategy {
             listOf("bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on").forEach {
@@ -144,7 +152,7 @@ allprojects {
 // modules, with the generated-code exclusions below applied), under JaCoCo 0.8.15:
 //
 //     line   19800/19809 = 99.95%  ->  floor 99
-//     branch  6960/7055  = 98.65%  ->  floor 98
+//     branch  6960/7055  = 98.65%  ->  floor 98 (97 since 2026-10-31: "THE ONE EXCEPTION" below)
 //
 // Measured on the Voice Studio (2.0) tree. Two full runs (the second with --rerun-tasks) gave
 // the same missed counts, 9 lines and 95 branches, class for class; the branch TOTAL differed by
@@ -209,11 +217,26 @@ allprojects {
 //
 // ⛔ RAISE THESE AS COVERAGE IMPROVES. NEVER LOWER ONE TO MAKE A BUILD PASS.
 //
+// ⛔ THE ONE EXCEPTION, AND ITS EXIT. The branch floor went from 98 to 97 on 2026-10-31, by Sean's
+// explicit decision on PR #106 (Kotlin and the Compose compiler 2.2.10 to 2.4.21), and for that
+// cause only. The bump added 218 branches and 115 missed ones, every one of them on a Compose
+// lambda memoization check: `($dirty & mask) == K || (($dirty & bit) != 0 &&
+// Composer.changedInstance(x))`, which 2.4 emits on lambda lines where 2.2.10 emitted a bare
+// bitmask test or an unconditional `changedInstance`. JaCoCo's KotlinComposeFilter (0.8.15 and
+// 0.8.16) does not filter that check, and no new miss was a source path. The bump measured
+// 349/12348 missed (97.17%) against main's 234/12130 (98.07%). Evidence, file by file with
+// bytecode:
+// https://github.com/distronode-corporation/district-android/pull/106#issuecomment-6547095535
+// Upstream: https://github.com/jacoco/jacoco/issues/2210 (our evidence in its comments).
+// Tracked here: https://github.com/distronode-corporation/district-android/issues/107
+// RESTORE 98 when a JaCoCo release filters the pattern (bump `useJacoco` below and in the
+// district.android.base convention plugin, then re-measure). The line floor was not touched.
+//
 // ⚠️ Hardcoded on purpose, deliberately NOT `findProperty(...) ?: 0`. A floor that falls back to
 // zero when a property is unset is a gate that passes when it is misconfigured, which is the
 // exact failure a floor exists to prevent.
 val LINE_COVERAGE_FLOOR = 99
-val BRANCH_COVERAGE_FLOOR = 98
+val BRANCH_COVERAGE_FLOOR = 97
 
 // ── Coverage aggregation and the floor ───────────────────────────────────────
 //

@@ -3,6 +3,7 @@
 <resources>
     <string name="api_error_account_not_found">That account could not be found.</string>
     <string name="api_error_already_cancelled">That booking was already cancelled.</string>
+    <string name="api_error_assignee_not_member">That person is not a member of this workspace. Add them to the team first.</string>
     <string name="api_error_attachment_unsupported">That kind of attachment cannot be sent on this channel.</string>
     <string name="api_error_audition_busy">Two auditions are already running for this workspace. End one and try again.</string>
     <string name="api_error_audition_daily_cap">This workspace has used today\'s auditions. You can audition again tomorrow.</string>
@@ -20,6 +21,11 @@
     <string name="api_error_call_not_found">That call could not be found.</string>
     <string name="api_error_call_not_in_progress">That call is not in progress.</string>
     <string name="api_error_call_predates_feature">That call started before this feature existed, so it is not available on it.</string>
+    <string name="api_error_caller_id_carrier_failed">The phone carrier could not be reached. Try again in a few minutes.</string>
+    <string name="api_error_caller_id_mobile_unverified">Confirm your mobile number first, then register it as caller ID.</string>
+    <string name="api_error_caller_id_not_confirmed">The carrier has not confirmed your number yet. Answer the verification call and key in the code, then check again.</string>
+    <string name="api_error_caller_id_request_too_soon">A verification call went out less than 10 minutes ago. Wait before asking for another.</string>
+    <string name="api_error_caller_id_unavailable">Using your own mobile as caller ID is not available yet.</string>
     <string name="api_error_carrier_error">The carrier could not complete that. Please try again or contact support.</string>
     <string name="api_error_carrier_funding">The carrier account could not fund that purchase. Contact support.</string>
     <string name="api_error_carrier_rejected">The carrier refused this registration. Fix the items listed and submit again.</string>
@@ -43,6 +49,7 @@
     <string name="api_error_emergency_number">Emergency numbers cannot be dialled from this app. Use your phone\'s own dialer.</string>
     <string name="api_error_engine_unavailable">This voice engine is not available for this workspace yet. Choose another engine.</string>
     <string name="api_error_eu_vat_required">In the European Union we sell to businesses only. Enter your VAT number and we invoice you under the reverse-charge rule.</string>
+    <string name="api_error_extra_number_charge_required">This number is beyond the ones the plan includes and has a monthly charge. Confirm the charge to buy it.</string>
     <string name="api_error_file_required">Choose a file to upload.</string>
     <string name="api_error_file_too_large">That file is too large.</string>
     <string name="api_error_forbidden">You do not have permission to do that.</string>
@@ -214,4 +221,5 @@
     <string name="api_error_workspace_not_found">That workspace could not be found.</string>
     <string name="api_error_workspace_owner_not_found">The owner of that workspace could not be found.</string>
     <string name="api_error_workspace_owner_only">Only the owner of this workspace can do that.</string>
+    <string name="api_error_workspace_owner_protected">The workspace owner\'s access cannot be changed or removed here.</string>
 </resources>

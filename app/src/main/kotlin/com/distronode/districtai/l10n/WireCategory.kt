@@ -232,6 +232,7 @@ internal enum class WireCategory(
     ),
     WORKFLOW_ACTION_REASON(
         labels = mapOf(
+            "consent-check-failed" to R.string.wire_workflow_action_reason_consent_check_failed,
             "contact-not-found" to R.string.wire_workflow_action_reason_contact_not_found,
             "dnc" to R.string.wire_workflow_action_reason_dnc,
             "dormant" to R.string.wire_workflow_action_reason_dormant,
@@ -246,6 +247,7 @@ internal enum class WireCategory(
             "http-{status}" to R.string.wire_workflow_action_reason_http_status,
             "invalid-recipient" to R.string.wire_workflow_action_reason_invalid_recipient,
             "missing-webhook-url" to R.string.wire_workflow_action_reason_missing_webhook_url,
+            "no-consent" to R.string.wire_workflow_action_reason_no_consent,
             "no-devices" to R.string.wire_workflow_action_reason_no_devices,
             "no-message" to R.string.wire_workflow_action_reason_no_message,
             "no-provider-credentials" to R.string.wire_workflow_action_reason_no_provider_credentials,
@@ -254,6 +256,7 @@ internal enum class WireCategory(
             "postmark-missing" to R.string.wire_workflow_action_reason_postmark_missing,
             "push-lookup-failed" to R.string.wire_workflow_action_reason_push_lookup_failed,
             "push-not-delivered" to R.string.wire_workflow_action_reason_push_not_delivered,
+            "quiet-hours" to R.string.wire_workflow_action_reason_quiet_hours,
             "recipient-not-member" to R.string.wire_workflow_action_reason_recipient_not_member,
             "recipient-number-held" to R.string.wire_workflow_action_reason_recipient_number_held,
             "report-recipient-refused" to R.string.wire_workflow_action_reason_report_recipient_refused,

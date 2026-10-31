@@ -52,6 +52,10 @@ class ResponseMirrorTest {
         WireMirror.assertMirrors(MarkReadResponse.serializer(), "district-message-mark-read.json")
         WireMirror.assertMirrors(UnreadCountResponse.serializer(), "district-messages-unread-count.json")
         WireMirror.assertMirrors(MessageThreadResponse.serializer(), "district-message-thread.json")
+        WireMirror.assertMirrors(
+            ConversationAssignmentsResponse.serializer(),
+            "district-conversation-assignments.json",
+        )
 
         assertTrue("the conversations fixture must carry threads", conversations.conversations.isNotEmpty())
     }

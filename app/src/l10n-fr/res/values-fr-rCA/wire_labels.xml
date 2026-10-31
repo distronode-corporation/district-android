@@ -187,6 +187,7 @@
     <string name="wire_workflow_action_outcome_ok">OK</string>
     <string name="wire_workflow_action_outcome_skipped">Ignoré</string>
     <string name="wire_workflow_action_outcome_unknown">Valeur inconnue\u00A0: %1$s</string>
+    <string name="wire_workflow_action_reason_consent_check_failed">Texto non envoyé\u00A0: le consentement aux textos n\'a pas pu être vérifié</string>
     <string name="wire_workflow_action_reason_contact_not_found">Contact introuvable</string>
     <string name="wire_workflow_action_reason_dnc">Liste d\'exclusion</string>
     <string name="wire_workflow_action_reason_dormant">Inactif</string>
@@ -201,6 +202,7 @@
     <string name="wire_workflow_action_reason_http_status">HTTP {status}</string>
     <string name="wire_workflow_action_reason_invalid_recipient">Destinataire invalide</string>
     <string name="wire_workflow_action_reason_missing_webhook_url">URL du webhook manquante</string>
+    <string name="wire_workflow_action_reason_no_consent">Texto non envoyé\u00A0: aucun appel ni texto de cette personne depuis 24\u00A0heures, et aucun consentement au dossier</string>
     <string name="wire_workflow_action_reason_no_devices">Aucun membre de l\'équipe n\'a l\'application sur un appareil qui peut recevoir des notifications</string>
     <string name="wire_workflow_action_reason_no_message">La notification de l\'équipe ne fonctionne qu\'avec le déclencheur d\'un message pris pendant un appel</string>
     <string name="wire_workflow_action_reason_no_provider_credentials">Aucun identifiant de fournisseur</string>
@@ -209,6 +211,7 @@
     <string name="wire_workflow_action_reason_postmark_missing">Postmark non configuré</string>
     <string name="wire_workflow_action_reason_push_lookup_failed">La liste des appareils de l\'équipe n\'a pas pu être lue</string>
     <string name="wire_workflow_action_reason_push_not_delivered">Aucun appareil n\'a accepté la notification</string>
+    <string name="wire_workflow_action_reason_quiet_hours">Texto non envoyé\u00A0: il était en dehors de 8\u00A0h à 21\u00A0h là où se trouve peut-être son téléphone</string>
     <string name="wire_workflow_action_reason_recipient_not_member">La personne à qui envoyer le texto n\'est plus membre de cet espace de travail</string>
     <string name="wire_workflow_action_reason_recipient_number_held">Non envoyé\u00A0: le cellulaire de cette personne est un numéro d\'entreprise sur District</string>
     <string name="wire_workflow_action_reason_report_recipient_refused">Destinataire du rapport refusé</string>

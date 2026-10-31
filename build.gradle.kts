@@ -33,6 +33,14 @@
 // the patch-level bump is cheaper than explaining it. The numbers are in gradle/libs.versions.toml
 // beside `bouncyCastle`, and build-logic forces the same four.
 buildscript {
+    // ⛔ THE ONE PLACE THE KOTLIN COMPILER VERSION IS CHOSEN. AGP 9.5.0 depends on KGP 2.2.10 at
+    // runtime (built-in Kotlin); this entry is the route the AGP 9.0 release notes give for a higher
+    // KGP, and it lifts AGP's 2.2.10 to `kotlin` in gradle/libs.versions.toml (2.4.21, which
+    // kotlinx-serialization 1.12.0's 2.4 metadata needs). The Compose and serialization plugins in
+    // `plugins { }` below use the same number. `./gradlew buildEnvironment` shows the result.
+    dependencies {
+        classpath(libs.kotlin.gradlePlugin)
+    }
     configurations.classpath {
         resolutionStrategy {
             listOf("bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on").forEach {

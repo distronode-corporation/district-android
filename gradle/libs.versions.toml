@@ -38,26 +38,34 @@
 # ── Build tooling ────────────────────────────────────────────────────────────
 agp = "9.5.0"
 
-# ⛔ KOTLIN IS PINNED TO WHAT AGP BUNDLES, NOT TO THE NEWEST RELEASE, AND THAT IS
-# DELIBERATE. AGP 9.0 introduced *built-in Kotlin*: the `org.jetbrains.kotlin.android`
-# plugin is no longer applied (applying it is a hard error against the new DSL), and
-# AGP carries a runtime dependency on a specific KGP — 2.2.10 for AGP 9.4.1 (and for
-# 9.3.1 before it), confirmed from its POM on 2026-09-25. Kotlin 2.4.20 was available
-# and was NOT taken.
+# ⛔ KOTLIN IS ABOVE THE KGP AGP BUNDLES, ON PURPOSE, AND THROUGH ONE ROUTE ONLY.
+# AGP 9.0 introduced *built-in Kotlin*: the `org.jetbrains.kotlin.android` plugin is
+# no longer applied (applying it is a hard error against the new DSL), and AGP carries
+# a runtime dependency on a specific KGP. That is still 2.2.10 for AGP 9.5.0 (read from
+# its POM on 2026-10-31), as it was for 9.4.1 and 9.3.1. A KGP lower than that is
+# raised to it; a HIGHER one is what the AGP 9.0 release notes document, through a
+# `buildscript { dependencies { classpath(kotlin-gradle-plugin) } }` entry in the root
+# build file, which is where build.gradle.kts declares it.
 #
-# Forcing a newer Kotlin means a `buildscript { classpath(...) }` override in the
-# root build file, which puts a KGP on the classpath that AGP was not tested
-# against, and the Compose compiler plugin then has to match the *effective*
-# compiler rather than this number. That skew fails at compile time in the best case
-# and miscompiles Compose in the worst.
+# Why above it: kotlinx-serialization-json 1.12.0 is built with Kotlin 2.4.10 and
+# writes 2.4 metadata, which a 2.2 compiler cannot read (it reads one version ahead,
+# so up to 2.3), so :core:core-auth and :core:core-model fail to compile against it
+# on 2.2.10. 2.4.21 (Maven Central 2026-10-08) was the newest stable Kotlin at least
+# 7 days old on 2026-10-31; 2.5.0 was still Beta2.
 #
-# ⛔ THEREFORE: bumping `kotlin` is not an independent decision. Bump `agp` first,
-# read its POM for the KGP it depends on, and move `kotlin` and `composeCompiler`
-# to that value together.
-kotlin = "2.2.10"
+# ⛔ ONE NUMBER FOR THE COMPILER AND EVERY KOTLIN PLUGIN. The Compose and serialization
+# compiler plugins run inside the compiler, so they must match the EFFECTIVE KGP, not
+# this number if something else raised it. `./gradlew buildEnvironment` must show
+# `kotlin-gradle-plugin:2.2.10 -> <kotlin>` and no other KGP version; the Kotlin
+# plugins' BOM (kotlin-gradle-plugins-bom) pulls the same number, so the explicit
+# classpath entry and the BOM agree by construction.
+#
+# ⚠️ When `agp` moves, read its POM: if it ever depends on a KGP ABOVE this number,
+# Gradle silently takes AGP's, and `kotlin` and `composeCompiler` move up to it.
+kotlin = "2.4.21"
 # ⛔ Must equal `kotlin` above. Since Kotlin 2.0 the Compose compiler ships as a
 # Kotlin compiler plugin, versioned in lockstep with the compiler itself.
-composeCompiler = "2.2.10"
+composeCompiler = "2.4.21"
 
 # ── SDK levels ───────────────────────────────────────────────────────────────
 # ⛔ compileSdk AND targetSdk DIFFER ON PURPOSE. They are not the same knob and
@@ -178,7 +186,7 @@ kover = "0.9.11"
 # ── Static analysis ──────────────────────────────────────────────────────────
 # detekt 1.23.8 is the latest stable (2.x is alpha). ⚠️ detekt 1.23.x embeds its own
 # Kotlin 1.9 compiler frontend for PARSING, independent of the project's Kotlin
-# 2.2.10. That is normal and supported, but it means a brand-new Kotlin syntax
+# 2.4.21. That is normal and supported, but it means a brand-new Kotlin syntax
 # feature can make detekt fail to parse a file that compiles fine — if that happens,
 # the fix is a detekt upgrade, not a code change.
 detekt = "1.23.8"
@@ -201,7 +209,7 @@ livekit = "2.29.1"
 #
 # ⚠️ 26.0.0 is the latest stable, resolved from the Google Maven metadata on 2026-10-16. Its one
 # breaking change (BoM 35.0.0 release notes) is minSdk 24, below this app's 26; its POM asks for
-# kotlin-stdlib 2.1.21, within the Kotlin hold above.
+# kotlin-stdlib 2.1.21, below the `kotlin` version above.
 # firebase-common and the Play-services
 # dependencies arrive transitively; none of them is declared here, because a
 # transitive coordinate declared explicitly is a second place to forget to bump.

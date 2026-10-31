@@ -150,7 +150,7 @@ mockk = "1.14.11"
 # ⛔ The serialization COMPILER PLUGIN is versioned with Kotlin (it is a Kotlin
 # compiler plugin), so it uses `kotlin` above and must not get its own version. The
 # RUNTIME library (kotlinx-serialization-json) versions independently.
-kotlinxSerializationJson = "1.11.0"
+kotlinxSerializationJson = "1.12.0"
 
 # ── Networking ───────────────────────────────────────────────────────────────
 # okhttp 5.x. ⚠️ The MockWebServer artifact was RENAMED in 5.x: it is now

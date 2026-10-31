@@ -36,7 +36,7 @@
 
 [versions]
 # ── Build tooling ────────────────────────────────────────────────────────────
-agp = "9.4.1"
+agp = "9.5.0"
 
 # ⛔ KOTLIN IS PINNED TO WHAT AGP BUNDLES, NOT TO THE NEWEST RELEASE, AND THAT IS
 # DELIBERATE. AGP 9.0 introduced *built-in Kotlin*: the `org.jetbrains.kotlin.android`

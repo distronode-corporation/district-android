@@ -155,7 +155,7 @@ kotlinxSerializationJson = "1.11.0"
 # ── Networking ───────────────────────────────────────────────────────────────
 # okhttp 5.x. ⚠️ The MockWebServer artifact was RENAMED in 5.x: it is now
 # `mockwebserver3-junit4`, not `mockwebserver`, and shares okhttp's version.
-okhttp = "5.5.0"
+okhttp = "5.5.1"
 
 # ── Coverage ─────────────────────────────────────────────────────────────────
 # Kover, not Jacoco. Jacoco instruments bytecode and miscounts Kotlin's generated
@@ -183,7 +183,7 @@ kover = "0.9.11"
 # the fix is a detekt upgrade, not a code change.
 detekt = "1.23.8"
 
-livekit = "2.29.0"
+livekit = "2.29.1"
 
 # ── Push ─────────────────────────────────────────────────────────────────────
 # ⛔ THE MESSAGING ARTIFACT ONLY, AND DELIBERATELY NO FIREBASE BOM. A BoM would
@@ -205,7 +205,7 @@ livekit = "2.29.0"
 # firebase-common and the Play-services
 # dependencies arrive transitively; none of them is declared here, because a
 # transitive coordinate declared explicitly is a second place to forget to bump.
-firebaseMessaging = "26.0.0"
+firebaseMessaging = "26.0.1"
 
 # ── Crash reporting ──────────────────────────────────────────────────────────
 # ⚠️ 8.58.0 is the latest stable `io.sentry:sentry-android-core` (and `io.sentry:sentry`),
@@ -238,7 +238,7 @@ firebaseMessaging = "26.0.0"
 # directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
 # reporter is a worse outcome than the coordinate. With no native code here it parses
 # nothing.
-sentry = "8.61.0"
+sentry = "8.61.1"
 
 # ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
 # renames every class in the release build, so a crash report without the mapping is a

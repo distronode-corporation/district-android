@@ -1730,6 +1730,15 @@ args = { value = "str" }
 state = "reviewed"
 note = "A workflowActionOutcome value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
+[wire.workflow_action_reason_consent_check_failed]
+en = "Not texted: the texting consent could not be checked"
+fr = "Texto non envoyé\u00A0: le consentement aux textos n'a pas pu être vérifié"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `consent-check-failed` as the server sends it, shown with the portal's label (\"Not texted: the texting consent could not be checked\")."
+
 [wire.workflow_action_reason_contact_not_found]
 en = "Contact not found"
 fr = "Contact introuvable"
@@ -1857,6 +1866,15 @@ tier = "T3"
 state = "reviewed"
 note = "The workflowActionReason value `missing-webhook-url` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
+[wire.workflow_action_reason_no_consent]
+en = "Not texted: no call or text from them in the last 24 hours, and no consent on record"
+fr = "Texto non envoyé\u00A0: aucun appel ni texto de cette personne depuis 24\u00A0heures, et aucun consentement au dossier"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `no-consent` as the server sends it, shown with the portal's label (\"Not texted: no call or text from them in the last 24 hours, and no consent on record\")."
+
 [wire.workflow_action_reason_no_devices]
 en = "No team member has the app on a device that can receive notifications"
 fr = "Aucun membre de l'équipe n'a l'application sur un appareil qui peut recevoir des notifications"
@@ -1928,6 +1946,15 @@ screen = "not shown in this app yet"
 tier = "T3"
 state = "draft"
 note = "The workflowActionReason value `push-not-delivered` as the server sends it, shown with the portal's label (\"No device accepted the notification\")."
+
+[wire.workflow_action_reason_quiet_hours]
+en = "Not texted: it was outside 8am to 9pm where their phone may be"
+fr = "Texto non envoyé\u00A0: il était en dehors de 8\u00A0h à 21\u00A0h là où se trouve peut-être son téléphone"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The workflowActionReason value `quiet-hours` as the server sends it, shown with the portal's label (\"Not texted: it was outside 8am to 9pm where their phone may be\")."
 
 [wire.workflow_action_reason_recipient_not_member]
 en = "The person to text is no longer a member of this workspace"

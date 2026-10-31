@@ -187,6 +187,7 @@
     <string name="wire_workflow_action_outcome_ok">OK</string>
     <string name="wire_workflow_action_outcome_skipped">Skipped</string>
     <string name="wire_workflow_action_outcome_unknown">%1$s</string>
+    <string name="wire_workflow_action_reason_consent_check_failed">Not texted: the texting consent could not be checked</string>
     <string name="wire_workflow_action_reason_contact_not_found">Contact not found</string>
     <string name="wire_workflow_action_reason_dnc">DNC</string>
     <string name="wire_workflow_action_reason_dormant">Dormant</string>
@@ -201,6 +202,7 @@
     <string name="wire_workflow_action_reason_http_status">HTTP {status}</string>
     <string name="wire_workflow_action_reason_invalid_recipient">Invalid recipient</string>
     <string name="wire_workflow_action_reason_missing_webhook_url">Missing webhook URL</string>
+    <string name="wire_workflow_action_reason_no_consent">Not texted: no call or text from them in the last 24 hours, and no consent on record</string>
     <string name="wire_workflow_action_reason_no_devices">No team member has the app on a device that can receive notifications</string>
     <string name="wire_workflow_action_reason_no_message">Notifying the team works only with the trigger for a message taken during a call</string>
     <string name="wire_workflow_action_reason_no_provider_credentials">No provider credentials</string>
@@ -209,6 +211,7 @@
     <string name="wire_workflow_action_reason_postmark_missing">Postmark missing</string>
     <string name="wire_workflow_action_reason_push_lookup_failed">The list of team devices could not be read</string>
     <string name="wire_workflow_action_reason_push_not_delivered">No device accepted the notification</string>
+    <string name="wire_workflow_action_reason_quiet_hours">Not texted: it was outside 8am to 9pm where their phone may be</string>
     <string name="wire_workflow_action_reason_recipient_not_member">The person to text is no longer a member of this workspace</string>
     <string name="wire_workflow_action_reason_recipient_number_held">Not sent: the person\'s mobile is a business number on District</string>
     <string name="wire_workflow_action_reason_report_recipient_refused">Report recipient refused</string>

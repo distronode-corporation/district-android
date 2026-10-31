@@ -20,6 +20,15 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `already_cancelled`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.assignee_not_member]
+en = "That person is not a member of this workspace. Add them to the team first."
+fr = "Cette personne n'est pas membre de cet espace de travail. Ajoutez-la d'abord à l'équipe."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `assignee_not_member`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.attachment_unsupported]
 en = "That kind of attachment cannot be sent on this channel."
 fr = "Ce type de pièce jointe ne peut pas être envoyé sur ce canal."
@@ -172,6 +181,51 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `call_predates_feature`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.caller_id_carrier_failed]
+en = "The phone carrier could not be reached. Try again in a few minutes."
+fr = "Impossible de joindre le fournisseur de téléphonie. Réessayez dans quelques minutes."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `caller_id_carrier_failed`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.caller_id_mobile_unverified]
+en = "Confirm your mobile number first, then register it as caller ID."
+fr = "Confirmez d'abord votre numéro de cellulaire, puis enregistrez-le comme afficheur."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `caller_id_mobile_unverified`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.caller_id_not_confirmed]
+en = "The carrier has not confirmed your number yet. Answer the verification call and key in the code, then check again."
+fr = "Le fournisseur n'a pas encore confirmé votre numéro. Répondez à l'appel de vérification, entrez le code, puis vérifiez de nouveau."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `caller_id_not_confirmed`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.caller_id_request_too_soon]
+en = "A verification call went out less than 10 minutes ago. Wait before asking for another."
+fr = "Un appel de vérification a été fait il y a moins de 10 minutes. Attendez avant d'en demander un autre."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `caller_id_request_too_soon`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.caller_id_unavailable]
+en = "Using your own mobile as caller ID is not available yet."
+fr = "L'utilisation de votre cellulaire comme afficheur n'est pas encore offerte."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `caller_id_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.carrier_error]
 en = "The carrier could not complete that. Please try again or contact support."
@@ -379,6 +433,15 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `eu_vat_required`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.extra_number_charge_required]
+en = "This number is beyond the ones the plan includes and has a monthly charge. Confirm the charge to buy it."
+fr = "Ce numéro dépasse ceux que le forfait inclut et entraîne des frais mensuels. Confirmez les frais pour l'acheter."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `extra_number_charge_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.file_required]
 en = "Choose a file to upload."
@@ -1921,3 +1984,12 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `workspace_owner_only`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.workspace_owner_protected]
+en = "The workspace owner's access cannot be changed or removed here."
+fr = "L'accès du propriétaire de l'espace de travail ne peut pas être modifié ni retiré ici."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `workspace_owner_protected`, verbatim from contracts/i18n/api-errors.json."

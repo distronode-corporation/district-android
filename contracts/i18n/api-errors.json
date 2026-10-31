@@ -279,6 +279,18 @@
       "en": "This workspace already holds every phone number its plan includes. Upgrade the plan to add more.",
       "fr": "Cet espace de travail détient déjà tous les numéros de téléphone inclus dans son forfait. Passez à un forfait supérieur pour en ajouter."
     },
+    "extra_number_charge_required": {
+      "en": "This number is beyond the ones the plan includes and has a monthly charge. Confirm the charge to buy it.",
+      "fr": "Ce numéro dépasse ceux que le forfait inclut et entraîne des frais mensuels. Confirmez les frais pour l'acheter."
+    },
+    "workspace_owner_protected": {
+      "en": "The workspace owner's access cannot be changed or removed here.",
+      "fr": "L'accès du propriétaire de l'espace de travail ne peut pas être modifié ni retiré ici."
+    },
+    "assignee_not_member": {
+      "en": "That person is not a member of this workspace. Add them to the team first.",
+      "fr": "Cette personne n'est pas membre de cet espace de travail. Ajoutez-la d'abord à l'équipe."
+    },
     "hq_voice_allowance_reached": {
       "en": "This workspace has used all of this month's District HQ voice minutes. Voice mode is back on the 1st of next month; the text console still works.",
       "fr": "Cet espace de travail a utilisé toutes les minutes du mode vocal de District HQ prévues ce mois-ci. Le mode vocal revient le 1er du mois prochain; la console texte fonctionne toujours."
@@ -673,6 +685,26 @@
     "member_phone_business_number": {
       "en": "This number belongs to a business on District, so it cannot receive alerts. Enter your own mobile number.",
       "fr": "Ce numéro appartient à une entreprise sur District, alors il ne peut pas recevoir d'alertes. Entrez votre propre numéro de cellulaire."
+    },
+    "caller_id_unavailable": {
+      "en": "Using your own mobile as caller ID is not available yet.",
+      "fr": "L'utilisation de votre cellulaire comme afficheur n'est pas encore offerte."
+    },
+    "caller_id_mobile_unverified": {
+      "en": "Confirm your mobile number first, then register it as caller ID.",
+      "fr": "Confirmez d'abord votre numéro de cellulaire, puis enregistrez-le comme afficheur."
+    },
+    "caller_id_request_too_soon": {
+      "en": "A verification call went out less than 10 minutes ago. Wait before asking for another.",
+      "fr": "Un appel de vérification a été fait il y a moins de 10 minutes. Attendez avant d'en demander un autre."
+    },
+    "caller_id_not_confirmed": {
+      "en": "The carrier has not confirmed your number yet. Answer the verification call and key in the code, then check again.",
+      "fr": "Le fournisseur n'a pas encore confirmé votre numéro. Répondez à l'appel de vérification, entrez le code, puis vérifiez de nouveau."
+    },
+    "caller_id_carrier_failed": {
+      "en": "The phone carrier could not be reached. Try again in a few minutes.",
+      "fr": "Impossible de joindre le fournisseur de téléphonie. Réessayez dans quelques minutes."
     },
     "call_not_in_progress": {
       "en": "That call is not in progress.",

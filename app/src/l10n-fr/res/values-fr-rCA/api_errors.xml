@@ -3,6 +3,7 @@
 <resources>
     <string name="api_error_account_not_found">Ce compte est introuvable.</string>
     <string name="api_error_already_cancelled">Ce rendez-vous a déjà été annulé.</string>
+    <string name="api_error_assignee_not_member">Cette personne n\'est pas membre de cet espace de travail. Ajoutez-la d\'abord à l\'équipe.</string>
     <string name="api_error_attachment_unsupported">Ce type de pièce jointe ne peut pas être envoyé sur ce canal.</string>
     <string name="api_error_audition_busy">Deux auditions sont déjà en cours pour cet espace de travail. Terminez-en une et réessayez.</string>
     <string name="api_error_audition_daily_cap">Cet espace de travail a utilisé les auditions d\'aujourd\'hui. Vous pourrez de nouveau écouter un brouillon demain.</string>
@@ -20,6 +21,11 @@
     <string name="api_error_call_not_found">Cet appel est introuvable.</string>
     <string name="api_error_call_not_in_progress">Cet appel n\'est pas en cours.</string>
     <string name="api_error_call_predates_feature">Cet appel a commencé avant l\'existence de cette fonction, elle n\'est donc pas offerte pour lui.</string>
+    <string name="api_error_caller_id_carrier_failed">Impossible de joindre le fournisseur de téléphonie. Réessayez dans quelques minutes.</string>
+    <string name="api_error_caller_id_mobile_unverified">Confirmez d\'abord votre numéro de cellulaire, puis enregistrez-le comme afficheur.</string>
+    <string name="api_error_caller_id_not_confirmed">Le fournisseur n\'a pas encore confirmé votre numéro. Répondez à l\'appel de vérification, entrez le code, puis vérifiez de nouveau.</string>
+    <string name="api_error_caller_id_request_too_soon">Un appel de vérification a été fait il y a moins de 10 minutes. Attendez avant d\'en demander un autre.</string>
+    <string name="api_error_caller_id_unavailable">L\'utilisation de votre cellulaire comme afficheur n\'est pas encore offerte.</string>
     <string name="api_error_carrier_error">Le transporteur n\'a pas pu effectuer cette opération. Réessayez ou communiquez avec notre équipe de soutien.</string>
     <string name="api_error_carrier_funding">Le compte auprès du transporteur n\'a pas pu financer cet achat. Communiquez avec notre équipe de soutien.</string>
     <string name="api_error_carrier_rejected">Le transporteur a refusé cette inscription. Corrigez les éléments indiqués, puis soumettez de nouveau.</string>
@@ -43,6 +49,7 @@
     <string name="api_error_emergency_number">Les numéros d\'urgence ne peuvent pas être composés depuis cette application. Utilisez le composeur de votre téléphone.</string>
     <string name="api_error_engine_unavailable">Ce moteur vocal n\'est pas encore offert pour cet espace de travail. Choisissez un autre moteur.</string>
     <string name="api_error_eu_vat_required">Dans l\'Union européenne, nous vendons uniquement aux entreprises. Saisissez votre numéro de TVA et nous vous facturons selon le régime de l\'autoliquidation.</string>
+    <string name="api_error_extra_number_charge_required">Ce numéro dépasse ceux que le forfait inclut et entraîne des frais mensuels. Confirmez les frais pour l\'acheter.</string>
     <string name="api_error_file_required">Choisissez un fichier à téléverser.</string>
     <string name="api_error_file_too_large">Ce fichier est trop volumineux.</string>
     <string name="api_error_forbidden">Vous n\'avez pas la permission de faire cela.</string>
@@ -214,4 +221,5 @@
     <string name="api_error_workspace_not_found">Cet espace de travail est introuvable.</string>
     <string name="api_error_workspace_owner_not_found">La personne propriétaire de cet espace de travail est introuvable.</string>
     <string name="api_error_workspace_owner_only">Seule la personne propriétaire de cet espace de travail peut faire cela.</string>
+    <string name="api_error_workspace_owner_protected">L\'accès du propriétaire de l\'espace de travail ne peut pas être modifié ni retiré ici.</string>
 </resources>

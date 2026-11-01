@@ -880,6 +880,14 @@
       "labelSource": "distronode-website/src/app/(en)/dashboard/district/workflows/workflowsI18n.ts reasonLabel",
       "values": [
         {
+          "value": "automated-sender",
+          "definedIn": [
+            "distronode-website/src/lib/district/workflows.ts"
+          ],
+          "en": "Not texted: the message came from an automated sender, such as a verification code",
+          "fr": "Texto non envoyé : le message venait d'un expéditeur automatisé, comme un code de vérification"
+        },
+        {
           "value": "consent-check-failed",
           "definedIn": [
             "distronode-website/src/lib/district/workflows.ts"

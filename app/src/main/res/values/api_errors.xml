@@ -103,6 +103,8 @@
     <string name="api_error_member_phone_too_many_codes">Five codes were sent to you in the last 24 hours. Try again tomorrow.</string>
     <string name="api_error_message_not_found">That message could not be found.</string>
     <string name="api_error_message_too_long">That message is too long.</string>
+    <string name="api_error_messaging_app_sms_refused">Texting is set up with your phone numbers, not as a messaging app.</string>
+    <string name="api_error_messaging_apps_managed">Messaging apps cannot be connected on the platform\'s Sinch account. Connect your own Sinch account to add WhatsApp, Messenger or RCS.</string>
     <string name="api_error_messaging_provider_not_configured">No messaging provider is connected to this workspace.</string>
     <string name="api_error_mfa_code_invalid">That code is not valid, or it has already been used.</string>
     <string name="api_error_model_unavailable_in_region">This voice engine is not available for workspaces in this region. Choose another engine.</string>
@@ -204,7 +206,9 @@
     <string name="api_error_validation_failed">Some of what you entered is not valid. Please check it and try again.</string>
     <string name="api_error_verify_not_enabled">One-time passcodes are not turned on for this workspace.</string>
     <string name="api_error_website_unreadable">We could not read that website. Check the address, or enter your details yourself.</string>
+    <string name="api_error_whatsapp_template_invalid">That WhatsApp template cannot be sent. It is not approved for this number, or its variables do not match it.</string>
     <string name="api_error_whatsapp_unsupported">WhatsApp is not available on this workspace\'s messaging account.</string>
+    <string name="api_error_whatsapp_window_closed">The 24-hour WhatsApp window with this contact is closed. Send an approved template to reach them again.</string>
     <string name="api_error_workflow_action_needs_message">Notifying the team works only with the trigger for a message taken during a call.</string>
     <string name="api_error_workflow_conditions_invalid">One of this workflow\'s conditions is not valid. Check each condition and try again.</string>
     <string name="api_error_workflow_conditions_not_allowed">Conditions can only be added to a workflow that runs after a call.</string>

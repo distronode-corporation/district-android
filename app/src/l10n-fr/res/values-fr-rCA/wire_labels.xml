@@ -187,6 +187,7 @@
     <string name="wire_workflow_action_outcome_ok">OK</string>
     <string name="wire_workflow_action_outcome_skipped">Ignoré</string>
     <string name="wire_workflow_action_outcome_unknown">Valeur inconnue\u00A0: %1$s</string>
+    <string name="wire_workflow_action_reason_automated_sender">Texto non envoyé\u00A0: le message venait d\'un expéditeur automatisé, comme un code de vérification</string>
     <string name="wire_workflow_action_reason_consent_check_failed">Texto non envoyé\u00A0: le consentement aux textos n\'a pas pu être vérifié</string>
     <string name="wire_workflow_action_reason_contact_not_found">Contact introuvable</string>
     <string name="wire_workflow_action_reason_dnc">Liste d\'exclusion</string>

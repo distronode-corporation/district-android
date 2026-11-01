@@ -103,6 +103,8 @@
     <string name="api_error_member_phone_too_many_codes">Cinq codes vous ont été envoyés au cours des dernières 24 heures. Réessayez demain.</string>
     <string name="api_error_message_not_found">Ce message est introuvable.</string>
     <string name="api_error_message_too_long">Ce message est trop long.</string>
+    <string name="api_error_messaging_app_sms_refused">Les textos sont configurés avec vos numéros de téléphone, pas comme une application de messagerie.</string>
+    <string name="api_error_messaging_apps_managed">Les applications de messagerie ne peuvent pas être connectées sur le compte Sinch de la plateforme. Connectez votre propre compte Sinch pour ajouter WhatsApp, Messenger ou RCS.</string>
     <string name="api_error_messaging_provider_not_configured">Aucun fournisseur de messagerie n\'est connecté à cet espace de travail.</string>
     <string name="api_error_mfa_code_invalid">Ce code n\'est pas valide, ou il a déjà été utilisé.</string>
     <string name="api_error_model_unavailable_in_region">Ce moteur vocal n\'est pas offert aux espaces de travail de cette région. Choisissez un autre moteur.</string>
@@ -204,7 +206,9 @@
     <string name="api_error_validation_failed">Une partie de ce que vous avez saisi n\'est pas valide. Vérifiez, puis réessayez.</string>
     <string name="api_error_verify_not_enabled">Les codes à usage unique ne sont pas activés pour cet espace de travail.</string>
     <string name="api_error_website_unreadable">Nous n\'avons pas pu lire ce site Web. Vérifiez l\'adresse, ou saisissez vos renseignements vous-même.</string>
+    <string name="api_error_whatsapp_template_invalid">Ce modèle WhatsApp ne peut pas être envoyé. Il n\'est pas approuvé pour ce numéro, ou ses variables ne lui correspondent pas.</string>
     <string name="api_error_whatsapp_unsupported">WhatsApp n\'est pas offert sur le compte de messagerie de cet espace de travail.</string>
+    <string name="api_error_whatsapp_window_closed">La fenêtre WhatsApp de 24 heures avec ce contact est fermée. Envoyez un modèle approuvé pour le joindre de nouveau.</string>
     <string name="api_error_workflow_action_needs_message">La notification de l\'équipe ne fonctionne qu\'avec le déclencheur d\'un message pris pendant un appel.</string>
     <string name="api_error_workflow_conditions_invalid">Une des conditions de ce flux n\'est pas valide. Vérifiez chaque condition, puis réessayez.</string>
     <string name="api_error_workflow_conditions_not_allowed">Les conditions ne peuvent s\'ajouter qu\'à un flux qui s\'exécute après un appel.</string>

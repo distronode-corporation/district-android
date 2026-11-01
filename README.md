@@ -1,7 +1,16 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/distronode-logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset=".github/assets/distronode-logo-light.png">
+  <img alt="Distronode" src=".github/assets/distronode-logo-light.png" width="220">
+</picture>
+
 # District AI for Android
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/distronode-corporation/district-android/badge)](https://scorecard.dev/viewer/?uri=github.com/distronode-corporation/district-android)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15873/badge)](https://www.bestpractices.dev/projects/15873)
+[![Latest release](https://img.shields.io/github/v/release/distronode-corporation/district-android?label=release)](https://github.com/distronode-corporation/district-android/releases/latest)
+
+<a href="https://play.google.com/store/apps/details?id=com.distronode.districtai"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="66"></a>
 
 The native Android client for [District AI](https://www.distronode.com/district-ai), by
 Distronode. It is the app published on
@@ -9,6 +18,10 @@ Distronode. It is the app published on
 `com.distronode.districtai`: calls and transcripts, the shared inbox, contacts and their
 intelligence dossiers, multi-party rooms, a self-managed softphone that places and answers
 calls through Android's Telecom framework, push notifications, and workspace settings.
+
+<img alt="The Overview on Android, in a fictional review workspace" src="docs/images/overview.png" width="270">
+
+*The Overview, in a fictional review workspace.*
 
 Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache-2.0. It
 runs on Android 8.0 (API level 26) and later.
@@ -211,3 +224,5 @@ District AI, Distronode and the District AI and Distronode logos and app icons a
 of Distronode Corporation. They are not licensed under the Apache License 2.0: a build you
 distribute must use its own name, icon and applicationId. [NOTICE](NOTICE) has the details and
 the third-party notices.
+
+Google Play and the Google Play logo are trademarks of Google LLC.

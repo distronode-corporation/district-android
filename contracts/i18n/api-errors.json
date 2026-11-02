@@ -516,7 +516,7 @@
     },
     "sending_domain_provider_changed": {
       "en": "This sending domain was set up with a different email provider. Remove it and connect it again to get the new DNS records.",
-      "fr": "Ce domaine d'envoi a été configuré avec un autre fournisseur de courriel. Retirez-le, puis connectez-le de nouveau pour obtenir les nouveaux enregistrements DNS."
+      "fr": "Ce domaine d'envoi a été configuré avec un autre fournisseur de courriel. Retirez-le, puis connectez-le de nouveau pour obtenir les nouvelles entrées DNS."
     },
     "whatsapp_unsupported": {
       "en": "WhatsApp is not available on this workspace's messaging account.",

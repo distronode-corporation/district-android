@@ -921,6 +921,24 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `message_too_long`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.messaging_app_sms_refused]
+en = "Texting is set up with your phone numbers, not as a messaging app."
+fr = "Les textos sont configurés avec vos numéros de téléphone, pas comme une application de messagerie."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `messaging_app_sms_refused`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.messaging_apps_managed]
+en = "Messaging apps cannot be connected on the platform's Sinch account. Connect your own Sinch account to add WhatsApp, Messenger or RCS."
+fr = "Les applications de messagerie ne peuvent pas être connectées sur le compte Sinch de la plateforme. Connectez votre propre compte Sinch pour ajouter WhatsApp, Messenger ou RCS."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `messaging_apps_managed`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.messaging_provider_not_configured]
 en = "No messaging provider is connected to this workspace."
 fr = "Aucun fournisseur de messagerie n'est connecté à cet espace de travail."
@@ -1832,6 +1850,15 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `website_unreadable`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.whatsapp_template_invalid]
+en = "That WhatsApp template cannot be sent. It is not approved for this number, or its variables do not match it."
+fr = "Ce modèle WhatsApp ne peut pas être envoyé. Il n'est pas approuvé pour ce numéro, ou ses variables ne lui correspondent pas."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `whatsapp_template_invalid`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.whatsapp_unsupported]
 en = "WhatsApp is not available on this workspace's messaging account."
 fr = "WhatsApp n'est pas offert sur le compte de messagerie de cet espace de travail."
@@ -1840,6 +1867,15 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `whatsapp_unsupported`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.whatsapp_window_closed]
+en = "The 24-hour WhatsApp window with this contact is closed. Send an approved template to reach them again."
+fr = "La fenêtre WhatsApp de 24 heures avec ce contact est fermée. Envoyez un modèle approuvé pour le joindre de nouveau."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `whatsapp_window_closed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_action_needs_message]
 en = "Notifying the team works only with the trigger for a message taken during a call."

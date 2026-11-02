@@ -232,6 +232,7 @@ internal enum class WireCategory(
     ),
     WORKFLOW_ACTION_REASON(
         labels = mapOf(
+            "automated-sender" to R.string.wire_workflow_action_reason_automated_sender,
             "consent-check-failed" to R.string.wire_workflow_action_reason_consent_check_failed,
             "contact-not-found" to R.string.wire_workflow_action_reason_contact_not_found,
             "dnc" to R.string.wire_workflow_action_reason_dnc,

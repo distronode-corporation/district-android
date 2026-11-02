@@ -187,6 +187,7 @@
     <string name="wire_workflow_action_outcome_ok">OK</string>
     <string name="wire_workflow_action_outcome_skipped">Skipped</string>
     <string name="wire_workflow_action_outcome_unknown">%1$s</string>
+    <string name="wire_workflow_action_reason_automated_sender">Not texted: the message came from an automated sender, such as a verification code</string>
     <string name="wire_workflow_action_reason_consent_check_failed">Not texted: the texting consent could not be checked</string>
     <string name="wire_workflow_action_reason_contact_not_found">Contact not found</string>
     <string name="wire_workflow_action_reason_dnc">DNC</string>

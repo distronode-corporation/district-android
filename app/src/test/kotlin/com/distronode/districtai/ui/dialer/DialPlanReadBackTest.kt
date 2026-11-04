@@ -126,4 +126,22 @@ class DialPlanReadBackTest {
         assertNull(DialCountries.homeCountry(listOf("+16005550100", "+19005550100")))
         assertEquals("US", DialCountries.homeCountry(listOf("+16005550100", "+12065550100")))
     }
+
+    /**
+     * ⛔ A PREFIX IS READ OFF ONLY WHERE libphonenumber WOULD READ IT OFF (Seer on district-ios #98): a
+     * typed number it already takes as whole is not cut into a shorter one. `800 12345` is a whole
+     * Lithuanian toll-free number, not the old trunk `8` and `0012345`; Belarus's `800 123 45 67`
+     * likewise. Its national number patterns decide, for the countries with parsing prefixes.
+     */
+    @Test
+    fun `a whole number is not cut by a prefix`() {
+        assertEquals("+37080012345", DialPlan.read("800 12345", "LT").e164)
+        assertEquals("+37080012345", DialPlan.read("8 800 12345", "LT").e164)
+        assertEquals("+3758001234567", DialPlan.read("800 123 45 67", "BY").e164)
+        assertEquals("+375291234567", DialPlan.read("8 029 123 45 67", "BY").e164)
+        assertEquals("+37061234567", DialPlan.read("8 612 34567", "LT").e164)
+        assertEquals(DialCountries.parsingTrunkPrefixes.keys, DialCountries.nationalNumberPatterns.keys)
+        val first = DialPlan.read("800 12345", "LT")
+        assertEquals(first.e164, DialPlan.read(first.national, "LT").e164)
+    }
 }

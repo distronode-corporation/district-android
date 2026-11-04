@@ -80,6 +80,20 @@ object DialCountries {
         mapOf("BY" to listOf("80", "0"), "GB" to listOf("180020"), "LT" to listOf("8"))
 
     /**
+     * libphonenumber's national number pattern (libphonenumber-js 1.13.14) for each country with
+     * [parsingTrunkPrefixes], so a prefix is read off only where libphonenumber would read it off: not
+     * when the digits typed already make a whole number there and would not without it ([stripsPrefix]).
+     * `800 12345` is a whole Lithuanian toll-free number, not the old trunk `8` and `0012345` (Seer on
+     * district-ios #98). The same table is in the other app repos.
+     */
+    val nationalNumberPatterns: Map<String, String> = mapOf(
+        "BY" to """(?:[12]\d|33|44|902)\d{7}|8(?:0[0-79]\d{5,7}|[1-7]\d{9})""" +
+            """|8(?:1[0-489]|[5-79]\d)\d{7}|8[1-79]\d{6,7}|8[0-79]\d{5}|8\d{5}""",
+        "GB" to """[1-357-9]\d{9}|[18]\d{8}|8\d{6}""",
+        "LT" to """(?:[3469]\d|52|[78]0)\d{6}""",
+    )
+
+    /**
      * The +1 toll-free area codes. ⚠️ They belong to the whole plan, so they never name a country and
      * never vote for a workspace's home country.
      */
@@ -142,6 +156,16 @@ object DialCountries {
         val area = nsn.take(AREA_CODE_LENGTH)
         if (area in canadianAreaCodes) return "CA"
         return nanpAreaCountries[area] ?: "US"
+    }
+
+    /**
+     * Whether [prefix], which [digits] starts with, is read off as a prefix in [iso]: libphonenumber's
+     * test, for the countries in [nationalNumberPatterns]. Not when [digits] already match the country's
+     * national number pattern and what is left would not.
+     */
+    fun stripsPrefix(prefix: String, digits: String, iso: String): Boolean {
+        val pattern = nationalNumberPatterns[iso]?.let(::Regex) ?: return true
+        return !(pattern.matches(digits) && !pattern.matches(digits.drop(prefix.length)))
     }
 
     /** Whether a +1 national number belongs to no one country, as the web's table has it. */

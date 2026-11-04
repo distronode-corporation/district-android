@@ -187,7 +187,9 @@ object DialPlan {
             }
             // ⚠️ AND THE OTHER PREFIXES libphonenumber STRIPS, longest first
             // ([DialCountries.nationalPrefixes]): Lithuania's old `8`, Belarus's `80`.
-            DialCountries.nationalPrefixes(country).firstOrNull { nsn.startsWith(it) }?.let { typed ->
+            DialCountries.nationalPrefixes(country).firstOrNull {
+                nsn.startsWith(it) && DialCountries.stripsPrefix(it, nsn, country)
+            }?.let { typed ->
                 nsn = nsn.drop(typed.length)
                 typedTrunk = true
             }

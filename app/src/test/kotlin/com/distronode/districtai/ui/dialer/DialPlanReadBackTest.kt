@@ -77,4 +77,38 @@ class DialPlanReadBackTest {
         assertEquals("+59899123456", DialPlan.read("099 123 456", "UY").e164)
         assertEquals("0412 123 4567", DialPlan.read("0412 123 4567", "VE").national)
     }
+
+    /**
+     * ⛔ EVERY TRUNK PREFIX IS libphonenumber's NATIONAL PREFIX (libphonenumber-js 1.13.14), outside +1,
+     * whose `1` the reader handles itself. The non-zero ones are pinned by name; the rest are
+     * [DialCountries.trunkZero] or none. The same table is in the other app repos and district-core-rust.
+     */
+    @Test
+    fun `every trunk prefix is libphonenumber's national prefix`() {
+        val nonZero = mapOf("BY" to "8", "HU" to "06", "KZ" to "8", "MH" to "1", "RU" to "8", "TM" to "8")
+        for (country in DialCountries.countries.filter { it.code != "1" }) {
+            val expected = nonZero[country.iso] ?: "0".takeIf { country.iso in DialCountries.trunkZero }
+            assertEquals(country.iso, expected, DialCountries.trunkPrefix(country.iso))
+        }
+        // Its `national_prefix_for_parsing` where that is a plain list of prefixes.
+        assertEquals(
+            mapOf("BY" to listOf("80", "0"), "GB" to listOf("180020"), "LT" to listOf("8")),
+            DialCountries.parsingTrunkPrefixes,
+        )
+    }
+
+    @Test
+    fun `the other prefixes libphonenumber strips are stripped`() {
+        assertEquals("Lithuania's legacy 8", "+37061234567", DialPlan.read("8 612 34567", "LT").e164)
+        assertEquals("+37061234567", DialPlan.read("0 612 34567", "LT").e164)
+        assertEquals("+375291234567", DialPlan.read("8 029 123 45 67", "BY").e164)
+        assertEquals("+375291234567", DialPlan.read("029 123 45 67", "BY").e164)
+        assertEquals("+99312345678", DialPlan.read("8 12 345678", "TM").e164)
+        assertEquals("+6926251234", DialPlan.read("1 625 1234", "MH").e164)
+        assertEquals("+442079460958", DialPlan.read("180020 20 7946 0958", "GB").e164)
+        for ((raw, country) in listOf("8 612 34567" to "LT", "8 029 123 45 67" to "BY", "8 12 345678" to "TM")) {
+            val first = DialPlan.read(raw, country)
+            assertEquals(raw, first.e164, DialPlan.read(first.national, country).e164)
+        }
+    }
 }

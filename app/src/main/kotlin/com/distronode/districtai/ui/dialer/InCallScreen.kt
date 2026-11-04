@@ -76,21 +76,13 @@ fun InCallScreen(
     }
 }
 
-/**
- * The in-call title for [number] (E.164, what Call sent): [DialPlan]'s international form, or the
- * number as it is when no listed country uses its code.
- */
-internal fun callTitle(number: String): String =
-    DialPlan.read(number, null).international.takeIf { it.length > 1 } ?: number
-
 @Composable
 private fun Callee(call: ActiveCallUiState) {
     Text(
         // ⚠️ THE FORMATTED FORM, for reading only: the number grouped by its own calling code, as the
-        // line before Call showed it. ⛔ NOT `formatDialEntry`, which takes everything before the last
-        // ten digits as the code, so a French `+33639980123` read `+3 363 998 0123` (Seer on
-        // district-core-rust #63).
-        text = callTitle(call.number),
+        // line before Call showed it (`displayNumber`; Seer on district-core-rust #63). An incoming
+        // call's label passes through unchanged.
+        text = displayNumber(call.number),
         style = MaterialTheme.typography.headlineSmall,
         color = DistrictTheme.colors.foreground,
         textAlign = TextAlign.Center,

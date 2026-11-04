@@ -185,8 +185,10 @@ object DialPlan {
             if (nsn.length < trunk.length && trunk.startsWith(nsn)) {
                 return Reading(Status.TYPING, country, callingCode = code, national = nsn, international = "+$code")
             }
-            if (nsn.startsWith(trunk)) {
-                nsn = nsn.drop(trunk.length)
+            // ⚠️ AND THE OTHER PREFIXES libphonenumber STRIPS, longest first
+            // ([DialCountries.nationalPrefixes]): Lithuania's old `8`, Belarus's `80`.
+            DialCountries.nationalPrefixes(country).firstOrNull { nsn.startsWith(it) }?.let { typed ->
+                nsn = nsn.drop(typed.length)
                 typedTrunk = true
             }
         }

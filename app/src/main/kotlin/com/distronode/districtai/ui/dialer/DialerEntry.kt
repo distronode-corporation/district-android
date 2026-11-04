@@ -194,7 +194,7 @@ internal fun CallButton(state: DialerUiState, handlers: DialerHandlers) {
  * confirmation. It stays callable, as it always was.
  */
 internal fun destinationLine(reading: DialPlan.Reading): Pair<String?, String>? {
-    tollFreeNumber(reading)?.let { return reading.iso to it }
+    noCountryNumber(reading)?.let { return reading.iso to it }
     if (reading.status == DialPlan.Status.READY) return reading.iso to reading.international
     // ⚠️ A `+` and three digits that name no country is already worth saying.
     val unknown = reading.status == DialPlan.Status.TYPING && reading.namedItsCountry &&
@@ -208,12 +208,14 @@ internal fun destinationLine(reading: DialPlan.Reading): Pair<String?, String>? 
  * ⛔ A +1 TOLL-FREE NUMBER (800, 833 … 888) RINGS NO ONE COUNTRY, AND THE LINE SAYS SO, as the web
  * dialler does (`ringsNoCountry`; Sean, 2026-11-04, GitLab #2). [DialPlan] keeps the +1 country on
  * the button, because the flag is where the next digits are read, but naming it under a 1-800
- * number would claim a country the number does not have.
+ * number would claim a country the number does not have. So do the web's other no-country codes, 500,
+ * 600, 700, 710 and 900.
  */
-internal fun belongsToNoCountry(reading: DialPlan.Reading): Boolean = tollFreeNumber(reading) != null
+internal fun belongsToNoCountry(reading: DialPlan.Reading): Boolean = noCountryNumber(reading) != null
 
 /**
- * The number a +1 toll-free line shows, or null when the reading is not one.
+ * The number a +1 no-country line shows (toll-free, or the web's 500, 600, 700, 710 and 900), or
+ * null when the reading is not one.
  *
  * ⚠️ THE WEB'S TIMING, NOT THE REST OF THIS LINE'S: said from 8 digits with the calling code
  * ([DialPlan.MINIMUM_DIGITS]) up to 15, where the web's `resolveDialEntry` reads a number as `ready`,
@@ -221,8 +223,8 @@ internal fun belongsToNoCountry(reading: DialPlan.Reading): Boolean = tollFreeNu
  * being off. Grouped only once it is whole; before that the bare `+1800…`, the web's rule that a
  * half-grouped number reads as a real one.
  */
-internal fun tollFreeNumber(reading: DialPlan.Reading): String? {
-    if (reading.callingCode != "1" || !DialCountries.isNanpTollFree(reading.nationalNumber)) return null
+internal fun noCountryNumber(reading: DialPlan.Reading): String? {
+    if (reading.callingCode != "1" || !DialCountries.isNanpNoCountry(reading.nationalNumber)) return null
     val total = reading.callingCode.length + reading.nationalNumber.length
     if (total < DialPlan.MINIMUM_DIGITS || total > DialPlan.MAXIMUM_DIGITS) return null
     return if (reading.status == DialPlan.Status.READY) reading.international else "+1" + reading.nationalNumber

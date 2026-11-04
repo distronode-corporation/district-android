@@ -238,6 +238,30 @@ class DialerScreenTest {
     }
 
     /**
+     * ⛔ THE WEB'S OTHER NO-COUNTRY +1 CODES SAY IT TOO: its area-code table gives 500, 600, 700, 710
+     * and 900 no country, as it does the toll-free ones, so its line is the same.
+     */
+    @Test
+    fun `the web's other no-country codes say it too`() {
+        for (area in listOf("500", "600", "700", "710", "900")) {
+            assertEquals("+1 $area 555 0100", destinationLine(DialPlan.read("+1 $area 555 0100", "CA"))?.second)
+            assertTrue(area, belongsToNoCountry(DialPlan.read("+1 $area 555 0100", "CA")))
+            assertTrue(area, belongsToNoCountry(DialPlan.read("$area 5555", "CA")))
+        }
+        render(idle(entry = "600 555 0100"))
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION)
+            .assertTextEquals(str(R.string.dialer_rings_no_country, "+1 600 555 0100"))
+    }
+
+    /** ⛔ A CALL-BACK ROW GROUPS ITS NUMBER BY ITS OWN CALLING CODE, as the call's title does. */
+    @Test
+    fun `a call-back row groups an international number by its own code`() {
+        render(idle(callbacks = CallbacksState.Ready(listOf(callRow().copy(from = "+33639980123")))))
+        composeRule.onNodeWithText("+33 6 39 98 01 23", substring = true).assertExists()
+        composeRule.onNodeWithText("+3 363", substring = true).assertDoesNotExist()
+    }
+
+    /**
      * ⚠️ ONLY THE SEVEN CODES, FROM 8 DIGITS TO 15: a geographic +1 number still names its country,
      * an 800 outside +1 is not toll-free, and seven digits or more than E.164 allows have no line.
      */

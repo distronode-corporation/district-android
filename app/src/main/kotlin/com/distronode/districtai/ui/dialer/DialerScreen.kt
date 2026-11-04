@@ -232,7 +232,7 @@ private fun CallbackRow(call: CallSummary, handlers: DialerHandlers) {
     val number = call.from.orEmpty()
     DistrictListRow(
         title = call.number,
-        subtitle = "${formatDialEntry(number)} · ${callTimeText(call.time, call.createdAt)}",
+        subtitle = "${displayNumber(number)} · ${callTimeText(call.time, call.createdAt)}",
         onClick = { handlers.onCallBack(number) },
         modifier = Modifier.testTag(callbackRowDescription(call.id)),
         trailing = {

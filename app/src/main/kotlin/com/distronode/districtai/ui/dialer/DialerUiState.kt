@@ -147,8 +147,21 @@ data class DialerUiState(
     /**
      * The operator chose a country in the list. ⚠️ THE DIGITS ALREADY TYPED ARE KEPT and read again
      * in the new country; a pick counts as an edit.
+     *
+     * ⚠️ A FIELD STILL SHOWING A `+` (a code with no digit after it yet, or a code no country uses)
+     * gives up the plus and its code and keeps only the digits after a known one, so picking a
+     * country means "this number is in that country"; a plus with no known code is cleared, or it
+     * would ring nowhere beside the country picked. district-core-rust `entry_for_pick` (#63).
      */
-    fun picked(iso: String): DialerUiState = copy(country = iso).typed(entry.filter(DialPlan::isDigit))
+    fun picked(iso: String): DialerUiState {
+        val read = reading
+        val kept = when {
+            !entry.trimStart().startsWith("+") -> entry.filter(DialPlan::isDigit)
+            read.iso != null -> read.nationalNumber
+            else -> ""
+        }
+        return copy(country = iso).typed(kept)
+    }
 
     /**
      * Record the workspace's country, and move the button to it only if nothing has moved it since

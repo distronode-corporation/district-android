@@ -194,9 +194,11 @@ class NavHostMediaTest {
         harness.tap(DIALER_CALL_DESCRIPTION)
     }
 
+    // ⚠️ A WHOLE INTERNATIONAL NUMBER: the harness workspace owns no numbers, so it has no home country,
+    // and a bare national number is refused until a country is chosen (dialler design A).
     @Test
     fun `a dial asks for the microphone and dials on a grant`() {
-        dial("4165550123")
+        dial("+14165550123")
 
         assertEquals(1, harness.registry.launched.count { it == Manifest.permission.RECORD_AUDIO })
         assertEquals(1, harness.api.dialRequests.size)
@@ -206,7 +208,7 @@ class NavHostMediaTest {
     fun `a refused microphone places no call and says why`() {
         harness.registry.permissionGranted = false
 
-        dial("4165550123")
+        dial("+14165550123")
 
         assertTrue(harness.api.dialRequests.isEmpty())
         harness.awaitText(

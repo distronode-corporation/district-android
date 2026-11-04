@@ -3,6 +3,7 @@ package com.distronode.districtai.ui.dialer
 import com.distronode.districtai.core.data.CallControlRepository
 import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.DialRepository
+import com.distronode.districtai.core.data.NumbersRepository
 import com.distronode.districtai.core.data.HangUpOutcome
 import com.distronode.districtai.core.model.CallHangUpResponse
 import com.distronode.districtai.core.model.DialResponse
@@ -86,6 +87,8 @@ class DialerServerHangUpTest {
             engineScopeFactory = { engineScope },
             tickMillis = TICK,
         ),
+        numbers = NumbersRepository(api),
+        countryMemory = FakeDialerCountryMemory(),
         workspaceId = "ws-1",
         role = WorkspaceRole.AGENCY,
         serverHangUpScope = engineScope,

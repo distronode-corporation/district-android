@@ -3,20 +3,21 @@ package com.distronode.districtai.ui.dialer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.tooling.preview.Preview
 import com.distronode.districtai.l10n.callTimeText
 import com.distronode.districtai.R
@@ -32,7 +33,6 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.EmptyState
 import com.distronode.districtai.core.designsystem.Eyebrow
-import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.resolve
 
@@ -80,16 +80,20 @@ fun DialerScreen(
 }
 
 /**
- * The number field and the call button.
+ * The country button, the number field, what the number rings, and the call button: dialler
+ * design A.
  *
- * ⛔ A TEXT FIELD RATHER THAN A TWELVE-KEY GRID, AND THE REASON IS THE NUMBERS THIS PRODUCT DIALS.
- * A grid is the right shape for a consumer phone dialling local numbers from memory; this dials
- * E.164 numbers with country codes, usually pasted or called back from the log, and a grid makes
- * `+` awkward and pasting impossible. The field takes a phone keyboard, so the same digits are one
- * tap away, and the formatted preview below it does the job the grid's display would.
+ * ⛔ A TEXT FIELD RATHER THAN A TWELVE-KEY GRID, AND THE REASON IS THE NUMBERS THIS PRODUCT DIALS:
+ * they are pasted, called back from the log, or typed with a country code, and a grid makes `+`
+ * awkward and pasting impossible. The field takes a phone keyboard.
+ *
+ * ⛔ THE COUNTRY IS IN FRONT OF THE NUMBER AND THE WHOLE INTERNATIONAL NUMBER IS UNDER IT BEFORE
+ * CALL. A Canadian mobile typed as `+4165550123` is Switzerland; the flag moves there as the digits
+ * arrive, and Call stays off because no Swiss number has eight digits after the code.
  */
 @Composable
 private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
+    var picking by rememberSaveable { mutableStateOf(false) }
     // The gutter the heading and the rows below keep (visual QA AA13): the card no longer runs to
     // the screen's edges.
     DistrictCard(
@@ -98,44 +102,17 @@ private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
             .testTag(DIALER_ENTRY_CARD_DESCRIPTION),
     ) {
         Eyebrow(stringResource(R.string.dialer_number_label))
-        OutlinedTextField(
-            value = state.entry,
-            onValueChange = handlers.onEntryChange,
-            enabled = state.canDial,
-            singleLine = true,
-            // ⚠️ `Phone`, so `+`, `*` and `#` are reachable. `Number` offers digits only, which
-            // makes an international number untypeable without switching keyboards.
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            colors = districtFieldColors(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = DistrictTheme.spacing.tight)
-                .testTag(DIALER_FIELD_DESCRIPTION),
-        )
-        // ⛔ BESIDE THE FIELD, NEVER IN IT. See `formatDialEntry`: rewriting the text as someone
-        // types moves their cursor, and the value that travels must stay exactly what they typed
-        // because the server normalises its own copy and dials against that.
-        Text(
-            text = if (state.entry.isBlank()) {
-                stringResource(R.string.dialer_entry_hint)
-            } else {
-                formatDialEntry(state.entry)
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = DistrictTheme.colors.mutedForeground,
-            modifier = Modifier
-                .padding(top = DistrictTheme.spacing.hairline)
-                .testTag(DIALER_PREVIEW_DESCRIPTION),
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+            modifier = Modifier.padding(top = DistrictTheme.spacing.tight),
+        ) {
+            CountryButton(country = state.country, enabled = state.canDial, onClick = { picking = true })
+            NumberField(state, handlers, Modifier.weight(1f))
+        }
+        EntryLines(state)
         if (state.canDial) {
-            DistrictButton(
-                text = stringResource(R.string.dialer_call),
-                onClick = handlers.onDial,
-                enabled = state.canPlaceCall,
-                modifier = Modifier
-                    .padding(top = DistrictTheme.spacing.row)
-                    .testTag(DIALER_CALL_DESCRIPTION),
-            )
+            CallButton(state, handlers)
             // ⚠️ SAID BEFORE THE PERMISSION DIALOG, so the dialog has a visible reason. A request
             // with no explanation is the one users deny permanently.
             Notice(R.string.dialer_mic_notice, DIALER_MIC_NOTICE_DESCRIPTION)
@@ -154,6 +131,17 @@ private fun EntryCard(state: DialerUiState, handlers: DialerHandlers) {
                     .testTag(DIALER_REFUSAL_DESCRIPTION),
             )
         }
+    }
+    if (picking) {
+        DialerCountryPicker(
+            home = state.homeCountry,
+            current = state.country,
+            onPick = { iso ->
+                picking = false
+                handlers.onPickCountry(iso)
+            },
+            onDismiss = { picking = false },
+        )
     }
 }
 
@@ -269,6 +257,10 @@ data class DialerHandlers(
     val onEntryChange: (String) -> Unit,
     val onCallBack: (String) -> Unit,
     val onDial: () -> Unit,
+    /** The operator stopped typing (focus left the field, or Done). */
+    val onCheckLength: () -> Unit,
+    /** A country was chosen in the list. */
+    val onPickCountry: (String) -> Unit,
     val onToggleMicrophone: () -> Unit,
     val onToggleSpeaker: () -> Unit,
     val onHangUp: () -> Unit,
@@ -283,7 +275,11 @@ internal fun callbackRowDescription(id: String): String = "district-dialer-callb
 const val DIALER_ROOT_DESCRIPTION: String = "district-dialer-root"
 const val DIALER_ENTRY_CARD_DESCRIPTION: String = "district-dialer-entry"
 const val DIALER_FIELD_DESCRIPTION: String = "district-dialer-field"
-const val DIALER_PREVIEW_DESCRIPTION: String = "district-dialer-preview"
+const val DIALER_HINT_DESCRIPTION: String = "district-dialer-hint"
+const val DIALER_DESTINATION_DESCRIPTION: String = "district-dialer-destination"
+const val DIALER_PROBLEM_DESCRIPTION: String = "district-dialer-problem"
+const val DIALER_COUNTRY_BUTTON_DESCRIPTION: String = "district-dialer-country"
+const val DIALER_CALL_REFUSED_DESCRIPTION: String = "district-dialer-call-refused"
 const val DIALER_CALL_DESCRIPTION: String = "district-dialer-call"
 const val DIALER_MIC_NOTICE_DESCRIPTION: String = "district-dialer-mic-notice"
 const val DIALER_VIEWER_NOTICE_DESCRIPTION: String = "district-dialer-viewer-notice"
@@ -301,10 +297,12 @@ internal fun DialerScreenPreview() {
         DialerScreen(
             state = DialerUiState(
                 canDial = true,
-                entry = "+14165550100",
+                entry = "(416) 555-0199",
+                country = "CA",
+                homeCountry = "CA",
                 callbacks = CallbacksState.Ready(emptyList()),
             ),
-            handlers = DialerHandlers({}, {}, {}, {}, {}, {}, {}, {}),
+            handlers = DialerHandlers({}, {}, {}, {}, {}, {}, {}, {}, {}, {}),
         )
     }
 }

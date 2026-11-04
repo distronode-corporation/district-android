@@ -2782,14 +2782,106 @@ tier = "T3"
 state = "reviewed"
 note = "── The outbound softphone ──────────────────────────────────────────── ⛔ \"Calling…\" AND THE TIMER ARE DIFFERENT FACTS AND ARE WORDED SO. The dial route returns before the callee's phone has even rung, so the app is in the room while the far end is ringing; a duration shown then would be counting the ring as conversation, and it is the number an operator compares against an invoice."
 
-[dialer.entry_hint]
-en = "Enter a number with its country code, for example +1 416 555 0100."
-fr = "Indiquez un numéro avec l'indicatif du pays, par exemple +1 416 555 0100."
+[dialer.countries_all]
+en = "All countries"
+fr = "Tous les pays"
+ctx = "title"
+screen = "dialer"
+tier = "T3"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Heading over the full, alphabetical country list."
+
+[dialer.countries_no_match]
+en = "No country matches that search."
+fr = "Aucun pays ne correspond à cette recherche."
+ctx = "body"
+screen = "dialer"
+tier = "T3"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. The country list when the search finds nothing."
+
+[dialer.countries_suggested]
+en = "Suggested"
+fr = "Suggestions"
+ctx = "title"
+screen = "dialer"
+tier = "T3"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Heading over the workspace's own country, the one on the button, then Canada and the United States."
+
+[dialer.country]
+en = "Country"
+fr = "Pays"
+ctx = "label"
+screen = "dialer"
+tier = "T3"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. On the button in front of the number when no country is chosen yet, and the title of the country list."
+
+[dialer.country_button]
+en = "Country: {country}, +{code}"
+fr = "Pays\u00A0: {country}, +{code}"
+ctx = "a11y"
+screen = "dialer"
+tier = "T3"
+args = { country = "str", code = "str" }
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. TalkBack label of the flag button in front of the number. {country} is a country name, {code} its calling code digits."
+
+[dialer.country_button_none]
+en = "Country: none chosen"
+fr = "Pays\u00A0: aucun choisi"
+ctx = "a11y"
+screen = "dialer"
+tier = "T3"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. TalkBack label of the flag button when no country is chosen."
+
+[dialer.country_search]
+en = "Search by country or code"
+fr = "Rechercher par pays ou par indicatif"
 ctx = "placeholder"
 screen = "dialer"
 tier = "T3"
-state = "reviewed"
-note = "── The outbound softphone ──────────────────────────────────────────── ⛔ \"Calling…\" AND THE TIMER ARE DIFFERENT FACTS AND ARE WORDED SO. The dial route returns before the callee's phone has even rung, so the app is in the room while the far end is ringing; a duration shown then would be counting the ring as conversation, and it is the number an operator compares against an invoice."
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Search prompt: a country is found by its name, its two-letter code or its calling code."
+
+[dialer.destination_unrecognised]
+en = "Unrecognised country code. Check the number before calling."
+fr = "Cet indicatif de pays n'est pas reconnu. Vérifiez le numéro avant d'appeler."
+ctx = "body"
+screen = "dialer"
+tier = "T2"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Shown under the number when its + code belongs to no listed country. The number stays callable: the app is not the authority on which codes exist."
+
+[dialer.entry_hint_local]
+en = "Type the number as you would dial it locally ({country}), or start with + and its country code."
+fr = "Saisissez le numéro comme vous le composeriez sur place ({country}), ou commencez par + et l'indicatif du pays."
+ctx = "body"
+screen = "dialer"
+tier = "T3"
+args = { country = "str" }
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Under the empty field. {country} is a country name, in brackets so no article is needed."
+
+[dialer.entry_hint_none]
+en = "Choose a country, or start with + and the country code."
+fr = "Choisissez un pays, ou commencez par + et l'indicatif du pays."
+ctx = "body"
+screen = "dialer"
+tier = "T2"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Under the field when no country is chosen: digits without + cannot be read until one is."
+
+[dialer.entry_wrong_length]
+en = "That is the wrong number of digits for a number in the country it rings. Check it before you call."
+fr = "Ce numéro n'a pas le bon nombre de chiffres pour le pays de destination. Vérifiez-le avant d'appeler."
+ctx = "error"
+screen = "dialer"
+tier = "T2"
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Said only once the person stops typing (the field loses focus, Done, or a refused Call), never while digits are still arriving."
 
 [dialer.mic_notice]
 en = "Placing a call turns on your microphone."
@@ -2835,6 +2927,16 @@ screen = "dialer"
 tier = "T1"
 state = "reviewed"
 note = "── The outbound softphone ──────────────────────────────────────────── ⛔ \"Calling…\" AND THE TIMER ARE DIFFERENT FACTS AND ARE WORDED SO. The dial route returns before the callee's phone has even rung, so the app is in the room while the far end is ringing; a duration shown then would be counting the ring as conversation, and it is the number an operator compares against an invoice. ⛔ NOT A PAYMENT PROBLEM. The account is in good standing and has used its included minutes under a hard cap it chose; wording this as a billing failure sends someone to check a card that is working."
+
+[dialer.rings]
+en = "Rings {country} · {number}"
+fr = "Pays de destination\u00A0: {country} · {number}"
+ctx = "body"
+screen = "dialer"
+tier = "T1"
+args = { country = "str", number = "str" }
+state = "draft"
+note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. ⛔ Shown under the number before Call, and the number in it is exactly what is dialled. {country} is a country name, {number} the full international number, e.g. +1 416 555 0199."
 
 [dialer.subscription_inactive]
 en = "This workspace's subscription is not active, so calls are paused."

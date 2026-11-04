@@ -49,6 +49,8 @@ class InCallScreenTest {
                         onEntryChange = {},
                         onCallBack = {},
                         onDial = {},
+                        onCheckLength = {},
+                        onPickCountry = {},
                         onToggleMicrophone = { micTaps++ },
                         onToggleSpeaker = { speakerTaps++ },
                         onHangUp = { hangUpTaps++ },

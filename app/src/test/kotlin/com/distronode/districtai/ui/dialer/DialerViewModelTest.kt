@@ -4,6 +4,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.data.CallControlRepository
 import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.DialRepository
+import com.distronode.districtai.core.data.NumbersRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.MediaParticipant
 import com.distronode.districtai.core.model.CODE_OVERAGE_CAP_REACHED
@@ -121,9 +122,12 @@ class DialerViewModelTest {
         api: FakeDistrictApi = api(),
         factory: FakeCallEngineFactory = FakeCallEngineFactory(),
         role: WorkspaceRole? = WorkspaceRole.AGENCY,
+        memory: DialerCountryMemory = FakeDialerCountryMemory(),
     ) = DialerViewModel(
         dialRepository = DialRepository(api),
         callsRepository = CallsRepository(api),
+        numbers = NumbersRepository(api),
+        countryMemory = memory,
         // ⛔ WITHOUT THIS THE SCREEN CANNOT END A CALL AT THE CARRIER. Ending locally removes this
         // device from the room and says nothing to the SIP participant.
         callControl = CallControlRepository(callControlApi),
@@ -573,7 +577,9 @@ class DialerViewModelTest {
 
         vm.onEntryChange("+14165550100")
 
-        assertEquals("+14165550100", vm.state.value.entry)
+        // ⚠️ THE SERVER'S E.164 NUMBER MOVES THE FLAG AND LANDS IN THE LOCAL FORM (design A).
+        assertEquals("(416) 555-0100", vm.state.value.entry)
+        assertEquals("CA", vm.state.value.country)
         assertTrue(api.dialRequests.isEmpty())
     }
 
@@ -754,7 +760,7 @@ class DialerViewModelTest {
         // ⛔ THE BUG THIS PINS. The read copied the state it saw when it STARTED, so the call
         // placed meanwhile vanished from the screen, and the number with it, when the list landed.
         assertEquals("+14165550100", vm.state.value.call?.number)
-        assertEquals("+14165550100", vm.state.value.entry)
+        assertEquals("(416) 555-0100", vm.state.value.entry)
         vm.hangUp {}
         advanceUntilIdle()
     }

@@ -76,12 +76,14 @@ fun IncomingCallScreen(
             // the copy `stringResource` cannot reach.
             call = call.copy(number = stringResource(R.string.incoming_call_caller)),
             handlers = DialerHandlers(
-                // ⚠️ THE FOUR KEYPAD HANDLERS ARE NO-OPS AND CANNOT BE REACHED: `InCallScreen`
-                // draws only the in-call controls. They exist because the type is shared with the
-                // dialler, which is the point of sharing it.
+                // ⚠️ THE KEYPAD HANDLERS ARE NO-OPS AND CANNOT BE REACHED: `InCallScreen` draws only
+                // the in-call controls. They exist because the type is shared with the dialler,
+                // which is the point of sharing it.
                 onEntryChange = {},
                 onCallBack = {},
                 onDial = {},
+                onCheckLength = {},
+                onPickCountry = {},
                 onToggleMicrophone = handlers.onToggleMicrophone,
                 onToggleSpeaker = handlers.onToggleSpeaker,
                 onHangUp = handlers.onHangUp,

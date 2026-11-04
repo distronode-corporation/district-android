@@ -109,6 +109,19 @@ data class ConversationSummary(
     val lastMessage: ConversationLastMessage = ConversationLastMessage(),
     val unreadCount: Int = 0,
     val totalMessages: Int = 0,
+    /**
+     * The ordered `{channel, to}` pairs `messages/send` takes, the first being the channel to open
+     * the composer on. Sent only when the request opts in with `metaChannels=1`; absent (every
+     * installed build's request) it stays empty and [replyTarget] decides as before.
+     */
+    val replyOptions: List<ReplyOption> = emptyList(),
+    /**
+     * The member who owns the thread, or null. Sent only when the request opts in with
+     * `assignments=1`, from the same rows as `GET conversations/assignments`.
+     */
+    val assigneeEmail: String? = null,
+    /** The web's "Assigned to me" toggle, decided server-side. Sent with [assigneeEmail]. */
+    val assignedToMe: Boolean = false,
 ) {
     /**
      * What to show as the thread's title.
@@ -171,6 +184,13 @@ const val CHANNEL_EMAIL = "email"
  * than assembled from two independent decisions.
  */
 data class ReplyTarget(val to: String, val channel: String)
+
+/** One entry of [ConversationSummary.replyOptions]: a channel and the address to send on it. */
+@Serializable
+data class ReplyOption(
+    val channel: String = "",
+    val to: String = "",
+)
 
 @Serializable
 data class ConversationLastMessage(

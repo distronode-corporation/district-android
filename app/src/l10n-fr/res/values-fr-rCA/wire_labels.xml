@@ -202,6 +202,8 @@
     <string name="wire_workflow_action_reason_fallback_push">Texto non envoyé et courriel en échec, l\'alerte est partie dans l\'application à la place</string>
     <string name="wire_workflow_action_reason_http_status">HTTP {status}</string>
     <string name="wire_workflow_action_reason_invalid_recipient">Destinataire invalide</string>
+    <string name="wire_workflow_action_reason_loop_check_failed">Texto non envoyé\u00A0: les messages récents avec ce numéro n\'ont pas pu être vérifiés</string>
+    <string name="wire_workflow_action_reason_loop_paused">Texto non envoyé\u00A0: ce numéro a répondu automatiquement plusieurs fois de suite, les textos vers lui sont donc suspendus pendant une heure</string>
     <string name="wire_workflow_action_reason_missing_webhook_url">URL du webhook manquante</string>
     <string name="wire_workflow_action_reason_no_consent">Texto non envoyé\u00A0: aucun appel ni texto de cette personne depuis 24\u00A0heures, et aucun consentement au dossier</string>
     <string name="wire_workflow_action_reason_no_devices">Aucun membre de l\'équipe n\'a l\'application sur un appareil qui peut recevoir des notifications</string>

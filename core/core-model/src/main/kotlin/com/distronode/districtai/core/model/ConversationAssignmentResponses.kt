@@ -33,3 +33,16 @@ data class ConversationAssignmentsResponse(
     val success: Boolean = false,
     val assignments: List<ConversationAssignment> = emptyList(),
 )
+
+/**
+ * `POST /api/district/conversations/assign` `{ workspaceId, threadKey, assigneeEmail }`: the
+ * thread's new owner, or a null [assignment] when `assigneeEmail` was null (unassign).
+ *
+ * ⚠️ A VIEWER CANNOT BE ASSIGNED A THREAD: the route refuses it with 400 `assignee_is_viewer`
+ * (`district-conversation-assign-viewer.json`), read through the shared error envelope.
+ */
+@Serializable
+data class ConversationAssignResponse(
+    val success: Boolean = false,
+    val assignment: ConversationAssignment? = null,
+)

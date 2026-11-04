@@ -1000,6 +1000,22 @@
           "fr": null
         },
         {
+          "value": "loop-check-failed",
+          "definedIn": [
+            "distronode-website/src/lib/district/workflows.ts"
+          ],
+          "en": "Not texted: the recent messages with this number could not be checked",
+          "fr": "Texto non envoyé : les messages récents avec ce numéro n'ont pas pu être vérifiés"
+        },
+        {
+          "value": "loop-paused",
+          "definedIn": [
+            "distronode-website/src/lib/district/workflows.ts"
+          ],
+          "en": "Not texted: this number answered automatically several times in a row, so texts to it are paused for an hour",
+          "fr": "Texto non envoyé : ce numéro a répondu automatiquement plusieurs fois de suite, les textos vers lui sont donc suspendus pendant une heure"
+        },
+        {
           "value": "missing-webhook-url",
           "definedIn": [
             "distronode-website/src/lib/district/workflow-plan.ts"

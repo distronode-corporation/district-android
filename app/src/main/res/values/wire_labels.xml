@@ -202,6 +202,8 @@
     <string name="wire_workflow_action_reason_fallback_push">Not texted and the email failed, so it was sent to the app instead</string>
     <string name="wire_workflow_action_reason_http_status">HTTP {status}</string>
     <string name="wire_workflow_action_reason_invalid_recipient">Invalid recipient</string>
+    <string name="wire_workflow_action_reason_loop_check_failed">Not texted: the recent messages with this number could not be checked</string>
+    <string name="wire_workflow_action_reason_loop_paused">Not texted: this number answered automatically several times in a row, so texts to it are paused for an hour</string>
     <string name="wire_workflow_action_reason_missing_webhook_url">Missing webhook URL</string>
     <string name="wire_workflow_action_reason_no_consent">Not texted: no call or text from them in the last 24 hours, and no consent on record</string>
     <string name="wire_workflow_action_reason_no_devices">No team member has the app on a device that can receive notifications</string>

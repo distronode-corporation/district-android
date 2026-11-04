@@ -99,8 +99,25 @@ object DialPlan {
      *
      * ⚠️ THE EMERGENCY TEST COMES FIRST, BEFORE ANY COUNTRY: `911` must reach the hand-off sentence,
      * never "choose a country".
+     *
+     * ⛔ WHAT THE FIELD SHOWS ([Reading.national]) IS READ AGAIN ON THE NEXT EDIT, SO IT MUST READ BACK
+     * TO THE SAME NUMBER (Seer on district-core-rust #63). `+1 1 416 555 0199` pasted was shown as
+     * `(141) 655-50199`, and reading that took its leading `1` as the trunk prefix: `416 555 0199`, a
+     * whole Canadian number with Call on. A local form that would not read back is shown in its
+     * international form, `+114165550199`, which does.
      */
     fun read(raw: String, country: String?): Reading {
+        val reading = readEntry(raw, country)
+        // ⚠️ NOT WHILE THE NATIONAL NUMBER IS EMPTY: `+44` alone shows an empty field under the flag,
+        // and there is no number yet to read back.
+        if (reading.status == Status.EMERGENCY || reading.national.startsWith("+")) return reading
+        if (reading.callingCode.isEmpty() || reading.nationalNumber.isEmpty()) return reading
+        val again = readEntry(reading.national, reading.iso)
+        val same = again.callingCode == reading.callingCode && again.nationalNumber == reading.nationalNumber
+        return if (same) reading else reading.copy(national = "+" + reading.callingCode + reading.nationalNumber)
+    }
+
+    private fun readEntry(raw: String, country: String?): Reading {
         val compact = raw.filter { it == '+' || isDigit(it) }
         var plus = compact.startsWith("+")
         var digits = compact.filter(::isDigit)

@@ -317,7 +317,7 @@
     <string name="dialer_country">Country</string>
     <string name="dialer_country_button">Country: %1$s, +%2$s</string>
     <string name="dialer_country_button_none">Country: none chosen</string>
-    <string name="dialer_country_search">Search by country or code</string>
+    <string name="dialer_country_search">Country name or code</string>
     <string name="dialer_destination_unrecognised">Unrecognised country code. Check the number before calling.</string>
     <string name="dialer_entry_hint_local">Type the number as you would dial it locally (%1$s), or start with + and its country code.</string>
     <string name="dialer_entry_hint_none">Choose a country, or start with + and the country code.</string>
@@ -328,6 +328,7 @@
     <string name="dialer_open">Dial</string>
     <string name="dialer_overage_cap">This workspace has used its included voice minutes and its overage policy is set to a hard cap. Change the policy or upgrade the plan to resume calls.</string>
     <string name="dialer_rings">Rings %1$s · %2$s</string>
+    <string name="dialer_rings_no_country">Rings %1$s. This number does not belong to one country. Check it before you call.</string>
     <string name="dialer_subscription_inactive">This workspace\'s subscription is not active, so calls are paused.</string>
     <string name="dialer_title">Dial</string>
     <string name="dialer_viewer_notice">You are in this workspace as a viewer, so you cannot place calls.</string>

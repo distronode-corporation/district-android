@@ -11,6 +11,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.activity.ComponentDialog
 import org.robolectric.shadows.ShadowDialog
 import com.distronode.districtai.str
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -176,6 +178,82 @@ class DialerScreenTest {
         composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION)
             .assertTextEquals(str(R.string.dialer_destination_unrecognised))
         composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+    }
+
+    /**
+     * ⛔ A +1 TOLL-FREE NUMBER NAMES NO COUNTRY (Sean, 2026-11-04, GitLab #2): the web's
+     * `ringsNoCountry` for every one of the seven codes, typed locally or with `+1`, and it stays
+     * callable. The button keeps its +1 country.
+     */
+    @Test
+    fun `a toll-free number says it belongs to no one country`() {
+        var entry by mutableStateOf("")
+        composeRule.setContent {
+            DistrictTheme {
+                DialerScreen(state = idle(entry = entry), handlers = handlers())
+            }
+        }
+        for (area in TOLL_FREE) {
+            for (typed in listOf("${area}5550100", "1 $area 555 0100", "+1 $area 555 0100")) {
+                entry = typed
+                composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION)
+                    .assertTextEquals(str(R.string.dialer_rings_no_country, "+1 $area 555 0100"))
+                composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+                composeRule.onNodeWithTag(DIALER_COUNTRY_BUTTON_DESCRIPTION, useUnmergedTree = true)
+                    .assertContentDescriptionEquals(str(R.string.dialer_country_button, "Canada", "1"))
+            }
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "en-rCA")
+    fun `the toll-free line is the web's English`() {
+        render(idle(entry = "8005550100"))
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION).assertTextEquals(
+            "Rings +1 800 555 0100. This number does not belong to one country. Check it before you call.",
+        )
+    }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `the toll-free line is the web's French`() {
+        render(idle(entry = "8005550100"))
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION).assertTextEquals(
+            "Numéro composé\u00A0: +1 800 555 0100. Ce numéro n'appartient à aucun pays en particulier. " +
+                "Vérifiez-le avant d'appeler.",
+        )
+    }
+
+    /**
+     * ⛔ THE WEB'S TIMING: from 8 digits with the `1` (the web's `ready`), so a toll-free number still
+     * short of its ten digits already says it has no country, as the bare `+1800…` the web shows for a
+     * number that is not whole. Call stays off.
+     */
+    @Test
+    fun `a partial toll-free number says it from eight digits`() {
+        render(idle(entry = "800 5555"))
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION)
+            .assertTextEquals(str(R.string.dialer_rings_no_country, "+18005555"))
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    /**
+     * ⚠️ ONLY THE SEVEN CODES, FROM 8 DIGITS TO 15: a geographic +1 number still names its country,
+     * an 800 outside +1 is not toll-free, and seven digits or more than E.164 allows have no line.
+     */
+    @Test
+    fun `only a +1 toll-free number drops the country`() {
+        assertTrue(belongsToNoCountry(DialPlan.read("8885550100", "US")))
+        assertTrue(belongsToNoCountry(DialPlan.read("+1 833 555 0100", null)))
+        assertFalse(belongsToNoCountry(DialPlan.read("4165550100", "CA")))
+        assertFalse(belongsToNoCountry(DialPlan.read("+1 876 555 0100", null)))
+        assertFalse(belongsToNoCountry(DialPlan.read("+41 800 555 010", null)))
+        assertFalse(belongsToNoCountry(DialPlan.read("800555", "CA")))
+        assertEquals("CA" to "+1 800 555 0100", destinationLine(DialPlan.read("8005550100", "CA")))
+        assertEquals("CA" to "+18005555", destinationLine(DialPlan.read("800 5555", "CA")))
+        assertNull(destinationLine(DialPlan.read("800 555", "CA")))
+        assertEquals("US" to "+188855501001", destinationLine(DialPlan.read("+1 888 555 01001", null)))
+        assertNull(destinationLine(DialPlan.read("+1 888 555 0100 12345", null)))
     }
 
     /**
@@ -454,5 +532,10 @@ class DialerScreenTest {
 
         assertEquals(listOf("+14165550100"), later)
         assertEquals(emptyList<String>(), callBacks)
+    }
+
+    private companion object {
+        /** The +1 toll-free area codes, the seven the web's area-code table marks toll-free. */
+        val TOLL_FREE = listOf("800", "833", "844", "855", "866", "877", "888")
     }
 }

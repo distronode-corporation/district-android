@@ -10,6 +10,23 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ### Fixed
 
+- Dialler: a pasted `+1 1 416 555 0199` no longer turns into a callable Canadian number. The
+  field showed `(141) 655-50199`, and reading that again took its leading `1` as the trunk
+  prefix, `416 555 0199` with Call on. What the field shows now always reads back to the same
+  number; one that would not is shown as `+114165550199` (Seer on district-core-rust #63).
+- Dialler: every country whose national prefix is `0` in libphonenumber drops its trunk `0`, 103
+  countries where 45 were listed: `0412 123 4567` typed in Venezuela sent `+58 0412…` (also
+  Ecuador, Uruguay and 55 more; Seer on district-core-rust #63). The list is the same in the
+  iOS, Mac and Android apps and district-core-rust.
+- Dialler: the call screen's title groups the number by its own calling code, as the line before
+  Call does. Call sends E.164, and grouping it by its last ten digits showed a French
+  `+33639980123` as `+3 363 998 0123` (Seer on district-core-rust #63).
+- Dialler: a +1 toll-free number (800, 833, 844, 855, 866, 877, 888) no longer says "Rings
+  Canada" or "Rings United States" under the field. It says what the web dialler says, "Rings +1
+  800 555 0100. This number does not belong to one country. Check it before you call." (and the
+  web's French), new key `dialer.rings_no_country` (Sean, 2026-11-04, GitLab #2). As on the web
+  it is said from 8 digits with the `1` (Call still off, the number ungrouped until whole). The
+  button keeps its +1 country. The dialler's French strings are marked reviewed.
 - Voice Studio's time-to-first-word meter counts the brain's measured time again while you edit
   an engine, instead of showing only "at least" a lower figure.
 

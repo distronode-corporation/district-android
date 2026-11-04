@@ -95,7 +95,7 @@ object DialCountries {
     /** Canadian area codes, so a +1 number reads Canada or the US by its first three digits. */
     private val canadianAreaCodes: Set<String> = (
         "204 226 236 249 250 257 263 289 306 343 354 365 367 368 382 387 403 416 418 428 431 437 438 450 " +
-            "460 468 474 506 514 519 548 579 581 584 587 600 604 613 639 647 672 683 705 709 742 753 778 780 " +
+            "460 468 474 506 514 519 548 579 581 584 587 604 613 639 647 672 683 705 709 742 753 778 780 " +
             "782 807 819 825 867 873 879 902 905 942"
         ).split(' ').toSet()
 
@@ -135,16 +135,14 @@ object DialCountries {
      */
     fun nanpCountry(nsn: String, fallback: String?): String {
         val plusOne = fallback?.takeIf(::isNanp) ?: "US"
-        // ⚠️ A TOLL-FREE CODE (800, 888 …) BELONGS TO NO ONE COUNTRY, so it keeps the +1 country
-        // already on screen rather than claiming the United States.
-        if (nsn.length < AREA_CODE_LENGTH || isNanpTollFree(nsn)) return plusOne
+        // ⚠️ A NO-COUNTRY CODE (toll-free 800, 888 …, and the web's 500, 600, 700, 710, 900) BELONGS
+        // TO NO ONE COUNTRY, so it keeps the +1 country already on screen rather than claiming one
+        // (Seer on district-ios #98: 600 claimed Canada beside a line saying it had no country).
+        if (nsn.length < AREA_CODE_LENGTH || isNanpNoCountry(nsn)) return plusOne
         val area = nsn.take(AREA_CODE_LENGTH)
         if (area in canadianAreaCodes) return "CA"
         return nanpAreaCountries[area] ?: "US"
     }
-
-    /** Whether a +1 national number is toll-free, shared by every country of the plan. */
-    fun isNanpTollFree(nsn: String): Boolean = nsn.take(AREA_CODE_LENGTH) in nanpTollFree
 
     /** Whether a +1 national number belongs to no one country, as the web's table has it. */
     fun isNanpNoCountry(nsn: String): Boolean = nsn.take(AREA_CODE_LENGTH) in nanpNoCountry
@@ -179,10 +177,11 @@ object DialCountries {
     fun homeCountry(numbers: List<String>): String? {
         val counts = linkedMapOf<String, Int>()
         for (reading in numbers.map { DialPlan.read(it, country = null) }) {
-            // ⚠️ A TOLL-FREE +1 NUMBER IS NOT EVIDENCE OF ANY COUNTRY (Seer on district-ios #95): a
-            // Canadian workspace with only 1-800 numbers would otherwise read as American.
-            val tollFree = reading.callingCode == "1" && isNanpTollFree(reading.nationalNumber)
-            val iso = reading.iso?.takeUnless { tollFree } ?: continue
+            // ⚠️ A NO-COUNTRY +1 NUMBER (toll-free, or 500, 600, 700, 710, 900) IS NOT EVIDENCE OF ANY
+            // COUNTRY (Seer on district-ios #95 and #98): a Canadian workspace with only 1-800 numbers
+            // would otherwise read as American.
+            val noCountry = reading.callingCode == "1" && isNanpNoCountry(reading.nationalNumber)
+            val iso = reading.iso?.takeUnless { noCountry } ?: continue
             counts[iso] = (counts[iso] ?: 0) + 1
         }
         // ⚠️ `maxByOrNull` keeps the FIRST of equal maxima, and the map keeps insertion order.

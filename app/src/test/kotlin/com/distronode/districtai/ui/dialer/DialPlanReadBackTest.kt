@@ -111,4 +111,19 @@ class DialPlanReadBackTest {
             assertEquals(raw, first.e164, DialPlan.read(first.national, country).e164)
         }
     }
+
+    /**
+     * ⛔ THE FLAG AND THE HOME-COUNTRY VOTE TREAT THE WEB'S OTHER NO-COUNTRY CODES AS THE TOLL-FREE ONES
+     * (Seer on district-ios #98): `+1 600…` moved the flag to Canada, and 500, 700, 710 and 900 to the
+     * United States, beside a line saying the number belongs to no one country.
+     */
+    @Test
+    fun `the other no-country codes keep the flag and do not vote`() {
+        for (area in listOf("500", "600", "700", "710", "900")) {
+            assertEquals(area, "US", DialPlan.read("+1 $area 555 0100", "US").iso)
+            assertEquals(area, "JM", DialPlan.read("${area}5550100", "JM").iso)
+        }
+        assertNull(DialCountries.homeCountry(listOf("+16005550100", "+19005550100")))
+        assertEquals("US", DialCountries.homeCountry(listOf("+16005550100", "+12065550100")))
+    }
 }

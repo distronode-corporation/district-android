@@ -18,7 +18,11 @@ internal object DialGrouping {
      */
     fun formatNational(iso: String, code: String, nsn: String, typedTrunk: Boolean): String {
         if (nsn.isEmpty()) {
-            if (!typedTrunk) return ""
+            // ⛔ A `+` AND A CALLING CODE WITH NO DIGIT AFTER IT YET STAY AS THEY ARE, so the next digit
+            // is still read after the code. Shown as an empty local number instead, the next digit was
+            // read as a local one and a trunk prefix swallowed it: Saint Petersburg's 812 typed after +7
+            // lost its 8 to Russia's trunk 8 (Seer on district-core-rust #63).
+            if (!typedTrunk) return "+$code"
             return if (code == "1") "1" else DialCountries.trunkPrefix(iso) ?: "0"
         }
         if (code == "1") return formatNanp(nsn)
@@ -83,6 +87,10 @@ internal object DialGrouping {
      */
     fun lengths(iso: String, code: String): IntRange {
         if (code == "1") return NANP_LENGTH..NANP_LENGTH
+        // ⛔ RUSSIA AND KAZAKHSTAN: TEN DIGITS AFTER +7, ALWAYS. Without this an eleven-digit Russian
+        // number typed with its 7 and no `+` read as Kazakh and was offered for dialling (Seer on
+        // district-core-rust #63).
+        if (code == "7") return PLUS_SEVEN_LENGTH..PLUS_SEVEN_LENGTH
         return knownLengths[iso] ?: MINIMUM_NATIONAL..(DialPlan.MAXIMUM_DIGITS - code.length)
     }
 
@@ -116,6 +124,7 @@ internal object DialGrouping {
     private const val NANP_AREA = 3
     private const val NANP_EXCHANGE_END = 6
     private const val NANP_LENGTH = 10
+    private const val PLUS_SEVEN_LENGTH = 10
 
     /** The shortest national number a country without its own range may have. */
     private const val MINIMUM_NATIONAL = 4

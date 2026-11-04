@@ -8,6 +8,13 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Known limits
+
+- Dialler: a whole number typed without its trunk prefix may lose a leading digit when that
+  digit equals the trunk prefix (Russia's `800 555 35 35` typed without its `8`). Only Belarus,
+  the UK and Lithuania check a prefix against libphonenumber's number patterns; modelling every
+  country's pattern is left out. The line under the field shows the whole number before Call.
+
 ### Fixed
 
 - Dialler: a pasted `+1 1 416 555 0199` no longer turns into a callable Canadian number. The

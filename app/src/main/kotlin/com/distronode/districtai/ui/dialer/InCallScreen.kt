@@ -253,7 +253,7 @@ internal fun InCallScreenPreview() {
                 answered = true,
                 elapsedSeconds = 75,
             ),
-            handlers = DialerHandlers({}, {}, {}, {}, {}, {}, {}, {}),
+            handlers = DialerHandlers({}, {}, {}, {}, {}, {}, {}, {}, {}, {}),
         )
     }
 }

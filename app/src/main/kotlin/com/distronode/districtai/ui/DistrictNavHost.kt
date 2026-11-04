@@ -46,6 +46,7 @@ import com.distronode.districtai.ui.calls.CallDetailScreen
 import com.distronode.districtai.ui.dialer.DialerHandlers
 import com.distronode.districtai.ui.dialer.DialerScreen
 import com.distronode.districtai.ui.dialer.DialerViewModel
+import com.distronode.districtai.ui.dialer.PreferencesDialerCountryMemory
 import com.distronode.districtai.ui.calls.CallDetailViewModel
 import com.distronode.districtai.ui.contacts.BlockedContactsScreen
 import com.distronode.districtai.ui.contacts.BlockedContactsViewModel
@@ -2073,6 +2074,10 @@ private fun NavGraphBuilder.dialerDestination(
                 callControl = container.callControlRepository,
                 engineFactory = container.callEngineFactory,
                 telecom = container.telecomBridge,
+                // ⚠️ The home country comes from the workspace's own numbers, a GET the app already
+                // decodes; no response field was added for it (dialler design A).
+                numbers = container.numbersRepository,
+                countryMemory = PreferencesDialerCountryMemory(LocalContext.current),
                 workspaceId = workspaceId,
                 role = role,
             ),
@@ -2107,6 +2112,8 @@ private fun NavGraphBuilder.dialerDestination(
                 // scrolling list where a mis-scroll lands on a row.
                 onCallBack = viewModel::onEntryChange,
                 onDial = viewModel::onDial,
+                onCheckLength = viewModel::checkLength,
+                onPickCountry = viewModel::pickCountry,
                 onToggleMicrophone = viewModel::toggleMicrophone,
                 onToggleSpeaker = viewModel::toggleSpeaker,
                 // ⚠️ NO POP. Unlike the room's `leave`, hanging up stays on this destination and

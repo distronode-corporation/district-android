@@ -3,7 +3,15 @@ package com.distronode.districtai.ui.dialer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextInput
+import androidx.activity.ComponentDialog
+import org.robolectric.shadows.ShadowDialog
+import com.distronode.districtai.str
+import org.junit.Assert.assertTrue
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -47,6 +55,8 @@ class DialerScreenTest {
     private var speakerTaps = 0
     private var hangUpTaps = 0
     private var dismissTaps = 0
+    private var lengthChecks = 0
+    private var picks = mutableListOf<String>()
 
     private fun render(state: DialerUiState) {
         composeRule.setContent {
@@ -57,6 +67,8 @@ class DialerScreenTest {
                         onEntryChange = { entries += it },
                         onCallBack = { callBacks += it },
                         onDial = { dialTaps++ },
+                        onCheckLength = { lengthChecks++ },
+                        onPickCountry = { picks += it },
                         onToggleMicrophone = { micTaps++ },
                         onToggleSpeaker = { speakerTaps++ },
                         onHangUp = { hangUpTaps++ },
@@ -73,7 +85,17 @@ class DialerScreenTest {
         entry: String = "",
         callbacks: CallbacksState = CallbacksState.Ready(emptyList()),
         refusal: FailureText? = null,
-    ) = DialerUiState(canDial = canDial, entry = entry, callbacks = callbacks, refusal = refusal)
+        country: String? = "CA",
+        lengthChecked: Boolean = false,
+    ) = DialerUiState(
+        canDial = canDial,
+        entry = entry,
+        callbacks = callbacks,
+        refusal = refusal,
+        country = country,
+        homeCountry = "CA",
+        lengthChecked = lengthChecked,
+    )
 
     // ── The keypad ───────────────────────────────────────────────────────────
 
@@ -109,16 +131,156 @@ class DialerScreenTest {
         composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
     }
 
-    @Test
-    fun `the field holds the raw entry and the formatted form sits beside it`() {
-        // ⛔ THE PREVIEW NEVER REWRITES THE FIELD. The server normalises its own copy and dials
-        // against that, so a client-side rewrite could place a call the DNC check never saw — and
-        // rewriting as someone types also moves the cursor. The wording of the grouping itself is
-        // `DialFormatTest`'s property; what matters here is that both are drawn.
-        render(idle(entry = "+14165550100"))
+    // ── Dialler design A ─────────────────────────────────────────────────────
 
-        composeRule.onNodeWithTag(DIALER_PREVIEW_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("+14165550100").assertExists()
+    @Test
+    fun `an empty field shows the local hint, the flag and an example in the country's own form`() {
+        render(idle())
+
+        composeRule.onNodeWithTag(DIALER_HINT_DESCRIPTION)
+            .assertTextEquals(str(R.string.dialer_entry_hint_local, "Canada"))
+        composeRule.onNodeWithTag(DIALER_COUNTRY_BUTTON_DESCRIPTION, useUnmergedTree = true)
+            .assertContentDescriptionEquals(str(R.string.dialer_country_button, "Canada", "1"))
+        composeRule.onNodeWithText("(416) 555-0199").assertExists()
+        composeRule.onNodeWithTag(DIALER_PROBLEM_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `with no country the field asks for one, and digits say so`() {
+        render(idle(country = null))
+        composeRule.onNodeWithTag(DIALER_HINT_DESCRIPTION).assertTextEquals(str(R.string.dialer_entry_hint_none))
+        composeRule.onNodeWithText(str(R.string.dialer_country)).assertExists()
+    }
+
+    @Test
+    fun `digits with no country say why Call is off`() {
+        render(idle(country = null, entry = "4165550199"))
+        composeRule.onNodeWithTag(DIALER_PROBLEM_DESCRIPTION).assertTextEquals(str(R.string.dialer_entry_hint_none))
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    /** ⛔ THE LINE THAT PREVENTS A WRONG-COUNTRY DIAL: the country and the whole number, before Call. */
+    @Test
+    fun `a whole number says where it rings and the number that is sent`() {
+        render(idle(entry = "(416) 555-0199"))
+
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION)
+            .assertTextEquals(str(R.string.dialer_rings, "Canada", "+1 416 555 0199"))
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(DIALER_HINT_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `an unknown code is said plainly and stays callable`() {
+        render(idle(entry = "+990 1234 5678"))
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION)
+            .assertTextEquals(str(R.string.dialer_destination_unrecognised))
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsEnabled()
+    }
+
+    /**
+     * ⛔ THE BILLED CALL: `+4165550123` is Switzerland with a digit missing. While typing, Call is
+     * simply off; the sentence waits until the operator stops.
+     */
+    @Test
+    fun `the Switzerland misdial keeps Call off and says nothing while typing`() {
+        render(idle(entry = "+4165550123"))
+
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(DIALER_PROBLEM_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(DIALER_DESTINATION_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `once the operator stops, a wrong length is said`() {
+        render(idle(entry = "+4165550123", lengthChecked = true))
+        composeRule.onNodeWithTag(DIALER_PROBLEM_DESCRIPTION).assertTextEquals(str(R.string.dialer_entry_wrong_length))
+    }
+
+    /** ⚠️ A disabled button runs no action, so a layer over it takes the tap and asks why. */
+    @Test
+    fun `a tap on the disabled Call reaches the dial handler, which refuses and explains`() {
+        render(idle(entry = "+4165550123"))
+
+        composeRule.onNodeWithTag(DIALER_CALL_REFUSED_DESCRIPTION, useUnmergedTree = true).performClick()
+
+        assertEquals(1, dialTaps)
+    }
+
+    @Test
+    fun `Done on the keyboard checks the length`() {
+        render(idle(entry = "+4165550123"))
+
+        composeRule.onNodeWithTag(DIALER_FIELD_DESCRIPTION).performImeAction()
+
+        assertTrue(lengthChecks >= 1)
+    }
+
+    @Test
+    fun `typing goes to the entry handler`() {
+        render(idle())
+
+        composeRule.onNodeWithTag(DIALER_FIELD_DESCRIPTION).performTextInput("4")
+
+        assertEquals(listOf("4"), entries)
+    }
+
+    @Test
+    fun `an emergency number sends the operator to the phone's own dialler`() {
+        render(idle(entry = "911"))
+        composeRule.onNodeWithTag(DIALER_PROBLEM_DESCRIPTION).assertTextEquals(str(R.string.api_error_emergency_number))
+        composeRule.onNodeWithTag(DIALER_CALL_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `the country list opens with Suggested first and a search picks a country`() {
+        render(idle())
+
+        composeRule.onNodeWithTag(DIALER_COUNTRY_BUTTON_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIALER_COUNTRY_PICKER_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.dialer_countries_suggested).uppercase()).assertExists()
+        composeRule.onNodeWithTag(DIALER_COUNTRY_SEARCH_DESCRIPTION).performTextInput("germ")
+        composeRule.onNodeWithTag(countryRowDescription("DE")).performClick()
+
+        assertEquals(listOf("DE"), picks)
+        composeRule.onNodeWithTag(DIALER_COUNTRY_PICKER_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `Done in the search picks the first, best ranked row`() {
+        render(idle())
+
+        composeRule.onNodeWithTag(DIALER_COUNTRY_BUTTON_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIALER_COUNTRY_SEARCH_DESCRIPTION).performTextInput("us")
+        composeRule.onNodeWithTag(DIALER_COUNTRY_SEARCH_DESCRIPTION).performImeAction()
+
+        assertEquals(listOf("US"), picks)
+    }
+
+    @Test
+    fun `a search that matches nothing says so, and Done picks nothing`() {
+        render(idle())
+
+        composeRule.onNodeWithTag(DIALER_COUNTRY_BUTTON_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(DIALER_COUNTRY_SEARCH_DESCRIPTION).performTextInput("zzz")
+        composeRule.onNodeWithTag(DIALER_COUNTRY_NO_MATCH_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(DIALER_COUNTRY_SEARCH_DESCRIPTION).performImeAction()
+
+        assertEquals(emptyList<String>(), picks)
+    }
+
+    @Test
+    fun `dismissing the country list picks nothing`() {
+        render(idle())
+
+        composeRule.onNodeWithTag(DIALER_COUNTRY_BUTTON_DESCRIPTION).performClick()
+        // ⚠️ Through the dialog's own back dispatcher; see `CreateContactDialogTest`.
+        composeRule.runOnIdle {
+            (ShadowDialog.getLatestDialog() as ComponentDialog).onBackPressedDispatcher.onBackPressed()
+        }
+
+        composeRule.onNodeWithTag(DIALER_COUNTRY_PICKER_DESCRIPTION).assertDoesNotExist()
+        assertEquals(emptyList<String>(), picks)
     }
 
     @Test
@@ -252,6 +414,8 @@ class DialerScreenTest {
         onEntryChange = { entries += it },
         onCallBack = { callBacks += it },
         onDial = { dialTaps++ },
+        onCheckLength = { lengthChecks++ },
+        onPickCountry = { picks += it },
         onToggleMicrophone = { micTaps++ },
         onToggleSpeaker = { speakerTaps++ },
         onHangUp = { hangUpTaps++ },

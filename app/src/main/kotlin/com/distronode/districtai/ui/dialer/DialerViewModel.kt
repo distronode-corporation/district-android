@@ -11,6 +11,7 @@ import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.DialOutcome
 import com.distronode.districtai.core.data.DialRepository
 import com.distronode.districtai.core.data.HangUpOutcome
+import com.distronode.districtai.core.data.NumbersRepository
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
@@ -89,6 +90,15 @@ class DialerViewModel(
     private val workspaceId: String,
     role: WorkspaceRole?,
     /**
+     * The workspace's own numbers, read once to learn its home country (dialler design A).
+     *
+     * ⚠️ A FAILED READ CHANGES NOTHING: the cached country, a remembered pick or none stays, and the
+     * keypad works either way. No response field was added for the country: a new field breaks the
+     * mobile contracts, and every role may already read this list.
+     */
+    private val numbers: NumbersRepository,
+    private val countryMemory: DialerCountryMemory,
+    /**
      * ⛔ A SCOPE THAT OUTLIVES THIS ViewModel, DELIBERATELY, AND IT IS NOT `viewModelScope`.
      * [onCleared] ends the call and `viewModelScope` is cancelled at exactly that moment, so a
      * hang-up launched there on the teardown path would be cancelled before it left the device —
@@ -105,7 +115,13 @@ class DialerViewModel(
         // shorter expression would hand an UNKNOWN role the ability to spend the workspace's
         // minutes. The extension exists precisely so the null case cannot be defaulted permissive
         // by accident; same direction every sibling destination fails.
-        DialerUiState(canDial = role.allowsMutation()),
+        DialerUiState(
+            canDial = role.allowsMutation(),
+            // ⚠️ A HOME COUNTRY, ONCE KNOWN, WINS OVER A PICK; with neither the field asks for `+` or
+            // a country rather than guessing one.
+            country = countryMemory.home(workspaceId) ?: countryMemory.picked(workspaceId),
+            homeCountry = countryMemory.home(workspaceId),
+        ),
     )
     val state: StateFlow<DialerUiState> = _state.asStateFlow()
 
@@ -154,6 +170,26 @@ class DialerViewModel(
 
     init {
         load()
+        loadHomeCountry()
+    }
+
+    /**
+     * Learn the workspace's country from its numbers.
+     *
+     * ⚠️ THE BUTTON MOVES ONLY IF THE OPERATOR HAS NOT STARTED: an empty field still showing the
+     * country it opened on. ⛔ THAT COUNTRY IS READ BEFORE THE REQUEST: a country picked while it is in
+     * flight, read afterwards, would look like the one the keypad opened on, and the answer would
+     * overwrite the operator's own pick.
+     */
+    private fun loadHomeCountry() {
+        val openedOn = _state.value.country
+        viewModelScope.launch {
+            val owned = numbers.owned(workspaceId)
+            if (owned !is ApiResult.Success) return@launch
+            val home = DialCountries.homeCountry(owned.value.numbers.map { it.phoneNumber }) ?: return@launch
+            countryMemory.rememberHome(home, workspaceId)
+            _state.value = _state.value.withHome(home, openedOn)
+        }
     }
 
     /**
@@ -184,7 +220,25 @@ class DialerViewModel(
      * row.
      */
     fun onEntryChange(entry: String) {
-        _state.value = _state.value.copy(entry = entry, refusal = null)
+        _state.value = _state.value.typed(entry)
+    }
+
+    /**
+     * The operator stopped typing: the field lost focus or Done was pressed. A number of a length its
+     * country never issues is said from now until the next edit. See [DialerUiState.lengthChecked].
+     */
+    fun checkLength() {
+        _state.value = _state.value.copy(lengthChecked = true)
+    }
+
+    /**
+     * The operator chose a country in the list.
+     *
+     * ⚠️ ON A WORKSPACE WITH NO HOME COUNTRY THE PICK IS REMEMBERED, so it is made once.
+     */
+    fun pickCountry(iso: String) {
+        if (_state.value.homeCountry == null) countryMemory.rememberPicked(iso, workspaceId)
+        _state.value = _state.value.picked(iso)
     }
 
     /**
@@ -200,7 +254,13 @@ class DialerViewModel(
      * the class.
      */
     fun onDial() {
-        if (!_state.value.canPlaceCall || dialing) return
+        if (dialing) return
+        // ⚠️ A REFUSED TAP SAYS WHY. Call is off for a number of the wrong length, and a tap on it is
+        // the moment the operator wants the reason. The screen routes taps on the disabled button here.
+        if (!_state.value.canPlaceCall) {
+            checkLength()
+            return
+        }
         _state.value = _state.value.copy(
             refusal = null,
             microphoneRequest = _state.value.microphoneRequest + 1,
@@ -219,7 +279,9 @@ class DialerViewModel(
             return
         }
         if (!_state.value.canPlaceCall || dialing) return
-        placeCall(_state.value.entry)
+        // ⛔ THE E.164 NUMBER THE LINE UNDER THE FIELD SHOWED, NEVER THE FIELD'S TEXT.
+        val number = _state.value.reading.e164 ?: return
+        placeCall(number)
     }
 
     fun toggleMicrophone() {
@@ -360,6 +422,8 @@ class DialerViewModel(
             callControl: CallControlRepository,
             engineFactory: CallEngineFactory,
             telecom: TelecomBridge,
+            numbers: NumbersRepository,
+            countryMemory: DialerCountryMemory,
             workspaceId: String,
             role: WorkspaceRole?,
         ): ViewModelProvider.Factory = viewModelFactory {
@@ -369,6 +433,8 @@ class DialerViewModel(
                     callsRepository = callsRepository,
                     callControl = callControl,
                     sessions = SoftphoneSessionFactory(engineFactory, telecom),
+                    numbers = numbers,
+                    countryMemory = countryMemory,
                     workspaceId = workspaceId,
                     role = role,
                 )

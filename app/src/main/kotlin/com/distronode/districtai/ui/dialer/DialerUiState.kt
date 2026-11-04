@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.dialer
 
+import com.distronode.districtai.R
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.FailureText
@@ -33,16 +34,32 @@ data class DialerUiState(
      */
     val canDial: Boolean = false,
     /**
-     * What the operator typed, verbatim.
+     * What the field shows: the number in the local form of [country] (dialler design A).
      *
-     * ⚠️ HELD RAW AND FORMATTED SEPARATELY, the same call the rooms lobby makes about a room name.
-     * Rewriting the field's own text as someone types moves their cursor; and here there is a
-     * second reason that is not cosmetic — the SERVER normalises the number and then runs the DNC
-     * check and the dial against ITS form, so a client-side canonicaliser that disagreed by one
-     * character would place a call the compliance check never saw. The formatting below is for
-     * reading only and never travels.
+     * ⛔ THIS TEXT NEVER TRAVELS. What the dial API receives is [DialPlan.Reading.e164], read from it
+     * in [country] and shown in full under the field ("Rings Canada · +1 416 555 0199") before Call.
+     * The server normalises its own copy, and an E.164 number passes through that unchanged, so the
+     * Do-Not-Call check and the dial run against the number the operator was shown.
+     *
+     * ⚠️ REWRITTEN AS THE OPERATOR TYPES, UNLIKE BEFORE DESIGN A, and safely: every form ends in a
+     * digit and reads back to the same digits (`DialPlanTest` pins both), so no keystroke is lost.
      */
     val entry: String = "",
+    /**
+     * The country on the button, which the field is read in, or null until one is picked or a `+`
+     * names one. A pasted `+44…` moves it to the United Kingdom.
+     */
+    val country: String? = null,
+    /** The workspace's own country, from its numbers, or null. First in the Suggested group. */
+    val homeCountry: String? = null,
+    /**
+     * The operator stopped typing: the field lost focus, Done was pressed, or a Call was refused.
+     *
+     * ⛔ A WRONG LENGTH IS SAID ONLY FROM THEN UNTIL THE NEXT EDIT, as the web, Mac and iOS dialers
+     * do. Every ten-digit number passes through eight and nine digits on the way, so a sentence said
+     * while typing would flash on every number; until then Call is simply off.
+     */
+    val lengthChecked: Boolean = false,
     val callbacks: CallbacksState = CallbacksState.Loading,
     /**
      * Why the last dial did not happen, or null.
@@ -68,16 +85,77 @@ data class DialerUiState(
     val microphoneRequest: Int = 0,
 ) {
     /**
-     * ⛔ EIGHT DIGITS, MIRRORING THE SERVER'S OWN FLOOR, AND CHECKED ON THE DIGITS RATHER THAN THE
-     * TEXT. The route rejects anything shorter than 8 characters AFTER normalising, so a client
-     * that counted the raw string would enable the button for "(416) 5" — thirteen characters,
-     * five digits — and the operator would meet a 400 that reads as a server fault. Counting
-     * digits is the one piece of normalisation this client may safely duplicate, because it is a
-     * LENGTH rather than a transformation and a disagreement can only make the button late, never
-     * make the wrong call.
+     * The field, read in the country on the button.
+     *
+     * ⚠️ DERIVED ON READ RATHER THAN STORED. It is a pure function of [entry] and [country], and a
+     * cached copy would be one more thing to keep in step.
+     */
+    val reading: DialPlan.Reading
+        get() = DialPlan.read(entry, country)
+
+    /**
+     * ⛔ ONE GATE: A COMPLETE NUMBER IN A KNOWN SHAPE. [DialPlan] sets an E.164 number only for a
+     * length the country issues and at least [DialPlan.MINIMUM_DIGITS] digits, the route's own floor
+     * after normalising, so the button cannot light for a number the server would answer with a 400,
+     * nor for `+4165550123` (eight digits after Switzerland's `+41`, where every number has nine).
+     * An emergency number never gets one.
      */
     val canPlaceCall: Boolean
-        get() = canDial && call == null && entry.count { it.isDigit() } >= MIN_DIAL_DIGITS
+        get() = canDial && call == null && reading.e164 != null
+
+    /**
+     * Why Call is off, in the operator's terms, or null when there is nothing to correct.
+     *
+     * ⚠️ AN EMPTY FIELD RETURNS null because the hint already occupies that moment, and a number still
+     * being typed is not a mistake. See [lengthChecked] for when a wrong length is said.
+     */
+    val entryProblem: Int?
+        get() {
+            val read = reading
+            return when (read.status) {
+                DialPlan.Status.EMPTY, DialPlan.Status.READY -> null
+                DialPlan.Status.NEEDS_COUNTRY -> R.string.dialer_entry_hint_none
+                // ⚠️ AN INCOMPLETE NUMBER IS A WRONG LENGTH ONLY WITH A COUNTRY AND DIGITS TO MEASURE:
+                // a lone `+`, a trunk `0` or an unknown code (said by the line above) is not.
+                DialPlan.Status.TYPING ->
+                    R.string.dialer_entry_wrong_length.takeIf {
+                        lengthChecked && read.iso != null && read.nationalNumber.isNotEmpty()
+                    }
+                DialPlan.Status.TOO_LONG -> R.string.dialer_entry_wrong_length.takeIf { lengthChecked }
+                // ⛔ THE ONLY REFUSAL HERE THAT IS NOT A CORRECTION: District cannot place an emergency
+                // call, and the server's own sentence for it sends the operator to the phone's dialler.
+                DialPlan.Status.EMERGENCY -> R.string.api_error_emergency_number
+            }
+        }
+
+    /**
+     * The field after an edit: read in the country on the button, written back in its local form,
+     * with the button moved when the number names its own country.
+     *
+     * ⛔ A `+` (OR `011`, `00`) NUMBER SWITCHES THE FLAG and the field drops to the local form, so
+     * the flag always says where the digits in the field ring. A +1 number flips between Canada, the
+     * United States and the Caribbean by its area code.
+     *
+     * ⚠️ EVERY EDIT CLEARS THE PREVIOUS REFUSAL AND THE LENGTH CHECK: a message about a number the
+     * operator has already changed is worse than none.
+     */
+    fun typed(value: String): DialerUiState {
+        val read = DialPlan.read(value, country)
+        return copy(entry = read.national, country = read.iso ?: country, refusal = null, lengthChecked = false)
+    }
+
+    /**
+     * The operator chose a country in the list. ⚠️ THE DIGITS ALREADY TYPED ARE KEPT and read again
+     * in the new country; a pick counts as an edit.
+     */
+    fun picked(iso: String): DialerUiState = copy(country = iso).typed(entry.filter(DialPlan::isDigit))
+
+    /**
+     * Record the workspace's country, and move the button to it only if nothing has moved it since
+     * the keypad opened on [openedOn] and the field is still empty.
+     */
+    fun withHome(home: String, openedOn: String?): DialerUiState =
+        copy(homeCountry = home, country = if (entry.isEmpty() && country == openedOn) home else country)
 }
 
 /** The call-back list: the workspace's recent INBOUND calls. See `CallsRepository.recentCallbacks`. */
@@ -187,6 +265,3 @@ enum class CallPhase {
     /** The media session could not be established. ⚠️ Distinct from a refused dial, which never got here. */
     FAILED,
 }
-
-/** See [DialerUiState.canPlaceCall]. */
-internal const val MIN_DIAL_DIGITS = 8

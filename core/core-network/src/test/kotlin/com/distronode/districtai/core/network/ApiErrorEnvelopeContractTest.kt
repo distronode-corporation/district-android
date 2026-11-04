@@ -181,6 +181,22 @@ class ApiErrorEnvelopeContractTest {
     }
 
     /**
+     * Assigning a thread to a Viewer is refused with the route's own 400 envelope (app parity 3).
+     * The code is what the app's error catalog keys on, so it is asserted.
+     */
+    @Test
+    fun `the viewer assignment refusal decodes with its code`() {
+        val envelope = strictJson.decodeFromString(
+            ApiErrorEnvelope.serializer(),
+            fixture("district-conversation-assign-viewer.json"),
+        )
+
+        assertEquals(false, envelope.success)
+        assertEquals("assignee_is_viewer", envelope.code)
+        assertTrue(!envelope.error.isNullOrBlank())
+    }
+
+    /**
      * ⛔ THE HALF THAT ACTUALLY MATTERS, AND IT IS RUN OVER A REAL SOCKET. Decoding the envelope
      * proves the fields are in the file; this proves the code SURVIVES `mapFailure` — which is
      * where it could be lost, because that function has four earlier branches keyed on the status

@@ -122,7 +122,11 @@ object DialPlan {
         var plus = compact.startsWith("+")
         var digits = compact.filter(::isDigit)
         if (isEmergency(compact)) {
-            return Reading(Status.EMERGENCY, country, national = digits, international = digits)
+            // ⛔ SHOWN AS TYPED, ITS `+` KEPT: `+911` is refused, but it is also the start of every
+            // Indian number beginning +91 1, and the next digit must still be read after the code
+            // rather than as a local number (Seer on district-core-rust #63).
+            val shown = if (plus) "+$digits" else digits
+            return Reading(Status.EMERGENCY, country, national = shown, international = shown)
         }
         if (!plus) {
             dropExitCode(digits, country)?.let { rest ->

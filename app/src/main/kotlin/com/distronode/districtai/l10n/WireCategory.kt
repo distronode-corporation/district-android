@@ -247,6 +247,8 @@ internal enum class WireCategory(
             "fallback-push" to R.string.wire_workflow_action_reason_fallback_push,
             "http-{status}" to R.string.wire_workflow_action_reason_http_status,
             "invalid-recipient" to R.string.wire_workflow_action_reason_invalid_recipient,
+            "loop-check-failed" to R.string.wire_workflow_action_reason_loop_check_failed,
+            "loop-paused" to R.string.wire_workflow_action_reason_loop_paused,
             "missing-webhook-url" to R.string.wire_workflow_action_reason_missing_webhook_url,
             "no-consent" to R.string.wire_workflow_action_reason_no_consent,
             "no-devices" to R.string.wire_workflow_action_reason_no_devices,

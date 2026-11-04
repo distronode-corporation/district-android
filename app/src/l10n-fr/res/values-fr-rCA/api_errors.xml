@@ -3,6 +3,7 @@
 <resources>
     <string name="api_error_account_not_found">Ce compte est introuvable.</string>
     <string name="api_error_already_cancelled">Ce rendez-vous a déjà été annulé.</string>
+    <string name="api_error_assignee_is_viewer">Un Lecteur peut consulter les conversations, mais aucune ne peut lui être assignée. Choisissez un membre qui a un autre rôle.</string>
     <string name="api_error_assignee_not_member">Cette personne n\'est pas membre de cet espace de travail. Ajoutez-la d\'abord à l\'équipe.</string>
     <string name="api_error_attachment_unsupported">Ce type de pièce jointe ne peut pas être envoyé sur ce canal.</string>
     <string name="api_error_audition_busy">Deux auditions sont déjà en cours pour cet espace de travail. Terminez-en une et réessayez.</string>
@@ -106,6 +107,7 @@
     <string name="api_error_messaging_app_sms_refused">Les textos sont configurés avec vos numéros de téléphone, pas comme une application de messagerie.</string>
     <string name="api_error_messaging_apps_managed">Les applications de messagerie ne peuvent pas être connectées sur le compte Sinch de la plateforme. Connectez votre propre compte Sinch pour ajouter WhatsApp, Messenger ou RCS.</string>
     <string name="api_error_messaging_provider_not_configured">Aucun fournisseur de messagerie n\'est connecté à cet espace de travail.</string>
+    <string name="api_error_messenger_window_closed">La fenêtre de réponse Messenger ou Instagram avec ce contact est fermée. Vous pourrez répondre quand il vous écrira de nouveau.</string>
     <string name="api_error_mfa_code_invalid">Ce code n\'est pas valide, ou il a déjà été utilisé.</string>
     <string name="api_error_model_unavailable_in_region">Ce moteur vocal n\'est pas offert aux espaces de travail de cette région. Choisissez un autre moteur.</string>
     <string name="api_error_no_password">Ce compte se connecte avec Google ou Microsoft et n\'a aucun mot de passe à ressaisir. Définissez d\'abord un mot de passe sur le Web.</string>
@@ -150,6 +152,7 @@
     <string name="api_error_session_expired">Votre session a expiré. Veuillez vous reconnecter.</string>
     <string name="api_error_setup_not_available">La configuration guidée n\'est pas offerte pour cet espace de travail.</string>
     <string name="api_error_sip_provider_required">Cela exige un fournisseur compatible SIP, c\'est-à-dire Twilio ou Telnyx sur cet espace de travail.</string>
+    <string name="api_error_sms_reply_not_customer_channel">Ce client écrit sur WhatsApp, Messenger ou Instagram et n\'a jamais envoyé de texto à ce numéro. Répondez-lui sur son canal à partir de la notification, de la boîte de réception Web ou d\'une version à jour de l\'application.</string>
     <string name="api_error_status_change_failed">Le statut n\'a pas pu être modifié. Veuillez réessayer.</string>
     <string name="api_error_stripe_test_mode_refused">Le paiement de test n\'est pas offert pour ce compte sur ce site.</string>
     <string name="api_error_subscription_inactive">L\'abonnement de cet espace de travail n\'est pas actif. Mettez la facturation à jour pour reprendre les appels et la messagerie.</string>

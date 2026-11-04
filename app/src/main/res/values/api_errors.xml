@@ -3,6 +3,7 @@
 <resources>
     <string name="api_error_account_not_found">That account could not be found.</string>
     <string name="api_error_already_cancelled">That booking was already cancelled.</string>
+    <string name="api_error_assignee_is_viewer">A Viewer can read conversations but cannot be assigned one. Choose a member with another role.</string>
     <string name="api_error_assignee_not_member">That person is not a member of this workspace. Add them to the team first.</string>
     <string name="api_error_attachment_unsupported">That kind of attachment cannot be sent on this channel.</string>
     <string name="api_error_audition_busy">Two auditions are already running for this workspace. End one and try again.</string>
@@ -106,6 +107,7 @@
     <string name="api_error_messaging_app_sms_refused">Texting is set up with your phone numbers, not as a messaging app.</string>
     <string name="api_error_messaging_apps_managed">Messaging apps cannot be connected on the platform\'s Sinch account. Connect your own Sinch account to add WhatsApp, Messenger or RCS.</string>
     <string name="api_error_messaging_provider_not_configured">No messaging provider is connected to this workspace.</string>
+    <string name="api_error_messenger_window_closed">The Messenger or Instagram reply window with this contact is closed. You can reply once they write to you again.</string>
     <string name="api_error_mfa_code_invalid">That code is not valid, or it has already been used.</string>
     <string name="api_error_model_unavailable_in_region">This voice engine is not available for workspaces in this region. Choose another engine.</string>
     <string name="api_error_no_password">This account signs in with Google or Microsoft and has no password to re-enter. Set a password on the web first.</string>
@@ -150,6 +152,7 @@
     <string name="api_error_session_expired">Your session has expired. Please sign in again.</string>
     <string name="api_error_setup_not_available">Guided setup is not available for this workspace.</string>
     <string name="api_error_sip_provider_required">That needs a SIP-capable provider, which means Twilio or Telnyx on this workspace.</string>
+    <string name="api_error_sms_reply_not_customer_channel">This customer writes on WhatsApp, Messenger or Instagram and has never texted this number. Reply on their channel from the notification, the web Inbox or an updated app.</string>
     <string name="api_error_status_change_failed">The status could not be changed. Please try again.</string>
     <string name="api_error_stripe_test_mode_refused">Test checkout is not available for this account on this site.</string>
     <string name="api_error_subscription_inactive">This workspace\'s subscription is not active. Update billing to resume calls and messaging.</string>

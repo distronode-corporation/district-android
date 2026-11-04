@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.dialer
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -143,5 +144,30 @@ class DialPlanReadBackTest {
         assertEquals(DialCountries.parsingTrunkPrefixes.keys, DialCountries.nationalNumberPatterns.keys)
         val first = DialPlan.read("800 12345", "LT")
         assertEquals(first.e164, DialPlan.read(first.national, "LT").e164)
+    }
+
+    /**
+     * ⛔ TYPED ONE KEY AT A TIME, THE FIELD KEEPS THE PREFIX THAT WAS TYPED (Seer on district-ios #98).
+     * Lithuania's old `8` was shown as its trunk `0`, so the next `0` made `00`, the exit code, and the
+     * digits became `+…`; Belarus's `8` then `0` showed `8`. Each key is read on the field as it stands.
+     */
+    @Test
+    fun `key by key the field keeps the typed prefix`() {
+        val cases = listOf(
+            Triple("80012345", "LT", "+37080012345"),
+            Triple("861234567", "LT", "+37061234567"),
+            Triple("80291234567", "BY", "+375291234567"),
+            Triple("8001234567", "BY", "+3758001234567"),
+        )
+        for ((keys, country, e164) in cases) {
+            var field = ""
+            for (key in keys) {
+                field = DialPlan.read(field + key, country).national
+                assertFalse("$keys in $country: $field", field.startsWith("+"))
+            }
+            assertEquals("$keys in $country", e164, DialPlan.read(field, country).e164)
+        }
+        assertEquals("8", DialPlan.read("8", "LT").national)
+        assertEquals("80", DialPlan.read("80", "BY").national)
     }
 }

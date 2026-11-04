@@ -16,10 +16,16 @@ internal object DialGrouping {
      * punctuation (Australia's `(02)`, Seer on district-ios #95) would put a deleted character
      * straight back and backspace could never get past it.
      */
-    fun formatNational(iso: String, code: String, nsn: String, typedTrunk: Boolean): String {
+    fun formatNational(
+        iso: String,
+        code: String,
+        nsn: String,
+        typedTrunk: Boolean,
+        shownPrefix: String? = null,
+    ): String {
         if (nsn.isEmpty()) {
             if (!typedTrunk) return ""
-            return if (code == "1") "1" else DialCountries.trunkPrefix(iso) ?: "0"
+            return if (code == "1") "1" else shownPrefix ?: DialCountries.trunkPrefix(iso) ?: "0"
         }
         if (code == "1") return formatNanp(nsn)
         val parts = chunk(nsn, groups(iso, nsn)).toMutableList()
@@ -29,7 +35,8 @@ internal object DialGrouping {
         if (iso == "AU" && !nsn.startsWith("4") && parts.size > 1) {
             return "(0" + parts.first() + ") " + parts.drop(1).joinToString(" ")
         }
-        DialCountries.trunkPrefix(iso)?.let { trunk -> parts[0] = trunk + parts[0] }
+        // ⚠️ [shownPrefix] is the prefix typed where it is not the trunk prefix, or empty for none.
+        (shownPrefix ?: DialCountries.trunkPrefix(iso))?.let { trunk -> parts[0] = trunk + parts[0] }
         return parts.joinToString(" ")
     }
 

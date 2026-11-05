@@ -65,7 +65,7 @@ internal fun NavGraphBuilder.liveCallsDestination(
         }
         val microphone = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission(),
-            viewModel::onMicrophonePermissionResult,
+            viewModel.takeOver::onMicrophonePermissionResult,
         )
         // ⚠️ A counter, so a second attempt after a denial asks again. See LiveCallsPrompt.
         LaunchedEffect(prompt.microphoneRequest) {
@@ -82,9 +82,9 @@ internal fun NavGraphBuilder.liveCallsDestination(
                 onLeave = viewModel::leave,
                 onDraft = viewModel::setWhisperDraft,
                 onSend = viewModel::sendWhisper,
-                onAskTakeOver = viewModel::askTakeOver,
-                onCancelTakeOver = viewModel::cancelTakeOver,
-                onConfirmTakeOver = viewModel::confirmTakeOver,
+                onAskTakeOver = viewModel.takeOver::ask,
+                onCancelTakeOver = viewModel.takeOver::cancel,
+                onConfirmTakeOver = viewModel.takeOver::confirm,
             ),
         )
     }

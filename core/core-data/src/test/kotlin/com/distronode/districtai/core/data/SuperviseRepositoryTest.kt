@@ -93,10 +93,15 @@ class SuperviseRepositoryTest {
             api.monitorResult = ApiResult.Success(body)
             val failure = (repository.monitor("cmaicall1") as SuperviseOutcome.Refused).failure
             assertTrue(failure is ApiResult.DecodeFailure)
-            assertFalse("the preview never carries the token", (failure as ApiResult.DecodeFailure).bodyPreview.contains("jwt-secret"))
+            assertFalse(
+                "the preview never carries the token",
+                (failure as ApiResult.DecodeFailure).bodyPreview.contains("jwt-secret")
+            )
         }
         api.takeoverResult = ApiResult.Success(CallTakeoverResponse(success = true, token = "t", url = ""))
-        assertTrue((repository.takeOver("ws-1", "cmaicall1") as SuperviseOutcome.Refused).failure is ApiResult.DecodeFailure)
+        assertTrue(
+            (repository.takeOver("ws-1", "cmaicall1") as SuperviseOutcome.Refused).failure is ApiResult.DecodeFailure
+        )
     }
 
     @Test

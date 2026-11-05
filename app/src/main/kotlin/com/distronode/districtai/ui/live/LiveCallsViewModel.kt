@@ -5,13 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.model.ActiveCall
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
-import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,17 +29,6 @@ sealed interface LiveCallList {
     /** ⛔ Never drawn as "no calls": we could not look. */
     data class Failed(val failure: FailureText) : LiveCallList
 }
-
-/**
- * The take-over confirmation and the microphone request.
- *
- * @property microphoneRequest ⚠️ A COUNTER, like the dialer's: a permission launcher cannot be
- *   called from a ViewModel, and a flag would not fire again after a denial.
- */
-data class LiveCallsPrompt(
-    val confirmingTakeover: String? = null,
-    val microphoneRequest: Int = 0,
-)
 
 /**
  * The Live calls screen: the calls in progress, and listening to, whispering into and taking over
@@ -72,19 +59,19 @@ class LiveCallsViewModel(
     private val _list = MutableStateFlow<LiveCallList>(LiveCallList.Loading)
     val list: StateFlow<LiveCallList> = _list.asStateFlow()
 
-    private val _prompt = MutableStateFlow(LiveCallsPrompt())
-    val prompt: StateFlow<LiveCallsPrompt> = _prompt.asStateFlow()
-
     private val supervisor = LiveSupervisor(repository, workspaceId, engineFactory, viewModelScope, engineScope)
     val supervision: StateFlow<LiveSupervisor.State> = supervisor.state
 
     private val whisperDesk = WhisperDesk(repository, workspaceId, viewModelScope)
     val whispers = whisperDesk.boxes
 
+    /** Ask, cancel and confirm a takeover, and the microphone's answer. */
+    val takeOver = TakeOverFlow(supervisor, ::writable)
+    val prompt: StateFlow<LiveCallsPrompt> = takeOver.prompt
+
     private val socket: LiveCallsFeed? = feed?.invoke(viewModelScope, ::onFeed)
     private var loading: Job? = null
     private var reloadAfter = false
-    private var pendingTakeover: String? = null
 
     init {
         refresh()
@@ -113,8 +100,7 @@ class LiveCallsViewModel(
             return
         }
         socket?.stop()
-        _prompt.value = _prompt.value.copy(confirmingTakeover = null)
-        pendingTakeover = null
+        takeOver.reset()
         supervisor.leave()
     }
 
@@ -129,33 +115,6 @@ class LiveCallsViewModel(
 
     fun sendWhisper(callId: String) {
         if (writable(callId)) whisperDesk.send(callId)
-    }
-
-    /** Open the in-page confirmation. ⛔ Never a takeover on its own: the microphone goes live. */
-    fun askTakeOver(callId: String) {
-        if (writable(callId)) _prompt.value = _prompt.value.copy(confirmingTakeover = callId)
-    }
-
-    fun cancelTakeOver() {
-        _prompt.value = _prompt.value.copy(confirmingTakeover = null)
-    }
-
-    /** Confirmed: ask for the microphone, and take over once it is granted. */
-    fun confirmTakeOver() {
-        val callId = _prompt.value.confirmingTakeover ?: return
-        pendingTakeover = callId
-        _prompt.value = LiveCallsPrompt(microphoneRequest = _prompt.value.microphoneRequest + 1)
-    }
-
-    /** ⚠️ A result with nothing pending (the screen was left meanwhile) is dropped. */
-    fun onMicrophonePermissionResult(granted: Boolean) {
-        val callId = pendingTakeover ?: return
-        pendingTakeover = null
-        if (granted) {
-            supervisor.takeOver(callId)
-        } else {
-            supervisor.fail(callId, UiText.Resource(R.string.live_calls_microphone_denied))
-        }
     }
 
     override fun onCleared() {

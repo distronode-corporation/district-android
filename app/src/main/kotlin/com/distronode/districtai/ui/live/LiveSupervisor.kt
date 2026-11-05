@@ -123,23 +123,22 @@ class LiveSupervisor(
         _state.value = _state.value.copy(requestingCallId = callId, failedCallId = null, failure = null)
         action = scope.launch {
             val outcome = if (takeOver) repository.takeOver(workspaceId, callId) else repository.monitor(callId)
-            when (outcome) {
-                is SuperviseOutcome.Done -> join(callId, outcome.value, takeOver)
-                SuperviseOutcome.NotACall -> refused(callId, UiText.Resource(R.string.live_calls_not_a_call))
-                is SuperviseOutcome.Refused -> refused(
-                    callId,
-                    superviseFailureText(
-                        outcome.failure,
-                        if (takeOver) R.string.live_calls_take_over_failed else R.string.live_calls_connect_failed,
-                    ),
+            val refusal = when (outcome) {
+                is SuperviseOutcome.Done -> {
+                    join(callId, outcome.value, takeOver)
+                    null
+                }
+                SuperviseOutcome.NotACall -> UiText.Resource(R.string.live_calls_not_a_call)
+                is SuperviseOutcome.Refused -> superviseFailureText(
+                    outcome.failure,
+                    if (takeOver) R.string.live_calls_take_over_failed else R.string.live_calls_connect_failed,
                 )
             }
+            // ⚠️ A refusal changes nothing else: the room this supervisor is in, if any, stays.
+            if (refusal != null) {
+                _state.value = _state.value.copy(requestingCallId = null, failedCallId = callId, failure = refusal)
+            }
         }
-    }
-
-    /** ⚠️ The room this supervisor is in, if any, is left as it is: a refusal changes nothing else. */
-    private fun refused(callId: String, text: UiText) {
-        _state.value = _state.value.copy(requestingCallId = null, failedCallId = callId, failure = text)
     }
 
     @Suppress("TooGenericExceptionCaught")

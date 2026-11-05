@@ -78,7 +78,10 @@ class NavHostLiveCallsTest {
         open(WorkspaceRole.AGENCY)
 
         tapIn(ai, LIVE_CALLS_LISTEN_TAG)
-        assertTrue("listening asks for no microphone", harness.registry.launched.none { it == Manifest.permission.RECORD_AUDIO })
+        assertTrue(
+            "listening asks for no microphone",
+            harness.registry.launched.none { it == Manifest.permission.RECORD_AUDIO }
+        )
         tapIn(ai, LIVE_CALLS_TAKE_OVER_TAG)
         harness.tap(LIVE_CALLS_CONFIRM_YES_TAG)
 

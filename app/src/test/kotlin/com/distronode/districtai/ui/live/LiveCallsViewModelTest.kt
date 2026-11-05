@@ -147,7 +147,10 @@ class LiveCallsViewModelTest {
         val state = vm.supervision.value
         assertEquals(ai, state.failedCallId)
         // ⚠️ THE CODE IS READ, so the catalog's sentence takes over once it has `call_ended`.
-        assertEquals(UiText.Server("This call has ended.", "call_ended", fallback = R.string.live_calls_connect_failed), state.failure)
+        assertEquals(
+            UiText.Server("This call has ended.", "call_ended", fallback = R.string.live_calls_connect_failed),
+            state.failure
+        )
         assertNull(state.callId)
         assertTrue("nothing was joined", engines.isEmpty())
         assertEquals("sent once, never retried", 1, api.monitors.size)
@@ -224,7 +227,10 @@ class LiveCallsViewModelTest {
         runCurrent()
 
         assertEquals("disconnect", failing.calls.last())
-        assertEquals(LiveSupervisor.State(failedCallId = ai, failure = UiText.Resource(R.string.live_calls_connect_failed)), failingVm.supervision.value)
+        assertEquals(
+            LiveSupervisor.State(failedCallId = ai, failure = UiText.Resource(R.string.live_calls_connect_failed)),
+            failingVm.supervision.value
+        )
         assertEquals(LiveSupervisor.State(), vm.supervision.value)
     }
 
@@ -273,9 +279,9 @@ class LiveCallsViewModelTest {
     private fun TestScope.listeningThenConfirmed(vm: LiveCallsViewModel) {
         vm.listen(ai)
         runCurrent()
-        vm.askTakeOver(ai)
+        vm.takeOver.ask(ai)
         assertEquals(ai, vm.prompt.value.confirmingTakeover)
-        vm.confirmTakeOver()
+        vm.takeOver.confirm()
         assertEquals(LiveCallsPrompt(microphoneRequest = 1), vm.prompt.value)
     }
 
@@ -285,7 +291,7 @@ class LiveCallsViewModelTest {
         listeningThenConfirmed(vm)
         assertTrue("nothing is taken over before the microphone answer", api.takeovers.isEmpty())
 
-        vm.onMicrophonePermissionResult(true)
+        vm.takeOver.onMicrophonePermissionResult(true)
         runCurrent()
 
         assertEquals(listOf("ws-1/$ai"), api.takeovers)
@@ -301,7 +307,7 @@ class LiveCallsViewModelTest {
     fun `handing back leaves the room`() = runTest(dispatcher) {
         val vm = viewModel()
         listeningThenConfirmed(vm)
-        vm.onMicrophonePermissionResult(true)
+        vm.takeOver.onMicrophonePermissionResult(true)
         runCurrent()
 
         vm.leave()
@@ -316,7 +322,7 @@ class LiveCallsViewModelTest {
         val vm = viewModel()
         listeningThenConfirmed(vm)
 
-        vm.onMicrophonePermissionResult(false)
+        vm.takeOver.onMicrophonePermissionResult(false)
         runCurrent()
 
         assertTrue(api.takeovers.isEmpty())
@@ -328,8 +334,8 @@ class LiveCallsViewModelTest {
     fun `a microphone answer with nothing pending is dropped`() = runTest(dispatcher) {
         val vm = viewModel()
 
-        vm.onMicrophonePermissionResult(true)
-        vm.confirmTakeOver()
+        vm.takeOver.onMicrophonePermissionResult(true)
+        vm.takeOver.confirm()
         runCurrent()
 
         assertTrue(api.takeovers.isEmpty())
@@ -342,7 +348,7 @@ class LiveCallsViewModelTest {
         val vm = viewModel()
         listeningThenConfirmed(vm)
 
-        vm.onMicrophonePermissionResult(true)
+        vm.takeOver.onMicrophonePermissionResult(true)
         runCurrent()
 
         val state = vm.supervision.value
@@ -350,7 +356,11 @@ class LiveCallsViewModelTest {
         assertEquals(Phase.CONNECTED, state.phase)
         assertFalse(state.takenOver)
         assertEquals(
-            UiText.Server("This call is not in progress.", "call_not_in_progress", fallback = R.string.live_calls_take_over_failed),
+            UiText.Server(
+                "This call is not in progress.",
+                "call_not_in_progress",
+                fallback = R.string.live_calls_take_over_failed
+            ),
             state.failure,
         )
         assertEquals(1, engines.size)
@@ -369,9 +379,9 @@ class LiveCallsViewModelTest {
             engineScope,
         )
         runCurrent()
-        vm.askTakeOver(ai)
-        vm.confirmTakeOver()
-        vm.onMicrophonePermissionResult(true)
+        vm.takeOver.ask(ai)
+        vm.takeOver.confirm()
+        vm.takeOver.onMicrophonePermissionResult(true)
         runCurrent()
 
         assertEquals(UiText.Resource(R.string.live_calls_take_over_join_failed), vm.supervision.value.failure)
@@ -382,14 +392,14 @@ class LiveCallsViewModelTest {
     fun `whisper and take over are never offered on a team member's call, to a viewer, or for no call`() =
         runTest(dispatcher) {
             val viewer = viewModel(canWrite = false)
-            viewer.askTakeOver(ai)
+            viewer.takeOver.ask(ai)
             viewer.setWhisperDraft(ai, "Offer Thursday.")
             viewer.sendWhisper(ai)
             assertNull(viewer.prompt.value.confirmingTakeover)
 
             val writer = viewModel()
-            writer.askTakeOver(team)
-            writer.askTakeOver("cmgone")
+            writer.takeOver.ask(team)
+            writer.takeOver.ask("cmgone")
             writer.setWhisperDraft(team, "Offer Thursday.")
             writer.sendWhisper(team)
             runCurrent()
@@ -405,7 +415,7 @@ class LiveCallsViewModelTest {
         api.activeResult = ApiResult.NetworkFailure(IOException("offline"))
         val vm = viewModel()
 
-        vm.askTakeOver(ai)
+        vm.takeOver.ask(ai)
 
         assertNull(vm.prompt.value.confirmingTakeover)
     }
@@ -413,9 +423,9 @@ class LiveCallsViewModelTest {
     @Test
     fun `cancelling closes the confirmation`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.askTakeOver(ai)
+        vm.takeOver.ask(ai)
 
-        vm.cancelTakeOver()
+        vm.takeOver.cancel()
 
         assertNull(vm.prompt.value.confirmingTakeover)
     }
@@ -472,7 +482,11 @@ class LiveCallsViewModelTest {
         assertEquals("Offer Thursday.", box.draft)
         assertFalse(box.sending)
         assertEquals(
-            UiText.Server("A team member's own call.", "call_has_no_receptionist", fallback = R.string.live_calls_whisper_failed),
+            UiText.Server(
+                "A team member's own call.",
+                "call_has_no_receptionist",
+                fallback = R.string.live_calls_whisper_failed
+            ),
             box.error,
         )
         assertEquals("sent once, never retried", 1, api.whispers.size)
@@ -521,7 +535,7 @@ class LiveCallsViewModelTest {
         listeningThenConfirmed(vm)
 
         vm.onScreenStarted(false)
-        vm.onMicrophonePermissionResult(true)
+        vm.takeOver.onMicrophonePermissionResult(true)
         runCurrent()
 
         assertEquals("disconnect", engines.single().calls.last())

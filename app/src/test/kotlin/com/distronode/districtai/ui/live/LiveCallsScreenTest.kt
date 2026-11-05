@@ -83,7 +83,10 @@ class LiveCallsScreenTest {
         var state by mutableStateOf<LiveCallList>(LiveCallList.Loading)
         composeRule.setContent {
             DistrictTheme {
-                LiveCallsScreen(LiveCallsView(state, LiveSupervisor.State(), emptyMap(), LiveCallsPrompt(), true), actions)
+                LiveCallsScreen(
+                    LiveCallsView(state, LiveSupervisor.State(), emptyMap(), LiveCallsPrompt(), true),
+                    actions
+                )
             }
         }
         composeRule.onNodeWithTag(LIVE_CALLS_LOADING_TAG).assertExists()
@@ -190,7 +193,13 @@ class LiveCallsScreenTest {
 
     @Test
     fun `a typed note can be sent`() {
-        render(view(calls = listOf(ai), supervision = listening(), whispers = mapOf(ai.id to WhisperBox("Offer Thursday."))))
+        render(
+            view(
+                calls = listOf(ai),
+                supervision = listening(),
+                whispers = mapOf(ai.id to WhisperBox("Offer Thursday."))
+            )
+        )
 
         composeRule.onNodeWithTag(LIVE_CALLS_WHISPER_SEND_TAG).assertIsEnabled().performClick()
 
@@ -199,7 +208,8 @@ class LiveCallsScreenTest {
 
     @Test
     fun `a note being sent cannot be sent again, and a refusal shows under it`() {
-        val box = WhisperBox("Offer Thursday.", sending = true, error = UiText.Resource(R.string.live_calls_whisper_failed))
+        val box =
+            WhisperBox("Offer Thursday.", sending = true, error = UiText.Resource(R.string.live_calls_whisper_failed))
         render(view(calls = listOf(ai), supervision = listening(), whispers = mapOf(ai.id to box)))
 
         composeRule.onNodeWithTag(LIVE_CALLS_WHISPER_SEND_TAG).assertIsNotEnabled()
@@ -220,7 +230,10 @@ class LiveCallsScreenTest {
         var box by mutableStateOf(WhisperBox())
         composeRule.setContent {
             DistrictTheme {
-                LiveCallsScreen(view(calls = listOf(ai), supervision = listening(), whispers = mapOf(ai.id to box)), actions)
+                LiveCallsScreen(
+                    view(calls = listOf(ai), supervision = listening(), whispers = mapOf(ai.id to box)),
+                    actions
+                )
             }
         }
         receipts.forEach { (receipt, sentence) ->
@@ -233,7 +246,9 @@ class LiveCallsScreenTest {
 
     @Test
     fun `the take-over confirmation says what happens and answers both ways`() {
-        render(view(calls = listOf(ai), supervision = listening(), prompt = LiveCallsPrompt(confirmingTakeover = ai.id)))
+        render(
+            view(calls = listOf(ai), supervision = listening(), prompt = LiveCallsPrompt(confirmingTakeover = ai.id))
+        )
 
         composeRule.onNodeWithText(str(R.string.live_calls_take_over_confirm_body)).assertExists()
         assertAbsent(LIVE_CALLS_TAKE_OVER_TAG)
@@ -266,7 +281,10 @@ class LiveCallsScreenTest {
 
     @Test
     fun `a failure shows at its own call only`() {
-        val failed = LiveSupervisor.State(failedCallId = ai.id, failure = UiText.Server("This call has ended.", "call_ended"))
+        val failed = LiveSupervisor.State(
+            failedCallId = ai.id,
+            failure = UiText.Server("This call has ended.", "call_ended")
+        )
         render(view(supervision = failed))
 
         composeRule.onNodeWithText("This call has ended.").assertExists()

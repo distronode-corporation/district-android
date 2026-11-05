@@ -102,7 +102,13 @@ class TranscriptFramesTest {
         fun frame(type: String) =
             """{"workspaceId":"ws_1","callId":"c9","eventType":"$type","data":{"from":"+15550100"},"timestamp":"t"}"""
 
-        assertEquals(TelemetryMessage.CallChanged("c9", ended = false), TelemetryMessages.read(frame("call_started"), "ws_1"))
-        assertEquals(TelemetryMessage.CallChanged("c9", ended = true), TelemetryMessages.read(frame("call_ended"), "ws_1"))
+        assertEquals(
+            TelemetryMessage.CallChanged("c9", ended = false),
+            TelemetryMessages.read(frame("call_started"), "ws_1")
+        )
+        assertEquals(
+            TelemetryMessage.CallChanged("c9", ended = true),
+            TelemetryMessages.read(frame("call_ended"), "ws_1")
+        )
     }
 }

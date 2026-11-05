@@ -8235,7 +8235,7 @@ fr = "Les pièces jointes ne peuvent partir que par texto. Retirez-les pour envo
 ctx = "body"
 screen = "message thread"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "Shown when images are attached and the chosen reply channel is not SMS; Send waits until they are removed. Wording shared with core-rust (thread.attachments_sms_only), awaiting sign-off."
 
 [thread.call]

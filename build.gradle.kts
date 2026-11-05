@@ -31,7 +31,9 @@
 // templates and this build reports through JaCoCo, Jetifier is off, and bundletool and the SDK
 // tools only read this build's own files. Forced anyway, because the alert cannot tell that, and
 // the patch-level bump is cheaper than explaining it. The numbers are in gradle/libs.versions.toml
-// beside `bouncyCastle`, and build-logic forces the same four.
+// beside `bouncyCastle`, and build-logic forces the same four. guava (AGP) is the fifth, for
+// GHSA-xxph-c9ww-hj94, and unlike the four it also resolves in the modules, so the modules'
+// block forces it too.
 buildscript {
     // ⛔ THE ONE PLACE THE KOTLIN COMPILER VERSION IS CHOSEN. AGP 9.5.0 depends on KGP 2.2.10 at
     // runtime (built-in Kotlin); this entry is the route the AGP 9.0 release notes give for a higher
@@ -50,6 +52,10 @@ buildscript {
             force("org.jdom:jdom2:${libs.versions.jdom2.get()}")
             force("org.bitbucket.b_c:jose4j:${libs.versions.jose4j.get()}")
             force("org.apache.commons:commons-lang3:${libs.versions.commonsLang3.get()}")
+            // GHSA-xxph-c9ww-hj94: deserializing a CompactHashMap, CompactHashSet or
+            // MapMakerInternalMap allocates without bound. Affects up to 33.7.1, fixed in 33.7.2.
+            // AGP brings guava here, and the modules' block below forces the same number.
+            force("com.google.guava:guava:${libs.versions.guava.get()}")
         }
     }
 }
@@ -385,6 +391,7 @@ kover {
 // the root plugin-classpath force at the top of this file and with build-logic.
 val bouncyCastleVersion: String = libs.versions.bouncyCastle.get()
 val commonsLang3Version: String = libs.versions.commonsLang3.get()
+val guavaVersion: String = libs.versions.guava.get()
 
 subprojects {
     dependencyLocking {
@@ -480,6 +487,12 @@ subprojects {
             // GHSA-j288-q9x7-2f5v: uncontrolled recursion on long inputs in
             // `RandomStringUtils`/`WordUtils`. Affects 3.16.0, fixed in 3.18.0.
             force("org.apache.commons:commons-lang3:$commonsLang3Version")
+
+            // GHSA-xxph-c9ww-hj94: unbounded allocation deserializing CompactHashMap,
+            // CompactHashSet or MapMakerInternalMap. Affects up to 33.7.1, fixed in 33.7.2.
+            // guava sits on `androidLintTool` (33.4.0) and `debugUnitTest*` (33.6.0, through
+            // Robolectric and the test libraries); no runtime classpath carries it.
+            force("com.google.guava:guava:$guavaVersion")
 
             // GHSA-7r82-7xv7-xcpj / CVE-2020-13956: HttpClient mishandles a malformed
             // authority component in a request URI, so a URI can be interpreted

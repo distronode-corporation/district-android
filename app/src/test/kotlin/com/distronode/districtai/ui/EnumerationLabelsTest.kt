@@ -13,8 +13,10 @@ import com.distronode.districtai.ui.marketplace.SearchResults
 import com.distronode.districtai.ui.marketplace.SearchState
 import com.distronode.districtai.ui.workflows.RunHistory
 import com.distronode.districtai.ui.workflows.RunHistoryPanel
+import com.distronode.districtai.ui.workflows.actionReasonCode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,8 +24,8 @@ import org.robolectric.annotation.Config
 
 /**
  * A workflow run's actions and a number search result read their enumerations through the wire
- * vocabulary: an action's type and outcome, a number's capabilities and type. A value the vocabulary
- * does not list reads through the category's generic label.
+ * vocabulary: an action's type, outcome and skip reason, a number's capabilities and type. A value the
+ * vocabulary does not list reads through the category's generic label.
  *
  * ⚠️ AN OUTCOME AND A CAPABILITY HAVE NO PORTAL LABEL, so their English is the value as sent ("ok",
  * "sms") and only the pseudolocale tells the label from the raw value.
@@ -79,6 +81,70 @@ class EnumerationLabelsTest {
         composeRule.onNodeWithText(str(R.string.wire_workflow_action_outcome_ok)).assertExists()
         composeRule.onNodeWithText(str(R.string.wire_workflow_action_outcome_unknown, "retrying")).assertExists()
         composeRule.onNodeWithText("ok").assertDoesNotExist()
+    }
+
+    private fun renderReasons(vararg reasons: String) = composeRule.setContent {
+        DistrictTheme {
+            RunHistoryPanel(
+                RunHistory(
+                    runs = listOf(
+                        run.copy(
+                            actionResults = reasons.map {
+                                WorkflowActionResult(type = "send_sms", outcome = "skipped", reason = it)
+                            },
+                        ),
+                    ),
+                    total = 1,
+                ),
+                onLoadMore = {},
+            )
+        }
+    }
+
+    @Test
+    fun `a skip reason reads as its code's label, never the engine's sentence or its detail`() {
+        // Until 3.3.0 the card showed the engine's English sentence, in French too.
+        renderReasons("fallback-failed: email bounced for +15145550123", "recipient-number-held")
+        composeRule.onNodeWithText(str(R.string.wire_workflow_action_reason_fallback_failed)).assertExists()
+        composeRule.onNodeWithText(str(R.string.wire_workflow_action_reason_recipient_number_held)).assertExists()
+        composeRule.onNodeWithText("+15145550123", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("fallback-failed", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `a skip reason reads in French`() {
+        renderReasons("loop-paused: +15145550123 replied automatically 3 times")
+        val label = str(R.string.wire_workflow_action_reason_loop_paused)
+        assertTrue(label, label.startsWith("Texto non envoyé"))
+        composeRule.onNodeWithText(label).assertExists()
+        composeRule.onNodeWithText("replied automatically", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a reason whose code this build does not know shows the whole reason through the unknown label`() {
+        // The fixture's reasons predate the codes; English reads them exactly as before.
+        renderReasons("contact has no email address", "brand-new-code: detail")
+        composeRule.onNodeWithText(
+            str(R.string.wire_workflow_action_reason_unknown, "contact has no email address"),
+        ).assertExists()
+        composeRule.onNodeWithText(str(R.string.wire_workflow_action_reason_unknown, "brand-new-code: detail")).assertExists()
+    }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `an unknown reason is named as unknown in French and keeps what the engine said`() {
+        renderReasons("contact has no email address")
+        val label = str(R.string.wire_workflow_action_reason_unknown, "contact has no email address")
+        assertNotEquals("contact has no email address", label)
+        composeRule.onNodeWithText(label).assertExists()
+    }
+
+    @Test
+    fun `the code is everything before the first colon, as the portal reads it`() {
+        assertEquals("quiet-hours", actionReasonCode("quiet-hours: it was 22:30"))
+        assertEquals("dnc", actionReasonCode(" dnc "))
+        assertEquals("", actionReasonCode(": nothing"))
     }
 
     @Test

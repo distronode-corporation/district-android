@@ -100,7 +100,7 @@ WIRE_CATEGORIES = {
     "workflowRunStatus": ("WORKFLOW_RUN_STATUS", "label", "workflows"),
     "workflowAction": ("WORKFLOW_ACTION", "portal", "workflows, run history"),
     "workflowActionOutcome": ("WORKFLOW_ACTION_OUTCOME", "label", "workflows, run history"),
-    "workflowActionReason": ("WORKFLOW_ACTION_REASON", "label", NOT_SHOWN),
+    "workflowActionReason": ("WORKFLOW_ACTION_REASON", "label", "workflows, run history"),
     "numberType": ("NUMBER_TYPE", "portal", "phone numbers, search results"),
     "numberCapability": ("NUMBER_CAPABILITY", "label", "workspace settings, messaging; phone numbers, search results"),
     "numberProvider": ("NUMBER_PROVIDER", "portal", "phone numbers, carrier, number search"),

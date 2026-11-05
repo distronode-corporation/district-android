@@ -1,0 +1,7 @@
+• Le composeur a un bouton de pays : tapez le numéro comme sur place et voyez où il sonne avant l'appel.
+• Le français suit celui du tableau de bord Web.
+• Les flux de travail disent dans votre langue pourquoi une étape a été sautée.
+• Les composants de l'application sont mis à jour.
+• Le composeur lit bien les préfixes interurbains, les numéros collés et sans frais +1.
+• Les messages lus ou traités affichent leur statut.
+• Voice Studio affiche de nouveau le délai mesuré avant le premier mot.

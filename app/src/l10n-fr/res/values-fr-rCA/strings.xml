@@ -375,7 +375,8 @@
     <string name="hq_title">District HQ</string>
     <string name="inbox_assigned_to">Assignée à %1$s</string>
     <string name="inbox_assigned_to_me">Qui me sont assignées</string>
-    <string name="inbox_assigned_to_me_empty">Aucune conversation ne vous est assignée.</string>
+    <string name="inbox_assigned_to_me_empty_body">Les conversations qu\'un membre de l\'équipe vous assigne s\'affichent ici.</string>
+    <string name="inbox_assigned_to_me_empty_title">Rien ne vous est assigné</string>
     <string name="inbox_channel_email">Courriel</string>
     <string name="inbox_channel_instagram">Instagram</string>
     <string name="inbox_channel_messenger">Messenger</string>
@@ -459,8 +460,8 @@
     <string name="live_calls_listen">Écouter</string>
     <string name="live_calls_listening">Vous écoutez l\'appel</string>
     <string name="live_calls_listening_body">Entendez l\'appel en direct. L\'appelant ne vous entend pas.</string>
-    <string name="live_calls_microphone_denied">Autorisez le micro pour prendre l\'appel.</string>
-    <string name="live_calls_no_receptionist">Réceptionniste absente de cet appel</string>
+    <string name="live_calls_microphone_denied">Autorisez l\'accès au micro pour prendre l\'appel.</string>
+    <string name="live_calls_no_receptionist">Votre réceptionniste ne participe pas à cet appel</string>
     <string name="live_calls_no_receptionist_note">Votre réceptionniste ne participe pas à cet appel\u00A0: vous pouvez écouter, mais pas lui souffler de consigne ni prendre l\'appel.</string>
     <string name="live_calls_not_a_call">Ce n\'est pas un appel téléphonique\u00A0: impossible de le rejoindre ici.</string>
     <string name="live_calls_receipt_applied">Votre réceptionniste a suivi la consigne.</string>
@@ -476,7 +477,7 @@
     <string name="live_calls_take_over_confirm_body">Votre réceptionniste annonce à l\'appelant qu\'un superviseur prend le relais, puis se met en retrait. Votre micro reste ouvert dans l\'appel jusqu\'à ce que vous lui redonniez l\'appel. Rien n\'est enregistré.</string>
     <string name="live_calls_take_over_confirm_title">Prendre cet appel?</string>
     <string name="live_calls_take_over_failed">Impossible de prendre l\'appel. Réessayez.</string>
-    <string name="live_calls_take_over_join_failed">Impossible de rejoindre l\'appel avec votre micro. Réessayez.</string>
+    <string name="live_calls_take_over_join_failed">Impossible de rejoindre l\'appel avec votre micro. Vérifiez qu\'un micro est branché et que District AI peut l\'utiliser, puis réessayez.</string>
     <string name="live_calls_taken_over_body">Votre réceptionniste s\'est mise en retrait et attend en ligne. Redonnez-lui l\'appel et elle reprend la conversation.</string>
     <string name="live_calls_taken_over_title">Vous êtes en ligne avec l\'appelant</string>
     <string name="live_calls_title">Appels en cours</string>

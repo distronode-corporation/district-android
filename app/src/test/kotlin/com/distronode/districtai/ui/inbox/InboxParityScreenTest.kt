@@ -119,7 +119,8 @@ class InboxParityScreenTest {
         render(conversations = threads.drop(1), startOn = true)
 
         composeRule.onNodeWithTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText(str(R.string.inbox_assigned_to_me_empty)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_assigned_to_me_empty_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_assigned_to_me_empty_body)).assertIsDisplayed()
         composeRule.onNodeWithTag(INBOX_EMPTY_DESCRIPTION).assertDoesNotExist()
         composeRule.onNodeWithTag(INBOX_ASSIGNED_TO_ME_DESCRIPTION).assertIsDisplayed()
     }

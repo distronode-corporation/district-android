@@ -22,9 +22,9 @@
     <string name="api_error_call_not_found">Cet appel est introuvable.</string>
     <string name="api_error_call_not_in_progress">Cet appel n\'est pas en cours.</string>
     <string name="api_error_call_predates_feature">Cet appel a commencé avant l\'existence de cette fonction, elle n\'est donc pas offerte pour lui.</string>
-    <string name="api_error_caller_id_carrier_failed">Impossible de joindre le fournisseur de téléphonie. Réessayez dans quelques minutes.</string>
-    <string name="api_error_caller_id_mobile_unverified">Confirmez d\'abord votre numéro de cellulaire, puis enregistrez-le comme afficheur.</string>
-    <string name="api_error_caller_id_not_confirmed">Le fournisseur n\'a pas encore confirmé votre numéro. Répondez à l\'appel de vérification, entrez le code, puis vérifiez de nouveau.</string>
+    <string name="api_error_caller_id_carrier_failed">Impossible de joindre le transporteur de téléphonie. Réessayez dans quelques minutes.</string>
+    <string name="api_error_caller_id_mobile_unverified">Confirmez d\'abord votre numéro de cellulaire, puis inscrivez-le comme afficheur.</string>
+    <string name="api_error_caller_id_not_confirmed">Le transporteur n\'a pas encore confirmé votre numéro. Répondez à l\'appel de vérification, entrez le code, puis vérifiez de nouveau.</string>
     <string name="api_error_caller_id_request_too_soon">Un appel de vérification a été fait il y a moins de 10 minutes. Attendez avant d\'en demander un autre.</string>
     <string name="api_error_caller_id_unavailable">L\'utilisation de votre cellulaire comme afficheur n\'est pas encore offerte.</string>
     <string name="api_error_carrier_error">Le transporteur n\'a pas pu effectuer cette opération. Réessayez ou communiquez avec notre équipe de soutien.</string>
@@ -87,7 +87,7 @@
     <string name="api_error_knowledge_url_unsupported_type">Seuls les pages Web (HTML) et le texte brut peuvent être importés. Collez plutôt le texte.</string>
     <string name="api_error_language_unavailable">Cette langue n\'est pas encore offerte pour cet espace de travail. Choisissez une autre langue.</string>
     <string name="api_error_last_agency_member">Il s\'agit de la dernière personne administratrice de l\'espace de travail, elle ne peut donc être ni retirée ni rétrogradée.</string>
-    <string name="api_error_live_changed">Quelqu\'un a modifié ces paramètres depuis la rédaction du brouillon. Réalignez le brouillon sur les paramètres en ligne, relisez-le, puis publiez-le.</string>
+    <string name="api_error_live_changed">Quelqu\'un a modifié ces paramètres depuis la rédaction du brouillon. Mettez le brouillon à jour avec les paramètres en vigueur, relisez-le, puis publiez-le.</string>
     <string name="api_error_mailbox_not_found">Aucune boîte de réception n\'est connectée à cet espace de travail.</string>
     <string name="api_error_managed_billing_required">La facturation gérée auprès des transporteurs n\'est pas activée pour cet espace de travail. Communiquez avec notre équipe de soutien pour passer à un forfait géré.</string>
     <string name="api_error_media_not_found">Ce fichier est introuvable.</string>

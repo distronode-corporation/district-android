@@ -3351,14 +3351,23 @@ tier = "T3"
 state = "reviewed"
 note = "The filter chip that keeps only the conversations the server says are assigned to the signed-in member. Web French reused verbatim (inboxI18n.ts assignedToMe)."
 
-[inbox.assigned_to_me_empty]
-en = "No conversation is assigned to you."
-fr = "Aucune conversation ne vous est assignée."
+[inbox.assigned_to_me_empty_body]
+en = "Conversations a team member assigns to you show up here."
+fr = "Les conversations qu'un membre de l'équipe vous assigne s'affichent ici."
 ctx = "body"
 screen = "inbox"
 tier = "T3"
-state = "draft"
-note = "Shown under the Assigned to me filter when it leaves no conversation. App-authored French, awaiting sign-off."
+state = "reviewed"
+note = "Under inbox.assigned_to_me_empty_title when the Assigned to me filter leaves no conversation. Sean's French sign-off (GitLab #2, note 4173250442), the same meaning as iOS and Mac."
+
+[inbox.assigned_to_me_empty_title]
+en = "Nothing is assigned to you"
+fr = "Rien ne vous est assigné"
+ctx = "title"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+note = "The heading shown when the Assigned to me filter leaves no conversation. Sean's French sign-off (GitLab #2, note 4173250442), the same meaning as iOS and Mac."
 
 [inbox.channel_email]
 en = "Email"
@@ -4121,21 +4130,21 @@ note = "Under the listening state line. French reused verbatim from the web live
 
 [live_calls.microphone_denied]
 en = "Allow the microphone to take the call over."
-fr = "Autorisez le micro pour prendre l'appel."
+fr = "Autorisez l'accès au micro pour prendre l'appel."
 ctx = "error"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "The microphone permission was refused, so the call cannot be taken over by voice. Listening still works. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "The microphone permission was refused, so the call cannot be taken over by voice. Listening still works. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.no_receptionist]
-en = "Receptionist not on this call"
-fr = "Réceptionniste absente de cet appel"
+en = "Your receptionist is not on this call"
+fr = "Votre réceptionniste ne participe pas à cet appel"
 ctx = "label"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "A badge on a live call the receptionist does not take part in (`receptionistOnCall` false): a team member's own softphone call, or one that never reached a room. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "A badge on a live call the receptionist does not take part in (`receptionistOnCall` false): a team member's own softphone call, or one that never reached a room. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.no_receptionist_note]
 en = "Your receptionist is not on this call, so you can listen but not send a note or take the call over."
@@ -4143,8 +4152,8 @@ fr = "Votre réceptionniste ne participe pas à cet appel\u00A0: vous pouvez éc
 ctx = "body"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "On a call the receptionist does not take part in, in place of the note field and the take-over button, which are not offered there. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "On a call the receptionist does not take part in, in place of the note field and the take-over button, which are not offered there. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.not_a_call]
 en = "This is not a phone call, so it cannot be joined here."
@@ -4152,8 +4161,8 @@ fr = "Ce n'est pas un appel téléphonique\u00A0: impossible de le rejoindre ici
 ctx = "error"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "The app refused locally before sending anything: the id is a room's, not a call's. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "The app refused locally before sending anything: the id is a room's, not a call's. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.receipt_applied]
 en = "Your receptionist acted on it."
@@ -4198,8 +4207,8 @@ fr = "Actualiser"
 ctx = "button"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "Reads the list of calls in progress again. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "Reads the list of calls in progress again. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.stop_listening]
 en = "Stop listening"
@@ -4274,13 +4283,13 @@ state = "reviewed"
 note = "The takeover was refused without a code this build knows. French reused verbatim from the web liveI18n.ts liveCopy.takeoverFailed."
 
 [live_calls.take_over_join_failed]
-en = "Could not join the call with your microphone. Try again."
-fr = "Impossible de rejoindre l'appel avec votre micro. Réessayez."
+en = "Could not join the call with your microphone. Check that a microphone is connected and that District AI may use it, then try again."
+fr = "Impossible de rejoindre l'appel avec votre micro. Vérifiez qu'un micro est branché et que District AI peut l'utiliser, puis réessayez."
 ctx = "error"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "The takeover was granted but joining the call with the microphone failed. The web's wording names the browser, so the sentence is the app's own. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "The takeover was granted but joining the call with the microphone failed. The web's wording names the browser, so the sentence is the app's own. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.taken_over_body]
 en = "Your receptionist has stepped back and is waiting on the line. Hand the call back and it carries on."
@@ -4315,8 +4324,8 @@ fr = "Appelant inconnu"
 ctx = "label"
 screen = "live calls"
 tier = "T2"
-state = "draft"
-note = "A live call with no number to show. French written for the app, not yet reviewed."
+state = "reviewed"
+note = "A live call with no number to show. French signed off by Sean (GitLab #2, note 4173250442)."
 
 [live_calls.whisper_failed]
 en = "The note was not delivered. Try again."

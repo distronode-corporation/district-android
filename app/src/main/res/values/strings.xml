@@ -379,7 +379,8 @@
     <string name="hq_title">District HQ</string>
     <string name="inbox_assigned_to">Assigned to %1$s</string>
     <string name="inbox_assigned_to_me">Assigned to me</string>
-    <string name="inbox_assigned_to_me_empty">No conversation is assigned to you.</string>
+    <string name="inbox_assigned_to_me_empty_body">Conversations a team member assigns to you show up here.</string>
+    <string name="inbox_assigned_to_me_empty_title">Nothing is assigned to you</string>
     <string name="inbox_channel_email">Email</string>
     <string name="inbox_channel_instagram">Instagram</string>
     <string name="inbox_channel_messenger">Messenger</string>
@@ -464,7 +465,7 @@
     <string name="live_calls_listening">You are listening</string>
     <string name="live_calls_listening_body">Hear the call as it happens. The caller does not hear you.</string>
     <string name="live_calls_microphone_denied">Allow the microphone to take the call over.</string>
-    <string name="live_calls_no_receptionist">Receptionist not on this call</string>
+    <string name="live_calls_no_receptionist">Your receptionist is not on this call</string>
     <string name="live_calls_no_receptionist_note">Your receptionist is not on this call, so you can listen but not send a note or take the call over.</string>
     <string name="live_calls_not_a_call">This is not a phone call, so it cannot be joined here.</string>
     <string name="live_calls_receipt_applied">Your receptionist acted on it.</string>
@@ -480,7 +481,7 @@
     <string name="live_calls_take_over_confirm_body">Your receptionist tells the caller a supervisor is taking over, then steps back. Your microphone is live on the call until you hand it back. Nothing is recorded.</string>
     <string name="live_calls_take_over_confirm_title">Take over this call?</string>
     <string name="live_calls_take_over_failed">The call could not be taken over. Try again.</string>
-    <string name="live_calls_take_over_join_failed">Could not join the call with your microphone. Try again.</string>
+    <string name="live_calls_take_over_join_failed">Could not join the call with your microphone. Check that a microphone is connected and that District AI may use it, then try again.</string>
     <string name="live_calls_taken_over_body">Your receptionist has stepped back and is waiting on the line. Hand the call back and it carries on.</string>
     <string name="live_calls_taken_over_title">You are on the call</string>
     <string name="live_calls_title">Live calls</string>

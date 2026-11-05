@@ -417,15 +417,10 @@ private fun AssignedToMeChip(filter: AssignedToMeFilter) {
 @Composable
 private fun NothingAssigned() {
     ContentContainer(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.inbox_assigned_to_me_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = DistrictTheme.colors.mutedForeground,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DistrictTheme.spacing.section)
-                .testTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION),
+        EmptyState(
+            title = stringResource(R.string.inbox_assigned_to_me_empty_title),
+            body = stringResource(R.string.inbox_assigned_to_me_empty_body),
+            modifier = Modifier.testTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION),
         )
     }
 }

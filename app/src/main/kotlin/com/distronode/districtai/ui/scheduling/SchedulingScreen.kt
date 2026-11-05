@@ -46,7 +46,7 @@ import com.distronode.districtai.ui.resolve
  * ⛔ NOTHING ON THIS SCREEN OFFERS A PURCHASE PATH. A workspace the feature does not admit gets
  * one sentence and no control at all: Google Play's Payments policy is the same shape as the App
  * Store's 3.1.3(b) here, and a "contact sales" link out of a paid product's own settings is that
- * offer wearing a different hat. The marketplace's read-only hand-off exists for the same reason.
+ * offer wearing a different hat. Buying a phone number stays on the web for the same reason.
  *
  * ⛔ THE ENABLE BUTTON IS GATED ON THE SERVER'S OWN `canManage`, NEVER ON A ROLE THIS DESTINATION
  * CARRIES — which is why the route has no `{role}` segment, unlike almost every other

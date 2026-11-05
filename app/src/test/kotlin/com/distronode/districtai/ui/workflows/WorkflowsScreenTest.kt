@@ -313,7 +313,7 @@ class WorkflowsScreenTest {
     @Test
     fun `a viewer is told who can change the campaign rather than sent to the web`() {
         // ⚠️ Sending a viewer to the web dashboard points them at something that will also refuse
-        // them — the same reasoning the marketplace's read-only caption carries.
+        // them — the same reasoning the marketplace's viewer caption carries.
         render(ready(), canToggle = false)
 
         composeRule

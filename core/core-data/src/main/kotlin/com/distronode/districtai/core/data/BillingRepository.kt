@@ -25,7 +25,8 @@ import com.distronode.districtai.core.network.DistrictApi
  *
  * ⛔ THERE ARE NO WRITES HERE, AND THERE MUST NOT BE. `POST /api/billing` cancels subscriptions,
  * changes plans and detaches cards. Offering any of that in-app breaches Google Play's Payments
- * policy — this is not the marketplace's read-only decision, which was ours to revisit.
+ * policy. The marketplace is different: what it may change was ours to decide, and since 3.0 it
+ * configures and releases numbers in-app, while buying one stays on the web for this same policy.
  *
  * ⚠️ NO CACHING. Both answers are small, neither pages, and a stale plan or a stale cap is exactly
  * the kind of wrong number that becomes a support ticket.

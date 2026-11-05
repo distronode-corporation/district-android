@@ -95,8 +95,8 @@ sealed interface SchedulingPresentation {
      *
      * ⛔ No button, and no route out. Google Play's Payments policy is the same shape as the App
      * Store's 3.1.3(b) here: a "contact sales" link out of a paid product's own settings is a
-     * purchase offer wearing a different hat, and this app deliberately carries none — see the
-     * marketplace's read-only hand-off, which exists for the same reason.
+     * purchase offer wearing a different hat, and this app deliberately carries none. Buying a
+     * phone number stays on the web for the same reason (the marketplace's hand-off).
      */
     data object NotEligible : SchedulingPresentation
 

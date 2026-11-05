@@ -337,7 +337,8 @@ class AppContainer(
     val analyticsRepository: AnalyticsRepository = AnalyticsRepository(districtApi)
 
     /**
-     * The read-only phone-number marketplace.
+     * The phone-number marketplace's two reads: the workspace's numbers and the carrier's
+     * inventory. The writes are [numberProvisioningRepository]'s, just below.
      *
      * ⚠️ NO CACHE, AND HERE THAT IS LOAD-BEARING RATHER THAN MERELY TIDY: carrier inventory
      * changes minute to minute, so a process-scoped cache would offer an operator a number that

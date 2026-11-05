@@ -84,6 +84,15 @@ internal object ExtraPaths {
      */
     fun callHangUp(callId: String): List<String> = DistrictPaths.CALLS + callId + "hangup"
 
+    /** `api/district/calls/active`: GET, the Live calls list. ⚠️ A literal word where an id could sit. */
+    val CALLS_ACTIVE: List<String> = DistrictPaths.CALLS + "active"
+
+    /** `api/district/calls/whisper`: POST. ⛔ The call id is in the body; there is no per-call path. */
+    val CALLS_WHISPER: List<String> = DistrictPaths.CALLS + "whisper"
+
+    /** `api/district/calls/{id}/takeover`: POST. ⛔ The id is one segment, for the reason [callHangUp]'s is. */
+    fun callTakeover(callId: String): List<String> = DistrictPaths.CALLS + callId + "takeover"
+
     /** `api/district/contacts/block`: POST, the desired state. ⚠️ One letter from [CONTACTS_BLOCKED]. */
     val CONTACTS_BLOCK: List<String> = DistrictPaths.CONTACTS + "block"
 

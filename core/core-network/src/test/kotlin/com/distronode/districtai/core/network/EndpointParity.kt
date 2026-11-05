@@ -30,13 +30,13 @@ internal object EndpointParity {
      *
      * ⚠️ RAISED FROM 0 TO 3 ONCE, AT THE district-core-swift 8.0.0 REFRESH (Apple Watch round 2),
      * and only for endpoints this client has no use for rather than ones it has yet to build; each
-     * entry says why. That is the one reason the ratchet may move up, and it is decided by the
+     * entry says why. Down to 2 at live supervise (3.3.0), which built `whisper`. That is the one reason the ratchet may move up, and it is decided by the
      * maintainers in review, never to get a red build green.
      *
      * ⚠️ KEPT EQUAL TO THE ENTRY COUNT, never above it. A baseline with slack is a budget rather
      * than a ratchet: it enforces nothing until the slack is used up.
      */
-    const val MISSING_ON_ANDROID_BASELINE: Int = 3
+    const val MISSING_ON_ANDROID_BASELINE: Int = 2
 
     /**
      * The places the clients spell the same endpoint differently, keyed by the KOTLIN function
@@ -102,9 +102,6 @@ internal object EndpointParity {
         // app's session. This client builds its notifications in its own process, under its own
         // session, and has no extension to hand a second credential to.
         "notifyToken",
-        // ⚠️ THE WATCH'S "STEER THE AGENT" LINE (`POST calls/whisper`), used by the Apple Watch live
-        // transcript. This client has no live-call steering surface; the entry leaves if one is built.
-        "whisper",
     )
 
     /**
@@ -130,5 +127,11 @@ internal object EndpointParity {
         "conversationAssignments",
         "whatsAppTemplates",
         "whatsAppWindow",
+        // ⚠️ LIVE SUPERVISE (3.3.0): the Live calls list, listening and taking over. The names are
+        // the ones decided for district-core-swift's `EndpointID`; they leave this set when the
+        // snapshot that declares them is vendored. (`whisper` is already on both sides.)
+        "activeCalls",
+        "monitorCall",
+        "takeOverCall",
     )
 }

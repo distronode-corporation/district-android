@@ -4056,6 +4056,304 @@ args = { value = "str" }
 state = "reviewed"
 note = "A value this app has no label for (a device platform, a message channel, a routing field), passed through as {value}. English shows it as sent, as it always has. The French is the wire labels' reviewed unknown-value label (unit 0dc1e2805156)."
 
+[live_calls.connect_failed]
+en = "Could not connect you to the call. Try again."
+fr = "Impossible de vous connecter à l'appel. Réessayez."
+ctx = "error"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Shown at the call when the listen-in could not join the room, or lost it. French reused verbatim from the web liveI18n.ts liveCopy.monitorConnectFailed."
+
+[live_calls.empty_body]
+en = "When someone is on the phone with your receptionist, the call shows up here."
+fr = "Quand quelqu'un est en ligne avec votre réceptionniste, l'appel s'affiche ici."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Under the empty Live calls heading. French reused verbatim from the web liveI18n.ts liveCopy.emptyBody."
+
+[live_calls.empty_title]
+en = "No calls right now"
+fr = "Aucun appel en ce moment"
+ctx = "title"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "No call is in progress in this workspace. French reused verbatim from the web liveI18n.ts liveCopy.emptyHeading."
+
+[live_calls.hand_back]
+en = "Hand back to your receptionist"
+fr = "Redonner l'appel à votre réceptionniste"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Leaves the call, and the receptionist carries on. French reused verbatim from the web liveI18n.ts liveCopy.handBack."
+
+[live_calls.listen]
+en = "Listen"
+fr = "Écouter"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Joins the call listen-only. The caller does not hear the supervisor. French reused verbatim from the web liveI18n.ts liveCopy.monitorAudio."
+
+[live_calls.listening]
+en = "You are listening"
+fr = "Vous écoutez l'appel"
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The state line on the call the supervisor is listening to. French reused verbatim from the web liveI18n.ts liveCopy.monitoringConnected."
+
+[live_calls.listening_body]
+en = "Hear the call as it happens. The caller does not hear you."
+fr = "Entendez l'appel en direct. L'appelant ne vous entend pas."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Under the listening state line. French reused verbatim from the web liveI18n.ts liveCopy.listenInBody."
+
+[live_calls.microphone_denied]
+en = "Allow the microphone to take the call over."
+fr = "Autorisez le micro pour prendre l'appel."
+ctx = "error"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "The microphone permission was refused, so the call cannot be taken over by voice. Listening still works. French written for the app, not yet reviewed."
+
+[live_calls.not_a_call]
+en = "This is not a phone call, so it cannot be joined here."
+fr = "Ce n'est pas un appel téléphonique\u00A0: impossible de le rejoindre ici."
+ctx = "error"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "The app refused locally before sending anything: the id is a room's, not a call's. French written for the app, not yet reviewed."
+
+[live_calls.receipt_applied]
+en = "Your receptionist acted on it."
+fr = "Votre réceptionniste a suivi la consigne."
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The receptionist's receipt for a whisper it acted on. French reused verbatim from the web liveI18n.ts liveCopy.whisperReceipt (applied, no first words)."
+
+[live_calls.receipt_applied_words]
+en = "Your receptionist acted on it and said: “{words}”"
+fr = "Votre réceptionniste a suivi la consigne et a dit\u00A0: «\u00A0{words}\u00A0»"
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+args = { words = "str" }
+state = "reviewed"
+note = "The receptionist's receipt for a whisper, with the first words it said to the caller. French reused verbatim from the web liveI18n.ts liveCopy.whisperReceipt (applied)."
+
+[live_calls.receipt_taken_over]
+en = "Not used: a team member is holding the call."
+fr = "Consigne non utilisée\u00A0: un membre de l'équipe a pris l'appel."
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The receptionist held the whisper back because a team member has taken the call over. French reused verbatim from the web liveI18n.ts liveCopy.whisperReceipt (taken_over)."
+
+[live_calls.receipt_transfer]
+en = "Not used: the call is being transferred."
+fr = "Consigne non utilisée\u00A0: l'appel est en cours de transfert."
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The receptionist held the whisper back because the call is being transferred. French reused verbatim from the web liveI18n.ts liveCopy.whisperReceipt (transfer)."
+
+[live_calls.refresh]
+en = "Refresh"
+fr = "Actualiser"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "Reads the list of calls in progress again. French written for the app, not yet reviewed."
+
+[live_calls.stop_listening]
+en = "Stop listening"
+fr = "Arrêter d'écouter"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Leaves a call the supervisor is listening to. French reused verbatim from the web liveI18n.ts liveCopy.disconnect."
+
+[live_calls.subtitle]
+en = "Calls happening right now. Listen in, send your receptionist a private note, or take the call yourself."
+fr = "Les appels en ce moment. Écoutez, soufflez une consigne à votre réceptionniste ou prenez l'appel vous-même."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Under the Live calls title. French reused verbatim from the web liveI18n.ts liveCopy.pageSubtitle."
+
+[live_calls.take_over]
+en = "Take over the call"
+fr = "Prendre l'appel"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Opens the in-page confirmation for taking the call over by voice. Glossary: take over is « prendre l'appel ». French reused verbatim from the web liveI18n.ts liveCopy.takeOver."
+
+[live_calls.take_over_cancel]
+en = "Cancel"
+fr = "Annuler"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Closes the take-over confirmation. French reused verbatim from the web liveI18n.ts liveCopy.takeOverCancel."
+
+[live_calls.take_over_confirm]
+en = "Take over"
+fr = "Prendre l'appel"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Confirms the takeover. French reused verbatim from the web liveI18n.ts liveCopy.takeOverConfirm."
+
+[live_calls.take_over_confirm_body]
+en = "Your receptionist tells the caller a supervisor is taking over, then steps back. Your microphone is live on the call until you hand it back. Nothing is recorded."
+fr = "Votre réceptionniste annonce à l'appelant qu'un superviseur prend le relais, puis se met en retrait. Votre micro reste ouvert dans l'appel jusqu'à ce que vous lui redonniez l'appel. Rien n'est enregistré."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Says what the caller hears and that the microphone goes live. French reused verbatim from the web liveI18n.ts liveCopy.takeOverConfirmBody."
+
+[live_calls.take_over_confirm_title]
+en = "Take over this call?"
+fr = "Prendre cet appel?"
+ctx = "title"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Heading of the take-over confirmation. French reused verbatim from the web liveI18n.ts liveCopy.takeOverConfirmHeading."
+
+[live_calls.take_over_failed]
+en = "The call could not be taken over. Try again."
+fr = "Impossible de prendre l'appel. Réessayez."
+ctx = "error"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The takeover was refused without a code this build knows. French reused verbatim from the web liveI18n.ts liveCopy.takeoverFailed."
+
+[live_calls.take_over_join_failed]
+en = "Could not join the call with your microphone. Try again."
+fr = "Impossible de rejoindre l'appel avec votre micro. Réessayez."
+ctx = "error"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "The takeover was granted but joining the call with the microphone failed. The web's wording names the browser, so the sentence is the app's own. French written for the app, not yet reviewed."
+
+[live_calls.taken_over_body]
+en = "Your receptionist has stepped back and is waiting on the line. Hand the call back and it carries on."
+fr = "Votre réceptionniste s'est mise en retrait et attend en ligne. Redonnez-lui l'appel et elle reprend la conversation."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Under the taken-over state line. French reused verbatim from the web liveI18n.ts liveCopy.takenOverBody."
+
+[live_calls.taken_over_title]
+en = "You are on the call"
+fr = "Vous êtes en ligne avec l'appelant"
+ctx = "title"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The state line once the supervisor has taken the call over. French reused verbatim from the web liveI18n.ts liveCopy.takenOverHeading."
+
+[live_calls.team_call]
+en = "Team member's call"
+fr = "Appel d'un membre de l'équipe"
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "A badge on a call a team member placed from their own phone. No receptionist is on it. French written for the app, not yet reviewed."
+
+[live_calls.team_call_note]
+en = "This is a team member's own call. Your receptionist is not on it, so you can listen but not send a note or take the call over."
+fr = "Il s'agit de l'appel d'un membre de l'équipe. Votre réceptionniste n'y participe pas\u00A0: vous pouvez écouter, mais pas lui souffler de consigne ni prendre l'appel."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "On a team member's own call, in place of the note field and the take-over button, which are not offered there. French written for the app, not yet reviewed."
+
+[live_calls.title]
+en = "Live calls"
+fr = "Appels en cours"
+ctx = "title"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The Live calls screen's title, and the call log's action that opens it. French reused verbatim from the web liveI18n.ts liveCopy.pageTitle."
+
+[live_calls.unknown_caller]
+en = "Unknown caller"
+fr = "Appelant inconnu"
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "A live call with no number to show. French written for the app, not yet reviewed."
+
+[live_calls.whisper_failed]
+en = "The note was not delivered. Try again."
+fr = "La consigne soufflée n'a pas été transmise. Réessayez."
+ctx = "error"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Under the whisper field when the send failed without a code this build knows. French reused verbatim from the web liveI18n.ts liveCopy.whisperFailed."
+
+[live_calls.whisper_label]
+en = "Note to your receptionist"
+fr = "Consigne à votre réceptionniste"
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "The text field for a whisper: a private instruction to the AI receptionist on the call. The caller never hears it. Glossary: whisper is « souffler une consigne ». French reused verbatim from the web liveI18n.ts liveCopy.whisperHeading."
+
+[live_calls.whisper_placeholder]
+en = "For example: Offer a 10% discount to book today."
+fr = "Par exemple\u00A0: offrez un rabais de 10\u00A0% pour réserver aujourd'hui."
+ctx = "placeholder"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Example text inside the empty whisper field. French reused verbatim from the web liveI18n.ts liveCopy.whisperPlaceholder."
+
+[live_calls.whisper_send]
+en = "Send note"
+fr = "Souffler la consigne"
+ctx = "button"
+screen = "live calls"
+tier = "T2"
+state = "reviewed"
+note = "Sends the whisper to the receptionist. French reused verbatim from the web liveI18n.ts liveCopy.whisperSend."
+
 [live_transcript.connecting]
 en = "Connecting…"
 fr = "Connexion…"

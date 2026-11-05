@@ -28,9 +28,14 @@ data class LiveCallsSources(val supervise: SuperviseRepository, val calls: Calls
 sealed interface LiveCallList {
     data object Loading : LiveCallList
 
-    data class Loaded(val calls: List<CallSummary>) : LiveCallList
+    /**
+     * @property refreshFailure the last read failed after this list loaded. ⛔ THE LIST STAYS: the
+     *   card of a call being listened to or taken over carries the only control that ends that
+     *   session, so a failed refresh is a notice above the cards, cleared by the next good read.
+     */
+    data class Loaded(val calls: List<CallSummary>, val refreshFailure: FailureText? = null) : LiveCallList
 
-    /** ⛔ Never drawn as "no calls": we could not look. */
+    /** Nothing has loaded yet and the read failed. ⛔ Never drawn as "no calls": we could not look. */
     data class Failed(val failure: FailureText) : LiveCallList
 }
 
@@ -105,9 +110,11 @@ class LiveCallsViewModel(
         loading = viewModelScope.launch {
             do {
                 reloadAfter = false
-                _list.value = when (val result = calls.liveCalls(workspaceId)) {
-                    is ApiResult.Success -> LiveCallList.Loaded(result.value.filterNot { it.id in ended })
-                    is ApiResult.Failure -> LiveCallList.Failed(result.toFailureText())
+                when (val result = calls.liveCalls(workspaceId)) {
+                    is ApiResult.Success -> show(result.value.filterNot { it.id in ended })
+                    is ApiResult.Failure -> _list.value = (_list.value as? LiveCallList.Loaded)
+                        ?.copy(refreshFailure = result.toFailureText())
+                        ?: LiveCallList.Failed(result.toFailureText())
                 }
             } while (reloadAfter)
         }
@@ -148,11 +155,27 @@ class LiveCallsViewModel(
             is LiveFeedEvent.CallEnded -> {
                 ended += event.callId
                 (_list.value as? LiveCallList.Loaded)?.let { loaded ->
-                    _list.value = LiveCallList.Loaded(loaded.calls.filterNot { it.id == event.callId })
+                    show(loaded.calls.filterNot { it.id == event.callId }, loaded.refreshFailure)
                 }
             }
             is LiveFeedEvent.Receipt -> whisperDesk.receipt(event.callId, event.data)
         }
+    }
+
+    /**
+     * Put [rows] on screen, and leave the session of a call that is no longer among them.
+     *
+     * ⛔ A CARD IS THE ONLY CONTROL THAT ENDS ITS SESSION ("Stop listening", "Hand back"), so a call
+     * that leaves the list (it ended, or a read no longer counts it as live) takes its session with
+     * it, request in flight included: no supervisor and no microphone stays in a call nothing on
+     * screen can reach. A call that really ended closes its room anyway; this makes it immediate.
+     */
+    private fun show(rows: List<CallSummary>, refreshFailure: FailureText? = null) {
+        _list.value = LiveCallList.Loaded(rows, refreshFailure)
+        val listed = rows.map { it.id }.toSet()
+        val state = supervisor.state.value
+        val gone = listOfNotNull(state.callId, state.requestingCallId).any { it !in listed }
+        if (gone) supervisor.leave()
     }
 
     /** A writer, and a call the receptionist is on. */

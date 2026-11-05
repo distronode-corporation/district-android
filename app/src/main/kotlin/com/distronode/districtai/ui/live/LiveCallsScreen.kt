@@ -91,14 +91,15 @@ fun LiveCallsScreen(view: LiveCallsView, actions: LiveCallsActions) {
                     onSignIn = actions.onSignIn,
                     description = LIVE_CALLS_FAILURE_TAG,
                 )
-                is LiveCallList.Loaded -> LoadedCalls(list.calls, view, actions)
+                is LiveCallList.Loaded -> LoadedCalls(list, view, actions)
             }
         }
     }
 }
 
 @Composable
-private fun LoadedCalls(calls: List<CallSummary>, view: LiveCallsView, actions: LiveCallsActions) {
+private fun LoadedCalls(list: LiveCallList.Loaded, view: LiveCallsView, actions: LiveCallsActions) {
+    val calls = list.calls
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag(LIVE_CALLS_LIST_TAG),
         contentPadding = PaddingValues(vertical = DistrictTheme.spacing.gutter),
@@ -111,6 +112,15 @@ private fun LoadedCalls(calls: List<CallSummary>, view: LiveCallsView, actions: 
                     style = MaterialTheme.typography.bodyMedium,
                     color = DistrictTheme.colors.mutedForeground,
                 )
+            }
+        }
+        // ⚠️ A failed refresh over a loaded list is a notice, never the failure screen: the cards
+        // (and the controls that end a session) stay. The shared failure sentence says why.
+        list.refreshFailure?.let { failure ->
+            item(key = "refresh-failure") {
+                ContentContainer(contentPadding = PaddingValues(horizontal = DistrictTheme.spacing.gutter)) {
+                    Failure(failure.message.resolve(), Modifier.testTag(LIVE_CALLS_REFRESH_FAILURE_TAG))
+                }
             }
         }
         if (calls.isEmpty()) {
@@ -222,6 +232,7 @@ internal fun liveCallTag(callId: String): String = "live-call-$callId"
 internal const val LIVE_CALLS_ROOT_TAG = "live-calls"
 internal const val LIVE_CALLS_LOADING_TAG = "live-calls-loading"
 internal const val LIVE_CALLS_FAILURE_TAG = "live-calls-failure"
+internal const val LIVE_CALLS_REFRESH_FAILURE_TAG = "live-calls-refresh-failure"
 internal const val LIVE_CALLS_LIST_TAG = "live-calls-list"
 internal const val LIVE_CALLS_EMPTY_TAG = "live-calls-empty"
 internal const val LIVE_CALLS_LISTEN_TAG = "live-calls-listen"

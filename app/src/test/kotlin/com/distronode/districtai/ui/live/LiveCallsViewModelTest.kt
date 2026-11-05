@@ -98,6 +98,67 @@ class LiveCallsViewModelTest {
     }
 
     @Test
+    fun `a failed refresh over a loaded list keeps the list, with a notice the next good read clears`() =
+        runTest(dispatcher) {
+            val vm = viewModel()
+            val rows = listOf(FakeSuperviseApi.AI_CALL, FakeSuperviseApi.TEAM_CALL)
+            vm.listen(ai)
+            runCurrent()
+
+            log.callsResult = ApiResult.NetworkFailure(IOException("offline"))
+            vm.refresh()
+            runCurrent()
+
+            val kept = vm.list.value as LiveCallList.Loaded
+            assertEquals(rows, kept.calls)
+            assertEquals(UiText.Resource(R.string.failure_offline), kept.refreshFailure?.message)
+            // ⛔ The session and the card that ends it are both still there.
+            assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
+
+            log.callsResult = ApiResult.Success(rows)
+            vm.refresh()
+            runCurrent()
+            assertEquals(LiveCallList.Loaded(rows), vm.list.value)
+        }
+
+    @Test
+    fun `a supervised call that leaves the list takes its session with it`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.listen(ai)
+        runCurrent()
+
+        // Still listed: nothing happens.
+        vm.refresh()
+        runCurrent()
+        assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
+
+        log.callsResult = ApiResult.Success(listOf(FakeSuperviseApi.TEAM_CALL))
+        vm.refresh()
+        runCurrent()
+
+        assertEquals("disconnect", engines.single().calls.last())
+        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+    }
+
+    @Test
+    fun `a listen still being requested for a call that left the list is dropped`() = runTest(dispatcher) {
+        val vm = viewModel()
+        val gate = CompletableDeferred<Unit>()
+        api.monitorGate = gate
+        vm.listen(ai)
+        runCurrent()
+
+        log.callsResult = ApiResult.Success(listOf(FakeSuperviseApi.TEAM_CALL))
+        vm.refresh()
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertTrue("nothing was joined", engines.isEmpty())
+        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+    }
+
+    @Test
     fun `a refresh asked for during a read runs once after it, never alongside`() = runTest(dispatcher) {
         val vm = viewModel()
         val gate = CompletableDeferred<Unit>()

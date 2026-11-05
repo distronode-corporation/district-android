@@ -25,8 +25,22 @@ internal fun actionReasonCode(reason: String): String = reason.substringBefore('
 @Composable
 internal fun actionReasonLabel(reason: String): String {
     val code = actionReasonCode(reason)
+    HTTP_STATUS_CODE.matchEntire(code)?.let { match ->
+        return wireLabel(WireCategory.WORKFLOW_ACTION_REASON, HTTP_STATUS_KEY)
+            .replace(STATUS_PLACEHOLDER, match.groupValues[1])
+    }
     return wireLabel(
         WireCategory.WORKFLOW_ACTION_REASON,
         if (code in WireCategory.WORKFLOW_ACTION_REASON.labels) code else reason.trim(),
     )
 }
+
+/**
+ * ⚠️ THE ONE CODE THAT CARRIES A VALUE. The vocabulary lists `http-{status}`, but the engine writes the
+ * status itself (`http-502: ops webhook returned 502 Bad Gateway`, workflows.ts), so an exact lookup
+ * never matched it and French read « Valeur inconnue : http-502: … ». The catalog's label keeps a
+ * literal `{status}`, not a format argument, and the number is put in here (Seer on #116).
+ */
+private val HTTP_STATUS_CODE = Regex("""http-(\d{3})""")
+private const val HTTP_STATUS_KEY = "http-{status}"
+private const val STATUS_PLACEHOLDER = "{status}"

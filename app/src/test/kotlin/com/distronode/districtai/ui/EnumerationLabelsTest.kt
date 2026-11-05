@@ -143,6 +143,27 @@ class EnumerationLabelsTest {
     }
 
     @Test
+    fun `an http status reason reads as HTTP and its number, the vocabulary's http-{status}`() {
+        // Seer on #116: the engine writes the status, so `http-502` never matched `http-{status}`.
+        renderReasons("http-502: ops webhook returned 502 Bad Gateway")
+        composeRule.onNodeWithText("HTTP 502").assertExists()
+        composeRule.onNodeWithText("Bad Gateway", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("{status}", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `an http status reason reads the same in French, never as an unknown value`() {
+        renderReasons("http-404: ops webhook returned 404 Not Found", "http-50x: not a status")
+        composeRule.onNodeWithText("HTTP 404").assertExists()
+        composeRule.onNodeWithText("Not Found", substring = true).assertDoesNotExist()
+        // Not three digits, so not a status: the whole reason, named as unknown.
+        composeRule.onNodeWithText(
+            str(R.string.wire_workflow_action_reason_unknown, "http-50x: not a status"),
+        ).assertExists()
+    }
+
+    @Test
     fun `the code is everything before the first colon, as the portal reads it`() {
         assertEquals("quiet-hours", actionReasonCode("quiet-hours: it was 22:30"))
         assertEquals("dnc", actionReasonCode(" dnc "))

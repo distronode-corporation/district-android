@@ -17,6 +17,8 @@
     <string name="api_error_business_account_required">Au Canada, nous vendons uniquement aux entreprises. Choisissez Entreprise et saisissez le nom de votre entreprise.</string>
     <string name="api_error_business_extraction_failed">Nous n\'avons pas pu préparer vos renseignements à partir de ce site Web. Veuillez réessayer, ou les saisir vous-même.</string>
     <string name="api_error_calendar_unreachable">Le calendrier n\'a pas pu être joint à l\'instant. Veuillez réessayer dans quelques minutes.</string>
+    <string name="api_error_call_ended">Cet appel est terminé.</string>
+    <string name="api_error_call_has_no_receptionist">Il s\'agit de l\'appel d\'un membre de l\'équipe. Votre réceptionniste n\'y participe pas, alors vous ne pouvez pas lui souffler de consigne ni prendre l\'appel.</string>
     <string name="api_error_call_has_no_room">Cet appel n\'a aucune salle à joindre.</string>
     <string name="api_error_call_not_direct_dial">Cet appel n\'est pas un appel direct passé depuis cette application et ne peut pas être raccroché ici.</string>
     <string name="api_error_call_not_found">Cet appel est introuvable.</string>

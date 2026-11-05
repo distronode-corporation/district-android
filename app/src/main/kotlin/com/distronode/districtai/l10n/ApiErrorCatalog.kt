@@ -189,6 +189,8 @@ internal val API_ERROR_SENTENCES: Map<String, Int> = mapOf(
     "call_has_no_room" to R.string.api_error_call_has_no_room,
     "call_not_direct_dial" to R.string.api_error_call_not_direct_dial,
     "call_predates_feature" to R.string.api_error_call_predates_feature,
+    "call_ended" to R.string.api_error_call_ended,
+    "call_has_no_receptionist" to R.string.api_error_call_has_no_receptionist,
     "room_inactive" to R.string.api_error_room_inactive,
     "demo_lines_busy" to R.string.api_error_demo_lines_busy,
     "demo_daily_limit_reached" to R.string.api_error_demo_daily_limit_reached,

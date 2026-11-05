@@ -112,9 +112,15 @@ class LiveCallsViewModel(
                 reloadAfter = false
                 when (val result = calls.liveCalls(workspaceId)) {
                     is ApiResult.Success -> show(result.value.filterNot { it.id in ended })
-                    is ApiResult.Failure -> _list.value = (_list.value as? LiveCallList.Loaded)
-                        ?.copy(refreshFailure = result.toFailureText())
-                        ?: LiveCallList.Failed(result.toFailureText())
+                    is ApiResult.Failure -> {
+                        val failure = result.toFailureText()
+                        val current = _list.value
+                        _list.value = if (current is LiveCallList.Loaded) {
+                            current.copy(refreshFailure = failure)
+                        } else {
+                            LiveCallList.Failed(failure)
+                        }
+                    }
                 }
             } while (reloadAfter)
         }

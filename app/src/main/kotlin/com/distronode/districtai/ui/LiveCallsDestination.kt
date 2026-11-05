@@ -47,6 +47,7 @@ internal fun NavGraphBuilder.liveCallsDestination(
             key = "live-calls-$workspaceId",
             factory = LiveCallsViewModel.factory(
                 repository = container.superviseRepository,
+                calls = container.callsRepository,
                 workspaceId = workspaceId,
                 canWrite = role.allowsMutation(),
                 engineFactory = container.callEngineFactory,

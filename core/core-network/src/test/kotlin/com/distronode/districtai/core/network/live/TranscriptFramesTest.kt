@@ -70,7 +70,8 @@ class TranscriptFramesTest {
 
     @Test
     fun `an event this client does not model is passed on as other`() {
-        val call = """{"workspaceId":"ws_1","callId":"c","eventType":"call_updated","data":{"x":1},"timestamp":"t"}"""
+        val call =
+            """{"workspaceId":"ws_1","callId":"c","eventType":"message_received","data":{"x":1},"timestamp":"t"}"""
         assertEquals(TelemetryMessage.Other, TelemetryMessages.read(call, "ws_1"))
     }
 
@@ -98,13 +99,17 @@ class TranscriptFramesTest {
     }
 
     @Test
-    fun `a call starting or ending is named, and its row is not read`() {
+    fun `a call starting, changing or ending is named, and its row is not read`() {
         fun frame(type: String) =
             """{"workspaceId":"ws_1","callId":"c9","eventType":"$type","data":{"from":"+15550100"},"timestamp":"t"}"""
 
         assertEquals(
             TelemetryMessage.CallChanged("c9", ended = false),
             TelemetryMessages.read(frame("call_started"), "ws_1")
+        )
+        assertEquals(
+            TelemetryMessage.CallChanged("c9", ended = false),
+            TelemetryMessages.read(frame("call_updated"), "ws_1"),
         )
         assertEquals(
             TelemetryMessage.CallChanged("c9", ended = true),

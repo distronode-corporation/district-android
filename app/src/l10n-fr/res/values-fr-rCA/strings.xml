@@ -460,6 +460,8 @@
     <string name="live_calls_listening">Vous écoutez l\'appel</string>
     <string name="live_calls_listening_body">Entendez l\'appel en direct. L\'appelant ne vous entend pas.</string>
     <string name="live_calls_microphone_denied">Autorisez le micro pour prendre l\'appel.</string>
+    <string name="live_calls_no_receptionist">Réceptionniste absente de cet appel</string>
+    <string name="live_calls_no_receptionist_note">Votre réceptionniste ne participe pas à cet appel\u00A0: vous pouvez écouter, mais pas lui souffler de consigne ni prendre l\'appel.</string>
     <string name="live_calls_not_a_call">Ce n\'est pas un appel téléphonique\u00A0: impossible de le rejoindre ici.</string>
     <string name="live_calls_receipt_applied">Votre réceptionniste a suivi la consigne.</string>
     <string name="live_calls_receipt_applied_words">Votre réceptionniste a suivi la consigne et a dit\u00A0: «\u00A0%1$s\u00A0»</string>
@@ -477,8 +479,6 @@
     <string name="live_calls_take_over_join_failed">Impossible de rejoindre l\'appel avec votre micro. Réessayez.</string>
     <string name="live_calls_taken_over_body">Votre réceptionniste s\'est mise en retrait et attend en ligne. Redonnez-lui l\'appel et elle reprend la conversation.</string>
     <string name="live_calls_taken_over_title">Vous êtes en ligne avec l\'appelant</string>
-    <string name="live_calls_team_call">Appel d\'un membre de l\'équipe</string>
-    <string name="live_calls_team_call_note">Il s\'agit de l\'appel d\'un membre de l\'équipe. Votre réceptionniste n\'y participe pas\u00A0: vous pouvez écouter, mais pas lui souffler de consigne ni prendre l\'appel.</string>
     <string name="live_calls_title">Appels en cours</string>
     <string name="live_calls_unknown_caller">Appelant inconnu</string>
     <string name="live_calls_whisper_failed">La consigne soufflée n\'a pas été transmise. Réessayez.</string>

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.core.model.WorkspaceRole
+import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
 import com.distronode.districtai.str
 import com.distronode.districtai.ui.calls.CALL_LOG_LIVE_CALLS_TAG
@@ -48,6 +49,7 @@ class NavHostLiveCallsTest {
     private val ai = FakeSuperviseApi.AI_CALL.id
 
     private fun open(role: WorkspaceRole?) {
+        harness.api.callsResult = ApiResult.Success(listOf(FakeSuperviseApi.AI_CALL, FakeSuperviseApi.TEAM_CALL))
         harness.render()
         harness.navigate(Routes.liveCalls("ws-1", role))
         harness.awaitDescription(LIVE_CALLS_ROOT_TAG)
@@ -66,11 +68,14 @@ class NavHostLiveCallsTest {
         harness.render()
         harness.navigate(Routes.callLog("ws-1", WorkspaceRole.CLIENT))
 
+        harness.awaitMain { harness.api.callsReads > 0 }
+        val before = harness.api.callsReads
         harness.tap(CALL_LOG_LIVE_CALLS_TAG)
+        harness.awaitMain { harness.api.callsReads > before }
 
         assertEquals(Routes.LIVE_CALLS, harness.route())
         assertEquals("client", harness.argument(ARG_ROLE))
-        assertEquals(listOf("ws-1"), harness.supervise.activeReads.take(1))
+        assertTrue("the list is read from the call log", harness.api.callsReads > before)
     }
 
     @Test
@@ -127,11 +132,11 @@ class NavHostLiveCallsTest {
     @Test
     fun `a new session reads the list again`() {
         open(WorkspaceRole.AGENCY)
-        val before = harness.supervise.activeReads.size
+        val before = harness.api.callsReads
 
         harness.bumpEpoch()
 
-        assertTrue(harness.supervise.activeReads.size > before)
+        assertTrue(harness.api.callsReads > before)
     }
 
     private companion object {

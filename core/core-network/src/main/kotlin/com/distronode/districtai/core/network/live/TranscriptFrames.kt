@@ -107,12 +107,14 @@ sealed interface TelemetryMessage {
     data class WhisperApplied(val callId: String, val data: WhisperAppliedData) : TelemetryMessage
 
     /**
-     * A call of this workspace started ([ended] false) or ended ([ended] true). ⛔ The payload is the
-     * call row and is customer data, so it is not read: a list re-reads `calls/active` instead.
+     * A call of this workspace started or changed ([ended] false), or ended ([ended] true).
+     *
+     * ⛔ ONLY THE ENVELOPE IS READ. The payload is the server's raw call record (no contract, and
+     * customer data), so a list reads the call log again rather than trusting it.
      */
     data class CallChanged(val callId: String, val ended: Boolean) : TelemetryMessage
 
-    /** An envelope for this workspace that is none of the above (a call update or message event). */
+    /** An envelope for this workspace that is none of the above (a message event, say). */
     data object Other : TelemetryMessage
 
     /**
@@ -126,8 +128,9 @@ sealed interface TelemetryMessage {
 
 /** Decodes socket messages for one workspace. */
 object TelemetryMessages {
-    /** The broadcaster's call events (the web Live page's `call_started` and `call_ended`). */
+    /** The broadcaster's call events, as the web Live page reads them. */
     private const val CALL_EVENT_STARTED = "call_started"
+    private const val CALL_EVENT_UPDATED = "call_updated"
     private const val CALL_EVENT_ENDED = "call_ended"
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -157,7 +160,7 @@ object TelemetryMessages {
             frame.callId,
             json.decodeFromJsonElement(WhisperAppliedData.serializer(), frame.data),
         )
-        CALL_EVENT_STARTED -> TelemetryMessage.CallChanged(frame.callId, ended = false)
+        CALL_EVENT_STARTED, CALL_EVENT_UPDATED -> TelemetryMessage.CallChanged(frame.callId, ended = false)
         CALL_EVENT_ENDED -> TelemetryMessage.CallChanged(frame.callId, ended = true)
         else -> TelemetryMessage.Other
     }

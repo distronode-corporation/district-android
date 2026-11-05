@@ -1,11 +1,11 @@
 package com.distronode.districtai.core.data
 
-import com.distronode.districtai.core.model.ActiveCall
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.SuperviseApi
 
 /**
- * Live supervise: the Live calls list, and listening to, whispering into and taking over one call.
+ * Live supervise: listening to, whispering into and taking over one call. The list itself is
+ * [CallsRepository.liveCalls].
  *
  * ⛔ NO RETRY LIVES HERE AND NONE MAY BE ADDED. Each action is sent once and its failure is handed
  * back as it came: a whisper re-sent after a 5xx may be spoken twice, and a listen or takeover
@@ -25,14 +25,6 @@ import com.distronode.districtai.core.network.SuperviseApi
  * shared failure mapper, so each reads in the catalog's words once the catalog has them.
  */
 class SuperviseRepository(private val api: SuperviseApi) {
-
-    /** The workspace's calls in progress. ⚠️ A 200 without `success: true` is drift, not "no calls". */
-    suspend fun activeCalls(workspaceId: String): ApiResult<List<ActiveCall>> =
-        when (val result = api.activeCalls(workspaceId)) {
-            is ApiResult.Success ->
-                rejectedEnvelope(ACTIVE_ENVELOPE, result.value.success) ?: ApiResult.Success(result.value.calls)
-            is ApiResult.Failure -> result
-        }
 
     /** The listen-only credential for [callId]. */
     suspend fun monitor(callId: String): SuperviseOutcome<LiveCallGrant> {
@@ -77,7 +69,6 @@ class SuperviseRepository(private val api: SuperviseApi) {
     }
 
     companion object {
-        private const val ACTIVE_ENVELOPE = "ActiveCallsResponse"
         private const val MONITOR_ENVELOPE = "CallMonitorTokenResponse"
         private const val TAKEOVER_ENVELOPE = "CallTakeoverResponse"
         private const val WHISPER_ENVELOPE = "CallWhisperResponse"

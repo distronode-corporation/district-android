@@ -1,5 +1,6 @@
 package com.distronode.districtai.core.model
 
+import kotlinx.serialization.builtins.ListSerializer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -76,7 +77,6 @@ class SuperviseContractFixtureTest {
         WireMirror.assertWire(CallTakeoverResponse.serializer(), CallTakeoverResponse(), "{}")
         WireMirror.assertWire(CallWhisperResponse.serializer(), CallWhisperResponse(), "{}")
         WireMirror.assertWire(WhisperAppliedData.serializer(), WhisperAppliedData(), "{}")
-        WireMirror.assertWire(ActiveCallsResponse.serializer(), ActiveCallsResponse(), "{}")
     }
 
     @Test
@@ -99,43 +99,39 @@ class SuperviseContractFixtureTest {
     }
 
     @Test
-    fun `an active call row needs only its id`() {
-        WireMirror.assertRequiredKeys(ActiveCall.serializer(), ActiveCall(id = "cm1call"), """{"id":"cm1call"}""")
+    fun `every call summary says whether the receptionist takes part, on all three routes`() {
+        // ⛔ The two calls with no receptionist on them are the fixtures' own: a carrier ring-out
+        // with no room and a busy line. Every other call has the receptionist on it.
+        val expected = mapOf(
+            "call_contract_answered" to true,
+            "call_contract_missed" to true,
+            "call_contract_outbound" to true,
+            "call_contract_outbound_unanswered" to false,
+            "call_contract_busy" to false,
+        )
+        val log = WireMirror.assertMirrors(ListSerializer(CallSummary.serializer()), "district-calls.json")
+        assertEquals(expected, log.associate { it.id to it.receptionistOnCall })
+
+        val overview = WireMirror.assertMirrors(OverviewResponse.serializer(), "district-overview.json")
+        assertEquals(expected, overview.recentCalls.associate { it.id to it.receptionistOnCall })
+
+        val detail = WireMirror.assertMirrors(CallDetailResponse.serializer(), "district-call-detail.json")
+        assertEquals(true, detail.call?.receptionistOnCall)
     }
 
     @Test
-    fun `a direct room is a team member's own call and nothing else is`() {
-        assertTrue(ActiveCall(id = "a", roomName = "direct_ws_1-CA0123").isTeamMemberCall)
-        assertFalse(ActiveCall(id = "a", roomName = "call_ws_1-CA0123").isTeamMemberCall)
-        assertFalse("no room is not a softphone call", ActiveCall(id = "a").isTeamMemberCall)
-        // Case-sensitive, as the server's `startsWith` is.
-        assertFalse(ActiveCall(id = "a", roomName = "Direct_ws_1").isTeamMemberCall)
-    }
+    fun `a call summary without the key reads as the receptionist taking part`() {
+        val body = ContractFixtures.read("district-call-detail.json")
+            .replace(Regex(",\\s*\"receptionistOnCall\":\\s*true"), "")
+        assertFalse("the substitution must have happened", body.contains("receptionistOnCall"))
 
-    @Test
-    fun `the party is the callee on an outbound call and the caller otherwise`() {
-        val inbound = ActiveCall(id = "a", from = "+15550100", to = "+15550199", direction = "inbound")
-        assertEquals("+15550100", inbound.party)
-        assertEquals("+15550199", inbound.copy(direction = "outbound").party)
-        assertEquals("+15550100", inbound.copy(direction = "outbound", to = "").party)
-        assertEquals("+15550100", inbound.copy(direction = "outbound", to = null).party)
-        assertEquals("", ActiveCall(id = "a").party)
+        val detail = ContractFixtures.json.decodeFromString(CallDetailResponse.serializer(), body)
+
+        assertEquals(true, detail.call?.receptionistOnCall)
     }
 
     @Test
     fun `the new DTOs compare by value, field by field`() {
-        val row = ActiveCall(id = "a")
-        assertEquals(row, row.copy())
-        listOf(
-            row.copy(id = "b"),
-            row.copy(from = "f"),
-            row.copy(to = "t"),
-            row.copy(callerName = "n"),
-            row.copy(direction = "inbound"),
-            row.copy(status = "in-progress"),
-            row.copy(roomName = "call_x"),
-            row.copy(createdAt = "2026-11-05T00:00:00.000Z"),
-        ).forEach { assertTrue("each field must participate in equality", row != it) }
         val grant = CallTakeoverResponse()
         listOf(
             grant.copy(success = true),
@@ -149,7 +145,5 @@ class SuperviseContractFixtureTest {
         val receipt = WhisperAppliedData()
         listOf(receipt.copy(applied = true), receipt.copy(firstWords = "w"), receipt.copy(reason = "r"))
             .forEach { assertTrue(receipt != it) }
-        assertTrue(ActiveCallsResponse() != ActiveCallsResponse(success = true))
-        assertTrue(ActiveCallsResponse() != ActiveCallsResponse(calls = listOf(row)))
     }
 }

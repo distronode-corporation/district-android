@@ -6,8 +6,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.CallEngineFactory
-import com.distronode.districtai.core.model.ActiveCall
-import com.distronode.districtai.core.model.ActiveCallsResponse
+import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.model.MAX_WHISPER_CHARS
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
@@ -51,6 +50,7 @@ class LiveCallsViewModelTest {
     val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val api = FakeSuperviseApi()
+    private val log = LiveCallsLog()
     private val engines = mutableListOf<FakeCallEngine>()
     private val factory = CallEngineFactory { FakeCallEngine().also { engines += it } }
     private val engineScope = CoroutineScope(SupervisorJob() + dispatcher)
@@ -64,26 +64,34 @@ class LiveCallsViewModelTest {
     }
 
     private fun TestScope.viewModel(canWrite: Boolean = true): LiveCallsViewModel =
-        LiveCallsViewModel(SuperviseRepository(api), "ws-1", canWrite, factory, feed = null, engineScope = engineScope)
+        LiveCallsViewModel(
+            LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
+            "ws-1",
+            canWrite,
+            factory,
+            feed = null,
+            engineScope = engineScope,
+        )
             .also { runCurrent() }
 
     // ── The list ────────────────────────────────────────────────────────────────────────────────
 
     @Test
-    fun `the list is read once on creation`() = runTest(dispatcher) {
+    fun `the list is the call log's live calls, read once on creation`() = runTest(dispatcher) {
         val vm = viewModel()
 
+        // ⛔ The completed call is not live; the ringing one is.
         assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.AI_CALL, FakeSuperviseApi.TEAM_CALL)), vm.list.value)
-        assertEquals(listOf("ws-1"), api.activeReads)
+        assertEquals(1, log.reads)
     }
 
     @Test
     fun `a failed read is a failure, never no calls, and a refresh recovers`() = runTest(dispatcher) {
-        api.activeResult = ApiResult.NetworkFailure(IOException("offline"))
+        log.callsResult = ApiResult.NetworkFailure(IOException("offline"))
         val vm = viewModel()
         assertTrue(vm.list.value is LiveCallList.Failed)
 
-        api.activeResult = ApiResult.Success(ActiveCallsResponse(success = true))
+        log.callsResult = ApiResult.Success(listOf(FakeSuperviseApi.ENDED_CALL))
         vm.refresh()
         runCurrent()
         assertEquals(LiveCallList.Loaded(emptyList()), vm.list.value)
@@ -93,19 +101,19 @@ class LiveCallsViewModelTest {
     fun `a refresh asked for during a read runs once after it, never alongside`() = runTest(dispatcher) {
         val vm = viewModel()
         val gate = CompletableDeferred<Unit>()
-        api.activeGate = gate
+        log.gate = gate
         vm.refresh()
         runCurrent()
         vm.refresh()
         vm.refresh()
         runCurrent()
-        assertEquals("one read in flight", 2, api.activeReads.size)
+        assertEquals("one read in flight", 2, log.reads)
 
-        api.activeGate = null
+        log.gate = null
         gate.complete(Unit)
         runCurrent()
 
-        assertEquals("the asks during it are one read after it", 3, api.activeReads.size)
+        assertEquals("the asks during it are one read after it", 3, log.reads)
     }
 
     // ── Listening ───────────────────────────────────────────────────────────────────────────────
@@ -214,7 +222,7 @@ class LiveCallsViewModelTest {
         val vm = viewModel()
         val failing = FakeCallEngine().apply { connectFailure = IllegalStateException("unreachable") }
         val failingVm = LiveCallsViewModel(
-            SuperviseRepository(api),
+            LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
             "ws-1",
             true,
             { failing },
@@ -372,7 +380,7 @@ class LiveCallsViewModelTest {
     fun `a takeover granted but not joined says the microphone join failed`() = runTest(dispatcher) {
         val joined = mutableListOf<FakeCallEngine>()
         val vm = LiveCallsViewModel(
-            SuperviseRepository(api),
+            LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
             "ws-1",
             true,
             { FakeCallEngine().apply { connectFailure = IllegalStateException("no") }.also { joined += it } },
@@ -390,7 +398,7 @@ class LiveCallsViewModelTest {
     }
 
     @Test
-    fun `whisper and take over are never offered on a team member's call, to a viewer, or for no call`() =
+    fun `whisper and take over are never offered without the receptionist on the call, to a viewer, or for no call`() =
         runTest(dispatcher) {
             val viewer = viewModel(canWrite = false)
             viewer.takeOver.ask(ai)
@@ -412,8 +420,30 @@ class LiveCallsViewModelTest {
         }
 
     @Test
+    fun `a takeover the server refuses for want of a receptionist says so, once`() = runTest(dispatcher) {
+        // ⛔ THE FALLBACK: the flag said the receptionist was on the call, the server knew better.
+        api.takeoverResult = ApiResult.HttpFailure(409, "A team member's own call.", "call_has_no_receptionist")
+        val vm = viewModel()
+        vm.takeOver.ask(ai)
+        vm.takeOver.confirm()
+        vm.takeOver.onMicrophonePermissionResult(true)
+        runCurrent()
+
+        assertEquals(
+            UiText.Server(
+                "A team member's own call.",
+                "call_has_no_receptionist",
+                fallback = R.string.live_calls_take_over_failed
+            ),
+            vm.supervision.value.failure,
+        )
+        assertEquals(1, api.takeovers.size)
+        assertTrue(engines.isEmpty())
+    }
+
+    @Test
     fun `nothing is writable before the list has loaded`() = runTest(dispatcher) {
-        api.activeResult = ApiResult.NetworkFailure(IOException("offline"))
+        log.callsResult = ApiResult.NetworkFailure(IOException("offline"))
         val vm = viewModel()
 
         vm.takeOver.ask(ai)
@@ -507,8 +537,8 @@ class LiveCallsViewModelTest {
 
     @Test
     fun `a note to a row whose id is a room's is refused before it is sent`() = runTest(dispatcher) {
-        val odd = ActiveCall(id = "meet_ws-1_x", roomName = "call_x")
-        api.activeResult = ApiResult.Success(ActiveCallsResponse(success = true, calls = listOf(odd)))
+        val odd = FakeSuperviseApi.AI_CALL.copy(id = "meet_ws-1_x")
+        log.callsResult = ApiResult.Success(listOf(odd))
         val vm = viewModel()
         vm.setWhisperDraft(odd.id, "Hello")
 
@@ -550,7 +580,14 @@ class LiveCallsViewModelTest {
         val store = ViewModelStore()
         val vm = ViewModelProvider(
             store,
-            LiveCallsViewModel.factory(SuperviseRepository(api), "ws-1", true, factory, feed = null),
+            LiveCallsViewModel.factory(
+                SuperviseRepository(api),
+                CallsRepository(log),
+                "ws-1",
+                true,
+                factory,
+                feed = null
+            ),
         )[LiveCallsViewModel::class.java]
         runCurrent()
         vm.listen(ai)
@@ -569,7 +606,15 @@ class LiveCallsViewModelTest {
     fun `an end reported while joining is the join's own failure, said once`() = runTest(dispatcher) {
         val gate = CompletableDeferred<Unit>()
         val dropping = DroppingEngine(gate)
-        val vm = LiveCallsViewModel(SuperviseRepository(api), "ws-1", true, { dropping }, null, engineScope)
+        val vm =
+            LiveCallsViewModel(
+                LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
+                "ws-1",
+                true,
+                { dropping },
+                null,
+                engineScope
+            )
         runCurrent()
 
         vm.listen(ai)
@@ -605,7 +650,15 @@ class LiveCallsViewModelTest {
     fun `leaving while the room is being joined leaves the room it may have joined`() = runTest(dispatcher) {
         val gate = CompletableDeferred<Unit>()
         val slow = GatedEngine(gate)
-        val vm = LiveCallsViewModel(SuperviseRepository(api), "ws-1", true, { slow }, null, engineScope)
+        val vm =
+            LiveCallsViewModel(
+                LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
+                "ws-1",
+                true,
+                { slow },
+                null,
+                engineScope
+            )
         runCurrent()
 
         vm.listen(ai)

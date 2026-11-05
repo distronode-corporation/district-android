@@ -69,6 +69,26 @@ class CallsRepository(private val api: DistrictApi) {
         }
 
     /**
+     * The calls in progress or ringing, newest first, for the Live calls screen.
+     *
+     * ⛔ THE CALL LOG, NOT `calls/active`. That route answers whole database rows with no contract,
+     * so a field can leak and the shape can change unannounced; the call log is the contracted row
+     * (`district-calls.json`), and it carries `receptionistOnCall`.
+     *
+     * ⚠️ THE STATUS IS ALREADY THE SERVER'S DISPLAY STATUS: a call whose terminal webhook was lost
+     * reads `no-answer` once it is older than the stuck-call ceiling (`displayCallStatus`), so these
+     * two values are exactly the server's `isLiveStatus` over rows it still treats as live.
+     *
+     * ⚠️ ONE PAGE AT THE SERVER'S CEILING. A live call is among the newest rows; one older than the
+     * [LIVE_SCAN_LIMIT] newest calls is not listed.
+     */
+    suspend fun liveCalls(workspaceId: String): ApiResult<List<CallSummary>> =
+        when (val result = api.calls(workspaceId, limit = LIVE_SCAN_LIMIT, offset = 0)) {
+            is ApiResult.Success -> ApiResult.Success(result.value.filter { it.status in LIVE_STATUSES })
+            is ApiResult.Failure -> result
+        }
+
+    /**
      * One call, fetched by id.
      *
      * ⚠️ THE DETAIL SCREEN FETCHES RATHER THAN RECEIVING THE ROW, and that is what makes it survive
@@ -138,6 +158,12 @@ class CallsRepository(private val api: DistrictApi) {
 
         /** The `Call.direction` value whose `from` is somebody else's number. See [recentCallbacks]. */
         const val INBOUND = "inbound"
+
+        /** The server's `limit` ceiling: the newest calls the Live calls list looks through. */
+        const val LIVE_SCAN_LIMIT = 100
+
+        /** The server's `isLiveStatus` values, as the call log's display status spells them. */
+        val LIVE_STATUSES = setOf("in-progress", "ringing")
 
         const val DETAIL_ENVELOPE = "CallDetailResponse"
         const val TRANSCRIPT_ENVELOPE = "CallTranscriptResponse"

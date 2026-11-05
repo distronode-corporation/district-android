@@ -26,7 +26,8 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.EmptyState
-import com.distronode.districtai.core.model.ActiveCall
+import com.distronode.districtai.core.model.CallSummary
+import com.distronode.districtai.ui.calls.toDisplay
 import com.distronode.districtai.ui.FailureState
 import com.distronode.districtai.ui.PagedListLoading
 import com.distronode.districtai.ui.resolve
@@ -59,8 +60,9 @@ data class LiveCallsView(
  * The calls in progress, each with Listen; the one being listened to opens its note box and its
  * take-over control (the web Live page, as one column).
  *
- * ⛔ A TEAM MEMBER'S OWN CALL OFFERS LISTEN AND NOTHING ELSE, and says why. No receptionist is on a
- * `direct_` call, so a note reaches nobody and there is nobody to step back.
+ * ⛔ A CALL THE RECEPTIONIST IS NOT ON (`receptionistOnCall` false: a team member's own call, or
+ * one with no room) OFFERS LISTEN AND NOTHING ELSE, and says why: a note reaches nobody and there
+ * is nobody to step back.
  */
 @Composable
 fun LiveCallsScreen(view: LiveCallsView, actions: LiveCallsActions) {
@@ -96,7 +98,7 @@ fun LiveCallsScreen(view: LiveCallsView, actions: LiveCallsActions) {
 }
 
 @Composable
-private fun LoadedCalls(calls: List<ActiveCall>, view: LiveCallsView, actions: LiveCallsActions) {
+private fun LoadedCalls(calls: List<CallSummary>, view: LiveCallsView, actions: LiveCallsActions) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag(LIVE_CALLS_LIST_TAG),
         contentPadding = PaddingValues(vertical = DistrictTheme.spacing.gutter),
@@ -129,7 +131,7 @@ private fun LoadedCalls(calls: List<ActiveCall>, view: LiveCallsView, actions: L
 }
 
 @Composable
-private fun LiveCallCard(call: ActiveCall, view: LiveCallsView, actions: LiveCallsActions) {
+private fun LiveCallCard(call: CallSummary, view: LiveCallsView, actions: LiveCallsActions) {
     val supervision = view.supervision
     val here = supervision.callId == call.id
     DistrictCard(modifier = Modifier.testTag(liveCallTag(call.id))) {
@@ -142,10 +144,13 @@ private fun LiveCallCard(call: ActiveCall, view: LiveCallsView, actions: LiveCal
             if (!(here && supervision.takenOver)) {
                 ListenControl(call.id, here, supervision.busy, actions)
             }
-            if (here && call.isTeamMemberCall) {
-                Note(stringResource(R.string.live_calls_team_call_note), Modifier.testTag(LIVE_CALLS_TEAM_NOTE_TAG))
+            if (here && !call.receptionistOnCall) {
+                Note(
+                    stringResource(R.string.live_calls_no_receptionist_note),
+                    Modifier.testTag(LIVE_CALLS_NO_RECEPTIONIST_NOTE_TAG),
+                )
             }
-            if (here && view.canWrite && !call.isTeamMemberCall) {
+            if (here && view.canWrite && call.receptionistOnCall) {
                 WriterControls(call.id, view, actions)
             }
             if (supervision.failedCallId == call.id) {
@@ -156,22 +161,19 @@ private fun LiveCallCard(call: ActiveCall, view: LiveCallsView, actions: LiveCal
 }
 
 @Composable
-private fun CallHeading(call: ActiveCall) {
+private fun CallHeading(call: CallSummary) {
     Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline)) {
-        val party = call.party.ifBlank { stringResource(R.string.live_calls_unknown_caller) }
+        // ⚠️ The call log's own reading of the row: the server's "Unknown" is no name.
         Text(
-            text = call.callerName?.takeIf { it.isNotBlank() } ?: party,
+            text = call.toDisplay().displayName ?: stringResource(R.string.live_calls_unknown_caller),
             style = MaterialTheme.typography.titleSmall,
         )
-        if (!call.callerName.isNullOrBlank()) {
-            Note(party)
-        }
-        if (call.isTeamMemberCall) {
+        if (!call.receptionistOnCall) {
             Text(
-                text = stringResource(R.string.live_calls_team_call),
+                text = stringResource(R.string.live_calls_no_receptionist),
                 style = MaterialTheme.typography.labelSmall,
                 color = DistrictTheme.colors.mutedForeground,
-                modifier = Modifier.testTag(LIVE_CALLS_TEAM_BADGE_TAG),
+                modifier = Modifier.testTag(LIVE_CALLS_NO_RECEPTIONIST_TAG),
             )
         }
     }
@@ -225,8 +227,8 @@ internal const val LIVE_CALLS_EMPTY_TAG = "live-calls-empty"
 internal const val LIVE_CALLS_LISTEN_TAG = "live-calls-listen"
 internal const val LIVE_CALLS_LEAVE_TAG = "live-calls-leave"
 internal const val LIVE_CALLS_STATE_TAG = "live-calls-state"
-internal const val LIVE_CALLS_TEAM_BADGE_TAG = "live-calls-team-badge"
-internal const val LIVE_CALLS_TEAM_NOTE_TAG = "live-calls-team-note"
+internal const val LIVE_CALLS_NO_RECEPTIONIST_TAG = "live-calls-no-receptionist"
+internal const val LIVE_CALLS_NO_RECEPTIONIST_NOTE_TAG = "live-calls-no-receptionist-note"
 internal const val LIVE_CALLS_WHISPER_FIELD_TAG = "live-calls-whisper-field"
 internal const val LIVE_CALLS_WHISPER_SEND_TAG = "live-calls-whisper-send"
 internal const val LIVE_CALLS_WHISPER_ERROR_TAG = "live-calls-whisper-error"

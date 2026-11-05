@@ -127,10 +127,9 @@ internal object EndpointParity {
         "conversationAssignments",
         "whatsAppTemplates",
         "whatsAppWindow",
-        // ⚠️ LIVE SUPERVISE (3.3.0): the Live calls list, listening and taking over. The names are
-        // the ones decided for district-core-swift's `EndpointID`; they leave this set when the
-        // snapshot that declares them is vendored. (`whisper` is already on both sides.)
-        "activeCalls",
+        // ⚠️ LIVE SUPERVISE (3.3.0): listening and taking over. The names are the ones decided for
+        // district-core-swift's `EndpointID`; they leave this set when the snapshot that declares
+        // them is vendored. (`whisper` is already on both sides.)
         "monitorCall",
         "takeOverCall",
     )

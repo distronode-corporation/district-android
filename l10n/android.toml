@@ -4128,6 +4128,24 @@ tier = "T2"
 state = "draft"
 note = "The microphone permission was refused, so the call cannot be taken over by voice. Listening still works. French written for the app, not yet reviewed."
 
+[live_calls.no_receptionist]
+en = "Receptionist not on this call"
+fr = "Réceptionniste absente de cet appel"
+ctx = "label"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "A badge on a live call the receptionist does not take part in (`receptionistOnCall` false): a team member's own softphone call, or one that never reached a room. French written for the app, not yet reviewed."
+
+[live_calls.no_receptionist_note]
+en = "Your receptionist is not on this call, so you can listen but not send a note or take the call over."
+fr = "Votre réceptionniste ne participe pas à cet appel\u00A0: vous pouvez écouter, mais pas lui souffler de consigne ni prendre l'appel."
+ctx = "body"
+screen = "live calls"
+tier = "T2"
+state = "draft"
+note = "On a call the receptionist does not take part in, in place of the note field and the take-over button, which are not offered there. French written for the app, not yet reviewed."
+
 [live_calls.not_a_call]
 en = "This is not a phone call, so it cannot be joined here."
 fr = "Ce n'est pas un appel téléphonique\u00A0: impossible de le rejoindre ici."
@@ -4281,24 +4299,6 @@ screen = "live calls"
 tier = "T2"
 state = "reviewed"
 note = "The state line once the supervisor has taken the call over. French reused verbatim from the web liveI18n.ts liveCopy.takenOverHeading."
-
-[live_calls.team_call]
-en = "Team member's call"
-fr = "Appel d'un membre de l'équipe"
-ctx = "label"
-screen = "live calls"
-tier = "T2"
-state = "draft"
-note = "A badge on a call a team member placed from their own phone. No receptionist is on it. French written for the app, not yet reviewed."
-
-[live_calls.team_call_note]
-en = "This is a team member's own call. Your receptionist is not on it, so you can listen but not send a note or take the call over."
-fr = "Il s'agit de l'appel d'un membre de l'équipe. Votre réceptionniste n'y participe pas\u00A0: vous pouvez écouter, mais pas lui souffler de consigne ni prendre l'appel."
-ctx = "body"
-screen = "live calls"
-tier = "T2"
-state = "draft"
-note = "On a team member's own call, in place of the note field and the take-over button, which are not offered there. French written for the app, not yet reviewed."
 
 [live_calls.title]
 en = "Live calls"

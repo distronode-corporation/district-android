@@ -464,6 +464,8 @@
     <string name="live_calls_listening">You are listening</string>
     <string name="live_calls_listening_body">Hear the call as it happens. The caller does not hear you.</string>
     <string name="live_calls_microphone_denied">Allow the microphone to take the call over.</string>
+    <string name="live_calls_no_receptionist">Receptionist not on this call</string>
+    <string name="live_calls_no_receptionist_note">Your receptionist is not on this call, so you can listen but not send a note or take the call over.</string>
     <string name="live_calls_not_a_call">This is not a phone call, so it cannot be joined here.</string>
     <string name="live_calls_receipt_applied">Your receptionist acted on it.</string>
     <string name="live_calls_receipt_applied_words">Your receptionist acted on it and said: “%1$s”</string>
@@ -481,8 +483,6 @@
     <string name="live_calls_take_over_join_failed">Could not join the call with your microphone. Try again.</string>
     <string name="live_calls_taken_over_body">Your receptionist has stepped back and is waiting on the line. Hand the call back and it carries on.</string>
     <string name="live_calls_taken_over_title">You are on the call</string>
-    <string name="live_calls_team_call">Team member\'s call</string>
-    <string name="live_calls_team_call_note">This is a team member\'s own call. Your receptionist is not on it, so you can listen but not send a note or take the call over.</string>
     <string name="live_calls_title">Live calls</string>
     <string name="live_calls_unknown_caller">Unknown caller</string>
     <string name="live_calls_whisper_failed">The note was not delivered. Try again.</string>

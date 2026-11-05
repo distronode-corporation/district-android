@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.data
 
-import com.distronode.districtai.core.model.ActiveCallsResponse
 import com.distronode.districtai.core.model.CallMonitorTokenResponse
 import com.distronode.districtai.core.model.CallTakeoverResponse
 import com.distronode.districtai.core.model.CallWhisperResponse
@@ -122,18 +121,6 @@ class SuperviseRepositoryTest {
         assertEquals(1, api.monitors.size)
         assertEquals(1, api.takeovers.size)
         assertEquals(1, api.whispers.size)
-    }
-
-    @Test
-    fun `the live calls are the rows, and an unaffirmed 200 is drift rather than no calls`() = runTest {
-        val rows = (repository.activeCalls("ws-1") as ApiResult.Success).value
-        assertEquals(listOf(FakeSuperviseApi.AI_CALL, FakeSuperviseApi.TEAM_CALL), rows)
-
-        api.activeResult = ApiResult.Success(ActiveCallsResponse())
-        assertTrue(repository.activeCalls("ws-1") is ApiResult.DecodeFailure)
-
-        api.activeResult = ApiResult.NetworkFailure(java.io.IOException("offline"))
-        assertTrue(repository.activeCalls("ws-1") is ApiResult.NetworkFailure)
     }
 
     @Test

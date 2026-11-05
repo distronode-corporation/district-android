@@ -5,9 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.core.media.CallEngineFactory
-import com.distronode.districtai.core.model.ActiveCall
+import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.toFailureText
@@ -20,11 +21,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/** Where the Live calls screen reads from: the call log for the list, supervise for the actions. */
+data class LiveCallsSources(val supervise: SuperviseRepository, val calls: CallsRepository)
+
 /** The Live calls list. */
 sealed interface LiveCallList {
     data object Loading : LiveCallList
 
-    data class Loaded(val calls: List<ActiveCall>) : LiveCallList
+    data class Loaded(val calls: List<CallSummary>) : LiveCallList
 
     /** ⛔ Never drawn as "no calls": we could not look. */
     data class Failed(val failure: FailureText) : LiveCallList
@@ -34,10 +38,16 @@ sealed interface LiveCallList {
  * The Live calls screen: the calls in progress, and listening to, whispering into and taking over
  * one of them (the web's Live page, `useLiveDashboard`).
  *
- * ⛔ WHISPER AND TAKE OVER ARE NEVER OFFERED ON A TEAM MEMBER'S OWN CALL, OR TO A VIEWER, and are
- * refused here as well as hidden. A `direct_` room has no receptionist (the server refuses both
- * with `call_has_no_receptionist`), and the server refuses a viewer. Listening is open to all three
- * roles, as `calls/token` is.
+ * ⛔ THE LIST IS THE CALL LOG, KEPT TO THE LIVE CALLS ([CallsRepository.liveCalls]), and the
+ * workspace socket keeps it current the way the web's Live page does: a call starting or changing
+ * reads the list again, a call ending drops its row at once. `calls/active` is never read (no
+ * contract, whole database rows).
+ *
+ * ⛔ WHISPER AND TAKE OVER ARE OFFERED ONLY ON A CALL WHOSE `receptionistOnCall` IS TRUE, AND ONLY
+ * TO A WRITER, and are refused here as well as hidden. A team member's own call has no
+ * receptionist (the server refuses both with `call_has_no_receptionist`, which stays the
+ * fallback), and the server refuses a viewer. Listening is open to all three roles, as
+ * `calls/token` is.
  *
  * ⛔ LEAVING THE SCREEN LEAVES THE CALL. [onScreenStarted] false stops listening or hands the call
  * back, as closing the web page does: no foreground service holds the room, so a call left running
@@ -48,13 +58,16 @@ sealed interface LiveCallList {
  *   about the rest of the screen).
  */
 class LiveCallsViewModel(
-    private val repository: SuperviseRepository,
+    sources: LiveCallsSources,
     private val workspaceId: String,
     private val canWrite: Boolean,
     engineFactory: CallEngineFactory,
     feed: ((CoroutineScope, (LiveFeedEvent) -> Unit) -> LiveCallsFeed)?,
     engineScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
 ) : ViewModel() {
+
+    private val repository = sources.supervise
+    private val calls = sources.calls
 
     private val _list = MutableStateFlow<LiveCallList>(LiveCallList.Loading)
     val list: StateFlow<LiveCallList> = _list.asStateFlow()
@@ -73,6 +86,12 @@ class LiveCallsViewModel(
     private var loading: Job? = null
     private var reloadAfter = false
 
+    /**
+     * Calls the socket said ended. ⚠️ A read that was already in flight is older than that event, so
+     * its answer may still list the call; these stay off the list whatever a read says.
+     */
+    private val ended = mutableSetOf<String>()
+
     init {
         refresh()
     }
@@ -86,8 +105,8 @@ class LiveCallsViewModel(
         loading = viewModelScope.launch {
             do {
                 reloadAfter = false
-                _list.value = when (val result = repository.activeCalls(workspaceId)) {
-                    is ApiResult.Success -> LiveCallList.Loaded(result.value)
+                _list.value = when (val result = calls.liveCalls(workspaceId)) {
+                    is ApiResult.Success -> LiveCallList.Loaded(result.value.filterNot { it.id in ended })
                     is ApiResult.Failure -> LiveCallList.Failed(result.toFailureText())
                 }
             } while (reloadAfter)
@@ -125,6 +144,13 @@ class LiveCallsViewModel(
     private fun onFeed(event: LiveFeedEvent) {
         when (event) {
             LiveFeedEvent.Opened, LiveFeedEvent.CallsChanged -> refresh()
+            // ⚠️ Dropped at once, from the envelope alone: the row is gone without a read.
+            is LiveFeedEvent.CallEnded -> {
+                ended += event.callId
+                (_list.value as? LiveCallList.Loaded)?.let { loaded ->
+                    _list.value = LiveCallList.Loaded(loaded.calls.filterNot { it.id == event.callId })
+                }
+            }
             is LiveFeedEvent.Receipt -> whisperDesk.receipt(event.callId, event.data)
         }
     }
@@ -132,18 +158,21 @@ class LiveCallsViewModel(
     /** A writer, and a call the receptionist is on. */
     private fun writable(callId: String): Boolean {
         val row = (_list.value as? LiveCallList.Loaded)?.calls?.firstOrNull { it.id == callId }
-        return canWrite && row != null && !row.isTeamMemberCall
+        return canWrite && row != null && row.receptionistOnCall
     }
 
     companion object {
         fun factory(
             repository: SuperviseRepository,
+            calls: CallsRepository,
             workspaceId: String,
             canWrite: Boolean,
             engineFactory: CallEngineFactory,
             feed: ((CoroutineScope, (LiveFeedEvent) -> Unit) -> LiveCallsFeed)?,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { LiveCallsViewModel(repository, workspaceId, canWrite, engineFactory, feed) }
+            initializer {
+                LiveCallsViewModel(LiveCallsSources(repository, calls), workspaceId, canWrite, engineFactory, feed)
+            }
         }
     }
 }

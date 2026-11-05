@@ -3332,6 +3332,34 @@ state = "reviewed"
 same_ok = true
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ── District HQ (Task A7) ───────────────────────────────────────────── The agentic console. One route, two turns: a prompt runs the model, and a confirm applies a change the operator explicitly approved."
 
+[inbox.assigned_to]
+en = "Assigned to {email}"
+fr = "Assignée à {email}"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+args = { email = "str" }
+state = "reviewed"
+note = "The owner line on a conversation row and in its thread. Web French reused verbatim (inboxI18n.ts assignedTo). The email is a member address, never translated."
+
+[inbox.assigned_to_me]
+en = "Assigned to me"
+fr = "Qui me sont assignées"
+ctx = "button"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+note = "The filter chip that keeps only the conversations the server says are assigned to the signed-in member. Web French reused verbatim (inboxI18n.ts assignedToMe)."
+
+[inbox.assigned_to_me_empty]
+en = "No conversation is assigned to you."
+fr = "Aucune conversation ne vous est assignée."
+ctx = "body"
+screen = "inbox"
+tier = "T3"
+state = "draft"
+note = "Shown under the Assigned to me filter when it leaves no conversation. App-authored French, awaiting sign-off."
+
 [inbox.channel_email]
 en = "Email"
 fr = "Courriel"
@@ -7828,6 +7856,15 @@ tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist."
 
+[thread.assign_label]
+en = "Assigned to"
+fr = "Assignée à"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "The label of the thread owner picker. Web French reused verbatim (inboxI18n.ts assignLabel)."
+
 [thread.attach]
 en = "Attach image"
 fr = "Joindre une image"
@@ -8029,6 +8066,15 @@ screen = "message thread"
 tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ⚠️ A distinct label rather than a spinner: the send control is DISABLED while in flight because each send is billable, so the button has to explain why it cannot be tapped."
+
+[thread.unassigned]
+en = "Unassigned"
+fr = "Non assignée"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "The owner picker choice and value for a thread nobody owns. Web French reused verbatim (inboxI18n.ts unassigned)."
 
 [thread.whatsapp_template_label]
 en = "Template"

@@ -78,6 +78,20 @@ class InboxViewModel(
 
     private var searchJob: Job? = null
 
+    private val _assignedToMe = MutableStateFlow(false)
+
+    /**
+     * The "Assigned to me" filter (app parity 3).
+     *
+     * ⛔ THE ROWS ARE THE SERVER'S `assignedToMe`, NEVER AN EMAIL COMPARED HERE: the server
+     * normalises addresses, and a second opinion on who "me" is would drop rows it kept.
+     */
+    val assignedToMe: StateFlow<Boolean> = _assignedToMe.asStateFlow()
+
+    fun setAssignedToMe(on: Boolean) {
+        _assignedToMe.value = on
+    }
+
     init {
         load()
     }

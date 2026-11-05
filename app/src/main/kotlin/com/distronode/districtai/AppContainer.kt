@@ -83,7 +83,9 @@ import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSupportApi
 import com.distronode.districtai.core.network.HttpContactBlockingApi
 import com.distronode.districtai.core.data.ContactBlockingRepository
+import com.distronode.districtai.core.data.ConversationAssignmentRepository
 import com.distronode.districtai.core.data.WhatsAppRepository
+import com.distronode.districtai.core.network.HttpConversationAssignmentApi
 import com.distronode.districtai.core.network.HttpWhatsAppApi
 import com.distronode.districtai.ui.contacts.BlockedContactsStore
 import com.distronode.districtai.core.network.HttpTelemetryApi
@@ -246,6 +248,11 @@ class AppContainer(
      * constructed as plainly as it looks. See [InboxRepository] for why paging is the wrong tool here.
      */
     val inboxRepository: InboxRepository = InboxRepository(districtApi)
+
+    /** A thread's owner (app parity 3). Every role reads it; agency and client write it. */
+    val conversationAssignmentRepository: ConversationAssignmentRepository = ConversationAssignmentRepository(
+        seams.conversationAssignmentApi ?: HttpConversationAssignmentApi(apiClient),
+    )
 
     /** The WhatsApp composer's window and template reads (app parity 5). */
     val whatsAppRepository: WhatsAppRepository =

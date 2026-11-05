@@ -63,6 +63,7 @@ import com.distronode.districtai.core.network.testing.FakeDistrictApi
 import com.distronode.districtai.core.network.testing.FakePersonaApi
 import com.distronode.districtai.core.network.testing.FakeCallHandlingApi
 import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
+import com.distronode.districtai.core.network.testing.FakeConversationAssignmentApi
 import com.distronode.districtai.core.network.testing.FakeWhatsAppApi
 import com.distronode.districtai.core.network.testing.FakeDeskApi
 import com.distronode.districtai.core.network.testing.FakeSupportApi
@@ -93,6 +94,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
     val support = FakeSupportApi()
     val persona = FakePersonaApi()
     val search = FakeInboxExtrasApi()
+    val assignments = FakeConversationAssignmentApi()
     val whatsApp = FakeWhatsAppApi()
     val callHandling = CountingCallHandlingApi()
     val telecom = FakeTelecomBridge()
@@ -122,6 +124,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
             supportApi = support,
             personaApi = persona,
             inboxExtrasApi = search,
+            conversationAssignmentApi = assignments,
             whatsAppApi = whatsApp,
             callHandlingApi = callHandling,
             callEngineFactory = CallEngineFactory { FakeCallEngine().also { engines += it } },

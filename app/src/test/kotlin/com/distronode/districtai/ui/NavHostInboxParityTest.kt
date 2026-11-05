@@ -5,13 +5,19 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.core.model.ConversationAssignment
+import com.distronode.districtai.core.model.ConversationAssignmentsResponse
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.ConversationsResponse
+import com.distronode.districtai.core.model.MemberListResponse
 import com.distronode.districtai.core.model.ReplyOption
 import com.distronode.districtai.core.model.ReplyTarget
+import com.distronode.districtai.core.model.WorkspaceMember
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.inbox.THREAD_CHANNEL_CHIP_DESCRIPTION
+import com.distronode.districtai.ui.inbox.THREAD_OWNER_OPTION_DESCRIPTION
+import com.distronode.districtai.ui.inbox.THREAD_OWNER_PICKER_DESCRIPTION
 import com.distronode.districtai.ui.inbox.encodeReplyChoices
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -23,7 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
 /**
- * Reply channels between the Inbox and a thread (app parity 1 and 5), through the graph.
+ * Reply channels and owners between the Inbox and a thread (app parity 1, 3, 5), through the graph.
  *
  * ⛔ EVERY CHOICE TRAVELS, NOT JUST THE FIRST: the list is the only screen that has them.
  */
@@ -111,5 +117,36 @@ class NavHostInboxParityTest {
         harness.navigate("$inbox/contact:ct-4?$ARG_REPLY_MORE=" + Uri.encode(more))
 
         composeRule.onNodeWithTag(THREAD_CHANNEL_CHIP_DESCRIPTION + 0).assertDoesNotExist()
+    }
+
+    @Test
+    fun `an owner changed in a thread is re-read by the Inbox on the way back`() {
+        harness.assignments.assignmentsResult = ApiResult.Success(
+            ConversationAssignmentsResponse(
+                success = true,
+                assignments = listOf(ConversationAssignment("contact:ct-4", "agency@example.com")),
+            ),
+        )
+        harness.api.memberListResult = ApiResult.Success(
+            MemberListResponse(
+                success = true,
+                members = listOf(
+                    WorkspaceMember("agency@example.com", "agency"),
+                    WorkspaceMember("client@example.com", "client"),
+                ),
+            ),
+        )
+        openInbox()
+        harness.tapText("Ada Lovelace")
+        harness.awaitDescription(THREAD_OWNER_PICKER_DESCRIPTION)
+        val reads = harness.api.conversationsReads
+
+        harness.tap(THREAD_OWNER_PICKER_DESCRIPTION)
+        harness.tap(THREAD_OWNER_OPTION_DESCRIPTION + 1)
+        harness.back()
+        harness.awaitText("Ada Lovelace")
+
+        assertEquals("client@example.com", harness.assignments.writes.single().assigneeEmail)
+        assertEquals("the list is read again once", reads + 1, harness.api.conversationsReads)
     }
 }

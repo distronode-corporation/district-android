@@ -347,4 +347,19 @@ class InboxViewModelTest {
 
             assertEquals(listOf("refund"), searchApi.searches)
         }
+
+    @Test
+    fun `the Assigned to me filter starts off, flips, and survives a re-read`() = runTest(dispatcher) {
+        val vm = viewModel(apiWith(summary()))
+        advanceUntilIdle()
+        assertEquals(false, vm.assignedToMe.value)
+
+        vm.setAssignedToMe(true)
+        vm.load(refreshing = true)
+        advanceUntilIdle()
+
+        assertEquals(true, vm.assignedToMe.value)
+        vm.setAssignedToMe(false)
+        assertEquals(false, vm.assignedToMe.value)
+    }
 }

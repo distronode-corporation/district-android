@@ -123,9 +123,11 @@ internal object EndpointParity {
         // leave by DELETION here rather than by arriving on iOS, and when it does, this set
         // becomes empty rather than shorter.
         "schedulingSsoTarget",
-        // ⚠️ APP PARITY 5 (3.3.0): the WhatsApp window and templates. The routes are the web
-        // Inbox's, and core-rust ships the same calls; they leave this set when the
-        // district-core-swift snapshot that adds them is vendored.
+        // ⚠️ APP PARITY 3 AND 5 (3.3.0): thread owners and the WhatsApp window and templates. The
+        // routes are the web Inbox's, and core-rust ships the same three calls; they leave this set
+        // when the district-core-swift snapshot that adds them is vendored.
+        "assignConversation",
+        "conversationAssignments",
         "whatsAppTemplates",
         "whatsAppWindow",
     )

@@ -25,6 +25,7 @@ import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictFilterChip
 import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
@@ -77,6 +78,11 @@ fun InboxScreen(
      * already drops them; this is what makes a block made a moment ago take effect without a read.
      */
     blockedContactIds: Set<String> = emptySet(),
+    /**
+     * The "Assigned to me" filter: whether it is on, and how to flip it; null draws no chip. ⛔ It
+     * keeps the rows the SERVER marked `assignedToMe`, never an email compared here.
+     */
+    assignedToMe: AssignedToMeFilter? = null,
 ) {
     compose?.let { ComposeHost(it) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -121,13 +127,19 @@ fun InboxScreen(
                             title = stringResource(R.string.inbox_title),
                         )
                         is InboxUiState.Content -> {
+                            val onlyMine = assignedToMe?.on == true
                             val visible = state.copy(
-                                conversations = state.conversations.filterNot { it.contactId in blockedContactIds },
+                                conversations = state.conversations.filter { thread ->
+                                    thread.contactId !in blockedContactIds && (!onlyMine || thread.assignedToMe)
+                                },
                             )
-                            if (visible.conversations.isEmpty()) {
-                                InboxEmpty(onCompose = compose?.actions?.open)
-                            } else {
-                                Loaded(visible, onOpenThread)
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                assignedToMe?.let { AssignedToMeChip(it) }
+                                when {
+                                    visible.conversations.isNotEmpty() -> Loaded(visible, onOpenThread)
+                                    onlyMine -> NothingAssigned()
+                                    else -> InboxEmpty(onCompose = compose?.actions?.open)
+                                }
                             }
                         }
                     }
@@ -290,6 +302,8 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
         // direction is carried by the badge rather than by a prefix, which would eat the preview.
         subtitle = thread.lastMessage.body.takeIf { it.isNotBlank() }
             ?: stringResource(R.string.inbox_no_preview),
+        // ⚠️ The owner, only when there is one: "Unassigned" on every other row would be noise.
+        detail = thread.assigneeEmail?.let { stringResource(R.string.inbox_assigned_to, it) },
         onClick = onClick,
         leading = {
             Avatar(
@@ -376,6 +390,46 @@ private fun InboxEmpty(onCompose: (() -> Unit)?) {
     }
 }
 
+/** The filter's state and its toggle, from [InboxViewModel]. */
+data class AssignedToMeFilter(val on: Boolean, val onChange: (Boolean) -> Unit)
+
+@Composable
+private fun AssignedToMeChip(filter: AssignedToMeFilter) {
+    ContentContainer {
+        Row(
+            modifier = Modifier.padding(
+                start = DistrictTheme.spacing.gutter,
+                end = DistrictTheme.spacing.gutter,
+                bottom = DistrictTheme.spacing.tight,
+            ),
+        ) {
+            DistrictFilterChip(
+                label = stringResource(R.string.inbox_assigned_to_me),
+                selected = filter.on,
+                onClick = { filter.onChange(!filter.on) },
+                modifier = Modifier.testTag(INBOX_ASSIGNED_TO_ME_DESCRIPTION),
+            )
+        }
+    }
+}
+
+/** ⚠️ Not the empty Inbox: the filter is what is empty, and the way out is the chip above. */
+@Composable
+private fun NothingAssigned() {
+    ContentContainer(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = stringResource(R.string.inbox_assigned_to_me_empty),
+            style = MaterialTheme.typography.bodyMedium,
+            color = DistrictTheme.colors.mutedForeground,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(DistrictTheme.spacing.section)
+                .testTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION),
+        )
+    }
+}
+
 private const val SKELETON_ROWS = 8
 private val SKELETON_ROW_HEIGHT = 56.dp
 
@@ -392,3 +446,5 @@ const val INBOX_SEARCH_FIELD_DESCRIPTION: String = "district-inbox-search-field"
 const val INBOX_SEARCH_EMPTY_DESCRIPTION: String = "district-inbox-search-empty"
 const val INBOX_SEARCH_FAILURE_DESCRIPTION: String = "district-inbox-search-failure"
 const val INBOX_SEARCH_CAPPED_DESCRIPTION: String = "district-inbox-search-capped"
+const val INBOX_ASSIGNED_TO_ME_DESCRIPTION: String = "district-inbox-assigned-to-me"
+const val INBOX_ASSIGNED_EMPTY_DESCRIPTION: String = "district-inbox-assigned-empty"

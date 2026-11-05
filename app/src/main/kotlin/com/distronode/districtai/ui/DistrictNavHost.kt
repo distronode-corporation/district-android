@@ -78,6 +78,7 @@ import com.distronode.districtai.ui.support.SupportSubmitOutcome
 import com.distronode.districtai.ui.support.SupportViewModel
 import com.distronode.districtai.ui.hq.HqScreen
 import com.distronode.districtai.ui.hq.HqViewModel
+import com.distronode.districtai.ui.inbox.AssignedToMeFilter
 import com.distronode.districtai.ui.inbox.ComposeViewModel
 import com.distronode.districtai.ui.inbox.ComposerHandlers
 import com.distronode.districtai.ui.inbox.InboxCompose
@@ -86,6 +87,8 @@ import com.distronode.districtai.ui.inbox.InboxViewModel
 import com.distronode.districtai.ui.marketplace.MarketplaceScreen
 import com.distronode.districtai.ui.marketplace.MarketplaceViewModel
 import com.distronode.districtai.ui.marketplace.marketplaceWebUrl
+import com.distronode.districtai.ui.inbox.ThreadOwnerHandlers
+import com.distronode.districtai.ui.inbox.ThreadOwnerViewModel
 import com.distronode.districtai.ui.inbox.ThreadScreen
 import com.distronode.districtai.ui.inbox.ThreadServices
 import com.distronode.districtai.ui.inbox.ThreadTarget
@@ -481,6 +484,17 @@ fun DistrictNavHost(
                     )
                     val composeState by compose.state.collectAsStateWithLifecycle()
                     val blockedSnapshot by container.blockedContactsStore.state.collectAsStateWithLifecycle()
+                    val assignedToMe by viewModel.assignedToMe.collectAsStateWithLifecycle()
+                    // ⚠️ A thread opened from here changed its owner: read the list again on the way
+                    // back, so the row's owner line and "Assigned to me" are the server's.
+                    val stale by entry.savedStateHandle.getStateFlow(KEY_INBOX_STALE, false)
+                        .collectAsStateWithLifecycle()
+                    LaunchedEffect(stale) {
+                        if (stale) {
+                            entry.savedStateHandle[KEY_INBOX_STALE] = false
+                            viewModel.load(refreshing = true)
+                        }
+                    }
                     OnSessionChanged(sessionEpoch) { viewModel.load() }
                     InboxScreen(
                         state = state,
@@ -551,6 +565,7 @@ fun DistrictNavHost(
                             },
                         ).takeIf { compose.canSend },
                         blockedContactIds = blockedSnapshot.idsFor(workspaceId),
+                        assignedToMe = AssignedToMeFilter(assignedToMe, viewModel::setAssignedToMe),
                     )
                 }
 
@@ -618,6 +633,22 @@ fun DistrictNavHost(
                     val state by viewModel.state.collectAsStateWithLifecycle()
                     val composerText by viewModel.composerText.collectAsStateWithLifecycle()
                     val channelState by viewModel.channels.state.collectAsStateWithLifecycle()
+                    val ownerViewModel: ThreadOwnerViewModel = viewModel(
+                        factory = ThreadOwnerViewModel.Factory(
+                            assignments = container.conversationAssignmentRepository,
+                            members = container.membersRepository,
+                            workspaceId = workspaceId,
+                            threadKey = threadKey,
+                            role = role,
+                        ),
+                    )
+                    val ownerState by ownerViewModel.state.collectAsStateWithLifecycle()
+                    // ⚠️ Tell the Inbox behind this thread to read its list again; see KEY_INBOX_STALE.
+                    LaunchedEffect(ownerState.assignments) {
+                        if (ownerState.assignments > 0) {
+                            navController.previousBackStackEntry?.let { it.savedStateHandle[KEY_INBOX_STALE] = true }
+                        }
+                    }
                     // ⛔ THE PICKER LAUNCHER LIVES HERE, NOT IN ThreadScreen.
                     // rememberLauncherForActivityResult needs an ActivityResultRegistryOwner,
                     // which a plain `createComposeRule` test host does not provide — putting it in
@@ -674,6 +705,11 @@ fun DistrictNavHost(
                             onBlocked = { navController.popBackStack() },
                         ),
                         channels = viewModel.channels.handlers(channelState),
+                        owner = ThreadOwnerHandlers(
+                            state = ownerState,
+                            onAssign = ownerViewModel::assign,
+                            onDismissFailure = ownerViewModel::dismissFailure,
+                        ),
                     )
                 }
 
@@ -2737,6 +2773,9 @@ internal const val ARG_THREAD_TITLE = "title"
 
 /** The thread's reply choices after the first, as `encodeReplyChoices` writes them. */
 internal const val ARG_REPLY_MORE = "moreReplies"
+
+/** Set on the Inbox's back-stack entry by a thread whose owner changed: read the list again. */
+internal const val KEY_INBOX_STALE = "inbox-stale"
 
 /**
  * Which selector the timeline endpoint should be asked with.

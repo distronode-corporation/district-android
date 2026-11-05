@@ -4,6 +4,7 @@ import com.distronode.districtai.core.model.SendMessageRequest
 import java.io.File
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mockwebserver3.MockResponse
@@ -11,15 +12,18 @@ import mockwebserver3.MockWebServer
 import mockwebserver3.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 /**
- * What app parity 5 puts on the wire (the WhatsApp window and templates, the template send), answered with the server's recorded fixtures.
+ * What app parity 3 and 5 put on the wire (thread owners, the WhatsApp window and templates, the
+ * template send), answered with the server's recorded fixtures.
  *
- * ⛔ THE BODIES ARE ASSERTED AS JSON, KEY BY KEY: an SMS send must stay exactly the four keys it
- * always was now that the WhatsApp keys exist.
+ * ⛔ THE BODIES ARE ASSERTED AS JSON, KEY BY KEY, because two of them turn on a key's presence: an
+ * unassign must send `"assigneeEmail": null` (an absent key is a 400), and an SMS send must stay
+ * exactly the four keys it always was now that the WhatsApp keys exist.
  */
 class InboxParityRequestTest {
 
@@ -46,6 +50,49 @@ class InboxParityRequestTest {
 
     private fun RecordedRequest.json(): JsonObject =
         Json.parseToJsonElement(body?.utf8().orEmpty()) as JsonObject
+
+    @Test
+    fun `an assignment posts the thread and the member, and decodes the recorded answer`() = runTest {
+        server.enqueue(fixture("district-conversation-assign.json"))
+
+        val result = HttpConversationAssignmentApi(client())
+            .assignConversation("ws-1", "contact:contact_contract_1", "teammate@contract.test")
+
+        assertEquals("teammate@contract.test", (result as ApiResult.Success).value.assignment?.assigneeEmail)
+        val recorded = server.takeRequest()
+        assertEquals("POST", recorded.method)
+        assertEquals("/api/district/conversations/assign", recorded.url.encodedPath)
+        assertEquals(
+            """{"workspaceId":"ws-1","threadKey":"contact:contact_contract_1",""" +
+                """"assigneeEmail":"teammate@contract.test"}""",
+            recorded.body?.utf8(),
+        )
+    }
+
+    @Test
+    fun `an unassign sends an explicit null, never an absent key`() = runTest {
+        server.enqueue(fixture("district-conversation-unassign.json"))
+
+        val result = HttpConversationAssignmentApi(client()).assignConversation("ws-1", "addr:fb:5550101", null)
+
+        assertNull((result as ApiResult.Success).value.assignment)
+        val body = server.takeRequest().json()
+        assertTrue("the key must be present", body.containsKey("assigneeEmail"))
+        assertEquals(JsonNull, body["assigneeEmail"])
+    }
+
+    @Test
+    fun `the owners are a GET scoped by query`() = runTest {
+        server.enqueue(fixture("district-conversation-assignments.json"))
+
+        val result = HttpConversationAssignmentApi(client()).conversationAssignments("ws-1")
+
+        assertTrue((result as ApiResult.Success).value.assignments.isNotEmpty())
+        val recorded = server.takeRequest()
+        assertEquals("GET", recorded.method)
+        assertEquals("/api/district/conversations/assignments", recorded.url.encodedPath)
+        assertEquals("workspaceId=ws-1", recorded.url.encodedQuery)
+    }
 
     @Test
     fun `the window is read for one number, its plus sign encoded`() = runTest {

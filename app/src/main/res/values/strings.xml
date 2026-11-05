@@ -377,6 +377,9 @@
     <string name="hq_send">Send</string>
     <string name="hq_thinking">Thinking…</string>
     <string name="hq_title">District HQ</string>
+    <string name="inbox_assigned_to">Assigned to %1$s</string>
+    <string name="inbox_assigned_to_me">Assigned to me</string>
+    <string name="inbox_assigned_to_me_empty">No conversation is assigned to you.</string>
     <string name="inbox_channel_email">Email</string>
     <string name="inbox_channel_instagram">Instagram</string>
     <string name="inbox_channel_messenger">Messenger</string>
@@ -885,6 +888,7 @@
     <string name="support_viewer_title">Not available on a viewer seat</string>
     <string name="thread_ai_draft">Draft reply</string>
     <string name="thread_ai_drafting">Drafting…</string>
+    <string name="thread_assign_label">Assigned to</string>
     <string name="thread_attach">Attach image</string>
     <string name="thread_attach_too_large">Attachments must be between 1 byte and 5MB.</string>
     <string name="thread_attach_too_many">You can attach up to 5 images to one message.</string>
@@ -910,6 +914,7 @@
     <string name="thread_reply_label">Reply</string>
     <string name="thread_send">Send</string>
     <string name="thread_sending">Sending…</string>
+    <string name="thread_unassigned">Unassigned</string>
     <string name="thread_whatsapp_template_label">Template</string>
     <string name="thread_whatsapp_template_option">%1$s (%2$s)</string>
     <string name="thread_whatsapp_template_placeholder">Choose an approved template</string>

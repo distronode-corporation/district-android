@@ -43,6 +43,8 @@ fun DistrictListRow(
     onClick: (() -> Unit)? = null,
     leading: @Composable (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
+    /** A third line under the subtitle, e.g. a thread's owner. */
+    detail: String? = null,
 ) {
     val colors = DistrictTheme.colors
     // ⛔ AT A LARGE FONT SCALE THE TRAILING SLOT MOVES UNDER THE TEXT. Beside it, a badge measured at
@@ -74,6 +76,14 @@ fun DistrictListRow(
             if (subtitle != null) {
                 Text(
                     text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.mutedForeground,
+                    modifier = Modifier.padding(top = SUBTITLE_GAP),
+                )
+            }
+            if (detail != null) {
+                Text(
+                    text = detail,
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.mutedForeground,
                     modifier = Modifier.padding(top = SUBTITLE_GAP),

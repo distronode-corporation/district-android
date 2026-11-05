@@ -373,6 +373,9 @@
     <string name="hq_send">Envoyer</string>
     <string name="hq_thinking">Réflexion…</string>
     <string name="hq_title">District HQ</string>
+    <string name="inbox_assigned_to">Assignée à %1$s</string>
+    <string name="inbox_assigned_to_me">Qui me sont assignées</string>
+    <string name="inbox_assigned_to_me_empty">Aucune conversation ne vous est assignée.</string>
     <string name="inbox_channel_email">Courriel</string>
     <string name="inbox_channel_instagram">Instagram</string>
     <string name="inbox_channel_messenger">Messenger</string>
@@ -878,6 +881,7 @@
     <string name="support_viewer_title">Non disponible avec le rôle Lecteur</string>
     <string name="thread_ai_draft">Ébaucher une réponse</string>
     <string name="thread_ai_drafting">Ébauche en cours…</string>
+    <string name="thread_assign_label">Assignée à</string>
     <string name="thread_attach">Joindre une image</string>
     <string name="thread_attach_too_large">Les pièces jointes doivent faire entre 1 octet et 5 Mo.</string>
     <string name="thread_attach_too_many">Vous pouvez joindre jusqu\'à 5 images par message.</string>
@@ -904,6 +908,7 @@
     <string name="thread_reply_label">Réponse</string>
     <string name="thread_send">Envoyer</string>
     <string name="thread_sending">Envoi en cours…</string>
+    <string name="thread_unassigned">Non assignée</string>
     <string name="thread_whatsapp_template_label">Modèle de message</string>
     <string name="thread_whatsapp_template_option">%1$s (%2$s)</string>
     <string name="thread_whatsapp_template_placeholder">Choisir un modèle approuvé</string>

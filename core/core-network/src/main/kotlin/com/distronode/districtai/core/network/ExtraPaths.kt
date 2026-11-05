@@ -7,7 +7,7 @@ package com.distronode.districtai.core.network
  * `DistrictApi.kt` / `HttpDistrictApi.kt` are one 85-method interface and its delegating
  * implementation, and they are the guaranteed conflict when several people add endpoints at once.
  * The small interfaces beside this file ([PersonaApi], [CallHandlingApi], [InboxExtrasApi],
- * [CallControlApi], [ContactBlockingApi], [WhatsAppApi]) are therefore
+ * [CallControlApi], [ContactBlockingApi], [ConversationAssignmentApi], [WhatsAppApi]) are therefore
  * separate rather than sections of that one. ⚠️ If this repo ever
  * stops having concurrent editors, folding them in is a mechanical move — each is already shaped
  * like a section of it.
@@ -89,6 +89,12 @@ internal object ExtraPaths {
 
     /** `api/district/contacts/blocked`: GET, everyone blocked. */
     val CONTACTS_BLOCKED: List<String> = DistrictPaths.CONTACTS + "blocked"
+
+    /** `api/district/conversations/assign`: POST, one thread's new owner (or none). */
+    val CONVERSATIONS_ASSIGN: List<String> = DistrictPaths.CONVERSATIONS + "assign"
+
+    /** `api/district/conversations/assignments`: GET, every owned thread. ⚠️ Not [CONVERSATIONS_ASSIGN]. */
+    val CONVERSATIONS_ASSIGNMENTS: List<String> = DistrictPaths.CONVERSATIONS + "assignments"
 
     /** `api/district/workspace/whatsapp/window`: GET, whether free text may go to one number now. */
     val WORKSPACE_WHATSAPP_WINDOW: List<String> = WORKSPACE + "whatsapp" + "window"

@@ -36,7 +36,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
-/** The channel chips, the composer notices and the template sheet, on screen. */
+/** The channel chips, the composer notices, the template sheet and the owner row, on screen. */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
 class ThreadParityScreenTest {
@@ -80,6 +80,7 @@ class ThreadParityScreenTest {
     private fun render(
         channels: ReplyChannelState? = null,
         state: ThreadUiState.Content = content,
+        owner: ThreadOwnerState? = null,
         startText: String = "",
     ) {
         composeRule.setContent {
@@ -106,6 +107,13 @@ class ThreadParityScreenTest {
                         onOpenMedia = {},
                     ),
                     channels = channels?.let(::handlers),
+                    owner = owner?.let {
+                        ThreadOwnerHandlers(
+                            state = it,
+                            onAssign = { email -> calls += "assign $email" },
+                            onDismissFailure = { calls += "dismiss owner" },
+                        )
+                    },
                 )
             }
         }
@@ -282,5 +290,61 @@ class ThreadParityScreenTest {
         composeRule.onNodeWithText(str(R.string.inbox_compose_cancel)).assertIsNotEnabled()
         // ⚠️ Exists rather than displayed: the sheet scrolls, and the failure sits under the fields.
         composeRule.onNodeWithTag(THREAD_TEMPLATE_FAILURE_DESCRIPTION).assertExists()
+    }
+
+    // ── The owner ────────────────────────────────────────────────────────────
+
+    @Test
+    fun `nothing is drawn until the owner is read`() {
+        render(owner = ThreadOwnerState(loaded = false, canAssign = true))
+        composeRule.onNodeWithTag(THREAD_OWNER_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a viewer reads the owner and gets no picker`() {
+        render(owner = ThreadOwnerState(loaded = true, owner = "ada@example.com"))
+
+        composeRule.onNodeWithText(str(R.string.thread_assign_label).uppercase()).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_OWNER_VALUE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText("ada@example.com").assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_OWNER_PICKER_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the picker offers Unassigned and each member, and assigns the one picked`() {
+        render(
+            owner = ThreadOwnerState(
+                loaded = true,
+                canAssign = true,
+                members = listOf("agency@example.com", "client@example.com"),
+            ),
+        )
+
+        // Unassigned is the picker's own value here, so tapping it opens the menu.
+        composeRule.onNodeWithText(str(R.string.thread_unassigned)).performClick()
+        composeRule.onNodeWithText("agency@example.com").assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_OWNER_OPTION_DESCRIPTION + 1).performClick()
+        composeRule.onNodeWithTag(THREAD_OWNER_PICKER_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(THREAD_OWNER_NOBODY_DESCRIPTION).performClick()
+
+        assertEquals(listOf("assign client@example.com", "assign null"), calls)
+    }
+
+    @Test
+    fun `an assignment on its way disables the picker, and a refusal can be dismissed`() {
+        render(
+            owner = ThreadOwnerState(
+                loaded = true,
+                owner = "ada@example.com",
+                canAssign = true,
+                assigning = true,
+                failure = FailureText(UiText.Server("Viewers cannot be assigned conversations.")),
+            ),
+        )
+
+        composeRule.onNodeWithTag(THREAD_OWNER_PICKER_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_OWNER_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.thread_dismiss)).performClick()
+        assertEquals(listOf("dismiss owner"), calls)
     }
 }

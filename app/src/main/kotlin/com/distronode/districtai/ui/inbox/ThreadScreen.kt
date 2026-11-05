@@ -79,6 +79,8 @@ fun ThreadScreen(
     moderation: ThreadModeration? = null,
     /** The channel picker and WhatsApp's window and templates; null draws the composer as before. */
     channels: ReplyChannelHandlers? = null,
+    /** The owner line and picker; null for none. */
+    owner: ThreadOwnerHandlers? = null,
 ) {
     var confirmingBlock by rememberSaveable { mutableStateOf(false) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -98,6 +100,7 @@ fun ThreadScreen(
                     BlockFailureNotice(failure, moderation.onDismissFailure)
                 }
             }
+            owner?.let { ThreadOwnerRow(it) }
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 ThreadBody(
                     state = state,

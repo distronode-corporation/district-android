@@ -248,6 +248,7 @@ class LiveCallsViewModelTest {
         runCurrent()
         assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
         engine.emitConnection(CallConnectionState.Connecting)
+        runCurrent()
         engine.emitConnection(CallConnectionState.Idle)
         runCurrent()
         assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
@@ -565,6 +566,26 @@ class LiveCallsViewModelTest {
     }
 
     @Test
+    fun `an end reported while joining is the join's own failure, said once`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val dropping = DroppingEngine(gate)
+        val vm = LiveCallsViewModel(SuperviseRepository(api), "ws-1", true, { dropping }, null, engineScope)
+        runCurrent()
+
+        vm.listen(ai)
+        runCurrent()
+        assertEquals("the join is still the one deciding", Phase.CONNECTING, vm.supervision.value.phase)
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(
+            LiveSupervisor.State(failedCallId = ai, failure = UiText.Resource(R.string.live_calls_connect_failed)),
+            vm.supervision.value,
+        )
+        assertEquals("disconnect", dropping.inner.calls.last())
+    }
+
+    @Test
     fun `leaving while the credential is fetched joins nothing`() = runTest(dispatcher) {
         val vm = viewModel()
         val gate = CompletableDeferred<Unit>()
@@ -590,6 +611,10 @@ class LiveCallsViewModelTest {
         vm.listen(ai)
         runCurrent()
         assertEquals(Phase.CONNECTING, vm.supervision.value.phase)
+        // ⛔ Joining is busy too: no second credential while the room is being joined.
+        vm.listen(FakeSuperviseApi.TEAM_CALL.id)
+        runCurrent()
+        assertEquals(listOf(ai), api.monitors)
         vm.leave()
         runCurrent()
 
@@ -597,6 +622,18 @@ class LiveCallsViewModelTest {
         assertTrue(slow.inner.calls.all { it == "disconnect" })
         assertEquals(LiveSupervisor.State(), vm.supervision.value)
         assertTrue(engineScope.isActive)
+    }
+}
+
+/** A [FakeCallEngine] that reports the room gone while its join is still in flight, then fails it. */
+private class DroppingEngine(
+    private val gate: CompletableDeferred<Unit>,
+    val inner: FakeCallEngine = FakeCallEngine(),
+) : com.distronode.districtai.core.media.CallEngine by inner {
+    override suspend fun connect(url: String, token: String, e2eeKeyBase64: String?) {
+        inner.emitConnection(CallConnectionState.Disconnected("JOIN_FAILURE"))
+        gate.await()
+        error("never joined")
     }
 }
 

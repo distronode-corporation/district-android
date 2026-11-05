@@ -2,6 +2,7 @@ package com.distronode.districtai.ui.live
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -96,9 +97,13 @@ fun LiveCallsScreen(view: LiveCallsView, actions: LiveCallsActions) {
 
 @Composable
 private fun LoadedCalls(calls: List<ActiveCall>, view: LiveCallsView, actions: LiveCallsActions) {
-    LazyColumn(modifier = Modifier.fillMaxSize().testTag(LIVE_CALLS_LIST_TAG)) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().testTag(LIVE_CALLS_LIST_TAG),
+        contentPadding = PaddingValues(vertical = DistrictTheme.spacing.gutter),
+        verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row),
+    ) @DontMemoize {
         item(key = "header") {
-            ContentContainer {
+            ContentContainer(contentPadding = PaddingValues(horizontal = DistrictTheme.spacing.gutter)) {
                 Text(
                     text = stringResource(R.string.live_calls_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
@@ -116,7 +121,7 @@ private fun LoadedCalls(calls: List<ActiveCall>, view: LiveCallsView, actions: L
             }
         }
         items(calls, key = { it.id }) { call ->
-            ContentContainer {
+            ContentContainer(contentPadding = PaddingValues(horizontal = DistrictTheme.spacing.gutter)) {
                 LiveCallCard(call, view, actions)
             }
         }
@@ -133,7 +138,10 @@ private fun LiveCallCard(call: ActiveCall, view: LiveCallsView, actions: LiveCal
             if (here) {
                 SupervisedState(supervision)
             }
-            ListenControl(call.id, here, supervision.busy, actions)
+            // ⚠️ A taken-over call offers only the hand back: "Stop listening" would name the wrong thing.
+            if (!(here && supervision.takenOver)) {
+                ListenControl(call.id, here, supervision.busy, actions)
+            }
             if (here && call.isTeamMemberCall) {
                 Note(stringResource(R.string.live_calls_team_call_note), Modifier.testTag(LIVE_CALLS_TEAM_NOTE_TAG))
             }

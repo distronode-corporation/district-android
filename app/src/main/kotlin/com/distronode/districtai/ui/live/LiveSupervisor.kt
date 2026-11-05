@@ -103,7 +103,7 @@ class LiveSupervisor(
 
     /** The ViewModel is gone: leave, and let the engine scope end once the disconnect has run. */
     fun release() {
-        if (released) return
+        // ⚠️ No "already released" exit: `onCleared` runs once per ViewModel, and nothing else calls this.
         released = true
         action?.cancel()
         watch?.cancel()
@@ -147,7 +147,7 @@ class LiveSupervisor(
         val joined = engineFactory.create(engineScope)
         engine = joined
         _state.value = State(callId = callId, takenOver = takeOver, phase = Phase.CONNECTING)
-        watch = scope.launch { joined.connectionState.collect { follow(joined, it) } }
+        watch = scope.launch { joined.connectionState.collect(::follow) }
         val failure = try {
             // ⛔ THE GRANT'S URL, VERBATIM: the room's deployment, never the workspace's default.
             // No key: a phone call's room is never end-to-end encrypted (it has a SIP leg).
@@ -176,9 +176,11 @@ class LiveSupervisor(
         }
     }
 
-    /** ⚠️ Only the current engine's states count: a left engine's late `Disconnected` says nothing. */
-    private fun follow(source: CallEngine, connection: CallConnectionState) {
-        if (source !== engine) return
+    /**
+     * ⚠️ No "is this still the current engine" check: [leaveEngine] cancels an engine's watch before
+     * it lets the engine go, so a left engine's late `Disconnected` never arrives here.
+     */
+    private fun follow(connection: CallConnectionState) {
         val current = _state.value
         when (connection) {
             CallConnectionState.Connected -> _state.value = current.copy(phase = Phase.CONNECTED)

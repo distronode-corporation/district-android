@@ -42,23 +42,23 @@ class LiveCallsFeed(
     private val scope: CoroutineScope,
     private val onEvent: (LiveFeedEvent) -> Unit,
 ) {
-    private var runner: TelemetryConnectionRunner? = null
-    private var pump: Job? = null
+    /** The socket and the coroutine reading it, set and cleared together. */
+    private class Running(val runner: TelemetryConnectionRunner, val pump: Job)
+
+    private var running: Running? = null
 
     fun start() {
-        if (runner != null) return
+        if (running != null) return
         val opened = TelemetryConnectionRunner(workspaceId, broadcast = true, dependencies, scope)
-        runner = opened
-        pump = scope.launch { opened.updates.collect(::handle) }
+        running = Running(opened, scope.launch { opened.updates.collect(::handle) })
         opened.start()
     }
 
     fun stop() {
-        val closing = runner ?: return
-        runner = null
-        pump?.cancel()
-        pump = null
-        closing.stop()
+        val closing = running ?: return
+        running = null
+        closing.pump.cancel()
+        closing.runner.stop()
     }
 
     private fun handle(update: TelemetryUpdate) {
@@ -67,10 +67,7 @@ class LiveCallsFeed(
             is TelemetryUpdate.Message -> relay(update.message)
             is TelemetryUpdate.Reconnecting -> Unit
             // ⚠️ Only an end the app did not ask for is read here: [stop] cancels the pump first.
-            is TelemetryUpdate.Ended -> {
-                runner = null
-                pump = null
-            }
+            is TelemetryUpdate.Ended -> running = null
         }
     }
 

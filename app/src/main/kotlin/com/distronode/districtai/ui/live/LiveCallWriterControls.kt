@@ -80,12 +80,14 @@ private fun WhisperControl(callId: String, box: WhisperBox, actions: LiveCallsAc
 
 /** ⚠️ `reason` is the agent's wire vocabulary, mapped to a sentence and never shown raw. */
 @Composable
-private fun receiptText(receipt: WhisperAppliedData): String = when {
-    receipt.applied && !receipt.firstWords.isNullOrBlank() ->
-        stringResource(R.string.live_calls_receipt_applied_words, receipt.firstWords.orEmpty())
-    receipt.applied -> stringResource(R.string.live_calls_receipt_applied)
-    receipt.reason == WHISPER_NOT_APPLIED_TAKEN_OVER -> stringResource(R.string.live_calls_receipt_taken_over)
-    else -> stringResource(R.string.live_calls_receipt_transfer)
+private fun receiptText(receipt: WhisperAppliedData): String {
+    val words = receipt.firstWords?.takeIf { it.isNotBlank() }
+    return when {
+        receipt.applied && words != null -> stringResource(R.string.live_calls_receipt_applied_words, words)
+        receipt.applied -> stringResource(R.string.live_calls_receipt_applied)
+        receipt.reason == WHISPER_NOT_APPLIED_TAKEN_OVER -> stringResource(R.string.live_calls_receipt_taken_over)
+        else -> stringResource(R.string.live_calls_receipt_transfer)
+    }
 }
 
 /** ⛔ In the page, never a system dialog, and it says what the caller will hear. */
@@ -128,7 +130,7 @@ internal fun Note(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun Failure(text: String, modifier: Modifier = Modifier) {
+internal fun Failure(text: String, modifier: Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,

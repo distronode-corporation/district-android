@@ -272,6 +272,7 @@ class LiveCallsScreenTest {
         render(view(calls = listOf(ai), supervision = listening(takenOver = true)))
 
         composeRule.onNodeWithText(str(R.string.live_calls_taken_over_title)).assertExists()
+        assertAbsent(LIVE_CALLS_LEAVE_TAG)
         assertAbsent(LIVE_CALLS_WHISPER_FIELD_TAG)
         assertAbsent(LIVE_CALLS_TAKE_OVER_TAG)
         composeRule.onNodeWithTag(LIVE_CALLS_HAND_BACK_TAG).performClick()

@@ -136,7 +136,8 @@ data class ActiveCall(
      * A team member's own softphone call, which no receptionist is on.
      *
      * ⛔ THE ROOM NAME IS HOW THE SERVER KNOWS, SO IT IS HOW THIS CLIENT KNOWS. `calls/dial` names
-     * such a room `direct_<workspaceId>-<CallSid>`, and the whisper and takeover routes refuse a
+     * such a room `direct_<workspaceId>-<CallSid>` ([DIRECT_ROOM_PREFIX], the one the softphone
+     * asserts on its own dial), and the whisper and takeover routes refuse a
      * `direct_` room with `call_has_no_receptionist` (`isDirectCallRoom`, website
      * `src/lib/district/room-name.ts`). The roster cannot answer it instead: the agent's answer
      * observer joins such a room as an AGENT-kind participant.
@@ -147,9 +148,4 @@ data class ActiveCall(
     /** The other party: the callee on an outbound call, else the caller. */
     val party: String
         get() = if (direction == "outbound" && !to.isNullOrBlank()) to else from.orEmpty()
-
-    companion object {
-        /** The website's `DIRECT_ROOM_PREFIX`. */
-        const val DIRECT_ROOM_PREFIX: String = "direct_"
-    }
 }

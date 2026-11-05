@@ -1,5 +1,6 @@
 package com.distronode.districtai.core.network.live
 
+import com.distronode.districtai.core.model.TELEMETRY_EVENT_WHISPER_APPLIED
 import com.distronode.districtai.core.model.TRANSCRIPT_EVENT_ENDED
 import com.distronode.districtai.core.model.TRANSCRIPT_EVENT_ERROR
 import com.distronode.districtai.core.model.TRANSCRIPT_EVENT_RETRACTED
@@ -11,6 +12,7 @@ import com.distronode.districtai.core.model.TranscriptErrorData
 import com.distronode.districtai.core.model.TranscriptRetractedData
 import com.distronode.districtai.core.model.TranscriptSegmentData
 import com.distronode.districtai.core.model.TranscriptSnapshotData
+import com.distronode.districtai.core.model.WhisperAppliedData
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -98,7 +100,19 @@ sealed interface TelemetryMessage {
     /** A transcript frame for this workspace. */
     data class Transcript(val event: TranscriptEvent) : TelemetryMessage
 
-    /** An envelope for this workspace that is not a transcript frame (a call or message event). */
+    /**
+     * The receptionist's receipt for a whisper on [callId] (`whisper_applied`). A workspace relay
+     * event, so it reaches only a socket left in broadcast mode.
+     */
+    data class WhisperApplied(val callId: String, val data: WhisperAppliedData) : TelemetryMessage
+
+    /**
+     * A call of this workspace started ([ended] false) or ended ([ended] true). ⛔ The payload is the
+     * call row and is customer data, so it is not read: a list re-reads `calls/active` instead.
+     */
+    data class CallChanged(val callId: String, val ended: Boolean) : TelemetryMessage
+
+    /** An envelope for this workspace that is none of the above (a call update or message event). */
     data object Other : TelemetryMessage
 
     /**
@@ -112,6 +126,10 @@ sealed interface TelemetryMessage {
 
 /** Decodes socket messages for one workspace. */
 object TelemetryMessages {
+    /** The broadcaster's call events (the web Live page's `call_started` and `call_ended`). */
+    private const val CALL_EVENT_STARTED = "call_started"
+    private const val CALL_EVENT_ENDED = "call_ended"
+
     private val json = Json { ignoreUnknownKeys = true }
     private val envelope = TelemetryEvent.serializer(JsonElement.serializer())
 
@@ -125,12 +143,23 @@ object TelemetryMessages {
         }
         if (frame.workspaceId != workspaceId) return TelemetryMessage.Discarded
         return try {
-            transcript(frame)?.let(TelemetryMessage::Transcript) ?: TelemetryMessage.Other
+            transcript(frame)?.let(TelemetryMessage::Transcript) ?: relay(frame)
         } catch (_: IllegalArgumentException) {
             // ⚠️ A STRUCTURALLY WRONG TRANSCRIPT PAYLOAD IS REFUSED WHOLE (see `TranscriptSegment`):
             // the next snapshot heals it.
             TelemetryMessage.Discarded
         }
+    }
+
+    /** The relay events live supervise reads; everything else is [TelemetryMessage.Other]. */
+    private fun relay(frame: TelemetryEvent<JsonElement>): TelemetryMessage = when (frame.eventType) {
+        TELEMETRY_EVENT_WHISPER_APPLIED -> TelemetryMessage.WhisperApplied(
+            frame.callId,
+            json.decodeFromJsonElement(WhisperAppliedData.serializer(), frame.data),
+        )
+        CALL_EVENT_STARTED -> TelemetryMessage.CallChanged(frame.callId, ended = false)
+        CALL_EVENT_ENDED -> TelemetryMessage.CallChanged(frame.callId, ended = true)
+        else -> TelemetryMessage.Other
     }
 
     private fun transcript(frame: TelemetryEvent<JsonElement>): TranscriptEvent? {

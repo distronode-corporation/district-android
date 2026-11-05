@@ -41,8 +41,12 @@ class FakeSuperviseApi : SuperviseApi {
     /** When set, a listen waits for it before answering. */
     var monitorGate: CompletableDeferred<Unit>? = null
 
+    /** When set, a list read waits for it before answering: a read still in flight. */
+    var activeGate: CompletableDeferred<Unit>? = null
+
     override suspend fun activeCalls(workspaceId: String): ApiResult<ActiveCallsResponse> {
         activeReads += workspaceId
+        activeGate?.await()
         return activeResult
     }
 

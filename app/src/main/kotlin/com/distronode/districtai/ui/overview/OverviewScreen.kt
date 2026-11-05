@@ -74,10 +74,11 @@ fun OverviewScreen(
      */
     onOpenAnalytics: (String) -> Unit = {},
     /**
-     * ⚠️ TAKES A ROLE EVEN THOUGH THE MARKETPLACE IS ALSO READ-ONLY FOR EVERY ROLE — the opposite
-     * call from [onOpenAnalytics] one line up, which is exactly why it is worth a note. Nothing
-     * there is gated; the role decides what its read-only caption SAYS, since telling a viewer to
-     * make the change on the web dashboard sends them somewhere that will also refuse them.
+     * ⚠️ TAKES A ROLE, unlike [onOpenAnalytics] one line up. The marketplace's reads admit every
+     * role, but since 3.0 it also configures and releases numbers and files the carrier paperwork,
+     * and those writes are gated on the role. The role also decides what a viewer is told and
+     * whether the web hand-off for buying is offered at all, since sending a viewer to the web
+     * dashboard sends them somewhere that will also refuse them.
      */
     onOpenMarketplace: (String, WorkspaceRole?) -> Unit = { _, _ -> },
     /**

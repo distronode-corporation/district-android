@@ -13,11 +13,11 @@ import com.distronode.districtai.ui.FailureText
  * records — so a single failure state would blank an answer the client already holds. Each half
  * carries its own.
  *
- * ⛔ AND THIS SCREEN HAS NO WRITE STATE AT ALL, BY DESIGN. There is no purchasing, releasing or
- * reconfiguring here: a number is a recurring carrier charge and a live line, and a released one
- * cannot be reclaimed. The app shows; the web dashboard changes. The web hand-off does not change
- * that: it opens a browser and holds no state of its own. If a `purchasing` flag ever appears in
- * this file, the decision recorded on [marketplaceWebUrl] has been reversed and
+ * ⛔ AND THIS STATE HOLDS NO WRITE, BY DESIGN. Configuring and releasing a number, the filings and
+ * the carrier account are [NumberProvisioningViewModel]'s, with their own state
+ * ([NumberProvisioningState]), so a failed write never blanks either read. Buying is nowhere in
+ * the app: the web hand-off opens a browser and holds no state of its own. If a `purchasing` flag
+ * ever appears in this file, the decision recorded on [marketplaceWebUrl] has been reversed and
  * should have been discussed.
  */
 data class MarketplaceUiState(

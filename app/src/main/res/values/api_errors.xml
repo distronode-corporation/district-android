@@ -17,6 +17,8 @@
     <string name="api_error_business_account_required">In Canada we sell to businesses only. Choose Business and enter your business name.</string>
     <string name="api_error_business_extraction_failed">We could not draft your details from that website. Please try again, or enter them yourself.</string>
     <string name="api_error_calendar_unreachable">The calendar could not be reached just now. Please try again in a few minutes.</string>
+    <string name="api_error_call_ended">That call has ended.</string>
+    <string name="api_error_call_has_no_receptionist">That is a team member\'s own call. Your receptionist is not on it, so you cannot send a note or take the call over.</string>
     <string name="api_error_call_has_no_room">That call has no room to join.</string>
     <string name="api_error_call_not_direct_dial">That call is not a direct call from this app and cannot be hung up here.</string>
     <string name="api_error_call_not_found">That call could not be found.</string>

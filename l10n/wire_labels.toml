@@ -547,7 +547,7 @@ note = "The disposition value `escalated` as the server sends it, shown with the
 
 [wire.disposition_info]
 en = "Information only"
-fr = "Demande de renseignements"
+fr = "Renseignements"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
@@ -804,6 +804,15 @@ tier = "T3"
 state = "reviewed"
 note = "The messageDeliveryStatus value `failed` as the server sends it, shown with the portal's label; the portal has none, so English is the value humanized."
 
+[wire.message_delivery_status_handled]
+en = "Handled"
+fr = "Traité"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "draft"
+note = "The messageDeliveryStatus value `handled` as the server sends it, shown with the portal's label (\"Handled\")."
+
 [wire.message_delivery_status_queued]
 en = "Sent"
 fr = "Envoyé"
@@ -812,6 +821,15 @@ screen = "inbox thread"
 tier = "T3"
 state = "reviewed"
 note = "The messageDeliveryStatus value `queued` as the server sends it, shown with the portal's label (\"Sent\")."
+
+[wire.message_delivery_status_read]
+en = "Read"
+fr = "Lu"
+ctx = "label"
+screen = "inbox thread"
+tier = "T3"
+state = "draft"
+note = "The messageDeliveryStatus value `read` as the server sends it, shown with the portal's label (\"Read\")."
 
 [wire.message_delivery_status_received]
 en = "Received"

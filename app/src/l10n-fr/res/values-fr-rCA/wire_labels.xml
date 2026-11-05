@@ -60,7 +60,7 @@
     <string name="wire_disposition_booked">Rendez-vous pris</string>
     <string name="wire_disposition_callback">Rappel demandé</string>
     <string name="wire_disposition_escalated">Transmis à une personne</string>
-    <string name="wire_disposition_info">Demande de renseignements</string>
+    <string name="wire_disposition_info">Renseignements</string>
     <string name="wire_disposition_interested">Intéressé</string>
     <string name="wire_disposition_not_interested">Pas intéressé</string>
     <string name="wire_disposition_other">Autre</string>
@@ -88,7 +88,9 @@
     <string name="wire_member_role_viewer">Lecteur</string>
     <string name="wire_message_delivery_status_delivered">Livré</string>
     <string name="wire_message_delivery_status_failed">Échec</string>
+    <string name="wire_message_delivery_status_handled">Traité</string>
     <string name="wire_message_delivery_status_queued">Envoyé</string>
+    <string name="wire_message_delivery_status_read">Lu</string>
     <string name="wire_message_delivery_status_received">Reçu</string>
     <string name="wire_message_delivery_status_sent">Envoyé</string>
     <string name="wire_message_delivery_status_unknown">Valeur inconnue\u00A0: %1$s</string>

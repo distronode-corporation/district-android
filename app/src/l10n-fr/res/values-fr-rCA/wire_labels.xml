@@ -58,9 +58,9 @@
     <string name="wire_desk_ticket_status_unknown">Inconnu</string>
     <string name="wire_desk_ticket_status_waiting">En attente</string>
     <string name="wire_disposition_booked">Rendez-vous pris</string>
-    <string name="wire_disposition_callback">À rappeler</string>
-    <string name="wire_disposition_escalated">Transmis à l\'équipe</string>
-    <string name="wire_disposition_info">Information</string>
+    <string name="wire_disposition_callback">Rappel demandé</string>
+    <string name="wire_disposition_escalated">Transmis à une personne</string>
+    <string name="wire_disposition_info">Demande de renseignements</string>
     <string name="wire_disposition_interested">Intéressé</string>
     <string name="wire_disposition_not_interested">Pas intéressé</string>
     <string name="wire_disposition_other">Autre</string>
@@ -187,7 +187,7 @@
     <string name="wire_workflow_action_outcome_ok">OK</string>
     <string name="wire_workflow_action_outcome_skipped">Ignoré</string>
     <string name="wire_workflow_action_outcome_unknown">Valeur inconnue\u00A0: %1$s</string>
-    <string name="wire_workflow_action_reason_automated_sender">Texto non envoyé\u00A0: le message venait d\'un expéditeur automatisé, comme un code de vérification</string>
+    <string name="wire_workflow_action_reason_automated_sender">Texto non envoyé\u00A0: le message venait d\'un expéditeur automatisé (un code de vérification, par exemple)</string>
     <string name="wire_workflow_action_reason_consent_check_failed">Texto non envoyé\u00A0: le consentement aux textos n\'a pas pu être vérifié</string>
     <string name="wire_workflow_action_reason_contact_not_found">Contact introuvable</string>
     <string name="wire_workflow_action_reason_dnc">Liste d\'exclusion</string>
@@ -198,12 +198,12 @@
     <string name="wire_workflow_action_reason_empty_tag">Étiquette vide</string>
     <string name="wire_workflow_action_reason_fallback_email">Texto non envoyé, l\'alerte est partie par courriel à la place</string>
     <string name="wire_workflow_action_reason_fallback_email_push">Texto non envoyé, l\'alerte est partie par courriel et dans l\'application à la place</string>
-    <string name="wire_workflow_action_reason_fallback_failed">Texto non envoyé, et le courriel et l\'application de secours ont aussi échoué</string>
+    <string name="wire_workflow_action_reason_fallback_failed">Texto non envoyé, et l\'envoi par courriel et dans l\'application a aussi échoué</string>
     <string name="wire_workflow_action_reason_fallback_push">Texto non envoyé et courriel en échec, l\'alerte est partie dans l\'application à la place</string>
     <string name="wire_workflow_action_reason_http_status">HTTP {status}</string>
     <string name="wire_workflow_action_reason_invalid_recipient">Destinataire invalide</string>
     <string name="wire_workflow_action_reason_loop_check_failed">Texto non envoyé\u00A0: les messages récents avec ce numéro n\'ont pas pu être vérifiés</string>
-    <string name="wire_workflow_action_reason_loop_paused">Texto non envoyé\u00A0: ce numéro a répondu automatiquement plusieurs fois de suite, les textos vers lui sont donc suspendus pendant une heure</string>
+    <string name="wire_workflow_action_reason_loop_paused">Texto non envoyé\u00A0: ce numéro a répondu automatiquement plusieurs fois de suite, les textos à ce numéro sont donc suspendus pendant une heure</string>
     <string name="wire_workflow_action_reason_missing_webhook_url">URL du webhook manquante</string>
     <string name="wire_workflow_action_reason_no_consent">Texto non envoyé\u00A0: aucun appel ni texto de cette personne depuis 24\u00A0heures, et aucun consentement au dossier</string>
     <string name="wire_workflow_action_reason_no_devices">Aucun membre de l\'équipe n\'a l\'application sur un appareil qui peut recevoir des notifications</string>
@@ -216,7 +216,7 @@
     <string name="wire_workflow_action_reason_push_not_delivered">Aucun appareil n\'a accepté la notification</string>
     <string name="wire_workflow_action_reason_quiet_hours">Texto non envoyé\u00A0: il n\'était pas entre 8\u00A0h et 21\u00A0h là où se trouve peut-être son téléphone</string>
     <string name="wire_workflow_action_reason_recipient_not_member">La personne à qui envoyer le texto n\'est plus membre de cet espace de travail</string>
-    <string name="wire_workflow_action_reason_recipient_number_held">Non envoyé\u00A0: le cellulaire de cette personne est un numéro d\'entreprise sur District</string>
+    <string name="wire_workflow_action_reason_recipient_number_held">Non envoyé\u00A0: le numéro de cellulaire de cette personne appartient à une entreprise sur District</string>
     <string name="wire_workflow_action_reason_report_recipient_refused">Destinataire du rapport refusé</string>
     <string name="wire_workflow_action_reason_report_unavailable">Rapport indisponible</string>
     <string name="wire_workflow_action_reason_send_failed">Échec d\'envoi</string>

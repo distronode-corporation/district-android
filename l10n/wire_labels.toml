@@ -529,29 +529,29 @@ note = "The disposition value `booked` as the server sends it, shown with the po
 
 [wire.disposition_callback]
 en = "Callback requested"
-fr = "À rappeler"
+fr = "Rappel demandé"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The disposition value `callback` as the server sends it, shown with the portal's label (\"Callback requested\")."
 
 [wire.disposition_escalated]
 en = "Passed to a person"
-fr = "Transmis à l'équipe"
+fr = "Transmis à une personne"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The disposition value `escalated` as the server sends it, shown with the portal's label (\"Passed to a person\")."
 
 [wire.disposition_info]
 en = "Information only"
-fr = "Information"
+fr = "Demande de renseignements"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "reviewed"
+state = "draft"
 note = "The disposition value `info` as the server sends it, shown with the portal's label (\"Information only\")."
 
 [wire.disposition_interested]
@@ -1732,7 +1732,7 @@ note = "A workflowActionOutcome value this app does not know, passed through as 
 
 [wire.workflow_action_reason_automated_sender]
 en = "Not texted: the message came from an automated sender, such as a verification code"
-fr = "Texto non envoyé\u00A0: le message venait d'un expéditeur automatisé, comme un code de vérification"
+fr = "Texto non envoyé\u00A0: le message venait d'un expéditeur automatisé (un code de vérification, par exemple)"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
@@ -1831,7 +1831,7 @@ note = "The workflowActionReason value `fallback-email-push` as the server sends
 
 [wire.workflow_action_reason_fallback_failed]
 en = "Not texted, and the email and app fallback failed too"
-fr = "Texto non envoyé, et le courriel et l'application de secours ont aussi échoué"
+fr = "Texto non envoyé, et l'envoi par courriel et dans l'application a aussi échoué"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
@@ -1877,7 +1877,7 @@ note = "The workflowActionReason value `loop-check-failed` as the server sends i
 
 [wire.workflow_action_reason_loop_paused]
 en = "Not texted: this number answered automatically several times in a row, so texts to it are paused for an hour"
-fr = "Texto non envoyé\u00A0: ce numéro a répondu automatiquement plusieurs fois de suite, les textos vers lui sont donc suspendus pendant une heure"
+fr = "Texto non envoyé\u00A0: ce numéro a répondu automatiquement plusieurs fois de suite, les textos à ce numéro sont donc suspendus pendant une heure"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
@@ -1994,7 +1994,7 @@ note = "The workflowActionReason value `recipient-not-member` as the server send
 
 [wire.workflow_action_reason_recipient_number_held]
 en = "Not sent: the person's mobile is a business number on District"
-fr = "Non envoyé\u00A0: le cellulaire de cette personne est un numéro d'entreprise sur District"
+fr = "Non envoyé\u00A0: le numéro de cellulaire de cette personne appartient à une entreprise sur District"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"

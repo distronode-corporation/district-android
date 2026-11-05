@@ -58,7 +58,7 @@ note = "The sentence for the server's error code `audition_busy`, verbatim from 
 
 [api_error.audition_daily_cap]
 en = "This workspace has used today's auditions. You can audition again tomorrow."
-fr = "Cet espace de travail a utilisé les auditions d'aujourd'hui. Vous pourrez de nouveau écouter un brouillon demain."
+fr = "Cet espace de travail a utilisé toutes ses auditions pour aujourd'hui. Vous pourrez faire de nouvelles auditions demain."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -427,11 +427,11 @@ note = "The sentence for the server's error code `emergency_number`, verbatim fr
 
 [api_error.engine_unavailable]
 en = "This voice engine is not available for this workspace yet. Choose another engine."
-fr = "Ce moteur vocal n'est pas encore offert pour cet espace de travail. Choisissez un autre moteur."
+fr = "Ce moteur vocal n'est pas encore offert à cet espace de travail. Choisissez un autre moteur."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "reviewed"
+state = "draft"
 note = "The sentence for the server's error code `engine_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.eu_vat_required]
@@ -445,7 +445,7 @@ note = "The sentence for the server's error code `eu_vat_required`, verbatim fro
 
 [api_error.extra_number_charge_required]
 en = "This number is beyond the ones the plan includes and has a monthly charge. Confirm the charge to buy it."
-fr = "Ce numéro dépasse ceux que le forfait inclut et entraîne des frais mensuels. Confirmez les frais pour l'acheter."
+fr = "Ce numéro s'ajoute à ceux qu'inclut le forfait et entraîne des frais mensuels. Confirmez les frais pour l'acheter."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -734,7 +734,7 @@ note = "The sentence for the server's error code `knowledge_url_timeout`, verbat
 
 [api_error.knowledge_url_too_large]
 en = "That page is larger than 2 MB. Import a smaller page or paste the text instead."
-fr = "Cette page dépasse 2 Mo. Importez une page plus petite ou collez plutôt le texte."
+fr = "Cette page dépasse 2\u00A0Mo. Importez une page plus petite ou collez plutôt le texte."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -752,7 +752,7 @@ note = "The sentence for the server's error code `knowledge_url_unreachable`, ve
 
 [api_error.knowledge_url_unsupported_type]
 en = "Only web pages (HTML) and plain text can be imported. Paste the text instead."
-fr = "Seuls les pages Web (HTML) et le texte brut peuvent être importés. Collez plutôt le texte."
+fr = "Seuls le texte brut et les pages Web (HTML) peuvent être importés. Collez plutôt le texte."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -842,7 +842,7 @@ note = "The sentence for the server's error code `member_phone_business_number`,
 
 [api_error.member_phone_cannot_text]
 en = "This business cannot send texts yet. Texts start once its number's text messaging is approved. Until then, alerts come by email and in the app."
-fr = "Cette entreprise ne peut pas encore envoyer de textos. Les textos commenceront dès que la messagerie texte de son numéro sera approuvée. D'ici là, les alertes vous parviennent par courriel et dans l'application."
+fr = "Cette entreprise ne peut pas encore envoyer de textos. L'envoi de textos commencera dès que la messagerie texte de son numéro sera approuvée. D'ici là, les alertes vous parviendront par courriel et dans l'application."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -941,7 +941,7 @@ note = "The sentence for the server's error code `messaging_app_sms_refused`, ve
 
 [api_error.messaging_apps_managed]
 en = "Messaging apps cannot be connected on the platform's Sinch account. Connect your own Sinch account to add WhatsApp, Messenger or RCS."
-fr = "Les applications de messagerie ne peuvent pas être connectées sur le compte Sinch de la plateforme. Connectez votre propre compte Sinch pour ajouter WhatsApp, Messenger ou RCS."
+fr = "Les applications de messagerie ne peuvent pas être connectées au moyen du compte Sinch de la plateforme. Connectez votre propre compte Sinch pour ajouter WhatsApp, Messenger ou RCS."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -1517,7 +1517,7 @@ note = "The sentence for the server's error code `transfer_emergency_acknowledge
 
 [api_error.transfer_incomplete]
 en = "Some details or documents for this transfer are still missing. Complete every step, then try again."
-fr = "Il manque encore des renseignements ou des documents pour ce transfert. Remplissez chaque étape, puis réessayez."
+fr = "Il manque encore des renseignements ou des documents pour ce transfert. Terminez chaque étape, puis réessayez."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -1878,7 +1878,7 @@ note = "The sentence for the server's error code `website_unreadable`, verbatim 
 
 [api_error.whatsapp_template_invalid]
 en = "That WhatsApp template cannot be sent. It is not approved for this number, or its variables do not match it."
-fr = "Ce modèle WhatsApp ne peut pas être envoyé. Il n'est pas approuvé pour ce numéro, ou ses variables ne lui correspondent pas."
+fr = "Ce modèle WhatsApp ne peut pas être envoyé. Il n'est pas approuvé pour ce numéro, ou ses variables ne correspondent pas à celles du modèle."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -1932,7 +1932,7 @@ note = "The sentence for the server's error code `workflow_conditions_not_allowe
 
 [api_error.workflow_draft_dry_run_stale]
 en = "Run a dry run of this version of the automation first, then publish it."
-fr = "Faites d'abord un essai à blanc de cette version de l'automatisation, puis publiez-la."
+fr = "Testez d'abord cette version de l'automatisation, puis publiez-la."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
@@ -1977,7 +1977,7 @@ note = "The sentence for the server's error code `workflow_sms_recipient_not_mem
 
 [api_error.workflow_voice_cap]
 en = "This workspace has reached the limit of automations built by voice. Build more in the workflow builder."
-fr = "Cet espace de travail a atteint la limite d'automatisations créées à la voix. Créez-en d'autres dans le générateur de flux de travail."
+fr = "Cet espace de travail a atteint la limite d'automatisations créées à la voix. Créez-en d'autres dans l'éditeur de flux de travail."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"

@@ -885,7 +885,7 @@
             "distronode-website/src/lib/district/workflows.ts"
           ],
           "en": "Not texted: the message came from an automated sender, such as a verification code",
-          "fr": "Texto non envoyé : le message venait d'un expéditeur automatisé, comme un code de vérification"
+          "fr": "Texto non envoyé : le message venait d'un expéditeur automatisé (un code de vérification, par exemple)"
         },
         {
           "value": "consent-check-failed",
@@ -1013,7 +1013,7 @@
             "distronode-website/src/lib/district/workflows.ts"
           ],
           "en": "Not texted: this number answered automatically several times in a row, so texts to it are paused for an hour",
-          "fr": "Texto non envoyé : ce numéro a répondu automatiquement plusieurs fois de suite, les textos vers lui sont donc suspendus pendant une heure"
+          "fr": "Texto non envoyé : ce numéro a répondu automatiquement plusieurs fois de suite, les textos à ce numéro sont donc suspendus pendant une heure"
         },
         {
           "value": "missing-webhook-url",

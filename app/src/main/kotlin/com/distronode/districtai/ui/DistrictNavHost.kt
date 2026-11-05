@@ -454,6 +454,7 @@ fun DistrictNavHost(
                         },
                         onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
+                        onOpenLiveCalls = { navController.navigate(Routes.liveCalls(workspaceId, role)) },
                     )
                 }
 
@@ -1001,6 +1002,7 @@ fun DistrictNavHost(
                 roomsLobbyDestination(container, navController, sessionEpoch)
                 activeRoomDestination(container, navController, context)
                 dialerDestination(container, navController, sessionEpoch)
+                liveCallsDestination(container, navController, sessionEpoch, onSignIn)
 
                 // ⛔ EXTRACTED FOR THE SAME COMPLEXITY REASON AS THE THREE ABOVE, AND THEN OUT OF
                 // THIS FILE ENTIRELY — it lives in `ui/scheduling/SchedulingDestination.kt`. This
@@ -2446,6 +2448,12 @@ object Routes {
     const val DIALER = "workspace/{workspaceId}/dialer/{role}"
 
     /**
+     * Live calls: listen, whisper and take over. ⚠️ NOT under `calls/`, where `live-calls` would
+     * read as a call id. The role is a path segment and fails CLOSED to listen-only.
+     */
+    const val LIVE_CALLS = "workspace/{workspaceId}/live-calls/{role}"
+
+    /**
      * The automation monitor.
      *
      * ⛔ A TOP-LEVEL WORKSPACE DESTINATION RATHER THAN A `settings/{role}/...` SECTION, AND THE
@@ -2672,6 +2680,11 @@ object Routes {
     /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
     fun dialer(workspaceId: String, role: WorkspaceRole?) =
         "workspace/${Uri.encode(workspaceId)}/dialer/" +
+            Uri.encode(role?.name?.lowercase() ?: "none")
+
+    /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
+    fun liveCalls(workspaceId: String, role: WorkspaceRole?) =
+        "workspace/${Uri.encode(workspaceId)}/live-calls/" +
             Uri.encode(role?.name?.lowercase() ?: "none")
 
     /**

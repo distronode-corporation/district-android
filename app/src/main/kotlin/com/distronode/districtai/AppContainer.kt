@@ -38,6 +38,7 @@ import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.ui.scheduling.admin.reportUnknownSchedulingOp
 import com.distronode.districtai.core.data.SetupRepository
 import com.distronode.districtai.core.data.SupportRepository
+import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.handoff.DashboardHandOff
 import com.distronode.districtai.handoff.HandOffCallbacks
 import com.distronode.districtai.handoff.LogcatHandOffLog
@@ -81,6 +82,7 @@ import com.distronode.districtai.core.network.HttpInboxExtrasApi
 import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSupportApi
+import com.distronode.districtai.core.network.HttpSuperviseApi
 import com.distronode.districtai.core.network.HttpContactBlockingApi
 import com.distronode.districtai.core.data.ContactBlockingRepository
 import com.distronode.districtai.core.data.ConversationAssignmentRepository
@@ -418,6 +420,12 @@ class AppContainer(
     val messageSearchRepository: MessageSearchRepository = MessageSearchRepository(inboxExtrasApi)
 
     val callControlRepository: CallControlRepository = CallControlRepository(callControlApi)
+
+    /**
+     * Live supervise. ⛔ Its three actions are never retried; see [SuperviseRepository].
+     */
+    val superviseRepository: SuperviseRepository =
+        SuperviseRepository(seams.superviseApi ?: HttpSuperviseApi(apiClient))
 
     /**
      * The knowledge base.

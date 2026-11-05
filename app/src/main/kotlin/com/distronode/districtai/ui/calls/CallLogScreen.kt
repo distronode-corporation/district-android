@@ -25,7 +25,9 @@ import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
 import com.distronode.districtai.core.designsystem.DistrictScaffold
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictTopBar
+import com.distronode.districtai.core.designsystem.DistrictTopBarAction
 import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.ui.FailureState
@@ -56,6 +58,7 @@ fun CallLogScreen(
     onOpenCall: (String) -> Unit,
     onSignIn: () -> Unit,
     onBack: () -> Unit,
+    onOpenLiveCalls: (() -> Unit)? = null,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(CALL_LOG_ROOT_DESCRIPTION),
@@ -63,6 +66,17 @@ fun CallLogScreen(
             DistrictTopBar(
                 title = stringResource(R.string.call_log_title),
                 onBack = onBack,
+                // ⚠️ Live calls: the calls in progress, to listen to, whisper into or take over.
+                actions = onOpenLiveCalls?.let { open ->
+                    {
+                        DistrictTopBarAction(
+                            icon = DistrictIcons.Call,
+                            label = stringResource(R.string.live_calls_title),
+                            onClick = open,
+                            modifier = Modifier.testTag(CALL_LOG_LIVE_CALLS_TAG),
+                        )
+                    }
+                },
             )
         },
     ) { inset ->
@@ -222,6 +236,7 @@ private val FALLBACK_MESSAGE = UiText.Resource(R.string.call_log_failed)
 
 /** Stable handles for tests; a literal duplicated in a test drifts silently. */
 const val CALL_LOG_ROOT_DESCRIPTION: String = "district-call-log-root"
+const val CALL_LOG_LIVE_CALLS_TAG: String = "district-call-log-live-calls"
 const val CALL_LOG_LOADING_DESCRIPTION: String = "district-call-log-loading"
 const val CALL_LOG_EMPTY_DESCRIPTION: String = "district-call-log-empty"
 const val CALL_LOG_FAILURE_DESCRIPTION: String = "district-call-log-failure"

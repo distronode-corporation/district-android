@@ -128,7 +128,9 @@ class EnumerationLabelsTest {
         composeRule.onNodeWithText(
             str(R.string.wire_workflow_action_reason_unknown, "contact has no email address"),
         ).assertExists()
-        composeRule.onNodeWithText(str(R.string.wire_workflow_action_reason_unknown, "brand-new-code: detail")).assertExists()
+        composeRule.onNodeWithText(
+            str(R.string.wire_workflow_action_reason_unknown, "brand-new-code: detail"),
+        ).assertExists()
     }
 
     @Test

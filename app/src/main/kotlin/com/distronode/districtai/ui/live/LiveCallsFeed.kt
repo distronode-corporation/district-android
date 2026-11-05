@@ -14,8 +14,11 @@ sealed interface LiveFeedEvent {
     /** The socket opened (again): events may have been missed, so the list is read again. */
     data object Opened : LiveFeedEvent
 
-    /** A call of this workspace started or ended. */
+    /** A call of this workspace started or changed: the list is read again. */
     data object CallsChanged : LiveFeedEvent
+
+    /** The call [callId] ended. */
+    data class CallEnded(val callId: String) : LiveFeedEvent
 
     /** The receptionist's receipt for a whisper on [callId]. */
     data class Receipt(val callId: String, val data: WhisperAppliedData) : LiveFeedEvent
@@ -24,8 +27,8 @@ sealed interface LiveFeedEvent {
 /**
  * The workspace's telemetry socket, for the Live calls screen (the web Live page's own socket).
  *
- * ⛔ BROADCAST MODE, UNLIKE THE CALL DETAIL'S TRANSCRIPT SOCKET. `whisper_applied`, `call_started`
- * and `call_ended` are workspace RELAY events, which a socket that sent `broadcast: false` never
+ * ⛔ BROADCAST MODE, UNLIKE THE CALL DETAIL'S TRANSCRIPT SOCKET. `whisper_applied`, `call_started`,
+ * `call_updated` and `call_ended` are workspace RELAY events, which a socket that sent `broadcast: false` never
  * receives; this screen exists to watch them.
  *
  * ⛔ IT RUNS ONLY WHILE THE SCREEN IS STARTED ([start] and [stop] follow the destination's
@@ -74,7 +77,8 @@ class LiveCallsFeed(
     private fun relay(message: TelemetryMessage) {
         when (message) {
             is TelemetryMessage.WhisperApplied -> onEvent(LiveFeedEvent.Receipt(message.callId, message.data))
-            is TelemetryMessage.CallChanged -> onEvent(LiveFeedEvent.CallsChanged)
+            is TelemetryMessage.CallChanged ->
+                onEvent(if (message.ended) LiveFeedEvent.CallEnded(message.callId) else LiveFeedEvent.CallsChanged)
             else -> Unit
         }
     }

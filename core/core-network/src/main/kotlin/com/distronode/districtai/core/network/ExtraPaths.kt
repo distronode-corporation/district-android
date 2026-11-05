@@ -84,9 +84,6 @@ internal object ExtraPaths {
      */
     fun callHangUp(callId: String): List<String> = DistrictPaths.CALLS + callId + "hangup"
 
-    /** `api/district/calls/active`: GET, the Live calls list. ⚠️ A literal word where an id could sit. */
-    val CALLS_ACTIVE: List<String> = DistrictPaths.CALLS + "active"
-
     /** `api/district/calls/whisper`: POST. ⛔ The call id is in the body; there is no per-call path. */
     val CALLS_WHISPER: List<String> = DistrictPaths.CALLS + "whisper"
 

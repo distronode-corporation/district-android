@@ -93,26 +93,6 @@ class SuperviseRequestTest {
     }
 
     @Test
-    fun `the live calls are a GET scoped by query, read leniently`() = runTest {
-        server.enqueue(
-            MockResponse(
-                code = 200,
-                body = """{"success":true,"calls":[{"id":"cm1call","from":"+15550100","status":"in-progress",""" +
-                    """"roomName":"direct_ws-1-CA01","createdAt":"2026-11-05T14:00:00.000Z","duration":12}]}""",
-            ),
-        )
-
-        val result = api().activeCalls("ws-1")
-
-        val row = (result as ApiResult.Success).value.calls.single()
-        assertTrue(row.isTeamMemberCall)
-        val recorded = server.takeRequest()
-        assertEquals("GET", recorded.method)
-        assertEquals("/api/district/calls/active", recorded.url.encodedPath)
-        assertEquals("workspaceId=ws-1", recorded.url.encodedQuery)
-    }
-
-    @Test
     fun `a server error on any of the three is returned once, from one request`() = runTest {
         val actions: List<suspend () -> ApiResult<*>> = listOf(
             { api().monitorCall("cm1call") },
@@ -129,7 +109,7 @@ class SuperviseRequestTest {
             assertEquals("action $index must send exactly one request", 2 * index + 1, server.requestCount)
             // Drain the unused 200 so the next action starts from a clean queue.
             server.takeRequest()
-            api().activeCalls("ws-1")
+            api().monitorCall("cm1call")
             server.takeRequest()
         }
     }
@@ -150,8 +130,8 @@ class SuperviseRequestTest {
 
             assertTrue("action $index must fail, not retry into the 200: $result", result is ApiResult.NetworkFailure)
             assertEquals("action $index must send exactly one request", before + 1, server.requestCount)
-            // Spend the queued 200 on a read so the next action meets its own failure first.
-            api().activeCalls("ws-1")
+            // Spend the queued 200 so the next action meets its own failure first.
+            api().monitorCall("cm1call")
         }
     }
 

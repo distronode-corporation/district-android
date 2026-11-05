@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.live
 
+import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.model.WhisperAppliedData
@@ -11,6 +12,9 @@ import com.distronode.districtai.core.network.testing.FakeTransport
 import com.distronode.districtai.core.network.testing.MainDispatcherRule
 import com.distronode.districtai.core.network.testing.VirtualClock
 import com.distronode.districtai.ui.rooms.FakeCallEngine
+import com.distronode.districtai.core.network.ApiResult
+import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -41,6 +45,7 @@ class LiveCallsFeedTest {
     val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val api = FakeSuperviseApi()
+    private val log = LiveCallsLog()
     private val transport = FakeTransport()
     private val engineScope = CoroutineScope(SupervisorJob() + dispatcher)
 
@@ -52,7 +57,7 @@ class LiveCallsFeedTest {
     private fun TestScope.viewModel(): LiveCallsViewModel {
         val dependencies = LiveDependencies(FakeTelemetryApi(), transport, VirtualClock(this), jitter = { 0.0 })
         return LiveCallsViewModel(
-            SuperviseRepository(api),
+            LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
             WORKSPACE,
             canWrite = true,
             engineFactory = CallEngineFactory { FakeCallEngine() },
@@ -70,7 +75,7 @@ class LiveCallsFeedTest {
     fun `the socket opens in broadcast mode and reads the list again on open`() = runTest(dispatcher) {
         val socket = transport.socket()
         val vm = viewModel()
-        assertEquals(1, api.activeReads.size)
+        assertEquals(1, log.reads)
 
         vm.onScreenStarted(true)
         vm.onScreenStarted(true)
@@ -79,7 +84,7 @@ class LiveCallsFeedTest {
         assertEquals("one socket, however often the screen starts", 1, transport.connects.size)
         // ⛔ No socket.mode: broadcast is the default, and the relay events are the point.
         assertTrue(socket.sent.isEmpty())
-        assertEquals(2, api.activeReads.size)
+        assertEquals(2, log.reads)
 
         vm.onScreenStarted(false)
         vm.onScreenStarted(false)
@@ -88,24 +93,79 @@ class LiveCallsFeedTest {
     }
 
     @Test
-    fun `a call starting or ending reads the list again, and an update does not`() = runTest(dispatcher) {
+    fun `a call starting or changing reads the list again, and other events do not`() = runTest(dispatcher) {
         val socket = transport.socket()
         val vm = viewModel()
         vm.onScreenStarted(true)
         runCurrent()
-        val before = api.activeReads.size
+        val before = log.reads
 
-        socket.frames.send(frame("call_updated", "{}"))
+        socket.frames.send(frame("message_received", "{}"))
         socket.frames.send(frame("transcript_ended", "{}"))
         runCurrent()
-        assertEquals(before, api.activeReads.size)
+        assertEquals(before, log.reads)
 
         socket.frames.send(frame("call_started", """{"from":"+15550100"}"""))
         runCurrent()
+        socket.frames.send(frame("call_updated", """{"status":"in-progress"}"""))
+        runCurrent()
+        assertEquals(before + 2, log.reads)
+
+        vm.onScreenStarted(false)
+        runCurrent()
+    }
+
+    @Test
+    fun `a call ending drops its row at once, without a read`() = runTest(dispatcher) {
+        val socket = transport.socket()
+        val vm = viewModel()
+        vm.onScreenStarted(true)
+        runCurrent()
+        val before = log.reads
+
+        socket.frames.send(frame("call_ended", """{"status":"completed"}"""))
+        runCurrent()
+
+        assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.TEAM_CALL)), vm.list.value)
+        assertEquals(before, log.reads)
+        vm.onScreenStarted(false)
+        runCurrent()
+    }
+
+    @Test
+    fun `a read older than a call's end does not bring the call back`() = runTest(dispatcher) {
+        val socket = transport.socket()
+        val vm = viewModel()
+        vm.onScreenStarted(true)
+        runCurrent()
+        val gate = CompletableDeferred<Unit>()
+        log.gate = gate
+        vm.refresh()
+        runCurrent()
+
         socket.frames.send(frame("call_ended", "{}"))
         runCurrent()
-        assertEquals(before + 2, api.activeReads.size)
+        log.gate = null
+        gate.complete(Unit)
+        runCurrent()
 
+        assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.TEAM_CALL)), vm.list.value)
+        vm.onScreenStarted(false)
+        runCurrent()
+    }
+
+    @Test
+    fun `a call ending while the list could not be read changes nothing`() = runTest(dispatcher) {
+        log.callsResult = ApiResult.NetworkFailure(IOException("offline"))
+        val socket = transport.socket()
+        val vm = viewModel()
+        vm.onScreenStarted(true)
+        runCurrent()
+
+        socket.frames.send(frame("call_ended", "{}"))
+        runCurrent()
+
+        assertTrue(vm.list.value is LiveCallList.Failed)
         vm.onScreenStarted(false)
         runCurrent()
     }
@@ -155,7 +215,7 @@ class LiveCallsFeedTest {
         val vm = viewModel()
         vm.onScreenStarted(true)
         runCurrent()
-        val before = api.activeReads.size
+        val before = log.reads
 
         first.frames.send(TelemetrySocketFrame.Closed(1001, "restart"))
         runCurrent()
@@ -163,7 +223,7 @@ class LiveCallsFeedTest {
         runCurrent()
 
         assertEquals(2, transport.connects.size)
-        assertEquals(before + 1, api.activeReads.size)
+        assertEquals(before + 1, log.reads)
         vm.onScreenStarted(false)
         runCurrent()
     }

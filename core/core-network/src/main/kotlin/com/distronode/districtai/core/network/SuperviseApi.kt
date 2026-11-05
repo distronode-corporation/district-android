@@ -1,6 +1,5 @@
 package com.distronode.districtai.core.network
 
-import com.distronode.districtai.core.model.ActiveCallsResponse
 import com.distronode.districtai.core.model.CallMonitorTokenRequest
 import com.distronode.districtai.core.model.CallMonitorTokenResponse
 import com.distronode.districtai.core.model.CallTakeoverRequest
@@ -9,7 +8,9 @@ import com.distronode.districtai.core.model.CallWhisperRequest
 import com.distronode.districtai.core.model.CallWhisperResponse
 
 /**
- * Live supervise: the calls in progress, and listening to, whispering into and taking over one.
+ * Live supervise: listening to, whispering into and taking over one live call. The Live calls
+ * list itself is the call log (`calls`), filtered on the live statuses: `calls/active` answers whole
+ * database rows with no contract, so this client does not read it.
  *
  * ⛔ THE THREE ACTIONS ARE NEVER RETRIED, BY ANYTHING. Not here, not by a repository and not by the
  * transport: `DistrictHttp` builds the client with `retryOnConnectionFailure(false)`, and nothing
@@ -26,14 +27,6 @@ import com.distronode.districtai.core.model.CallWhisperResponse
  * ⚠️ A SIBLING INTERFACE, NOT A SECTION OF [DistrictApi], for the merge reason [ExtraPaths] gives.
  */
 interface SuperviseApi {
-
-    /**
-     * The workspace's calls in progress. Admits `viewer`.
-     *
-     * ⚠️ A row carries its room name, which is the only way to tell a team member's own softphone
-     * call (`direct_`, no receptionist on it) from a live AI call.
-     */
-    suspend fun activeCalls(workspaceId: String): ApiResult<ActiveCallsResponse>
 
     /**
      * The listen-only credential for live call [callId] (`POST calls/token`).
@@ -65,13 +58,6 @@ interface SuperviseApi {
 
 /** [SuperviseApi] over [DistrictApiClient]. ⛔ One request per call, and no retry: see the interface. */
 class HttpSuperviseApi(private val client: DistrictApiClient) : SuperviseApi {
-
-    override suspend fun activeCalls(workspaceId: String): ApiResult<ActiveCallsResponse> =
-        client.get(
-            segments = ExtraPaths.CALLS_ACTIVE,
-            serializer = ActiveCallsResponse.serializer(),
-            query = workspaceQuery(workspaceId),
-        )
 
     override suspend fun monitorCall(callId: String): ApiResult<CallMonitorTokenResponse> =
         client.send(
@@ -107,9 +93,9 @@ class HttpSuperviseApi(private val client: DistrictApiClient) : SuperviseApi {
 
     private companion object {
         /**
-         * The route requires an `identity` and ignores it: the participant identity is derived from
-         * the session, so the same person joining again replaces themselves. A constant, never a
-         * random value, because nothing reads it.
+         * ⚠️ THE SERVER IGNORES THIS. `calls/token` derives a stable participant identity from the
+         * session (route.ts:167-194), so the same person joining again replaces themselves; the body
+         * value only has to be a non-empty string, which the route still requires.
          */
         const val SUPERVISOR_IDENTITY = "supervisor-android"
     }

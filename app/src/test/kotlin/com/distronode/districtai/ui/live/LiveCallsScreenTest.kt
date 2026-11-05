@@ -16,7 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.TOP_BAR_BACK_DESCRIPTION
-import com.distronode.districtai.core.model.ActiveCall
+import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.model.WhisperAppliedData
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
 import com.distronode.districtai.str
@@ -61,7 +61,7 @@ class LiveCallsScreenTest {
     )
 
     private fun view(
-        calls: List<ActiveCall> = listOf(ai, team),
+        calls: List<CallSummary> = listOf(ai, team),
         supervision: LiveSupervisor.State = LiveSupervisor.State(),
         whispers: Map<String, WhisperBox> = emptyMap(),
         prompt: LiveCallsPrompt = LiveCallsPrompt(),
@@ -121,10 +121,10 @@ class LiveCallsScreenTest {
 
         composeRule.onNodeWithTag(liveCallTag(ai.id)).assertExists()
         composeRule.onNodeWithText("Dana Smith").assertExists()
-        composeRule.onNodeWithText(ai.from!!).assertExists()
-        // A team member's outbound call names the callee.
-        composeRule.onNodeWithText(team.to!!).assertExists()
-        composeRule.onNodeWithTag(LIVE_CALLS_TEAM_BADGE_TAG).assertExists()
+        composeRule.onNodeWithText(team.number).assertExists()
+        // Only the call the receptionist is not on says so.
+        composeRule.onNodeWithTag(LIVE_CALLS_NO_RECEPTIONIST_TAG).assertExists()
+        composeRule.onNodeWithText(str(R.string.live_calls_no_receptionist)).assertExists()
         assertAbsent(LIVE_CALLS_WHISPER_FIELD_TAG)
         assertAbsent(LIVE_CALLS_TAKE_OVER_TAG)
         assertAbsent(LIVE_CALLS_STATE_TAG)
@@ -132,7 +132,9 @@ class LiveCallsScreenTest {
 
     @Test
     fun `a call with no number reads as an unknown caller`() {
-        render(view(calls = listOf(ActiveCall(id = "cmnobody"), ActiveCall(id = "cmblank", callerName = " "))))
+        render(
+            view(calls = listOf(ai.copy(id = "cmnobody", number = "Unknown"), ai.copy(id = "cmblank", number = " ")))
+        )
 
         composeRule.onNodeWithTag(liveCallTag("cmnobody")).assertExists()
         assertEquals(
@@ -172,10 +174,10 @@ class LiveCallsScreenTest {
     }
 
     @Test
-    fun `a team member's call offers listen only, and says why`() {
+    fun `a call the receptionist is not on offers listen only, and says why`() {
         render(view(calls = listOf(team), supervision = listening(team.id)))
 
-        composeRule.onNodeWithTag(LIVE_CALLS_TEAM_NOTE_TAG).assertExists()
+        composeRule.onNodeWithTag(LIVE_CALLS_NO_RECEPTIONIST_NOTE_TAG).assertExists()
         assertAbsent(LIVE_CALLS_WHISPER_FIELD_TAG)
         assertAbsent(LIVE_CALLS_TAKE_OVER_TAG)
         composeRule.onNodeWithTag(LIVE_CALLS_LEAVE_TAG).assertExists()
@@ -188,7 +190,7 @@ class LiveCallsScreenTest {
         composeRule.onNodeWithTag(LIVE_CALLS_STATE_TAG).assertExists()
         assertAbsent(LIVE_CALLS_WHISPER_FIELD_TAG)
         assertAbsent(LIVE_CALLS_TAKE_OVER_TAG)
-        assertAbsent(LIVE_CALLS_TEAM_NOTE_TAG)
+        assertAbsent(LIVE_CALLS_NO_RECEPTIONIST_NOTE_TAG)
     }
 
     @Test

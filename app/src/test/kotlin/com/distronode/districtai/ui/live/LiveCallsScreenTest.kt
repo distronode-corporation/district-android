@@ -98,10 +98,30 @@ class LiveCallsScreenTest {
     }
 
     @Test
+    fun `a failed refresh keeps the cards and shows why above them`() {
+        val failure = FailureText(UiText.Resource(R.string.failure_offline))
+        render(
+            LiveCallsView(
+                LiveCallList.Loaded(listOf(ai), refreshFailure = failure),
+                listening(),
+                emptyMap(),
+                LiveCallsPrompt(),
+                canWrite = true,
+            ),
+        )
+
+        composeRule.onNodeWithTag(LIVE_CALLS_REFRESH_FAILURE_TAG).assertExists()
+        composeRule.onNodeWithText(str(R.string.failure_offline)).assertExists()
+        assertAbsent(LIVE_CALLS_FAILURE_TAG)
+        composeRule.onNodeWithTag(LIVE_CALLS_LEAVE_TAG).assertExists()
+    }
+
+    @Test
     fun `no calls says so, under the subtitle`() {
         render(view(calls = emptyList()))
 
         composeRule.onNodeWithTag(LIVE_CALLS_EMPTY_TAG).assertExists()
+        assertAbsent(LIVE_CALLS_REFRESH_FAILURE_TAG)
         composeRule.onNodeWithText(str(R.string.live_calls_subtitle)).assertExists()
     }
 

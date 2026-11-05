@@ -46,6 +46,7 @@ class LiveCallsFeedTest {
 
     private val api = FakeSuperviseApi()
     private val log = LiveCallsLog()
+    private val engines = mutableListOf<FakeCallEngine>()
     private val transport = FakeTransport()
     private val engineScope = CoroutineScope(SupervisorJob() + dispatcher)
 
@@ -60,7 +61,7 @@ class LiveCallsFeedTest {
             LiveCallsSources(SuperviseRepository(api), CallsRepository(log)),
             WORKSPACE,
             canWrite = true,
-            engineFactory = CallEngineFactory { FakeCallEngine() },
+            engineFactory = CallEngineFactory { FakeCallEngine().also { engines += it } },
             feed = { scope, onEvent -> LiveCallsFeed(WORKSPACE, dependencies, scope, onEvent) },
             engineScope = engineScope,
         ).also { runCurrent() }
@@ -128,6 +129,49 @@ class LiveCallsFeedTest {
 
         assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.TEAM_CALL)), vm.list.value)
         assertEquals(before, log.reads)
+        vm.onScreenStarted(false)
+        runCurrent()
+    }
+
+    @Test
+    fun `the supervised call ending leaves its session, and another call ending does not`() = runTest(dispatcher) {
+        val socket = transport.socket()
+        val vm = viewModel()
+        vm.onScreenStarted(true)
+        runCurrent()
+        vm.listen(FakeSuperviseApi.AI_CALL.id)
+        runCurrent()
+
+        socket.frames.send(frame("call_ended", "{}", callId = FakeSuperviseApi.TEAM_CALL.id))
+        runCurrent()
+        assertEquals(LiveSupervisor.Phase.CONNECTED, vm.supervision.value.phase)
+
+        socket.frames.send(frame("call_ended", "{}"))
+        runCurrent()
+        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+        assertEquals("disconnect", engines.single().calls.last())
+        assertEquals(LiveCallList.Loaded(emptyList()), vm.list.value)
+
+        vm.onScreenStarted(false)
+        runCurrent()
+    }
+
+    @Test
+    fun `a call ending keeps the refresh notice on screen`() = runTest(dispatcher) {
+        val socket = transport.socket()
+        val vm = viewModel()
+        vm.onScreenStarted(true)
+        runCurrent()
+        log.callsResult = ApiResult.NetworkFailure(IOException("offline"))
+        vm.refresh()
+        runCurrent()
+
+        socket.frames.send(frame("call_ended", "{}"))
+        runCurrent()
+
+        val list = vm.list.value as LiveCallList.Loaded
+        assertEquals(listOf(FakeSuperviseApi.TEAM_CALL), list.calls)
+        assertTrue(list.refreshFailure != null)
         vm.onScreenStarted(false)
         runCurrent()
     }

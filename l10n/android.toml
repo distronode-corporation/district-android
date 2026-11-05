@@ -3341,6 +3341,26 @@ tier = "T3"
 state = "reviewed"
 note = "The chip on a conversation that has email in it. English is the word, not the value upper-cased: \"EMAIL\" beside \"SMS\" read as a second acronym, and French reads « Courriel » (visual QA AA20). \"SMS\" stays in capitals, an acronym in both languages."
 
+[inbox.channel_instagram]
+en = "Instagram"
+fr = "Instagram"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+same_ok = true
+note = "The chip on a conversation that has Instagram messages in it, and the reply channel choice. The product name in both languages, as the web Inbox shows it (inboxI18n.ts channelMeta.instagram)."
+
+[inbox.channel_messenger]
+en = "Messenger"
+fr = "Messenger"
+ctx = "label"
+screen = "inbox"
+tier = "T3"
+state = "reviewed"
+same_ok = true
+note = "The chip on a conversation that has Messenger messages in it, and the reply channel choice. The product name in both languages, as the web Inbox shows it (inboxI18n.ts channelMeta.messenger)."
+
 [inbox.channel_sms]
 en = "SMS"
 fr = "SMS"
@@ -7874,6 +7894,15 @@ args = { count = "int" }
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist."
 
+[thread.attachments_sms_only]
+en = "Attachments can only go by text message. Remove them to send on this channel."
+fr = "Les pièces jointes ne peuvent partir que par texto. Retirez-les pour envoyer sur ce canal."
+ctx = "body"
+screen = "message thread"
+tier = "T3"
+state = "draft"
+note = "Shown when images are attached and the chosen reply channel is not SMS; Send waits until they are removed. Wording shared with core-rust (thread.attachments_sms_only), awaiting sign-off."
+
 [thread.call]
 en = "Call"
 fr = "Appeler"
@@ -7965,6 +7994,15 @@ tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ⚠️ A distinct label rather than a spinner, matching Sending…/Attaching…: the control is disabled while the page is in flight, so the button has to say why it cannot be tapped."
 
+[thread.reply_channel]
+en = "Reply channel"
+fr = "Canal de réponse"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Above the channel chips when a reply can go on more than one channel. Web French reused verbatim (inboxI18n.ts channelLabel)."
+
 [thread.reply_label]
 en = "Reply"
 fr = "Réponse"
@@ -7991,6 +8029,109 @@ screen = "message thread"
 tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ⚠️ A distinct label rather than a spinner: the send control is DISABLED while in flight because each send is billable, so the button has to explain why it cannot be tapped."
+
+[thread.whatsapp_template_label]
+en = "Template"
+fr = "Modèle de message"
+ctx = "button"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Opens the WhatsApp template sheet, and titles it. Web French reused verbatim (inboxI18n.ts whatsAppTemplateLabel)."
+
+[thread.whatsapp_template_option]
+en = "{name} ({language})"
+fr = "{name} ({language})"
+ctx = "format"
+screen = "message thread"
+tier = "T3"
+args = { name = "str", language = "str" }
+state = "reviewed"
+same_ok = true
+note = "One template in the sheet: its Meta name and language code, printed as they are. Web French reused verbatim (inboxI18n.ts whatsAppTemplateOption)."
+
+[thread.whatsapp_template_placeholder]
+en = "Choose an approved template"
+fr = "Choisir un modèle approuvé"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Above the list of templates in the sheet. Web French reused verbatim (inboxI18n.ts whatsAppTemplatePlaceholder)."
+
+[thread.whatsapp_template_preview]
+en = "Preview"
+fr = "Aperçu"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Above the template text as the customer will read it. Web French reused verbatim (inboxI18n.ts whatsAppTemplatePreview)."
+
+[thread.whatsapp_template_send]
+en = "Send template"
+fr = "Envoyer le modèle"
+ctx = "button"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Sends the chosen WhatsApp template. Billable, single-flight. Web French reused verbatim (inboxI18n.ts whatsAppTemplateSend)."
+
+[thread.whatsapp_template_variable]
+en = "Variable {placeholder}"
+fr = "Variable {placeholder}"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+args = { placeholder = "str" }
+state = "reviewed"
+same_ok = true
+note = "The field for one template variable; the placeholder is its literal {{n}}. Web French reused verbatim (inboxI18n.ts whatsAppTemplateVariable)."
+
+[thread.whatsapp_template_variable_required]
+en = "Fill in this variable"
+fr = "Remplissez cette variable"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Under an empty template variable; Send template waits until each one is filled. Web French reused verbatim (inboxI18n.ts whatsAppTemplateVariableRequired)."
+
+[thread.whatsapp_templates_failed]
+en = "The templates could not be loaded. Try again in a moment."
+fr = "Les modèles n'ont pas pu être chargés. Réessayez dans un instant."
+ctx = "body"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "The template read failed. Web French reused verbatim (inboxI18n.ts whatsAppTemplatesFailed)."
+
+[thread.whatsapp_templates_loading]
+en = "Loading templates"
+fr = "Chargement des modèles"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "While the sender's templates are read. Web French reused verbatim (inboxI18n.ts whatsAppTemplatesLoading)."
+
+[thread.whatsapp_templates_none]
+en = "No approved template for this number yet. Refresh the templates in Messaging settings."
+fr = "Aucun modèle approuvé pour ce numéro pour l'instant. Actualisez les modèles dans les paramètres de messagerie."
+ctx = "body"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "The closed window's sender has no sendable template. Web French reused verbatim (inboxI18n.ts whatsAppTemplatesNone)."
+
+[thread.whatsapp_window_closed]
+en = "Window closed: WhatsApp only allows a template now"
+fr = "Fenêtre fermée\u00A0: WhatsApp n'accepte maintenant qu'un modèle de message"
+ctx = "body"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "WhatsApp's 24-hour customer-service window has closed, so free text and the AI draft are off. Web French reused verbatim (inboxI18n.ts whatsAppWindowClosed)."
 
 [top_bar.back]
 en = "Back"

@@ -6,8 +6,9 @@ package com.distronode.districtai.core.network
  * ⛔ WHY THIS FILE EXISTS AT ALL, BECAUSE IT IS A PROCESS DECISION AND NOT AN ARCHITECTURAL ONE.
  * `DistrictApi.kt` / `HttpDistrictApi.kt` are one 85-method interface and its delegating
  * implementation, and they are the guaranteed conflict when several people add endpoints at once.
- * The five small interfaces beside this file ([PersonaApi], [CallHandlingApi], [InboxExtrasApi],
- * [CallControlApi], [ContactBlockingApi]) are therefore separate rather than sections of that one. ⚠️ If this repo ever
+ * The small interfaces beside this file ([PersonaApi], [CallHandlingApi], [InboxExtrasApi],
+ * [CallControlApi], [ContactBlockingApi], [WhatsAppApi]) are therefore
+ * separate rather than sections of that one. ⚠️ If this repo ever
  * stops having concurrent editors, folding them in is a mechanical move — each is already shaped
  * like a section of it.
  *
@@ -88,6 +89,12 @@ internal object ExtraPaths {
 
     /** `api/district/contacts/blocked`: GET, everyone blocked. */
     val CONTACTS_BLOCKED: List<String> = DistrictPaths.CONTACTS + "blocked"
+
+    /** `api/district/workspace/whatsapp/window`: GET, whether free text may go to one number now. */
+    val WORKSPACE_WHATSAPP_WINDOW: List<String> = WORKSPACE + "whatsapp" + "window"
+
+    /** `api/district/workspace/whatsapp/templates`: GET, one sender's message templates. */
+    val WORKSPACE_WHATSAPP_TEMPLATES: List<String> = WORKSPACE + "whatsapp" + "templates"
 
     /** `api/district/telemetry/token`, the live socket's credential. */
     val TELEMETRY_TOKEN: List<String> = ApiRoots.DISTRICT + "telemetry" + "token"

@@ -2,6 +2,7 @@ package com.distronode.districtai.core.data
 
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.PLATFORM_ANDROID
+import com.distronode.districtai.core.network.PUSH_CAPABILITIES
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.PushTokenRegisterRequest
 
@@ -57,7 +58,11 @@ class PushTokenRepository(private val api: PushApi) {
         // [PushTokenRegisterRequest] for the encoder setting that makes that true.
         return affirmed(
             api.registerPushToken(
-                PushTokenRegisterRequest(token = token, platform = PLATFORM_ANDROID),
+                PushTokenRegisterRequest(
+                    token = token,
+                    platform = PLATFORM_ANDROID,
+                    capabilities = PUSH_CAPABILITIES,
+                ),
             ),
         )
     }

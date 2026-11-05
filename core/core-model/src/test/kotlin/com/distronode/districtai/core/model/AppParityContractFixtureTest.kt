@@ -26,7 +26,7 @@ class AppParityContractFixtureTest {
 
         assertTrue("the fixture must carry threads", response.conversations.isNotEmpty())
         response.conversations.forEach {
-            assertTrue("${it.threadKey} must offer at least one reply channel", it.replyOptions.isNotEmpty())
+            assertTrue("${it.threadKey} must offer at least one reply channel", it.replyOptions.orEmpty().isNotEmpty())
         }
         val messenger = response.conversations.single { it.threadKey == "addr:fb:5550101" }
         assertEquals(listOf(ReplyOption(channel = "messenger", to = "fb:5550101")), messenger.replyOptions)
@@ -37,7 +37,7 @@ class AppParityContractFixtureTest {
         val response = WireMirror.assertMirrors(ConversationsResponse.serializer(), "district-conversations.json")
 
         response.conversations.forEach {
-            assertTrue(it.replyOptions.isEmpty())
+            assertNull("absent, which is not the same answer as []", it.replyOptions)
             assertNull(it.assigneeEmail)
             assertEquals(false, it.assignedToMe)
         }

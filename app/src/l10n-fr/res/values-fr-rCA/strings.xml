@@ -374,6 +374,8 @@
     <string name="hq_thinking">Réflexion…</string>
     <string name="hq_title">District HQ</string>
     <string name="inbox_channel_email">Courriel</string>
+    <string name="inbox_channel_instagram">Instagram</string>
+    <string name="inbox_channel_messenger">Messenger</string>
     <string name="inbox_channel_sms">SMS</string>
     <string name="inbox_channel_voicemail">Boîte vocale</string>
     <string name="inbox_channel_whatsapp">WhatsApp</string>
@@ -887,6 +889,7 @@
         <item quantity="many">%1$d pièces jointes</item>
         <item quantity="other">%1$d pièces jointes</item>
     </plurals>
+    <string name="thread_attachments_sms_only">Les pièces jointes ne peuvent partir que par texto. Retirez-les pour envoyer sur ce canal.</string>
     <string name="thread_call">Appeler</string>
     <string name="thread_call_event">Appel</string>
     <string name="thread_call_missed">Appel manqué</string>
@@ -897,9 +900,21 @@
     <string name="thread_image_loading">Chargement de l\'image</string>
     <string name="thread_load_older">Anciens messages</string>
     <string name="thread_load_older_loading">Chargement…</string>
+    <string name="thread_reply_channel">Canal de réponse</string>
     <string name="thread_reply_label">Réponse</string>
     <string name="thread_send">Envoyer</string>
     <string name="thread_sending">Envoi en cours…</string>
+    <string name="thread_whatsapp_template_label">Modèle de message</string>
+    <string name="thread_whatsapp_template_option">%1$s (%2$s)</string>
+    <string name="thread_whatsapp_template_placeholder">Choisir un modèle approuvé</string>
+    <string name="thread_whatsapp_template_preview">Aperçu</string>
+    <string name="thread_whatsapp_template_send">Envoyer le modèle</string>
+    <string name="thread_whatsapp_template_variable">Variable %1$s</string>
+    <string name="thread_whatsapp_template_variable_required">Remplissez cette variable</string>
+    <string name="thread_whatsapp_templates_failed">Les modèles n\'ont pas pu être chargés. Réessayez dans un instant.</string>
+    <string name="thread_whatsapp_templates_loading">Chargement des modèles</string>
+    <string name="thread_whatsapp_templates_none">Aucun modèle approuvé pour ce numéro pour l\'instant. Actualisez les modèles dans les paramètres de messagerie.</string>
+    <string name="thread_whatsapp_window_closed">Fenêtre fermée\u00A0: WhatsApp n\'accepte maintenant qu\'un modèle de message</string>
     <string name="top_bar_back">Retour</string>
     <string name="voice_studio_advanced_hide">Masquer</string>
     <string name="voice_studio_advanced_show">Afficher</string>

@@ -77,6 +77,8 @@ fun ThreadScreen(
     composer: ComposerHandlers,
     /** Report and Block; null for a role that may not write (the routes exclude `viewer`). */
     moderation: ThreadModeration? = null,
+    /** The channel picker and WhatsApp's window and templates; null draws the composer as before. */
+    channels: ReplyChannelHandlers? = null,
 ) {
     var confirmingBlock by rememberSaveable { mutableStateOf(false) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -97,7 +99,17 @@ fun ThreadScreen(
                 }
             }
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                ThreadBody(state, canReply, onSend, onRetry, onSignIn, onDismissSendFailure, onLoadOlder, composer)
+                ThreadBody(
+                    state = state,
+                    canReply = canReply,
+                    onSend = onSend,
+                    onRetry = onRetry,
+                    onSignIn = onSignIn,
+                    onDismissSendFailure = onDismissSendFailure,
+                    onLoadOlder = onLoadOlder,
+                    composer = composer,
+                    channels = channels,
+                )
             }
         }
     }
@@ -124,6 +136,7 @@ private fun ThreadBody(
     onDismissSendFailure: () -> Unit,
     onLoadOlder: () -> Unit,
     composer: ComposerHandlers,
+    channels: ReplyChannelHandlers?,
 ) {
     when (state) {
         ThreadUiState.Loading -> ThreadLoading()
@@ -134,7 +147,7 @@ private fun ThreadBody(
             description = THREAD_FAILURE_DESCRIPTION,
         )
         is ThreadUiState.Content ->
-            Loaded(state, canReply, onSend, onDismissSendFailure, onLoadOlder, composer)
+            Loaded(state, canReply, onSend, onDismissSendFailure, onLoadOlder, composer, channels)
     }
 }
 
@@ -167,6 +180,7 @@ data class ComposerHandlers(
 )
 
 @Composable
+@Suppress("LongParameterList")
 private fun Loaded(
     state: ThreadUiState.Content,
     canReply: Boolean,
@@ -174,6 +188,7 @@ private fun Loaded(
     onDismissSendFailure: () -> Unit,
     onLoadOlder: () -> Unit,
     composer: ComposerHandlers,
+    channels: ReplyChannelHandlers?,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (state.events.isEmpty()) {
@@ -234,8 +249,10 @@ private fun Loaded(
 
         // ⚠️ Offered only to a role the server would admit. `messages/send` excludes `viewer`.
         if (canReply) {
+            channels?.let { ReplyChannelPicker(it) }
             AttachmentChips(state.attachments, composer.onRemoveAttachment)
-            ReplyBox(state, onSend, composer)
+            ComposerNotices(state, channels)
+            ReplyBox(state, onSend, composer, channels?.state)
         }
     }
 }
@@ -344,7 +361,10 @@ private fun ReplyBox(
     state: ThreadUiState.Content,
     onSend: (String) -> Unit,
     composer: ComposerHandlers,
+    via: ReplyChannelState?,
 ) {
+    // ⛔ A closed WhatsApp window takes free text away; see [ComposerNotices] for the way forward.
+    val freeText = via?.allowsFreeText != false
     // ⛔ AT A LARGE FONT SCALE THE ACTIONS GO UNDER THE FIELD. Beside it, the three buttons took
     // their own width first and left the field a fifth of the row, its label broken "RÉP / ONS / E"
     // (visual QA AA1). Under it, the field keeps the full width.
@@ -354,7 +374,7 @@ private fun ReplyBox(
             value = composer.text,
             onValueChange = composer.onTextChange,
             label = { Eyebrow(stringResource(R.string.thread_reply_label)) },
-            enabled = !state.sending,
+            enabled = !state.sending && freeText,
             maxLines = REPLY_MAX_LINES,
             colors = districtFieldColors(),
             modifier = modifier.testTag(THREAD_REPLY_FIELD_DESCRIPTION),
@@ -370,7 +390,7 @@ private fun ReplyBox(
                 verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
                 field(Modifier.fillMaxWidth())
-                ComposerActions(state, onSend, composer)
+                ComposerActions(state, onSend, composer, via)
             }
         } else {
             Row(
@@ -381,7 +401,7 @@ private fun ReplyBox(
                 horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
             ) {
                 field(Modifier.weight(1f))
-                ComposerActions(state, onSend, composer)
+                ComposerActions(state, onSend, composer, via)
             }
         }
     }
@@ -406,7 +426,11 @@ private fun ComposerActions(
     state: ThreadUiState.Content,
     onSend: (String) -> Unit,
     composer: ComposerHandlers,
+    via: ReplyChannelState?,
 ) {
+    val freeText = via?.allowsFreeText != false
+    // ⛔ Attachments go by SMS only: on another channel Send waits until they are removed.
+    val attachmentsFit = state.attachments.isEmpty() || via?.attachmentsAllowed != false
     Column(horizontalAlignment = Alignment.End) {
         if (composer.canAttach) {
             DistrictButton(
@@ -427,7 +451,7 @@ private fun ComposerActions(
             onClick = composer.onGenerateDraft,
             variant = ButtonVariant.Ghost,
             size = ButtonSize.Sm,
-            enabled = !state.generating && !state.sending,
+            enabled = !state.generating && !state.sending && freeText,
             modifier = Modifier.testTag(THREAD_AI_DRAFT_DESCRIPTION),
         )
         // ⛔ DISABLED WHILE A SEND IS IN FLIGHT, AND THAT GUARD IS ABOUT MONEY. Every send is
@@ -442,7 +466,7 @@ private fun ComposerActions(
                 if (state.sending) R.string.thread_sending else R.string.thread_send,
             ),
             onClick = { onSend(composer.text) },
-            enabled = !state.sending && composer.text.isNotBlank(),
+            enabled = !state.sending && composer.text.isNotBlank() && freeText && attachmentsFit,
             modifier = Modifier.testTag(THREAD_SEND_DESCRIPTION),
         )
     }

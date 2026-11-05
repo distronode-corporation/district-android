@@ -255,7 +255,8 @@ class HttpDistrictApiTransportTest {
         ) { conversations("ws-1") }
         assertEquals("GET", conversations.method)
         assertEquals("/api/district/conversations", conversations.url.encodedPath)
-        assertEquals(mapOf("workspaceId" to "ws-1"), conversations.query())
+        // ⛔ Both opt-in flags, in this order: Meta threads with their reply options, and owners.
+        assertEquals("workspaceId=ws-1&metaChannels=1&assignments=1", conversations.url.encodedQuery)
 
         val (unread, count) = exchange(
             "district-messages-unread-count.json",
@@ -263,7 +264,7 @@ class HttpDistrictApiTransportTest {
         ) { unreadCount("ws-1") }
         assertEquals("GET", unread.method)
         assertEquals("/api/district/messages/unread-count", unread.url.encodedPath)
-        assertEquals(mapOf("workspaceId" to "ws-1"), unread.query())
+        assertEquals("workspaceId=ws-1&metaChannels=1", unread.url.encodedQuery)
         assertEquals(3, count.count)
     }
 

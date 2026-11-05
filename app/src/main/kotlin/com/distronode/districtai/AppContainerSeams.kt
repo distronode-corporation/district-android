@@ -16,6 +16,7 @@ import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.SchedulingAdminApi
 import com.distronode.districtai.core.network.SupportApi
+import com.distronode.districtai.core.network.WhatsAppApi
 import com.distronode.districtai.core.network.live.LiveDependencies
 import com.distronode.districtai.push.PushTokenSource
 import com.distronode.districtai.telecom.TelecomBridge
@@ -75,6 +76,7 @@ data class AppContainerSeams(
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,
     val contactBlockingApi: ContactBlockingApi? = null,
+    val whatsAppApi: WhatsAppApi? = null,
     /**
      * The live transcript's credential, socket and clock.
      *

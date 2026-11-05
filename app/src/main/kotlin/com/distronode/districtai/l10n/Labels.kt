@@ -39,6 +39,9 @@ internal val INBOX_CHANNEL_LABELS: Map<String, Int> = mapOf(
     "sms" to R.string.inbox_channel_sms,
     "voicemail" to R.string.inbox_channel_voicemail,
     "whatsapp" to R.string.inbox_channel_whatsapp,
+    // ⚠️ 3.3.0: the list now asks for Messenger and Instagram threads (`metaChannels=1`).
+    "messenger" to R.string.inbox_channel_messenger,
+    "instagram" to R.string.inbox_channel_instagram,
 )
 
 /** The channels a messaging account can be the default sender for (`MESSAGING_CHANNELS`). */

@@ -45,6 +45,7 @@ class PushTokenRepositoryTest {
         assertEquals(1, fake.pushApi.pushRegisterRequests.size)
         assertEquals("fcm-token-1", fake.pushApi.pushRegisterRequests.single().token)
         assertEquals(PLATFORM_ANDROID, fake.pushApi.pushRegisterRequests.single().platform)
+        assertEquals(listOf("metaChannels"), fake.pushApi.pushRegisterRequests.single().capabilities)
     }
 
     @Test

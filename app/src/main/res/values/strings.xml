@@ -378,6 +378,8 @@
     <string name="hq_thinking">Thinking…</string>
     <string name="hq_title">District HQ</string>
     <string name="inbox_channel_email">Email</string>
+    <string name="inbox_channel_instagram">Instagram</string>
+    <string name="inbox_channel_messenger">Messenger</string>
     <string name="inbox_channel_sms">SMS</string>
     <string name="inbox_channel_voicemail">Voicemail</string>
     <string name="inbox_channel_whatsapp">WhatsApp</string>
@@ -893,6 +895,7 @@
         <item quantity="one">%1$d attachment</item>
         <item quantity="other">%1$d attachments</item>
     </plurals>
+    <string name="thread_attachments_sms_only">Attachments can only go by text message. Remove them to send on this channel.</string>
     <string name="thread_call">Call</string>
     <string name="thread_call_event">Call</string>
     <string name="thread_call_missed">Missed call</string>
@@ -903,9 +906,21 @@
     <string name="thread_image_loading">Loading image</string>
     <string name="thread_load_older">Older messages</string>
     <string name="thread_load_older_loading">Loading older…</string>
+    <string name="thread_reply_channel">Reply channel</string>
     <string name="thread_reply_label">Reply</string>
     <string name="thread_send">Send</string>
     <string name="thread_sending">Sending…</string>
+    <string name="thread_whatsapp_template_label">Template</string>
+    <string name="thread_whatsapp_template_option">%1$s (%2$s)</string>
+    <string name="thread_whatsapp_template_placeholder">Choose an approved template</string>
+    <string name="thread_whatsapp_template_preview">Preview</string>
+    <string name="thread_whatsapp_template_send">Send template</string>
+    <string name="thread_whatsapp_template_variable">Variable %1$s</string>
+    <string name="thread_whatsapp_template_variable_required">Fill in this variable</string>
+    <string name="thread_whatsapp_templates_failed">The templates could not be loaded. Try again in a moment.</string>
+    <string name="thread_whatsapp_templates_loading">Loading templates</string>
+    <string name="thread_whatsapp_templates_none">No approved template for this number yet. Refresh the templates in Messaging settings.</string>
+    <string name="thread_whatsapp_window_closed">Window closed: WhatsApp only allows a template now</string>
     <string name="top_bar_back">Back</string>
     <string name="voice_studio_advanced_hide">Hide</string>
     <string name="voice_studio_advanced_show">Show</string>

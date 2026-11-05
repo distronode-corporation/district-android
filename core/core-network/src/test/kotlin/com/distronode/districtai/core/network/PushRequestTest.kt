@@ -55,11 +55,14 @@ class PushRequestTest {
 
     private fun ok(body: String) = MockResponse(code = 200, body = body)
 
+    private fun registration() =
+        PushTokenRegisterRequest(token = "fcm-abc", platform = PLATFORM_ANDROID, capabilities = PUSH_CAPABILITIES)
+
     @Test
     fun `register posts the district path with the token and platform, and no device id`() = runTest {
         server.enqueue(ok("""{"success":true}"""))
 
-        push().registerPushToken(PushTokenRegisterRequest(token = "fcm-abc", platform = PLATFORM_ANDROID))
+        push().registerPushToken(registration())
 
         val recorded = server.takeRequest()
         assertEquals("POST", recorded.method)
@@ -75,6 +78,9 @@ class PushRequestTest {
         // could name it could point somebody else's row at their own token and receive that
         // person's notifications. The server takes it from the bearer instead.
         assertFalse("the body must not name a device", body.containsKey("deviceId"))
+        // ⛔ ON THE WIRE, NOT ONLY ON THE OBJECT: a device that does not declare it is never pushed
+        // a Messenger or Instagram message.
+        assertEquals("""["metaChannels"]""", body["capabilities"].toString())
     }
 
     @Test
@@ -166,7 +172,7 @@ class PushRequestTest {
         server.enqueue(ok("""{"success":true}"""))
         server.enqueue(ok("""{"success":true,"url":"wss://x","token":"t","roomName":"r"}"""))
 
-        push().registerPushToken(PushTokenRegisterRequest(token = "fcm-abc", platform = PLATFORM_ANDROID))
+        push().registerPushToken(registration())
         push().unregisterPushToken()
         inbound().answerCall("CA1", CallAnswerRequest(workspaceId = "ws-1"))
 

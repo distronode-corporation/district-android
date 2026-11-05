@@ -111,10 +111,14 @@ data class ConversationSummary(
     val totalMessages: Int = 0,
     /**
      * The ordered `{channel, to}` pairs `messages/send` takes, the first being the channel to open
-     * the composer on. Sent only when the request opts in with `metaChannels=1`; absent (every
-     * installed build's request) it stays empty and [replyTarget] decides as before.
+     * the composer on. Sent only when the request opts in with `metaChannels=1`. Read it through
+     * [replyChoices].
+     *
+     * ⚠️ NULL AND EMPTY ARE TWO ANSWERS. Absent (a server that predates the flag) means "not
+     * decided here", and [replyChoices] falls back to [replyTarget]; `[]` is the server saying the
+     * thread has nothing to reply on, so no reply box.
      */
-    val replyOptions: List<ReplyOption> = emptyList(),
+    val replyOptions: List<ReplyOption>? = null,
     /**
      * The member who owns the thread, or null. Sent only when the request opts in with
      * `assignments=1`, from the same rows as `GET conversations/assignments`.
@@ -151,8 +155,7 @@ data class ConversationSummary(
      * ever emailed could not be sent an SMS even though their contact record held a number.
      *
      * ⚠️ SMS is preferred when both are available, which preserves the previous behaviour for phone
-     * threads. A per-thread channel picker belongs with attachment support (an email sent from here
-     * would have no subject field), so this chooses rather than asks.
+     * threads. Only for a row with no [replyOptions]; see [replyChoices], which the composer reads.
      *
      * Null means this thread has nothing to reply on, and the caller must offer no reply box.
      */
@@ -170,11 +173,30 @@ data class ConversationSummary(
             }
             return null
         }
+
+    /**
+     * Every channel a reply may go on, in the server's order; the first is the one the composer
+     * opens on, and an empty list means no reply box.
+     *
+     * ⛔ THE SERVER'S [replyOptions] WIN WHENEVER IT SENT THEM, and [canSms]/[canEmail] then play no
+     * part: deciding from those is how a WhatsApp customer's reply went out as an SMS. An option on a
+     * channel this build does not know, or with no address, is skipped rather than guessed at, which
+     * is what lets the server add a channel without breaking this build.
+     */
+    val replyChoices: List<ReplyTarget>
+        get() = replyOptions?.toReplyChoices() ?: listOfNotNull(replyTarget)
 }
 
 /** `messages/send`'s channel vocabulary. The server branches on these exact strings. */
 const val CHANNEL_SMS = "sms"
 const val CHANNEL_EMAIL = "email"
+const val CHANNEL_WHATSAPP = "whatsapp"
+const val CHANNEL_MESSENGER = "messenger"
+const val CHANNEL_INSTAGRAM = "instagram"
+
+/** The channels this build can reply on. Any other [ReplyOption.channel] is skipped. */
+val REPLY_CHANNELS: Set<String> =
+    setOf(CHANNEL_SMS, CHANNEL_EMAIL, CHANNEL_WHATSAPP, CHANNEL_MESSENGER, CHANNEL_INSTAGRAM)
 
 /**
  * A resolved reply destination: the address to send to, and the channel to send on.
@@ -184,6 +206,13 @@ const val CHANNEL_EMAIL = "email"
  * than assembled from two independent decisions.
  */
 data class ReplyTarget(val to: String, val channel: String)
+
+/**
+ * The options this build can send on, in order: an unknown channel or a blank address is skipped.
+ * One rule for the list row and for the choices a thread route carries (see the app's nav args).
+ */
+fun List<ReplyOption>.toReplyChoices(): List<ReplyTarget> =
+    filter { it.channel in REPLY_CHANNELS && it.to.isNotBlank() }.map { ReplyTarget(it.to, it.channel) }
 
 /** One entry of [ConversationSummary.replyOptions]: a channel and the address to send on it. */
 @Serializable
@@ -197,7 +226,7 @@ data class ConversationLastMessage(
     val body: String = "",
     /** `inbound` | `outbound`. */
     val direction: String = "",
-    /** `sms` | `email` | `whatsapp`, or null on older rows. */
+    /** `sms` | `email` | `whatsapp` | `messenger` | `instagram`, or null on older rows. */
     val type: String? = null,
     val status: String = "",
     /** ISO-8601, server-formatted. Not reformatted locally — see [TimelineEvent.timestamp]. */

@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.inbox
 import androidx.lifecycle.SavedStateHandle
 import com.distronode.districtai.core.data.ComposerRepository
 import com.distronode.districtai.core.data.InboxRepository
+import com.distronode.districtai.core.data.WhatsAppRepository
+import com.distronode.districtai.core.network.testing.FakeWhatsAppApi
 import com.distronode.districtai.core.model.AiDraftResponse
 import com.distronode.districtai.core.model.CHANNEL_EMAIL
 import com.distronode.districtai.core.model.CHANNEL_SMS
@@ -81,8 +83,7 @@ class ThreadComposerViewModelTest {
         reader: AttachmentReader = AttachmentReader { PickedAttachment("roof.png", "image/png", png) },
         savedState: SavedStateHandle = SavedStateHandle(),
     ) = ThreadViewModel(
-        repository = InboxRepository(api),
-        composer = ComposerRepository(api),
+        services = ThreadServices(InboxRepository(api), ComposerRepository(api), WhatsAppRepository(FakeWhatsAppApi())),
         target = ThreadTarget(
             workspaceId = "ws-1",
             contactId = "c1",

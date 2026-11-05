@@ -40,9 +40,9 @@ import com.distronode.districtai.ui.resolve
  * carries identifiers only (the server's push sender sends no number and no name, because a
  * notification is readable by the OS and by any notification-listener app), and the answer route
  * returns a join credential rather than a caller. So [R.string.incoming_call_caller] is not a
- * placeholder waiting to be filled in; it is the whole of what is knowable. ⚠️ `formatDialEntry`
- * returns a string with no digits unchanged, which is what lets a label pass through the number slot
- * without being regrouped into nonsense.
+ * placeholder waiting to be filled in; it is the whole of what is knowable. ⚠️ `displayNumber` (and
+ * the `formatDialEntry` it falls back to) returns a string with no digits unchanged, which is what
+ * lets a label pass through the number slot without being regrouped into nonsense.
  *
  * ⛔ THERE IS NO DECLINE BUTTON ONCE ANSWERING HAS STARTED, AND THE PHASE IS WHAT ENFORCES IT
  * RATHER THAN A DISABLED FLAG. A decline landing mid-join would tear down a call whose credential

@@ -2788,7 +2788,7 @@ fr = "Tous les pays"
 ctx = "title"
 screen = "dialer"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Heading over the full, alphabetical country list."
 
 [dialer.countries_no_match]
@@ -2797,7 +2797,7 @@ fr = "Aucun pays ne correspond à cette recherche."
 ctx = "body"
 screen = "dialer"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. The country list when the search finds nothing."
 
 [dialer.countries_suggested]
@@ -2806,7 +2806,7 @@ fr = "Suggestions"
 ctx = "title"
 screen = "dialer"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Heading over the workspace's own country, the one on the button, then Canada and the United States."
 
 [dialer.country]
@@ -2815,7 +2815,7 @@ fr = "Pays"
 ctx = "label"
 screen = "dialer"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. On the button in front of the number when no country is chosen yet, and the title of the country list."
 
 [dialer.country_button]
@@ -2825,7 +2825,7 @@ ctx = "a11y"
 screen = "dialer"
 tier = "T3"
 args = { country = "str", code = "str" }
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. TalkBack label of the flag button in front of the number. {country} is a country name, {code} its calling code digits."
 
 [dialer.country_button_none]
@@ -2834,17 +2834,17 @@ fr = "Pays\u00A0: aucun choisi"
 ctx = "a11y"
 screen = "dialer"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. TalkBack label of the flag button when no country is chosen."
 
 [dialer.country_search]
-en = "Search by country or code"
-fr = "Rechercher par pays ou par indicatif"
+en = "Country name or code"
+fr = "Nom du pays ou indicatif"
 ctx = "placeholder"
 screen = "dialer"
 tier = "T3"
-state = "draft"
-note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Search prompt: a country is found by its name, its two-letter code or its calling code."
+state = "reviewed"
+note = "Search prompt: a country is found by its name, its two-letter code or its calling code. ⚠️ The iOS and Mac wording, not the web's \"Search by country or code\": the web's French « Rechercher par pays ou par indicatif » wrapped onto two lines in this single-line field on a 360 dp phone at the default font scale (screenshot, 2026-11-04), so Sean's decision (GitLab #2) switched both languages to this pair."
 
 [dialer.destination_unrecognised]
 en = "Unrecognised country code. Check the number before calling."
@@ -2852,7 +2852,7 @@ fr = "Cet indicatif de pays n'est pas reconnu. Vérifiez le numéro avant d'appe
 ctx = "body"
 screen = "dialer"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Shown under the number when its + code belongs to no listed country. The number stays callable: the app is not the authority on which codes exist."
 
 [dialer.entry_hint_local]
@@ -2862,7 +2862,7 @@ ctx = "body"
 screen = "dialer"
 tier = "T3"
 args = { country = "str" }
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Under the empty field. {country} is a country name, in brackets so no article is needed."
 
 [dialer.entry_hint_none]
@@ -2871,7 +2871,7 @@ fr = "Choisissez un pays, ou commencez par + et l'indicatif du pays."
 ctx = "body"
 screen = "dialer"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Under the field when no country is chosen: digits without + cannot be read until one is."
 
 [dialer.entry_wrong_length]
@@ -2880,7 +2880,7 @@ fr = "Ce numéro n'a pas le bon nombre de chiffres pour le pays de destination. 
 ctx = "error"
 screen = "dialer"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. Said only once the person stops typing (the field loses focus, Done, or a refused Call), never while digits are still arriving."
 
 [dialer.mic_notice]
@@ -2935,8 +2935,18 @@ ctx = "body"
 screen = "dialer"
 tier = "T1"
 args = { country = "str", number = "str" }
-state = "draft"
+state = "reviewed"
 note = "This is dialler design A, ported from district-ios (#95, #96) with the web dialler's wording. ⛔ Shown under the number before Call, and the number in it is exactly what is dialled. {country} is a country name, {number} the full international number, e.g. +1 416 555 0199."
+
+[dialer.rings_no_country]
+en = "Rings {number}. This number does not belong to one country. Check it before you call."
+fr = "Numéro composé\u00A0: {number}. Ce numéro n'appartient à aucun pays en particulier. Vérifiez-le avant d'appeler."
+ctx = "body"
+screen = "dialer"
+tier = "T1"
+args = { number = "str" }
+state = "reviewed"
+note = "⛔ Shown under the number before Call, in place of dialer.rings, for a +1 toll-free number (800, 833, 844, 855, 866, 877, 888), which belongs to the whole plan rather than one country. {number} is the full international number, e.g. +1 800 555 0100. The web's ringsNoCountry, word for word in both languages (Sean, 2026-11-04, GitLab #2)."
 
 [dialer.subscription_inactive]
 en = "This workspace's subscription is not active, so calls are paused."

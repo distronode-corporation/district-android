@@ -271,11 +271,58 @@ class DialPlanTest {
     }
 
     @Test
-    fun `a calling code alone shows the code and an empty field`() {
+    fun `a calling code alone stays in the field as typed`() {
         val reading = DialPlan.read("+44", "CA")
         assertEquals("GB", reading.iso)
-        assertEquals("", reading.national)
+        assertEquals("+44", reading.national)
         assertEquals("+44", reading.international)
+    }
+
+    // ── Seer on district-core-rust #63: the same DialPlan, three bugs ──────────
+
+    /**
+     * ⛔ A CODE WITH NO DIGIT AFTER IT STAYS IN THE FIELD. Shown as an empty local number, `+7` made
+     * the next digit a Russian local one, and Saint Petersburg's 812 lost its 8 to Russia's trunk 8.
+     */
+    @Test
+    fun `a code with no digit after it stays in the field, so +7 812 keeps its 8`() {
+        val codeOnly = DialPlan.read("+7", "CA")
+        assertEquals("+7", codeOnly.national)
+        assertEquals("RU", codeOnly.iso)
+        assertEquals("+44", DialPlan.read("+44", "CA").national)
+        val (field, country) = typeKeys("+78121234567", "CA")
+        val typed = DialPlan.read(field, country)
+        assertEquals("RU", typed.iso)
+        assertEquals("+78121234567", typed.e164)
+        assertEquals(DialPlan.read("+7 812 123 4567", "CA").national, typed.national)
+        // A trunk 0 pasted after the code is still dropped, and the code stays.
+        assertEquals("+44", DialPlan.read("+440", "CA").national)
+    }
+
+    /** ⛔ EVERY +7 NUMBER HAS TEN DIGITS AFTER THE CODE, so eleven is never dialled as a Kazakh number. */
+    @Test
+    fun `a plus seven number has exactly ten digits`() {
+        val typedWithItsCode = DialPlan.read("79161234567", "RU")
+        assertEquals(DialPlan.Status.TOO_LONG, typedWithItsCode.status)
+        assertNull(typedWithItsCode.e164)
+        assertEquals("+79161234567", DialPlan.read("8 916 123 4567", "RU").e164)
+        assertEquals(DialPlan.Status.TYPING, DialPlan.read("8 916 123 456", "RU").status)
+    }
+
+    /**
+     * ⛔ `+911` IS REFUSED, BUT IT IS ALSO HOW EVERY INDIAN NUMBER BEGINNING +91 1 STARTS. Shown
+     * without its plus, the next digit was read as a local number and the code was lost.
+     */
+    @Test
+    fun `an emergency-shaped plus entry keeps its plus, so India still reads`() {
+        val refused = DialPlan.read("+911", "CA")
+        assertEquals(DialPlan.Status.EMERGENCY, refused.status)
+        assertEquals("its plus kept", "+911", refused.national)
+        assertEquals("shown as typed", "911", DialPlan.read("911", "CA").national)
+        val (field, country) = typeKeys("+911234567890", "CA")
+        val india = DialPlan.read(field, country)
+        assertEquals("IN", india.iso)
+        assertEquals("+911234567890", india.e164)
     }
 
     // ── Emergency numbers ────────────────────────────────────────────────────

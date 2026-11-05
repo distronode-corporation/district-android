@@ -312,7 +312,7 @@
     <string name="dialer_country">Pays</string>
     <string name="dialer_country_button">Pays\u00A0: %1$s, +%2$s</string>
     <string name="dialer_country_button_none">Pays\u00A0: aucun choisi</string>
-    <string name="dialer_country_search">Rechercher par pays ou par indicatif</string>
+    <string name="dialer_country_search">Nom du pays ou indicatif</string>
     <string name="dialer_destination_unrecognised">Cet indicatif de pays n\'est pas reconnu. Vérifiez le numéro avant d\'appeler.</string>
     <string name="dialer_entry_hint_local">Saisissez le numéro comme vous le composeriez sur place (%1$s), ou commencez par + et l\'indicatif du pays.</string>
     <string name="dialer_entry_hint_none">Choisissez un pays, ou commencez par + et l\'indicatif du pays.</string>
@@ -323,6 +323,7 @@
     <string name="dialer_open">Composer</string>
     <string name="dialer_overage_cap">Cet espace de travail a utilisé ses minutes vocales incluses, et sa politique de dépassement impose un plafond strict. Modifiez la politique ou changez de forfait pour reprendre les appels.</string>
     <string name="dialer_rings">Pays de destination\u00A0: %1$s · %2$s</string>
+    <string name="dialer_rings_no_country">Numéro composé\u00A0: %1$s. Ce numéro n\'appartient à aucun pays en particulier. Vérifiez-le avant d\'appeler.</string>
     <string name="dialer_subscription_inactive">L\'abonnement de cet espace de travail n\'est pas actif\u00A0: les appels sont suspendus.</string>
     <string name="dialer_title">Composer</string>
     <string name="dialer_viewer_notice">Avec le rôle Lecteur dans cet espace de travail, vous ne pouvez pas passer d\'appels.</string>

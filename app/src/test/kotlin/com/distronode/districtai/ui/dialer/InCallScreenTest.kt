@@ -79,6 +79,24 @@ class InCallScreenTest {
         ended = ended,
     )
 
+    // ── The title ────────────────────────────────────────────────────────────
+
+    /**
+     * ⛔ THE TITLE GROUPS THE NUMBER AS THE LINE BEFORE CALL DID (Seer on district-core-rust #63).
+     * Call sends E.164, and grouping it by its last ten digits read a French number's code as `+3`.
+     */
+    @Test
+    fun `the title groups the number by its own calling code`() {
+        render(call().copy(number = "+33639980123"))
+        composeRule.onNodeWithTag(IN_CALL_NUMBER_DESCRIPTION).assertTextEquals("+33 6 39 98 01 23")
+    }
+
+    @Test
+    fun `a North American title reads as before`() {
+        render(call())
+        composeRule.onNodeWithTag(IN_CALL_NUMBER_DESCRIPTION).assertTextEquals("+1 416 555 0100")
+    }
+
     // ── The four phases ──────────────────────────────────────────────────────
 
     @Test

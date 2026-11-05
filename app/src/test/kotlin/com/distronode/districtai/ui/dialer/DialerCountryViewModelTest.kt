@@ -313,6 +313,29 @@ class DialerCountryViewModelTest {
         assertEquals("GB", viewModel(memory = memory).state.value.country)
     }
 
+    /** district-core-rust `entry_for_pick`: a pick over a bare `+code` keeps only digits after a known code. */
+    @Test
+    fun `a pick over a plus keeps only the digits after a known code`() = runTest {
+        val vm = viewModel(memory = FakeDialerCountryMemory(homes = mutableMapOf("ws-1" to "CA")))
+        vm.onEntryChange("+44")
+        assertEquals("+44" to "GB", vm.state.value.entry to vm.state.value.country)
+        vm.pickCountry("FR")
+        assertEquals("" to "FR", vm.state.value.entry to vm.state.value.country)
+
+        vm.onEntryChange("+9991234")
+        vm.pickCountry("DE")
+        assertEquals("" to "DE", vm.state.value.entry to vm.state.value.country)
+
+        vm.onEntryChange("+44 20 7946 0958")
+        vm.pickCountry("GB")
+        assertEquals("020 7946 0958", vm.state.value.entry)
+
+        vm.pickCountry("CA")
+        vm.onEntryChange("416555")
+        vm.pickCountry("US")
+        assertEquals("(416) 555", vm.state.value.entry)
+    }
+
     @Test
     fun `a pick on a workspace with a home country is not remembered`() = runTest {
         val memory = FakeDialerCountryMemory(homes = mutableMapOf("ws-1" to "CA"))

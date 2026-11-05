@@ -79,9 +79,10 @@ fun InCallScreen(
 @Composable
 private fun Callee(call: ActiveCallUiState) {
     Text(
-        // ⚠️ THE FORMATTED FORM, for reading only. What was dialled is the raw entry; see
-        // `formatDialEntry`.
-        text = formatDialEntry(call.number),
+        // ⚠️ THE FORMATTED FORM, for reading only: the number grouped by its own calling code, as the
+        // line before Call showed it (`displayNumber`; Seer on district-core-rust #63). An incoming
+        // call's label passes through unchanged.
+        text = displayNumber(call.number),
         style = MaterialTheme.typography.headlineSmall,
         color = DistrictTheme.colors.foreground,
         textAlign = TextAlign.Center,

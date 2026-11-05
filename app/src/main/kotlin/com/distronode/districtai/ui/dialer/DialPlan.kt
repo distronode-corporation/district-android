@@ -99,13 +99,34 @@ object DialPlan {
      *
      * ⚠️ THE EMERGENCY TEST COMES FIRST, BEFORE ANY COUNTRY: `911` must reach the hand-off sentence,
      * never "choose a country".
+     *
+     * ⛔ WHAT THE FIELD SHOWS ([Reading.national]) IS READ AGAIN ON THE NEXT EDIT, SO IT MUST READ BACK
+     * TO THE SAME NUMBER (Seer on district-core-rust #63). `+1 1 416 555 0199` pasted was shown as
+     * `(141) 655-50199`, and reading that took its leading `1` as the trunk prefix: `416 555 0199`, a
+     * whole Canadian number with Call on. A local form that would not read back is shown in its
+     * international form, `+114165550199`, which does.
      */
     fun read(raw: String, country: String?): Reading {
+        val reading = readEntry(raw, country)
+        // ⚠️ NOT WHILE THE NATIONAL NUMBER IS EMPTY: `+44` alone shows an empty field under the flag,
+        // and there is no number yet to read back.
+        if (reading.status == Status.EMERGENCY || reading.national.startsWith("+")) return reading
+        if (reading.callingCode.isEmpty() || reading.nationalNumber.isEmpty()) return reading
+        val again = readEntry(reading.national, reading.iso)
+        val same = again.callingCode == reading.callingCode && again.nationalNumber == reading.nationalNumber
+        return if (same) reading else reading.copy(national = "+" + reading.callingCode + reading.nationalNumber)
+    }
+
+    private fun readEntry(raw: String, country: String?): Reading {
         val compact = raw.filter { it == '+' || isDigit(it) }
         var plus = compact.startsWith("+")
         var digits = compact.filter(::isDigit)
         if (isEmergency(compact)) {
-            return Reading(Status.EMERGENCY, country, national = digits, international = digits)
+            // ⛔ SHOWN AS TYPED, ITS `+` KEPT: `+911` is refused, but it is also the start of every
+            // Indian number beginning +91 1, and the next digit must still be read after the code
+            // rather than as a local number (Seer on district-core-rust #63).
+            val shown = if (plus) "+$digits" else digits
+            return Reading(Status.EMERGENCY, country, national = shown, international = shown)
         }
         if (!plus) {
             dropExitCode(digits, country)?.let { rest ->
@@ -159,6 +180,7 @@ object DialPlan {
         }
         var nsn = digits
         var typedTrunk = false
+        var shownPrefix: String? = null
         val trunk = DialCountries.trunkPrefix(country)
         if (code == "1" && nsn.startsWith("1")) {
             nsn = nsn.drop(1)
@@ -168,9 +190,21 @@ object DialPlan {
             if (nsn.length < trunk.length && trunk.startsWith(nsn)) {
                 return Reading(Status.TYPING, country, callingCode = code, national = nsn, international = "+$code")
             }
-            if (nsn.startsWith(trunk)) {
-                nsn = nsn.drop(trunk.length)
+            // ⚠️ AND THE OTHER PREFIXES libphonenumber STRIPS, longest first
+            // ([DialCountries.nationalPrefixes]): Lithuania's old `8`, Belarus's `80`.
+            val typed = DialCountries.nationalPrefixes(country).firstOrNull {
+                nsn.startsWith(it) && DialCountries.stripsPrefix(it, nsn, country)
+            }
+            if (typed != null) {
+                nsn = nsn.drop(typed.length)
                 typedTrunk = true
+                // ⚠️ THE PREFIX TYPED IS THE ONE SHOWN (Seer on district-ios #98): Lithuania's old `8`
+                // shown as its trunk `0` made the next `0` read `00`, the exit code.
+                if (typed != trunk) shownPrefix = typed
+            } else if (country in DialCountries.nationalNumberPatterns) {
+                // ⚠️ AND NONE WHEN NONE WAS READ OFF, there: a whole number keeps its own first digits,
+                // or Belarus's `8029123` would show `88029123` and the next key read it differently.
+                shownPrefix = ""
             }
         }
         // ⚠️ A CODE SHARED BY SEVERAL COUNTRIES IS READ AGAIN AS EACH DIGIT ARRIVES, exactly as a
@@ -179,7 +213,7 @@ object DialPlan {
         // as a national number; read only in the country on the button, `701…` would stay "Rings
         // Russia" for a Kazakh number (Seer on district-macos #91, fixed in district-ios #96).
         val iso = countryForCode(code, nsn, first = country, current = country)
-        return finish(iso, code, nsn, typedTrunk, plus = false)
+        return finish(iso, code, nsn, typedTrunk, plus = false, shownPrefix = shownPrefix)
     }
 
     private fun readInternational(digits: String, country: String?): Reading {
@@ -227,7 +261,14 @@ object DialPlan {
         else -> first
     }
 
-    private fun finish(iso: String, code: String, nsn: String, typedTrunk: Boolean, plus: Boolean): Reading {
+    private fun finish(
+        iso: String,
+        code: String,
+        nsn: String,
+        typedTrunk: Boolean,
+        plus: Boolean,
+        shownPrefix: String? = null,
+    ): Reading {
         val range = DialGrouping.lengths(iso, code)
         val total = code.length + nsn.length
         val status = when {
@@ -245,7 +286,7 @@ object DialPlan {
             iso = iso,
             callingCode = code,
             nationalNumber = nsn,
-            national = DialGrouping.formatNational(iso, code, nsn, typedTrunk),
+            national = DialGrouping.formatNational(iso, code, nsn, typedTrunk, shownPrefix),
             international = international,
             namedItsCountry = plus,
             e164 = "+$code$nsn".takeIf { status == Status.READY },

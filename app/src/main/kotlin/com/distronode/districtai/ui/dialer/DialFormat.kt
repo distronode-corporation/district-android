@@ -54,6 +54,20 @@ internal fun formatDialEntry(raw: String): String {
 }
 
 /**
+ * A whole number for reading: the call's title, a call-back row, an incoming call's slot.
+ *
+ * ⛔ A NUMBER THAT NAMES ITS COUNTRY (`+`, `011`, `00`) IS GROUPED BY ITS OWN CALLING CODE, as the line
+ * before Call shows it ([DialPlan]'s international form). [formatDialEntry] takes everything before
+ * the last ten digits as the code, so a French `+33639980123` read `+3 363 998 0123` (Seer on
+ * district-core-rust #63). Anything else, a bare national number or a label with no digits, goes to
+ * [formatDialEntry] as before.
+ */
+internal fun displayNumber(number: String): String {
+    val read = DialPlan.read(number, null)
+    return if (read.namedItsCountry && read.iso != null) read.international else formatDialEntry(number)
+}
+
+/**
  * A call's elapsed time, as a person reads a call timer.
  *
  * ⛔ `mm:ss` UNTIL AN HOUR, THEN `h:mm:ss`, AND THE MINUTES ARE NOT TRUNCATED AT SIXTY. A formatter

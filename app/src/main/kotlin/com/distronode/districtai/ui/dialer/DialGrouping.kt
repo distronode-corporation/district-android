@@ -16,10 +16,20 @@ internal object DialGrouping {
      * punctuation (Australia's `(02)`, Seer on district-ios #95) would put a deleted character
      * straight back and backspace could never get past it.
      */
-    fun formatNational(iso: String, code: String, nsn: String, typedTrunk: Boolean): String {
+    fun formatNational(
+        iso: String,
+        code: String,
+        nsn: String,
+        typedTrunk: Boolean,
+        shownPrefix: String? = null,
+    ): String {
         if (nsn.isEmpty()) {
-            if (!typedTrunk) return ""
-            return if (code == "1") "1" else DialCountries.trunkPrefix(iso) ?: "0"
+            // ⛔ A `+` AND A CALLING CODE WITH NO DIGIT AFTER IT YET STAY AS THEY ARE, so the next digit
+            // is still read after the code. Shown as an empty local number instead, the next digit was
+            // read as a local one and a trunk prefix swallowed it: Saint Petersburg's 812 typed after +7
+            // lost its 8 to Russia's trunk 8 (Seer on district-core-rust #63).
+            if (!typedTrunk) return "+$code"
+            return if (code == "1") "1" else shownPrefix ?: DialCountries.trunkPrefix(iso) ?: "0"
         }
         if (code == "1") return formatNanp(nsn)
         val parts = chunk(nsn, groups(iso, nsn)).toMutableList()
@@ -29,7 +39,8 @@ internal object DialGrouping {
         if (iso == "AU" && !nsn.startsWith("4") && parts.size > 1) {
             return "(0" + parts.first() + ") " + parts.drop(1).joinToString(" ")
         }
-        DialCountries.trunkPrefix(iso)?.let { trunk -> parts[0] = trunk + parts[0] }
+        // ⚠️ [shownPrefix] is the prefix typed where it is not the trunk prefix, or empty for none.
+        (shownPrefix ?: DialCountries.trunkPrefix(iso))?.let { trunk -> parts[0] = trunk + parts[0] }
         return parts.joinToString(" ")
     }
 
@@ -83,6 +94,10 @@ internal object DialGrouping {
      */
     fun lengths(iso: String, code: String): IntRange {
         if (code == "1") return NANP_LENGTH..NANP_LENGTH
+        // ⛔ RUSSIA AND KAZAKHSTAN: TEN DIGITS AFTER +7, ALWAYS. Without this an eleven-digit Russian
+        // number typed with its 7 and no `+` read as Kazakh and was offered for dialling (Seer on
+        // district-core-rust #63).
+        if (code == "7") return PLUS_SEVEN_LENGTH..PLUS_SEVEN_LENGTH
         return knownLengths[iso] ?: MINIMUM_NATIONAL..(DialPlan.MAXIMUM_DIGITS - code.length)
     }
 
@@ -116,6 +131,7 @@ internal object DialGrouping {
     private const val NANP_AREA = 3
     private const val NANP_EXCHANGE_END = 6
     private const val NANP_LENGTH = 10
+    private const val PLUS_SEVEN_LENGTH = 10
 
     /** The shortest national number a country without its own range may have. */
     private const val MINIMUM_NATIONAL = 4

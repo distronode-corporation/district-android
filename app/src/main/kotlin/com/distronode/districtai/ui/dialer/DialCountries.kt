@@ -44,21 +44,54 @@ object DialCountries {
      * Countries whose national numbers carry a trunk `0` that is dropped after the calling code:
      * `020 7946 0958` in London is `+44 20 7946 0958`.
      *
-     * ⚠️ ONLY THE ONES THIS TABLE IS SURE OF. A country missing here keeps a typed leading `0` in the
-     * number, and the international form under the field shows it, so the operator sees `+40 0721…`
-     * before pressing Call rather than a silent rewrite.
+     * ⚠️ EVERY COUNTRY HERE WHOSE NATIONAL PREFIX IS `0` IN libphonenumber (libphonenumber-js 1.13.14;
+     * Seer on district-core-rust #63 found Venezuela, Ecuador and Uruguay missing). One missing would
+     * keep a typed leading `0` in the number: `0412 123 4567` in Venezuela sent `+58 0412…`.
+     * The same list is in district-ios, district-macos and district-core-rust.
      */
     val trunkZero: Set<String> = setOf(
-        "AE", "AR", "AT", "AU", "BA", "BD", "BE", "BG", "BR", "CH", "CN", "DE", "EG", "FI", "FR", "GB", "GH",
-        "HR", "ID", "IE", "IL", "IN", "JP", "KE", "KR", "LK", "MA", "MY", "NG", "NL", "NZ", "PH", "PK", "RO",
-        "RS", "SA", "SE", "SI", "SK", "TH", "TR", "TW", "UA", "VN", "ZA",
+        "AE", "AF", "AL", "AM", "AR", "AT", "AU", "AZ", "BA", "BD", "BE", "BG", "BO", "BR", "CD", "CH", "CN",
+        "CO", "CU", "DE", "DZ", "EC", "EG", "ER", "ET", "FI", "FR", "GB", "GE", "GF", "GH", "GP", "HR", "ID",
+        "IE", "IL", "IN", "IQ", "IR", "JO", "JP", "KE", "KG", "KH", "KI", "KP", "KR", "LA", "LB", "LI", "LK",
+        "LR", "LT", "LY", "MA", "MC", "MD", "ME", "MG", "MK", "MM", "MN", "MQ", "MW", "MY", "NA", "NG", "NL",
+        "NP", "NZ", "PE", "PH", "PK", "PM", "PS", "PY", "RE", "RO", "RS", "RW", "SA", "SD", "SE", "SI", "SK",
+        "SL", "SO", "SS", "SY", "TH", "TR", "TW", "TZ", "UA", "UG", "UY", "VE", "VN", "XK", "YE", "ZA", "ZM",
+        "ZW",
     )
 
     /**
-     * Trunk prefixes that are not a single `0` (Seer on district-ios #95). Without them `8 495 123
-     * 4567` typed in Russia would keep its `8` and send `+7 849…`, a wrong number that still dials.
+     * Trunk prefixes that are not a single `0`: libphonenumber's national prefix for every country
+     * outside +1 that has one and it is not `0` (libphonenumber-js 1.13.14). Without them `8 495 123
+     * 4567` typed in Russia would keep its `8` and send `+7 849…`, a wrong number that still dials
+     * (Seer on district-ios #95). Belarus is `8`, not `80`: `80` is one of [parsingTrunkPrefixes].
      */
-    private val otherTrunkPrefixes: Map<String, String> = mapOf("RU" to "8", "KZ" to "8", "BY" to "80", "HU" to "06")
+    private val otherTrunkPrefixes: Map<String, String> =
+        mapOf("BY" to "8", "HU" to "06", "KZ" to "8", "MH" to "1", "RU" to "8", "TM" to "8")
+
+    /**
+     * The other prefixes libphonenumber strips when it reads a national number, where its
+     * `national_prefix_for_parsing` is a plain list of them: Belarus `0|80?`, Lithuania `[08]` (its trunk
+     * prefix became `0` in 2025, and the old `8` is still dialled) and the UK's `180020`. They are read,
+     * never shown: the local form keeps [trunkPrefix]. ⚠️ The rules that are not a plain list (carrier
+     * codes and area-code rewrites: AR, AU, BO, BR, CN, CO, JP, KR, LI, MG) are not modelled. The same
+     * table is in the other app repos and district-core-rust.
+     */
+    val parsingTrunkPrefixes: Map<String, List<String>> =
+        mapOf("BY" to listOf("80", "0"), "GB" to listOf("180020"), "LT" to listOf("8"))
+
+    /**
+     * libphonenumber's national number pattern (libphonenumber-js 1.13.14) for each country with
+     * [parsingTrunkPrefixes], so a prefix is read off only where libphonenumber would read it off: not
+     * when the digits typed already make a whole number there and would not without it ([stripsPrefix]).
+     * `800 12345` is a whole Lithuanian toll-free number, not the old trunk `8` and `0012345` (Seer on
+     * district-ios #98). The same table is in the other app repos.
+     */
+    val nationalNumberPatterns: Map<String, String> = mapOf(
+        "BY" to """(?:[12]\d|33|44|902)\d{7}|8(?:0[0-79]\d{5,7}|[1-7]\d{9})""" +
+            """|8(?:1[0-489]|[5-79]\d)\d{7}|8[1-79]\d{6,7}|8[0-79]\d{5}|8\d{5}""",
+        "GB" to """[1-357-9]\d{9}|[18]\d{8}|8\d{6}""",
+        "LT" to """(?:[3469]\d|52|[78]0)\d{6}""",
+    )
 
     /**
      * The +1 toll-free area codes. ⚠️ They belong to the whole plan, so they never name a country and
@@ -66,10 +99,17 @@ object DialCountries {
      */
     private val nanpTollFree: Set<String> = setOf("800", "833", "844", "855", "866", "877", "888")
 
+    /**
+     * The +1 area codes the web's table gives no country (`nanp-area-codes.ts`, `country: null`): the
+     * toll-free ones and the non-geographic 500, 600, 700, 710 and 900. The line under the field names
+     * no country for them (`noCountryNumber`).
+     */
+    private val nanpNoCountry: Set<String> = nanpTollFree + setOf("500", "600", "700", "710", "900")
+
     /** Canadian area codes, so a +1 number reads Canada or the US by its first three digits. */
     private val canadianAreaCodes: Set<String> = (
         "204 226 236 249 250 257 263 289 306 343 354 365 367 368 382 387 403 416 418 428 431 437 438 450 " +
-            "460 468 474 506 514 519 548 579 581 584 587 600 604 613 639 647 672 683 705 709 742 753 778 780 " +
+            "460 468 474 506 514 519 548 579 581 584 587 604 613 639 647 672 683 705 709 742 753 778 780 " +
             "782 807 819 825 867 873 879 902 905 942"
         ).split(' ').toSet()
 
@@ -109,22 +149,42 @@ object DialCountries {
      */
     fun nanpCountry(nsn: String, fallback: String?): String {
         val plusOne = fallback?.takeIf(::isNanp) ?: "US"
-        // ⚠️ A TOLL-FREE CODE (800, 888 …) BELONGS TO NO ONE COUNTRY, so it keeps the +1 country
-        // already on screen rather than claiming the United States.
-        if (nsn.length < AREA_CODE_LENGTH || isNanpTollFree(nsn)) return plusOne
+        // ⚠️ A NO-COUNTRY CODE (toll-free 800, 888 …, and the web's 500, 600, 700, 710, 900) BELONGS
+        // TO NO ONE COUNTRY, so it keeps the +1 country already on screen rather than claiming one
+        // (Seer on district-ios #98: 600 claimed Canada beside a line saying it had no country).
+        if (nsn.length < AREA_CODE_LENGTH || isNanpNoCountry(nsn)) return plusOne
         val area = nsn.take(AREA_CODE_LENGTH)
         if (area in canadianAreaCodes) return "CA"
         return nanpAreaCountries[area] ?: "US"
     }
 
-    /** Whether a +1 national number is toll-free, shared by every country of the plan. */
-    fun isNanpTollFree(nsn: String): Boolean = nsn.take(AREA_CODE_LENGTH) in nanpTollFree
+    /**
+     * Whether [prefix], which [digits] starts with, is read off as a prefix in [iso]: libphonenumber's
+     * test, for the countries in [nationalNumberPatterns]. Not when [digits] already match the country's
+     * national number pattern and what is left would not.
+     */
+    fun stripsPrefix(prefix: String, digits: String, iso: String): Boolean {
+        val pattern = nationalNumberPatterns[iso]?.let(::Regex) ?: return true
+        return !(pattern.matches(digits) && !pattern.matches(digits.drop(prefix.length)))
+    }
+
+    /** Whether a +1 national number belongs to no one country, as the web's table has it. */
+    fun isNanpNoCountry(nsn: String): Boolean = nsn.take(AREA_CODE_LENGTH) in nanpNoCountry
 
     /**
-     * The trunk prefix dialled before a national number inside the country, or null: `0` for most,
-     * `8` in Russia and Kazakhstan, `80` in Belarus, `06` in Hungary.
+     * The trunk prefix dialled before a national number inside the country, or null: `0` for most, `8`
+     * in Russia, Kazakhstan, Belarus and Turkmenistan, `06` in Hungary, `1` in the Marshall Islands.
      */
     fun trunkPrefix(iso: String): String? = otherTrunkPrefixes[iso] ?: "0".takeIf { iso in trunkZero }
+
+    /**
+     * Every prefix a national number typed in [iso] may start with that is not part of the number: the
+     * trunk prefix and [parsingTrunkPrefixes], longest first, so Belarus's `80` is tried before its `8`.
+     */
+    fun nationalPrefixes(iso: String): List<String> {
+        val trunk = trunkPrefix(iso) ?: return emptyList()
+        return (listOf(trunk) + parsingTrunkPrefixes[iso].orEmpty()).sortedByDescending { it.length }
+    }
 
     /** The flag, as the two regional-indicator letters Android draws as one emoji. */
     fun flag(iso: String): String = buildString {
@@ -141,10 +201,11 @@ object DialCountries {
     fun homeCountry(numbers: List<String>): String? {
         val counts = linkedMapOf<String, Int>()
         for (reading in numbers.map { DialPlan.read(it, country = null) }) {
-            // ⚠️ A TOLL-FREE +1 NUMBER IS NOT EVIDENCE OF ANY COUNTRY (Seer on district-ios #95): a
-            // Canadian workspace with only 1-800 numbers would otherwise read as American.
-            val tollFree = reading.callingCode == "1" && isNanpTollFree(reading.nationalNumber)
-            val iso = reading.iso?.takeUnless { tollFree } ?: continue
+            // ⚠️ A NO-COUNTRY +1 NUMBER (toll-free, or 500, 600, 700, 710, 900) IS NOT EVIDENCE OF ANY
+            // COUNTRY (Seer on district-ios #95 and #98): a Canadian workspace with only 1-800 numbers
+            // would otherwise read as American.
+            val noCountry = reading.callingCode == "1" && isNanpNoCountry(reading.nationalNumber)
+            val iso = reading.iso?.takeUnless { noCountry } ?: continue
             counts[iso] = (counts[iso] ?: 0) + 1
         }
         // ⚠️ `maxByOrNull` keeps the FIRST of equal maxima, and the map keeps insertion order.

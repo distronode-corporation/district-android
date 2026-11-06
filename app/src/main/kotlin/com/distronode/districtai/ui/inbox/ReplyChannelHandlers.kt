@@ -28,6 +28,7 @@ import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.ReplyTarget
 import com.distronode.districtai.core.model.WhatsAppTemplate
+import com.distronode.districtai.core.model.jsTrim
 import com.distronode.districtai.l10n.inboxChannelLabel
 import com.distronode.districtai.ui.resolve
 
@@ -244,7 +245,9 @@ private fun TemplateFields(sheet: TemplateSheetState, onValue: (Int, String) -> 
             label = {
                 Eyebrow(stringResource(R.string.thread_whatsapp_template_variable, "{{${index + 1}}}"))
             },
-            supportingText = if (value.isBlank()) {
+            // ⚠️ JavaScript's trim, as Send's `complete` measures: Kotlin's isBlank disagrees on
+            // U+FEFF, which left Send off with no hint saying why.
+            supportingText = if (jsTrim(value).isEmpty()) {
                 { Text(stringResource(R.string.thread_whatsapp_template_variable_required)) }
             } else {
                 null

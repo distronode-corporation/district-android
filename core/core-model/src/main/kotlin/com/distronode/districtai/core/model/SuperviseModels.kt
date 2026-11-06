@@ -32,6 +32,13 @@ data class CallMonitorTokenResponse(
     val token: String = "",
     /** ⛔ The room's deployment, `wss://`. Used verbatim. */
     val url: String = "",
+    /**
+     * The room's end-to-end key, when it has one. ⚠️ Absent for a phone call's room today (the
+     * route sends one only for `meet_`, `preview_` and `hq_` rooms), but modelled so a key that
+     * does come back is used rather than dropped by `ignoreUnknownKeys`, which would join a room
+     * the supervisor cannot hear. A blank key is no key (see [E2eeInfo]).
+     */
+    val e2ee: E2eeInfo? = null,
 )
 
 /**

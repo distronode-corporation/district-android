@@ -33,17 +33,23 @@ data class ThreadOwnerHandlers(
     val state: ThreadOwnerState,
     val onAssign: (String?) -> Unit,
     val onDismissFailure: () -> Unit,
+    /** Read the owner again, after [ThreadOwnerState.readFailed]. */
+    val onRetry: () -> Unit,
 )
 
 /**
  * "Assigned to" and the owner, with the picker for a role that may assign.
  *
- * ⚠️ NOTHING UNTIL THE OWNER IS READ: see [ThreadOwnerState.loaded].
+ * ⚠️ NOTHING UNTIL THE OWNER IS READ: see [ThreadOwnerState.loaded]. A read that failed says so,
+ * with Try again, and never shows "Unassigned" in place of an owner it could not read.
  */
 @Composable
 internal fun ThreadOwnerRow(owner: ThreadOwnerHandlers) {
     val state = owner.state
-    if (!state.loaded) return
+    if (!state.loaded) {
+        if (state.readFailed) OwnerReadFailed(owner.onRetry)
+        return
+    }
     var open by remember { mutableStateOf(false) }
     val shown = state.owner?.let { serverText(it) } ?: stringResource(R.string.thread_unassigned)
     ContentContainer {
@@ -112,6 +118,33 @@ internal fun ThreadOwnerRow(owner: ThreadOwnerHandlers) {
 }
 
 @Composable
+private fun OwnerReadFailed(onRetry: () -> Unit) {
+    ContentContainer {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DistrictTheme.spacing.gutter, vertical = DistrictTheme.spacing.hairline)
+                .testTag(THREAD_OWNER_READ_FAILED_DESCRIPTION),
+        ) {
+            Text(
+                text = stringResource(R.string.thread_owner_failed),
+                style = MaterialTheme.typography.bodySmall,
+                color = DistrictTheme.colors.mutedForeground,
+                modifier = Modifier.weight(1f),
+            )
+            DistrictButton(
+                text = stringResource(R.string.overview_retry),
+                onClick = onRetry,
+                variant = ButtonVariant.Ghost,
+                size = ButtonSize.Sm,
+                modifier = Modifier.testTag(THREAD_OWNER_RETRY_DESCRIPTION),
+            )
+        }
+    }
+}
+
+@Composable
 private fun OwnerOption(label: String, tag: String, onClick: () -> Unit) {
     DropdownMenuItem(text = { Text(label) }, onClick = onClick, modifier = Modifier.testTag(tag))
 }
@@ -123,3 +156,5 @@ const val THREAD_OWNER_VALUE_DESCRIPTION: String = "district-thread-owner-value"
 const val THREAD_OWNER_NOBODY_DESCRIPTION: String = "district-thread-owner-nobody"
 const val THREAD_OWNER_OPTION_DESCRIPTION: String = "district-thread-owner-option-"
 const val THREAD_OWNER_FAILURE_DESCRIPTION: String = "district-thread-owner-failure"
+const val THREAD_OWNER_READ_FAILED_DESCRIPTION: String = "district-thread-owner-read-failed"
+const val THREAD_OWNER_RETRY_DESCRIPTION: String = "district-thread-owner-retry"

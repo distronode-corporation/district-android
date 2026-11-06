@@ -40,6 +40,13 @@ import kotlinx.coroutines.withContext
  * customer's call.
  *
  * ⛔ NEVER RETRIED. A refusal or a failed join is shown at the call and the supervisor decides.
+ * The one rejoin is a takeover whose join failed after the listening room was left: the
+ * supervisor is put back to listening (one listen request, its failure shown as any other), so a
+ * failed takeover never leaves them silently out of the call.
+ *
+ * ⛔ "LISTENING" AND "ON THE CALL" ARE CLAIMED ONLY ONCE THEY ARE TRUE ([State.live]): the room
+ * connected and, for a takeover, the microphone published. Until then the card says connecting,
+ * and a reconnecting room says so (the web gates the same states on `connectionState`).
  *
  * @param scope the ViewModel's. @param engineScope outlives it, so a disconnect launched by
  *   [release] still runs (see `CallEngineFactory`).
@@ -62,6 +69,8 @@ class LiveSupervisor(
      *   on purpose: a takeover is requested WHILE listening, and the listening room's own states
      *   go on arriving meanwhile.
      * @property failure shown at [failedCallId].
+     * @property joined the join finished: `connect` returned and, for a takeover, the microphone
+     *   is on. ⚠️ Apart from [phase], which the room's own states move while the join is running.
      */
     data class State(
         val callId: String? = null,
@@ -70,9 +79,13 @@ class LiveSupervisor(
         val requestingCallId: String? = null,
         val failedCallId: String? = null,
         val failure: UiText? = null,
+        val joined: Boolean = false,
     ) {
         /** A request or a join is in flight: listen and take over wait. */
-        val busy: Boolean get() = requestingCallId != null || phase == Phase.CONNECTING
+        val busy: Boolean get() = requestingCallId != null || (callId != null && !joined)
+
+        /** Listening, or on the call with the microphone live: what the card may claim. */
+        val live: Boolean get() = joined && phase == Phase.CONNECTED
     }
 
     private val _state = MutableStateFlow(State())
@@ -118,18 +131,26 @@ class LiveSupervisor(
         }
     }
 
-    private fun act(callId: String, takeOver: Boolean) {
+    /**
+     * @param carried a failure to keep showing at [callId] through this action: the takeover
+     *   failure while the supervisor is put back to listening (see the class).
+     */
+    private fun act(callId: String, takeOver: Boolean, carried: UiText? = null) {
         if (released || _state.value.busy) return
-        _state.value = _state.value.copy(requestingCallId = callId, failedCallId = null, failure = null)
+        _state.value = _state.value.copy(
+            requestingCallId = callId,
+            failedCallId = carried?.let { callId },
+            failure = carried,
+        )
         action = scope.launch {
             val outcome = if (takeOver) repository.takeOver(workspaceId, callId) else repository.monitor(callId)
             val refusal = when (outcome) {
                 is SuperviseOutcome.Done -> {
-                    join(callId, outcome.value, takeOver)
+                    join(callId, outcome.value, takeOver, carried)
                     null
                 }
                 SuperviseOutcome.NotACall -> UiText.Resource(R.string.live_calls_not_a_call)
-                is SuperviseOutcome.Refused -> superviseFailureText(
+                is SuperviseOutcome.Refused -> carried ?: superviseFailureText(
                     outcome.failure,
                     if (takeOver) R.string.live_calls_take_over_failed else R.string.live_calls_connect_failed,
                 )
@@ -142,16 +163,25 @@ class LiveSupervisor(
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun join(callId: String, grant: LiveCallGrant, takeOver: Boolean) {
+    private suspend fun join(callId: String, grant: LiveCallGrant, takeOver: Boolean, carried: UiText?) {
         leaveEngine()
         val joined = engineFactory.create(engineScope)
         engine = joined
-        _state.value = State(callId = callId, takenOver = takeOver, phase = Phase.CONNECTING)
+        _state.value = State(
+            callId = callId,
+            takenOver = takeOver,
+            phase = Phase.CONNECTING,
+            failedCallId = carried?.let { callId },
+            failure = carried,
+        )
         watch = scope.launch { joined.connectionState.collect(::follow) }
+        var connected = false
         val failure = try {
             // ⛔ THE GRANT'S URL, VERBATIM: the room's deployment, never the workspace's default.
-            // No key: a phone call's room is never end-to-end encrypted (it has a SIP leg).
-            joined.connect(grant.url, grant.token)
+            // ⚠️ A phone call's room carries no key today (it has a SIP leg); one the grant does
+            // carry is used, as the rooms use theirs, rather than joining a room it cannot hear.
+            joined.connect(grant.url, grant.token, grant.e2eeKey)
+            connected = true
             if (takeOver) {
                 // ⛔ The one place this screen opens the microphone. At the ear, like a phone call.
                 joined.setSpeakerphoneOn(false)
@@ -167,13 +197,26 @@ class LiveSupervisor(
         } catch (thrown: Exception) {
             thrown
         }
-        if (failure != null) {
+        // ⚠️ THE ROOM'S STATE AS THE JOIN ENDS, READ HERE: the watch collects a conflated flow, so a
+        // room that connected and closed during the join may only ever show it `Disconnected`,
+        // which [ended] ignores until the join is over. A room that closed under a joined
+        // `connect` (the call ended, during the microphone's publish too) is the call ending,
+        // not a failure to name.
+        val connection = joined.connectionState.value
+        if (failure != null && !(connected && connection is CallConnectionState.Disconnected)) {
             // ⛔ NO HALF-JOINED LEG: a supervisor in the room without a working microphone is a
             // participant the caller cannot hear and the agent never sees.
             leaveEngine()
-            val text = if (takeOver) R.string.live_calls_take_over_join_failed else R.string.live_calls_connect_failed
-            _state.value = State(failedCallId = callId, failure = UiText.Resource(text))
+            val text = carried ?: UiText.Resource(
+                if (takeOver) R.string.live_calls_take_over_join_failed else R.string.live_calls_connect_failed,
+            )
+            _state.value = State(failedCallId = callId, failure = text)
+            // The listening room was left for this join: put the supervisor back in it.
+            if (takeOver) act(callId, takeOver = false, carried = text)
+            return
         }
+        _state.value = _state.value.copy(joined = true)
+        follow(connection)
     }
 
     /**
@@ -193,8 +236,9 @@ class LiveSupervisor(
         }
     }
 
+    /** ⚠️ Not while the join runs: [join] reads the room's state itself when it ends. */
     private fun ended(current: State, failure: UiText?) {
-        if (current.phase == Phase.CONNECTING) return
+        if (!current.joined) return
         leaveEngine()
         _state.value = State(
             requestingCallId = current.requestingCallId,

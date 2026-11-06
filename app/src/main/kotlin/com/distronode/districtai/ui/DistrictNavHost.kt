@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -141,6 +142,7 @@ import com.distronode.districtai.core.model.displayName
 import com.distronode.districtai.core.model.ReplyTarget
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The signed-in navigation graph.
@@ -644,11 +646,17 @@ fun DistrictNavHost(
                         ),
                     )
                     val ownerState by ownerViewModel.state.collectAsStateWithLifecycle()
-                    // ⚠️ An owner still unread when the screen starts again (back from the
-                    // background, or from a screen pushed on top) is read again. The first start
-                    // finds init's read in flight, and load() is single-flight.
-                    LifecycleStartEffect(ownerViewModel) {
-                        if (!ownerViewModel.state.value.loaded) ownerViewModel.load()
+                    // ⚠️ When the screen starts AGAIN (back from the background, or from a screen
+                    // pushed on top): an owner still unread is read again, and WhatsApp's window
+                    // is re-checked (the customer may have written, or the 24 hours run out).
+                    // Not on the first start: entry has just read both, and a first read that
+                    // answered at once would be read twice.
+                    val startedBefore = remember { AtomicBoolean(false) }
+                    LifecycleStartEffect(viewModel, ownerViewModel) {
+                        if (startedBefore.getAndSet(true)) {
+                            if (!ownerViewModel.state.value.loaded) ownerViewModel.load()
+                            viewModel.channels.recheckWindow()
+                        }
                         onStopOrDispose { }
                     }
                     // ⚠️ Tell the Inbox behind this thread to read its list again; see KEY_INBOX_STALE.
@@ -721,6 +729,7 @@ fun DistrictNavHost(
                             state = ownerState,
                             onAssign = ownerViewModel::assign,
                             onDismissFailure = ownerViewModel::dismissFailure,
+                            onRetry = ownerViewModel::load,
                         ),
                     )
                 }

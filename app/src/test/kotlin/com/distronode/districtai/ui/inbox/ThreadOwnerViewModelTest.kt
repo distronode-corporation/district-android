@@ -180,6 +180,12 @@ class ThreadOwnerViewModelTest {
         val vm = viewModel()
         advanceUntilIdle()
         assertFalse(vm.state.value.loaded)
+        assertTrue("the row says the read failed", vm.state.value.readFailed)
+
+        vm.load()
+        assertFalse("not while the next read is out", vm.state.value.readFailed)
+        advanceUntilIdle()
+        assertTrue(vm.state.value.readFailed)
 
         assignments.assignmentsResult = ApiResult.Success(
             ConversationAssignmentsResponse(
@@ -191,6 +197,7 @@ class ThreadOwnerViewModelTest {
         advanceUntilIdle()
 
         assertTrue(vm.state.value.loaded)
+        assertFalse(vm.state.value.readFailed)
         assertEquals("agency@example.com", vm.state.value.owner)
         vm.assign("client@example.com")
         advanceUntilIdle()
@@ -221,6 +228,7 @@ class ThreadOwnerViewModelTest {
         advanceUntilIdle()
 
         assertTrue(vm.state.value.loaded)
+        assertFalse("an owner on screen is not a failed read", vm.state.value.readFailed)
         assertEquals("viewer@example.com", vm.state.value.owner)
     }
 

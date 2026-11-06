@@ -3,6 +3,7 @@ package com.distronode.districtai.core.data
 import com.distronode.districtai.core.model.CallMonitorTokenResponse
 import com.distronode.districtai.core.model.CallTakeoverResponse
 import com.distronode.districtai.core.model.CallWhisperResponse
+import com.distronode.districtai.core.model.E2eeInfo
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
 import kotlinx.coroutines.test.runTest
@@ -124,7 +125,28 @@ class SuperviseRepositoryTest {
     }
 
     @Test
-    fun `a grant never prints its token`() {
-        assertEquals("LiveCallGrant(url=wss://x, token=<redacted>)", LiveCallGrant("wss://x", "secret").toString())
+    fun `a grant never prints its token or its key`() {
+        assertEquals(
+            "LiveCallGrant(url=wss://x, token=<redacted>, e2eeKey=none)",
+            LiveCallGrant("wss://x", "secret").toString(),
+        )
+        assertEquals(
+            "LiveCallGrant(url=wss://x, token=<redacted>, e2eeKey=<redacted>)",
+            LiveCallGrant("wss://x", "secret", "key-secret").toString(),
+        )
+    }
+
+    @Test
+    fun `a listen grant carries the room's key when the route sends one, and a blank key is none`() = runTest {
+        api.monitorResult = ApiResult.Success(
+            CallMonitorTokenResponse(success = true, token = "jwt", url = "wss://x", e2ee = E2eeInfo("room-key")),
+        )
+        val keyed = LiveCallGrant("wss://x", "jwt", "room-key")
+        assertEquals(SuperviseOutcome.Done(keyed), repository.monitor("cmaicall1"))
+
+        api.monitorResult = ApiResult.Success(
+            CallMonitorTokenResponse(success = true, token = "jwt", url = "wss://x", e2ee = E2eeInfo(" ")),
+        )
+        assertEquals(SuperviseOutcome.Done(LiveCallGrant("wss://x", "jwt")), repository.monitor("cmaicall1"))
     }
 }

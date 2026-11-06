@@ -104,6 +104,27 @@ class TelemetryConnectionRunnerTest {
     }
 
     @Test
+    fun `a handshake or a read failing with no message still reads as a network drop`() = runTest {
+        transport.answers += { throw IOException() }
+        val socket = transport.socket()
+        transport.socket()
+        val runner = runner()
+        val updates = collect(runner)
+        runner.start()
+        runCurrent()
+        assertEquals(TelemetryUpdate.Reconnecting(1_000, TelemetryDisconnect.Network("")), updates.single())
+
+        advanceTimeBy(1_001)
+        assertEquals(TelemetryUpdate.Connected, updates.last())
+        socket.frames.close(IOException())
+        runCurrent()
+        assertTrue(updates.last() is TelemetryUpdate.Reconnecting)
+
+        runner.stop()
+        runCurrent()
+    }
+
+    @Test
     fun `a socket that breaks or closes is replaced`() = runTest {
         val first = transport.socket()
         val second = transport.socket()

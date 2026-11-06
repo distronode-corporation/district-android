@@ -78,6 +78,7 @@ import com.distronode.districtai.ui.support.SupportSubmitOutcome
 import com.distronode.districtai.ui.support.SupportViewModel
 import com.distronode.districtai.ui.hq.HqScreen
 import com.distronode.districtai.ui.hq.HqViewModel
+import com.distronode.districtai.ui.inbox.AssignedToMeFilter
 import com.distronode.districtai.ui.inbox.ComposeViewModel
 import com.distronode.districtai.ui.inbox.ComposerHandlers
 import com.distronode.districtai.ui.inbox.InboxCompose
@@ -86,9 +87,15 @@ import com.distronode.districtai.ui.inbox.InboxViewModel
 import com.distronode.districtai.ui.marketplace.MarketplaceScreen
 import com.distronode.districtai.ui.marketplace.MarketplaceViewModel
 import com.distronode.districtai.ui.marketplace.marketplaceWebUrl
+import com.distronode.districtai.ui.inbox.ThreadOwnerHandlers
+import com.distronode.districtai.ui.inbox.ThreadOwnerViewModel
 import com.distronode.districtai.ui.inbox.ThreadScreen
+import com.distronode.districtai.ui.inbox.ThreadServices
 import com.distronode.districtai.ui.inbox.ThreadTarget
 import com.distronode.districtai.ui.inbox.ThreadViewModel
+import com.distronode.districtai.ui.inbox.decodeReplyChoices
+import com.distronode.districtai.ui.inbox.encodeReplyChoices
+import com.distronode.districtai.ui.inbox.handlers
 import com.distronode.districtai.ui.workflows.CampaignCallbacks
 import com.distronode.districtai.ui.workflows.WorkflowsScreen
 import com.distronode.districtai.ui.workflows.WorkflowsViewModel
@@ -447,6 +454,7 @@ fun DistrictNavHost(
                         },
                         onSignIn = onSignIn,
                         onBack = { navController.popBackStack() },
+                        onOpenLiveCalls = { navController.navigate(Routes.liveCalls(workspaceId, role)) },
                     )
                 }
 
@@ -477,6 +485,17 @@ fun DistrictNavHost(
                     )
                     val composeState by compose.state.collectAsStateWithLifecycle()
                     val blockedSnapshot by container.blockedContactsStore.state.collectAsStateWithLifecycle()
+                    val assignedToMe by viewModel.assignedToMe.collectAsStateWithLifecycle()
+                    // ⚠️ A thread opened from here changed its owner: read the list again on the way
+                    // back, so the row's owner line and "Assigned to me" are the server's.
+                    val stale by entry.savedStateHandle.getStateFlow(KEY_INBOX_STALE, false)
+                        .collectAsStateWithLifecycle()
+                    LaunchedEffect(stale) {
+                        if (stale) {
+                            entry.savedStateHandle[KEY_INBOX_STALE] = false
+                            viewModel.load(refreshing = true)
+                        }
+                    }
                     OnSessionChanged(sessionEpoch) { viewModel.load() }
                     InboxScreen(
                         state = state,
@@ -484,17 +503,15 @@ fun DistrictNavHost(
                             // ⚠️ Mark read OPTIMISTICALLY, before navigating. Opening the thread is the read,
                             // and waiting on the write would delay the screen to serve bookkeeping.
                             viewModel.markThreadRead(thread.contactId, thread.counterpart)
-                            // ⛔ The reply address and channel are resolved HERE, from the
-                            // conversation, because this is the only screen that has them. See
-                            // ConversationSummary.replyTarget.
-                            val target = thread.replyTarget
+                            // ⛔ The reply choices are resolved HERE, from the conversation, because
+                            // this is the only screen that has them, and ALL of them travel, not just
+                            // the first. See ConversationSummary.replyChoices.
                             navController.navigate(
                                 Routes.thread(
                                     workspaceId = workspaceId,
                                     role = role,
                                     threadKey = thread.threadKey,
-                                    replyTo = target?.to,
-                                    replyChannel = target?.channel,
+                                    replies = thread.replyChoices,
                                     title = thread.displayName,
                                 ),
                             )
@@ -516,14 +533,12 @@ fun DistrictNavHost(
                             // customer who has only ever emailed. ⚠️ A hit in a thread outside the
                             // loaded window therefore opens READ-ONLY, which is the truthful outcome
                             // rather than a gap.
-                            val target = viewModel.conversationFor(hit.threadKey)?.replyTarget
                             navController.navigate(
                                 Routes.thread(
                                     workspaceId = workspaceId,
                                     role = role,
                                     threadKey = hit.threadKey,
-                                    replyTo = target?.to,
-                                    replyChannel = target?.channel,
+                                    replies = viewModel.conversationFor(hit.threadKey)?.replyChoices.orEmpty(),
                                     title = hit.displayName,
                                 ),
                             )
@@ -551,6 +566,7 @@ fun DistrictNavHost(
                             },
                         ).takeIf { compose.canSend },
                         blockedContactIds = blockedSnapshot.idsFor(workspaceId),
+                        assignedToMe = AssignedToMeFilter(assignedToMe, viewModel::setAssignedToMe),
                     )
                 }
 
@@ -572,6 +588,11 @@ fun DistrictNavHost(
                             nullable = true
                             defaultValue = null
                         },
+                        navArgument(ARG_REPLY_MORE) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
                     ),
                 ) { entry ->
                     val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
@@ -583,11 +604,15 @@ fun DistrictNavHost(
                         entry.routeArguments().getString(ARG_REPLY_CHANNEL)?.takeIf { it.isNotBlank() }
                     val threadTitle =
                         entry.routeArguments().getString(ARG_THREAD_TITLE)?.takeIf { it.isNotBlank() }
+                    val moreReplies = decodeReplyChoices(entry.routeArguments().getString(ARG_REPLY_MORE))
                     val context = LocalContext.current
                     val viewModel: ThreadViewModel = viewModel(
                         factory = ThreadViewModel.Factory(
-                            repository = container.inboxRepository,
-                            composer = container.composerRepository,
+                            services = ThreadServices(
+                                inbox = container.inboxRepository,
+                                composer = container.composerRepository,
+                                whatsApp = container.whatsAppRepository,
+                            ),
                             target = ThreadTarget(
                                 workspaceId = workspaceId,
                                 contactId = selector.contactId,
@@ -599,6 +624,8 @@ fun DistrictNavHost(
                                 replyTarget = replyTo?.let {
                                     ReplyTarget(it, replyChannel ?: CHANNEL_SMS)
                                 },
+                                // ⚠️ Only with a first choice: the others never stand alone.
+                                moreReplies = if (replyTo != null) moreReplies else emptyList(),
                             ),
                             role = role,
                             attachmentReader = container.attachmentReader(context),
@@ -606,6 +633,40 @@ fun DistrictNavHost(
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()
                     val composerText by viewModel.composerText.collectAsStateWithLifecycle()
+                    val channelState by viewModel.channels.state.collectAsStateWithLifecycle()
+                    val ownerViewModel: ThreadOwnerViewModel = viewModel(
+                        factory = ThreadOwnerViewModel.Factory(
+                            assignments = container.conversationAssignmentRepository,
+                            members = container.membersRepository,
+                            workspaceId = workspaceId,
+                            threadKey = threadKey,
+                            role = role,
+                        ),
+                    )
+                    val ownerState by ownerViewModel.state.collectAsStateWithLifecycle()
+                    // ⚠️ When the screen starts AGAIN (back from the background, or from a screen
+                    // pushed on top): an owner still unread is read again, and WhatsApp's window
+                    // is re-checked (the customer may have written, or the 24 hours run out).
+                    // Not on the first start: entry has just read both, and a first read that
+                    // answered at once would be read twice.
+                    // ⛔ SAVEABLE, NOT `remember`: a screen pushed on top (a push opening another
+                    // thread) disposes this composition, and a plain `remember` came back false,
+                    // so the return was taken for a first start and re-read nothing.
+                    var startedBefore by rememberSaveable { mutableStateOf(false) }
+                    LifecycleStartEffect(viewModel, ownerViewModel) {
+                        if (startedBefore) {
+                            if (!ownerViewModel.state.value.loaded) ownerViewModel.load()
+                            viewModel.channels.recheckWindow()
+                        }
+                        startedBefore = true
+                        onStopOrDispose { }
+                    }
+                    // ⚠️ Tell the Inbox behind this thread to read its list again; see KEY_INBOX_STALE.
+                    LaunchedEffect(ownerState.assignments) {
+                        if (ownerState.assignments > 0) {
+                            navController.previousBackStackEntry?.let { it.savedStateHandle[KEY_INBOX_STALE] = true }
+                        }
+                    }
                     // ⛔ THE PICKER LAUNCHER LIVES HERE, NOT IN ThreadScreen.
                     // rememberLauncherForActivityResult needs an ActivityResultRegistryOwner,
                     // which a plain `createComposeRule` test host does not provide — putting it in
@@ -618,7 +679,11 @@ fun DistrictNavHost(
                     val picker = rememberLauncherForActivityResult(
                         ActivityResultContracts.PickVisualMedia(),
                     ) { uri -> uri?.let { viewModel.attach(it.toString()) } }
-                    OnSessionChanged(sessionEpoch, viewModel::load)
+                    val reloadThread = {
+                        viewModel.load()
+                        ownerViewModel.load()
+                    }
+                    OnSessionChanged(sessionEpoch, reloadThread)
                     ThreadScreen(
                         // ⚠️ The conversation's display name (contact name, else the counterpart)
                         // is preferred: a contact-keyed thread has no address to fall back to, and
@@ -630,7 +695,7 @@ fun DistrictNavHost(
                         canReply = viewModel.canReply,
                         onBack = { navController.popBackStack() },
                         onSend = viewModel::send,
-                        onRetry = viewModel::load,
+                        onRetry = reloadThread,
                         onSignIn = onSignIn,
                         onDismissSendFailure = viewModel::dismissSendFailure,
                         onLoadOlder = viewModel::loadOlder,
@@ -660,6 +725,13 @@ fun DistrictNavHost(
                             store = container.blockedContactsStore,
                             support = container.supportRepository,
                             onBlocked = { navController.popBackStack() },
+                        ),
+                        channels = viewModel.channels.handlers(channelState),
+                        owner = ThreadOwnerHandlers(
+                            state = ownerState,
+                            onAssign = ownerViewModel::assign,
+                            onDismissFailure = ownerViewModel::dismissFailure,
+                            onRetry = ownerViewModel::load,
                         ),
                     )
                 }
@@ -952,6 +1024,7 @@ fun DistrictNavHost(
                 roomsLobbyDestination(container, navController, sessionEpoch)
                 activeRoomDestination(container, navController, context)
                 dialerDestination(container, navController, sessionEpoch)
+                liveCallsDestination(container, navController, sessionEpoch, onSignIn)
 
                 // ⛔ EXTRACTED FOR THE SAME COMPLEXITY REASON AS THE THREE ABOVE, AND THEN OUT OF
                 // THIS FILE ENTIRELY — it lives in `ui/scheduling/SchedulingDestination.kt`. This
@@ -2218,7 +2291,7 @@ object Routes {
      */
     const val THREAD = "workspace/{workspaceId}/inbox/{role}/{threadKey}" +
         "?$ARG_REPLY_TO={$ARG_REPLY_TO}&$ARG_REPLY_CHANNEL={$ARG_REPLY_CHANNEL}" +
-        "&$ARG_THREAD_TITLE={$ARG_THREAD_TITLE}"
+        "&$ARG_THREAD_TITLE={$ARG_THREAD_TITLE}&$ARG_REPLY_MORE={$ARG_REPLY_MORE}"
     const val CONTACTS = "workspace/{workspaceId}/contacts/{role}"
     const val CONTACT_DETAIL = "workspace/{workspaceId}/contacts/{role}/{contactId}"
 
@@ -2397,6 +2470,12 @@ object Routes {
     const val DIALER = "workspace/{workspaceId}/dialer/{role}"
 
     /**
+     * Live calls: listen, whisper and take over. ⚠️ NOT under `calls/`, where `live-calls` would
+     * read as a call id. The role is a path segment and fails CLOSED to listen-only.
+     */
+    const val LIVE_CALLS = "workspace/{workspaceId}/live-calls/{role}"
+
+    /**
      * The automation monitor.
      *
      * ⛔ A TOP-LEVEL WORKSPACE DESTINATION RATHER THAN A `settings/{role}/...` SECTION, AND THE
@@ -2560,15 +2639,39 @@ object Routes {
         replyTo: String? = null,
         replyChannel: String? = null,
         title: String? = null,
+        /** The reply choices after the first, which [replyTo]/[replyChannel] carry. */
+        moreReplies: List<ReplyTarget> = emptyList(),
     ): String {
         val base = inbox(workspaceId, role) + "/" + Uri.encode(threadKey)
+        val more = encodeReplyChoices(moreReplies)
         val query = buildList {
             if (!replyTo.isNullOrBlank()) add("$ARG_REPLY_TO=${Uri.encode(replyTo)}")
             if (!replyChannel.isNullOrBlank()) add("$ARG_REPLY_CHANNEL=${Uri.encode(replyChannel)}")
             if (!title.isNullOrBlank()) add("$ARG_THREAD_TITLE=${Uri.encode(title)}")
+            if (more != null) add("$ARG_REPLY_MORE=${Uri.encode(more)}")
         }
         return if (query.isEmpty()) base else base + "?" + query.joinToString("&")
     }
+
+    /**
+     * A thread opened from the Inbox list or a search hit, with EVERY reply choice: the first as
+     * `replyTo`/`replyChannel`, the rest as [ARG_REPLY_MORE]. An empty list opens it read-only.
+     */
+    fun thread(
+        workspaceId: String,
+        role: WorkspaceRole?,
+        threadKey: String,
+        replies: List<ReplyTarget>,
+        title: String?,
+    ): String = thread(
+        workspaceId = workspaceId,
+        role = role,
+        threadKey = threadKey,
+        replyTo = replies.firstOrNull()?.to,
+        replyChannel = replies.firstOrNull()?.channel,
+        title = title,
+        moreReplies = replies.drop(1),
+    )
 
     fun contacts(workspaceId: String, role: WorkspaceRole?) =
         "workspace/${Uri.encode(workspaceId)}/contacts/${Uri.encode(role?.name?.lowercase() ?: "none")}"
@@ -2599,6 +2702,11 @@ object Routes {
     /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
     fun dialer(workspaceId: String, role: WorkspaceRole?) =
         "workspace/${Uri.encode(workspaceId)}/dialer/" +
+            Uri.encode(role?.name?.lowercase() ?: "none")
+
+    /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
+    fun liveCalls(workspaceId: String, role: WorkspaceRole?) =
+        "workspace/${Uri.encode(workspaceId)}/live-calls/" +
             Uri.encode(role?.name?.lowercase() ?: "none")
 
     /**
@@ -2697,6 +2805,12 @@ internal const val THREAD_ADDRESS_PREFIX = "addr:"
 internal const val ARG_REPLY_TO = "replyTo"
 internal const val ARG_REPLY_CHANNEL = "replyChannel"
 internal const val ARG_THREAD_TITLE = "title"
+
+/** The thread's reply choices after the first, as `encodeReplyChoices` writes them. */
+internal const val ARG_REPLY_MORE = "moreReplies"
+
+/** Set on the Inbox's back-stack entry by a thread whose owner changed: read the list again. */
+internal const val KEY_INBOX_STALE = "inbox-stale"
 
 /**
  * Which selector the timeline endpoint should be asked with.

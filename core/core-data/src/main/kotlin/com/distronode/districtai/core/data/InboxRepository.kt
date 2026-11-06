@@ -1,9 +1,13 @@
 package com.distronode.districtai.core.data
 
+import com.distronode.districtai.core.model.CHANNEL_WHATSAPP
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.MarkReadRequest
 import com.distronode.districtai.core.model.SendMessageRequest
 import com.distronode.districtai.core.model.TimelineEvent
+import com.distronode.districtai.core.model.WhatsAppTemplate
+import com.distronode.districtai.core.model.fillWhatsAppTemplate
+import com.distronode.districtai.core.model.jsTrim
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DistrictApi
 
@@ -134,16 +138,53 @@ class InboxRepository(private val api: DistrictApi) {
          * "Missing required parameters" rather than a message. The caller refuses locally instead.
          */
         mediaUrls: List<String> = emptyList(),
-    ): ApiResult<String> {
-        val request = SendMessageRequest(
+        /**
+         * WhatsApp only: the sender the window read named, so the text goes from the number whose
+         * window was checked. Null lets the route choose, as it does for every other channel.
+         */
+        whatsappSenderId: String? = null,
+    ): ApiResult<String> = dispatch(
+        SendMessageRequest(
             workspaceId = workspaceId,
             to = to,
             body = body,
             channel = channel,
             subject = subject,
             mediaUrls = mediaUrls,
+            whatsappSenderId = whatsappSenderId,
+        ),
+    )
+
+    /**
+     * Send an approved WhatsApp [template] to [to] from [senderId], one value per `{{n}}`.
+     *
+     * ⛔ THE BODY IS [fillWhatsAppTemplate] OF THE SAME VALUES, so what the operator previewed is what
+     * is sent. The route requires a non-empty `body` but stores its own fill, so the two agree.
+     * ⚠️ The values are trimmed (JavaScript's trim) before both, as the web composer does.
+     */
+    suspend fun sendTemplate(
+        workspaceId: String,
+        to: String,
+        senderId: String,
+        template: WhatsAppTemplate,
+        values: List<String>,
+    ): ApiResult<String> {
+        val filled = values.map(::jsTrim)
+        return dispatch(
+            SendMessageRequest(
+                workspaceId = workspaceId,
+                to = to,
+                body = fillWhatsAppTemplate(template.body, filled),
+                channel = CHANNEL_WHATSAPP,
+                whatsappSenderId = senderId,
+                templateId = template.id,
+                templateVariables = filled,
+            ),
         )
-        return when (val result = api.sendMessage(request)) {
+    }
+
+    private suspend fun dispatch(request: SendMessageRequest): ApiResult<String> =
+        when (val result = api.sendMessage(request)) {
             is ApiResult.Success ->
                 if (result.value.success) {
                     ApiResult.Success(result.value.message?.id.orEmpty())
@@ -152,7 +193,6 @@ class InboxRepository(private val api: DistrictApi) {
                 }
             is ApiResult.Failure -> result
         }
-    }
 
     /**
      * Mark a thread read.

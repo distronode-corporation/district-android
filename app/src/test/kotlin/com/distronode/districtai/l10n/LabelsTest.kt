@@ -115,6 +115,8 @@ class LabelsTest {
             "SMS" to { inboxChannelLabel("sms") },
             "WhatsApp" to { inboxChannelLabel("whatsapp") },
             "Voicemail" to { inboxChannelLabel("voicemail") },
+            "Messenger" to { inboxChannelLabel("messenger") },
+            "Instagram" to { inboxChannelLabel("instagram") },
             unknown("RCS") to { inboxChannelLabel("rcs") },
             // The portal's channel names since 3.0.1 (visual QA AC4), no longer the raw value.
             "SMS" to { messagingChannelLabel("sms") },
@@ -129,7 +131,10 @@ class LabelsTest {
                 stringResource(supportStatusLabel("In Progress", "INDETERMINATE"))
             },
         )
-        assertEquals(setOf("sms", "email", "whatsapp", "voicemail"), INBOX_CHANNEL_LABELS.keys)
+        assertEquals(
+            setOf("sms", "email", "whatsapp", "voicemail", "messenger", "instagram"),
+            INBOX_CHANNEL_LABELS.keys,
+        )
         assertEquals(R.string.messaging_channel_sms, MESSAGING_CHANNEL_LABELS["sms"])
         assertEquals(MESSAGING_CHANNELS.toSet(), MESSAGING_CHANNEL_LABELS.keys)
     }

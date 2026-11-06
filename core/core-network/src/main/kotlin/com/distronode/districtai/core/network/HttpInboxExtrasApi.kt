@@ -31,7 +31,9 @@ class HttpInboxExtrasApi(private val client: DistrictApiClient) : InboxExtrasApi
             // arriving from a push cannot climb out of the `messages/` family.
             segments = ExtraPaths.messageThread(messageId),
             serializer = MessageThreadResponse.serializer(),
-            query = mapOf("workspaceId" to workspaceId),
+            // ⚠️ `metaChannels=1`: without it a Messenger or Instagram message answers 404, and a
+            // push for one would open nowhere.
+            query = mapOf("workspaceId" to workspaceId, META_CHANNELS to FLAG_ON),
         )
 
     override suspend fun messageSender(

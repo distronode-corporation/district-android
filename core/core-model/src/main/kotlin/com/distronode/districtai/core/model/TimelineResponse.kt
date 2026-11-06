@@ -77,7 +77,7 @@ data class TimelinePageInfo(
 @Serializable
 data class TimelineEvent(
     val id: String = "",
-    /** `sms` | `call` | `email` | `whatsapp`. */
+    /** `sms` | `call` | `email` | `whatsapp`, and `messenger` | `instagram` under `metaChannels=1`. */
     val type: String = "",
     /**
      * ISO-8601 from the server.
@@ -139,7 +139,7 @@ data class SendMessageRequest(
     val workspaceId: String,
     val to: String,
     val body: String,
-    /** `sms` | `email`. ⛔ No default — see the class doc. */
+    /** `sms` | `email` | `whatsapp` | `messenger` | `instagram`. ⛔ No default; see the class doc. */
     val channel: String,
     /**
      * Email only; ignored for SMS.
@@ -172,6 +172,22 @@ data class SendMessageRequest(
      * server had its own default that could silently drift away from the client's.
      */
     val mediaUrls: List<String> = emptyList(),
+    /**
+     * WhatsApp only: the sender the window read named, so the send goes from the number whose
+     * window was checked. Omitted when null, as every field here, so an SMS or email body is
+     * byte-identical to what it was before WhatsApp existed.
+     */
+    val whatsappSenderId: String? = null,
+    /** WhatsApp only: an approved template's id. Present means a template send. */
+    val templateId: String? = null,
+    /**
+     * One value per `{{n}}`, in order.
+     *
+     * ⛔ ALWAYS SENT WITH [templateId], EVEN AS `[]`. The route reads a template send's variables as
+     * an array and refuses a missing one, so a template without variables still carries the empty
+     * array. Null (omitted) is only right when [templateId] is null too.
+     */
+    val templateVariables: List<String>? = null,
 )
 
 @Serializable

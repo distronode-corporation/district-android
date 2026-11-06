@@ -158,9 +158,8 @@ class InboxRequestBodyTest {
 
         val url = server.takeRequest().url
         assertEquals("/api/district/timeline", url.encodedPath)
-        assertEquals(setOf("workspaceId", "contactId"), url.queryParameterNames)
-        assertEquals("ws-1", url.queryParameter("workspaceId"))
-        assertEquals("c1", url.queryParameter("contactId"))
+        // ⚠️ Plus `metaChannels=1` since 3.3.0, so Messenger and Instagram rows come back typed.
+        assertEquals("workspaceId=ws-1&contactId=c1&metaChannels=1", url.encodedQuery)
     }
 
     @Test
@@ -179,7 +178,7 @@ class InboxRequestBodyTest {
         // ⚠️ `phoneNumber`, not `address`: the server's historical name for the selector, and the
         // only one guaranteed present in every deployed version.
         assertEquals(
-            setOf("workspaceId", "phoneNumber", "before", "beforeId"),
+            setOf("workspaceId", "phoneNumber", "before", "beforeId", "metaChannels"),
             url.queryParameterNames,
         )
         assertEquals("2026-08-15T12:11:00.000Z", url.queryParameter("before"))
@@ -203,7 +202,7 @@ class InboxRequestBodyTest {
         )
 
         val url = server.takeRequest().url
-        assertEquals(setOf("workspaceId", "contactId", "before"), url.queryParameterNames)
+        assertEquals(setOf("workspaceId", "contactId", "before", "metaChannels"), url.queryParameterNames)
         assertFalse("beforeId must be absent, not empty", "beforeId" in url.queryParameterNames)
     }
 

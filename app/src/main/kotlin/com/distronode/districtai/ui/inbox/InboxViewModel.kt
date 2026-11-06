@@ -10,6 +10,7 @@ import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.core.network.ApiResult
+import com.distronode.districtai.ui.isRefusal
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -78,6 +79,20 @@ class InboxViewModel(
 
     private var searchJob: Job? = null
 
+    private val _assignedToMe = MutableStateFlow(false)
+
+    /**
+     * The "Assigned to me" filter (app parity 3).
+     *
+     * ⛔ THE ROWS ARE THE SERVER'S `assignedToMe`, NEVER AN EMAIL COMPARED HERE: the server
+     * normalises addresses, and a second opinion on who "me" is would drop rows it kept.
+     */
+    val assignedToMe: StateFlow<Boolean> = _assignedToMe.asStateFlow()
+
+    fun setAssignedToMe(on: Boolean) {
+        _assignedToMe.value = on
+    }
+
     init {
         load()
     }
@@ -88,6 +103,9 @@ class InboxViewModel(
      */
     fun load(refreshing: Boolean = false) {
         val current = _state.value
+        // ⚠️ Decided here, by what this load is: a re-read of a list on screen keeps it on failure,
+        // a fresh load (first, or after a session change) does not.
+        val rereading = refreshing && current is InboxUiState.Content
         if (refreshing && current is InboxUiState.Content) {
             _state.value = current.copy(refreshing = true)
         } else if (!refreshing) {
@@ -107,7 +125,16 @@ class InboxViewModel(
                     _unread.value = result.value.conversations.sumOf { it.unreadCount }
                     loadDraftBadges()
                 }
-                is ApiResult.Failure -> _state.value = InboxUiState.Failed(result.toFailureText())
+                is ApiResult.Failure -> {
+                    val shown = _state.value
+                    // ⛔ A FAILED RE-READ KEEPS THE LIST, with a notice. Only the server refusing the
+                    // session or the access (signed out, no longer a member) takes it away.
+                    _state.value = if (rereading && shown is InboxUiState.Content && !result.isRefusal()) {
+                        shown.copy(refreshing = false, refreshFailure = result.toFailureText())
+                    } else {
+                        InboxUiState.Failed(result.toFailureText())
+                    }
+                }
             }
         }
     }

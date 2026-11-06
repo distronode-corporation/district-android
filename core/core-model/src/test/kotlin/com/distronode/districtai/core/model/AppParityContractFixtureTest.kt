@@ -7,8 +7,8 @@ import org.junit.Test
 
 /**
  * The app parity fixtures (Inbox reply options and timeline meta, thread assignment, the WhatsApp
- * window and templates), decoded minimally and held to [WireMirror] so each model keeps every key
- * it reads. No screen uses them yet.
+ * window and templates, the Messenger and Instagram reply window), decoded minimally and held to
+ * [WireMirror] so each model keeps every key it reads.
  *
  * A class of its own for the reason [ConversationAssignmentContractFixtureTest] gives:
  * `ContractFixtureTest` is at detekt's LargeClass ceiling. The viewer refusal
@@ -26,7 +26,7 @@ class AppParityContractFixtureTest {
 
         assertTrue("the fixture must carry threads", response.conversations.isNotEmpty())
         response.conversations.forEach {
-            assertTrue("${it.threadKey} must offer at least one reply channel", it.replyOptions.isNotEmpty())
+            assertTrue("${it.threadKey} must offer at least one reply channel", it.replyOptions.orEmpty().isNotEmpty())
         }
         val messenger = response.conversations.single { it.threadKey == "addr:fb:5550101" }
         assertEquals(listOf(ReplyOption(channel = "messenger", to = "fb:5550101")), messenger.replyOptions)
@@ -37,7 +37,7 @@ class AppParityContractFixtureTest {
         val response = WireMirror.assertMirrors(ConversationsResponse.serializer(), "district-conversations.json")
 
         response.conversations.forEach {
-            assertTrue(it.replyOptions.isEmpty())
+            assertNull("absent, which is not the same answer as []", it.replyOptions)
             assertNull(it.assigneeEmail)
             assertEquals(false, it.assignedToMe)
         }
@@ -92,6 +92,21 @@ class AppParityContractFixtureTest {
         assertEquals("+16475550100", open.receivedOn)
         assertEquals(WhatsAppWindow(open = false, expiresAt = null), closed.window)
         assertNull(closed.receivedOn)
+    }
+
+    @Test
+    fun `the Messenger and Instagram reply window decodes open, human agent and closed`() {
+        val open = WireMirror.assertMirrors(MetaWindowResponse.serializer(), "district-meta-window.json")
+        val humanAgent = WireMirror.assertMirrors(
+            MetaWindowResponse.serializer(),
+            "district-meta-window-human-agent.json",
+        )
+        val closed = WireMirror.assertMirrors(MetaWindowResponse.serializer(), "district-meta-window-closed.json")
+
+        assertEquals(MetaWindow(state = META_WINDOW_OPEN, until = "2026-08-16T14:25:00.000Z"), open.window)
+        assertEquals(MetaWindow(state = META_WINDOW_HUMAN_AGENT, until = "2026-08-22T14:25:00.000Z"), humanAgent.window)
+        assertEquals(MetaWindow(state = META_WINDOW_CLOSED, until = null), closed.window)
+        listOf(open, humanAgent, closed).forEach { assertTrue(it.success) }
     }
 
     @Test

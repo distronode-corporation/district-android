@@ -70,7 +70,50 @@ class TranscriptFramesTest {
 
     @Test
     fun `an event this client does not model is passed on as other`() {
-        val call = """{"workspaceId":"ws_1","callId":"c","eventType":"call_started","data":{"x":1},"timestamp":"t"}"""
+        val call =
+            """{"workspaceId":"ws_1","callId":"c","eventType":"message_received","data":{"x":1},"timestamp":"t"}"""
         assertEquals(TelemetryMessage.Other, TelemetryMessages.read(call, "ws_1"))
+    }
+
+    @Test
+    fun `a whisper receipt is read with its call, applied or held back`() {
+        val applied = TelemetryMessages.read(contract("telemetry-event-whisper-applied.json"), "ws_1")
+        val held = TelemetryMessages.read(contract("telemetry-event-whisper-not-applied.json"), "ws_1")
+
+        applied as TelemetryMessage.WhisperApplied
+        assertEquals("call_1", applied.callId)
+        assertTrue(applied.data.applied)
+        assertEquals("Good afternoon, Northside Dental. How can I help?", applied.data.firstWords)
+        assertEquals("taken_over", (held as TelemetryMessage.WhisperApplied).data.reason)
+        // Another workspace's receipt is not read at all.
+        assertEquals(
+            TelemetryMessage.Discarded,
+            TelemetryMessages.read(contract("telemetry-event-whisper-applied.json"), "ws_2"),
+        )
+    }
+
+    @Test
+    fun `a receipt whose data is not an object is discarded`() {
+        val broken = """{"workspaceId":"ws_1","callId":"c","eventType":"whisper_applied","data":7,"timestamp":"t"}"""
+        assertEquals(TelemetryMessage.Discarded, TelemetryMessages.read(broken, "ws_1"))
+    }
+
+    @Test
+    fun `a call starting, changing or ending is named, and its row is not read`() {
+        fun frame(type: String) =
+            """{"workspaceId":"ws_1","callId":"c9","eventType":"$type","data":{"from":"+15550100"},"timestamp":"t"}"""
+
+        assertEquals(
+            TelemetryMessage.CallChanged("c9", ended = false),
+            TelemetryMessages.read(frame("call_started"), "ws_1")
+        )
+        assertEquals(
+            TelemetryMessage.CallChanged("c9", ended = false),
+            TelemetryMessages.read(frame("call_updated"), "ws_1"),
+        )
+        assertEquals(
+            TelemetryMessage.CallChanged("c9", ended = true),
+            TelemetryMessages.read(frame("call_ended"), "ws_1")
+        )
     }
 }

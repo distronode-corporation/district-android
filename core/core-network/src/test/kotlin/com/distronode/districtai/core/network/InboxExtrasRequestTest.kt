@@ -98,6 +98,8 @@ class InboxExtrasRequestTest {
         // caller's active workspace, which on a multi-tenant account is a different tenant from
         // the one the push named — and the answer would then 404 for a message that exists.
         assertEquals("ws-2", recorded.url.queryParameter("workspaceId"))
+        // ⚠️ Without it a Messenger or Instagram message answers 404 and its push opens nowhere.
+        assertEquals("workspaceId=ws-2&metaChannels=1", recorded.url.encodedQuery)
     }
 
     @Test

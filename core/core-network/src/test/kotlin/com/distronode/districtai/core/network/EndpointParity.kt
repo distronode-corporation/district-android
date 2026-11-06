@@ -30,13 +30,13 @@ internal object EndpointParity {
      *
      * ⚠️ RAISED FROM 0 TO 3 ONCE, AT THE district-core-swift 8.0.0 REFRESH (Apple Watch round 2),
      * and only for endpoints this client has no use for rather than ones it has yet to build; each
-     * entry says why. That is the one reason the ratchet may move up, and it is decided by the
+     * entry says why. Down to 2 at live supervise (3.3.0), which built `whisper`. That is the one reason the ratchet may move up, and it is decided by the
      * maintainers in review, never to get a red build green.
      *
      * ⚠️ KEPT EQUAL TO THE ENTRY COUNT, never above it. A baseline with slack is a budget rather
      * than a ratchet: it enforces nothing until the slack is used up.
      */
-    const val MISSING_ON_ANDROID_BASELINE: Int = 3
+    const val MISSING_ON_ANDROID_BASELINE: Int = 2
 
     /**
      * The places the clients spell the same endpoint differently, keyed by the KOTLIN function
@@ -102,9 +102,6 @@ internal object EndpointParity {
         // app's session. This client builds its notifications in its own process, under its own
         // session, and has no extension to hand a second credential to.
         "notifyToken",
-        // ⚠️ THE WATCH'S "STEER THE AGENT" LINE (`POST calls/whisper`), used by the Apple Watch live
-        // transcript. This client has no live-call steering surface; the entry leaves if one is built.
-        "whisper",
     )
 
     /**
@@ -123,5 +120,21 @@ internal object EndpointParity {
         // leave by DELETION here rather than by arriving on iOS, and when it does, this set
         // becomes empty rather than shorter.
         "schedulingSsoTarget",
+        // ⚠️ APP PARITY 3 AND 5 (3.3.0): thread owners and the WhatsApp window and templates. The
+        // routes are the web Inbox's, and core-rust ships the same three calls; they leave this set
+        // when the district-core-swift snapshot that adds them is vendored.
+        "assignConversation",
+        "conversationAssignments",
+        "whatsAppTemplates",
+        "whatsAppWindow",
+        // ⚠️ LIVE SUPERVISE (3.3.0): listening and taking over. The names are the ones decided for
+        // district-core-swift's `EndpointID`; they leave this set when the snapshot that declares
+        // them is vendored. (`whisper` is already on both sides.)
+        "monitorCall",
+        "takeOverCall",
+        // ⚠️ THE MESSENGER AND INSTAGRAM REPLY WINDOW (3.3.0): the web Inbox's preview read, the GET
+        // beside the send POST. It leaves this set when the district-core-swift snapshot that adds
+        // it is vendored.
+        "metaWindow",
     )
 }

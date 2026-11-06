@@ -1833,7 +1833,18 @@ data class PushTokenRegisterRequest(
     val token: String,
     /** ⚠️ "android" or "ios"; the server validates against exactly that pair. */
     val platform: String,
+    /**
+     * What this build can open from a push, so the server sends it only what it can.
+     *
+     * ⛔ NO KOTLIN DEFAULT, FOR THE SAME REASON AS [platform]: a default would be omitted from the
+     * body, and a device that never says `metaChannels` is never pushed a Messenger or Instagram
+     * message (an installed build would open it to "message not found"). `PushRequestTest` pins it.
+     */
+    val capabilities: List<String>,
 )
 
 /** The only value this client may send. See [PushTokenRegisterRequest.platform]. */
 const val PLATFORM_ANDROID: String = "android"
+
+/** This build's [PushTokenRegisterRequest.capabilities]: it renders Messenger and Instagram threads. */
+val PUSH_CAPABILITIES: List<String> = listOf("metaChannels")

@@ -246,11 +246,17 @@ internal class HttpContactsApi(private val client: DistrictApiClient) : Contacts
  * [InboxApi]. This layer only builds the requests; the role gate lives in the UI.
  */
 internal class HttpInboxApi(private val client: DistrictApiClient) : InboxApi {
+    /**
+     * ⛔ BOTH OPT-IN FLAGS, ALWAYS. `metaChannels=1` lifts the server's hiding of Messenger and
+     * Instagram threads from apps and adds each row's `replyOptions`; `assignments=1` adds its owner.
+     * This build renders all of it, and an installed build that sends neither keeps the old answer
+     * byte for byte, which is why they are flags rather than a new default.
+     */
     override suspend fun conversations(workspaceId: String): ApiResult<ConversationsResponse> =
         client.get(
             segments = DistrictPaths.CONVERSATIONS,
             serializer = ConversationsResponse.serializer(),
-            query = mapOf("workspaceId" to workspaceId),
+            query = mapOf("workspaceId" to workspaceId, META_CHANNELS to FLAG_ON, ASSIGNMENTS to FLAG_ON),
         )
 
     override suspend fun timeline(
@@ -278,14 +284,17 @@ internal class HttpInboxApi(private val client: DistrictApiClient) : InboxApi {
                 "phoneNumber" to address,
                 "before" to before,
                 "beforeId" to beforeId,
+                // ⚠️ Without it a Messenger or Instagram row would be withheld, or typed `sms`.
+                META_CHANNELS to FLAG_ON,
             ),
         )
 
+    /** ⚠️ `metaChannels=1` so the count includes the Messenger and Instagram threads the list shows. */
     override suspend fun unreadCount(workspaceId: String): ApiResult<UnreadCountResponse> =
         client.get(
             segments = DistrictPaths.MESSAGES_UNREAD_COUNT,
             serializer = UnreadCountResponse.serializer(),
-            query = mapOf("workspaceId" to workspaceId),
+            query = mapOf("workspaceId" to workspaceId, META_CHANNELS to FLAG_ON),
         )
 
     override suspend fun sendMessage(request: SendMessageRequest): ApiResult<SendMessageResponse> =
@@ -1506,3 +1515,11 @@ internal object DistrictPaths {
 
 /** See the ⛔ at `revokeAllDevices`: the smallest body OkHttp will let a POST carry. */
 private val EMPTY_BODY: JsonElement = JsonObject(emptyMap())
+
+/**
+ * The Inbox reads' opt-in flags (app parity 1 and 3). The server reads each as present-and-`1`.
+ * ⚠️ Shared with [HttpInboxExtrasApi]'s message lookup, so the two cannot be spelled apart.
+ */
+internal const val META_CHANNELS: String = "metaChannels"
+internal const val ASSIGNMENTS: String = "assignments"
+internal const val FLAG_ON: String = "1"

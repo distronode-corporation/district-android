@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "token": "contract-livekit-monitor-jwt",
+  "url": "wss://livekit-wss.distronode.com"
+}

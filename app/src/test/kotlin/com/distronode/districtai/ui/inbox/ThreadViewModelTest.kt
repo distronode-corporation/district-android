@@ -3,6 +3,8 @@ package com.distronode.districtai.ui.inbox
 import androidx.lifecycle.SavedStateHandle
 import com.distronode.districtai.core.data.ComposerRepository
 import com.distronode.districtai.core.data.InboxRepository
+import com.distronode.districtai.core.data.WhatsAppRepository
+import com.distronode.districtai.core.network.testing.FakeWhatsAppApi
 import com.distronode.districtai.core.model.CHANNEL_EMAIL
 import com.distronode.districtai.core.model.CHANNEL_SMS
 import com.distronode.districtai.core.model.DraftResponse
@@ -92,8 +94,7 @@ class ThreadViewModelTest {
         channel: String = CHANNEL_SMS,
         threadKey: String = "contact:c1",
     ) = ThreadViewModel(
-        repository = InboxRepository(api),
-        composer = ComposerRepository(api),
+        services = ThreadServices(InboxRepository(api), ComposerRepository(api), WhatsAppRepository(FakeWhatsAppApi())),
         target = ThreadTarget(
             workspaceId = "ws-1",
             contactId = contactId,

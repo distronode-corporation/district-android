@@ -6,8 +6,9 @@ package com.distronode.districtai.core.network
  * ⛔ WHY THIS FILE EXISTS AT ALL, BECAUSE IT IS A PROCESS DECISION AND NOT AN ARCHITECTURAL ONE.
  * `DistrictApi.kt` / `HttpDistrictApi.kt` are one 85-method interface and its delegating
  * implementation, and they are the guaranteed conflict when several people add endpoints at once.
- * The five small interfaces beside this file ([PersonaApi], [CallHandlingApi], [InboxExtrasApi],
- * [CallControlApi], [ContactBlockingApi]) are therefore separate rather than sections of that one. ⚠️ If this repo ever
+ * The small interfaces beside this file ([PersonaApi], [CallHandlingApi], [InboxExtrasApi],
+ * [CallControlApi], [ContactBlockingApi], [ConversationAssignmentApi], [WhatsAppApi]) are therefore
+ * separate rather than sections of that one. ⚠️ If this repo ever
  * stops having concurrent editors, folding them in is a mechanical move — each is already shaped
  * like a section of it.
  *
@@ -83,11 +84,29 @@ internal object ExtraPaths {
      */
     fun callHangUp(callId: String): List<String> = DistrictPaths.CALLS + callId + "hangup"
 
+    /** `api/district/calls/whisper`: POST. ⛔ The call id is in the body; there is no per-call path. */
+    val CALLS_WHISPER: List<String> = DistrictPaths.CALLS + "whisper"
+
+    /** `api/district/calls/{id}/takeover`: POST. ⛔ The id is one segment, for the reason [callHangUp]'s is. */
+    fun callTakeover(callId: String): List<String> = DistrictPaths.CALLS + callId + "takeover"
+
     /** `api/district/contacts/block`: POST, the desired state. ⚠️ One letter from [CONTACTS_BLOCKED]. */
     val CONTACTS_BLOCK: List<String> = DistrictPaths.CONTACTS + "block"
 
     /** `api/district/contacts/blocked`: GET, everyone blocked. */
     val CONTACTS_BLOCKED: List<String> = DistrictPaths.CONTACTS + "blocked"
+
+    /** `api/district/conversations/assign`: POST, one thread's new owner (or none). */
+    val CONVERSATIONS_ASSIGN: List<String> = DistrictPaths.CONVERSATIONS + "assign"
+
+    /** `api/district/conversations/assignments`: GET, every owned thread. ⚠️ Not [CONVERSATIONS_ASSIGN]. */
+    val CONVERSATIONS_ASSIGNMENTS: List<String> = DistrictPaths.CONVERSATIONS + "assignments"
+
+    /** `api/district/workspace/whatsapp/window`: GET, whether free text may go to one number now. */
+    val WORKSPACE_WHATSAPP_WINDOW: List<String> = WORKSPACE + "whatsapp" + "window"
+
+    /** `api/district/workspace/whatsapp/templates`: GET, one sender's message templates. */
+    val WORKSPACE_WHATSAPP_TEMPLATES: List<String> = WORKSPACE + "whatsapp" + "templates"
 
     /** `api/district/telemetry/token`, the live socket's credential. */
     val TELEMETRY_TOKEN: List<String> = ApiRoots.DISTRICT + "telemetry" + "token"

@@ -7,6 +7,7 @@ import com.distronode.districtai.core.auth.TokenStore
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.network.CallHandlingApi
 import com.distronode.districtai.core.network.ContactBlockingApi
+import com.distronode.districtai.core.network.ConversationAssignmentApi
 import com.distronode.districtai.core.network.CarrierAccountApi
 import com.distronode.districtai.core.network.NumberProvisioningApi
 import com.distronode.districtai.core.network.DeskApi
@@ -16,6 +17,8 @@ import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.SchedulingAdminApi
 import com.distronode.districtai.core.network.SupportApi
+import com.distronode.districtai.core.network.SuperviseApi
+import com.distronode.districtai.core.network.WhatsAppApi
 import com.distronode.districtai.core.network.live.LiveDependencies
 import com.distronode.districtai.push.PushTokenSource
 import com.distronode.districtai.telecom.TelecomBridge
@@ -75,6 +78,10 @@ data class AppContainerSeams(
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,
     val contactBlockingApi: ContactBlockingApi? = null,
+    val conversationAssignmentApi: ConversationAssignmentApi? = null,
+    val whatsAppApi: WhatsAppApi? = null,
+    /** Live supervise: the Live calls list, listen, whisper and take over. */
+    val superviseApi: SuperviseApi? = null,
     /**
      * The live transcript's credential, socket and clock.
      *

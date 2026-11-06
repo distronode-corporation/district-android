@@ -159,6 +159,13 @@ private fun ApiResult.HttpFailure.httpFailureText(): FailureText = FailureText(
  * @param fallbackMessage ⚠️ A [UiText] so the caller can pass a resource. Screens used to resolve a
  *   `String` first, which meant a paged screen's fallback copy could only be English.
  */
+/**
+ * The server refused the session or the access (signed out, or no longer allowed): the one kind of
+ * failed re-read that may take away what a screen shows. Anything else (offline, a timeout, a 5xx,
+ * an unreadable body) leaves the last good answer on screen.
+ */
+fun ApiResult.Failure.isRefusal(): Boolean = this is ApiResult.Unauthorized || this is ApiResult.Forbidden
+
 fun Throwable.toPagedFailure(fallbackMessage: UiText): FailureText =
     (this as? PagedLoadException)?.failure?.toFailureText()
         ?: FailureText(message = fallbackMessage)

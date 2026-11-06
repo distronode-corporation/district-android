@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.distronode.districtai.R
 import com.distronode.districtai.core.data.ComposerRepository
 import com.distronode.districtai.core.data.InboxRepository
-import com.distronode.districtai.core.model.CHANNEL_SMS
 import com.distronode.districtai.core.model.ReplyTarget
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
@@ -18,6 +17,7 @@ import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.UiText
+import com.distronode.districtai.ui.isRefusal
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -52,7 +52,13 @@ data class ThreadTarget(
      * would create a row nothing could ever restore.
      */
     val threadKey: String,
+    /** The first reply choice, the one the composer opens on; null for no reply box. */
     val replyTarget: ReplyTarget?,
+    /**
+     * The other reply choices, in the server's order (app parity 1). Empty from every entry point
+     * that knows only one channel: a push, a notification reply, a new conversation.
+     */
+    val moreReplies: List<ReplyTarget> = emptyList(),
 )
 
 /**
@@ -74,31 +80,33 @@ data class ThreadTarget(
  * happened to type last.
  */
 class ThreadViewModel(
-    private val repository: InboxRepository,
-    private val composer: ComposerRepository,
+    services: ThreadServices,
     private val target: ThreadTarget,
     role: WorkspaceRole?,
     private val attachmentReader: AttachmentReader,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
 
+    private val repository: InboxRepository = services.inbox
+    private val composer: ComposerRepository = services.composer
+
     /**
-     * Where a send goes, or null when this caller may not reply at all.
+     * Where a send may go, or nothing when this caller may not reply at all.
      *
-     * ⚠️ ONE NULLABLE VALUE FOR BOTH HALVES OF [canReply] (the role and the target), so [send] reads
-     * the recipient and the permission in a single check rather than re-checking a target that the
-     * permission has already proved present.
+     * ⚠️ ONE LIST FOR BOTH HALVES OF [canReply] (the role and the choices), so [send] reads the
+     * recipient and the permission in a single check.
      */
-    private val replyTo: ReplyTarget? = target.replyTarget?.takeIf { role.allowsMutation() }
+    private val choices: List<ReplyTarget> =
+        if (role.allowsMutation()) listOfNotNull(target.replyTarget) + target.moreReplies else emptyList()
 
     /**
      * ⛔ `messages/send` excludes `viewer` server-side.
      *
-     * ⚠️ ALSO FALSE WHEN THERE IS NOTHING TO REPLY TO. A thread the server marked neither
-     * `canSms` nor `canEmail` has no reachable address, so offering a reply box would collect a
-     * message that could only ever fail to send.
+     * ⚠️ ALSO FALSE WHEN THERE IS NOTHING TO REPLY TO. A thread the server offered no reply channel
+     * for has no reachable address, so offering a reply box would collect a message that could only
+     * ever fail to send.
      */
-    val canReply: Boolean = replyTo != null
+    val canReply: Boolean = choices.isNotEmpty()
 
     /**
      * Whether to offer the attach control at all.
@@ -116,9 +124,9 @@ class ThreadViewModel(
      *     delivered. That is the worst of the three failures, and it is the one this gate prevents.
      *
      * The web composer makes the same call from `capabilities.mms && !isWhatsApp`; this is the
-     * client-knowable half of it.
+     * client-knowable half of it. ⚠️ It follows the CHANNEL CHOSEN NOW, so it is read, not stored.
      */
-    val canAttach: Boolean = replyTo?.channel == CHANNEL_SMS
+    val canAttach: Boolean get() = channels.state.value.attachmentsAllowed
 
     /**
      * The composer's text.
@@ -132,6 +140,19 @@ class ThreadViewModel(
 
     private val _state = MutableStateFlow<ThreadUiState>(ThreadUiState.Loading)
     val state: StateFlow<ThreadUiState> = _state.asStateFlow()
+
+    /**
+     * The channel picker and WhatsApp's window and templates. ⚠️ Its own class: this one is at
+     * detekt's function ceiling. A template send re-reads the thread, as a text send does.
+     */
+    val channels: ReplyChannels = ReplyChannels(
+        choices = choices,
+        workspaceId = target.workspaceId,
+        services = services,
+        scope = viewModelScope,
+        busy = { (_state.value as? ThreadUiState.Content)?.sending == true },
+        onTemplateSent = { load() },
+    )
 
     /** The pending debounced save. Cancelled and replaced on every edit. */
     private var autosaveJob: Job? = null
@@ -164,10 +185,18 @@ class ThreadViewModel(
      *
      * ⚠️ THE ATTACHMENTS ARE CARRIED OVER, NOT RESET. See [parkedAttachments]. [send] clears them
      * explicitly before its reload, which is the one caller that wants them gone.
+     *
+     * ⛔ A RE-READ KEEPS THE THREAD ON SCREEN, and a failed one keeps it with a notice: a spinner and
+     * then a failure screen in its place forgot the conversation the operator had just replied in,
+     * over a dropped connection. Only the server refusing the session or the access takes it away.
      */
     fun load() {
-        (_state.value as? ThreadUiState.Content)?.let { parkedAttachments = it.attachments }
-        _state.value = ThreadUiState.Loading
+        val shown = _state.value as? ThreadUiState.Content
+        if (shown != null) {
+            parkedAttachments = shown.attachments
+        } else {
+            _state.value = ThreadUiState.Loading
+        }
         viewModelScope.launch {
             when (val result = repository.thread(target.workspaceId, target.contactId, target.address)) {
                 is ApiResult.Success ->
@@ -175,10 +204,16 @@ class ThreadViewModel(
                         events = result.value.events,
                         hasMore = result.value.hasMore,
                         olderCursor = result.value.cursor,
-                        attachments = parkedAttachments,
+                        attachments = (_state.value as? ThreadUiState.Content)?.attachments ?: parkedAttachments,
                     )
-                is ApiResult.Failure ->
-                    _state.value = ThreadUiState.Failed(result.toFailureText())
+                is ApiResult.Failure -> {
+                    val latest = _state.value
+                    _state.value = if (shown != null && latest is ThreadUiState.Content && !result.isRefusal()) {
+                        latest.copy(refreshFailure = result.toFailureText())
+                    } else {
+                        ThreadUiState.Failed(result.toFailureText())
+                    }
+                }
             }
         }
     }
@@ -302,10 +337,14 @@ class ThreadViewModel(
      * a message the operator sends twice on their next device.
      */
     fun send(body: String) {
-        val recipient = replyTo ?: return
+        val via = channels.state.value
+        val recipient = via.selected ?: return
         val current = _state.value
         if (current !is ThreadUiState.Content || current.sending) return
-        if (body.isBlank()) return
+        // ⛔ A closed WhatsApp window takes only a template, and attachments go by SMS only: the
+        // controls say so, and this is the same rule for a send that reaches here anyway.
+        if (body.isBlank() || !via.allowsFreeText) return
+        if (current.attachments.isNotEmpty() && !via.attachmentsAllowed) return
 
         val media = current.attachments.map { it.url }
 
@@ -318,6 +357,7 @@ class ThreadViewModel(
                 body = body,
                 channel = recipient.channel,
                 mediaUrls = media,
+                whatsappSenderId = via.whatsAppSenderId,
             )
             when (result) {
                 is ApiResult.Success -> {
@@ -327,12 +367,19 @@ class ThreadViewModel(
                     autosaveJob?.cancel()
                     savedState[KEY_COMPOSER] = ""
                     // ⛔ CLEARED HERE BECAUSE [load] CARRIES THEM OVER. Left in place, the sent
-                    // pictures would ride along on the next reply.
-                    _state.withContent { it.copy(attachments = emptyList()) }
+                    // pictures would ride along on the next reply. ⚠️ And the send is over: the
+                    // re-read below keeps this Content on screen, so `sending` must not ride along.
+                    _state.withContent { it.copy(attachments = emptyList(), sending = false) }
                     composer.deleteDraft(target.workspaceId, target.threadKey)
                     load()
+                    // ⚠️ A Messenger or Instagram window is read again after a reply, as the web
+                    // does: the reply may have been the one the human agent window allowed.
+                    if (recipient.isMeta()) channels.recheckWindow()
                 }
                 is ApiResult.Failure -> {
+                    // ⚠️ The window shut since it was read: the composer turns to templates, or
+                    // (Messenger, Instagram) says it is closed.
+                    if (result.isWhatsAppWindowClosed() || result.isMetaWindowClosed()) channels.windowClosed()
                     val latest = _state.value
                     // ⚠️ The failure is attached to the CONTENT state, so the conversation stays on
                     // screen. The thread is still good; only the reply failed, and blanking it would
@@ -430,7 +477,9 @@ class ThreadViewModel(
      * most destructive thing this button could do.
      */
     fun generateDraft() {
-        if (!canReply) return
+        // ⛔ Not while a window is closed (a draft there could only be thrown away), nor in the
+        // human agent window, which allows a person's reply only.
+        if (!canReply || !channels.state.value.allowsDraft) return
         val current = _state.value
         if (current !is ThreadUiState.Content || current.generating) return
 
@@ -503,8 +552,7 @@ class ThreadViewModel(
     }
 
     class Factory(
-        private val repository: InboxRepository,
-        private val composer: ComposerRepository,
+        private val services: ThreadServices,
         private val target: ThreadTarget,
         private val role: WorkspaceRole?,
         private val attachmentReader: AttachmentReader,
@@ -520,8 +568,7 @@ class ThreadViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             @Suppress("UNCHECKED_CAST")
             return ThreadViewModel(
-                repository,
-                composer,
+                services,
                 target,
                 role,
                 attachmentReader,

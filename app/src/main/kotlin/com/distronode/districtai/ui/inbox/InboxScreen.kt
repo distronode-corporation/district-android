@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +26,7 @@ import com.distronode.districtai.core.designsystem.Avatar
 import com.distronode.districtai.core.designsystem.ContentContainer
 import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
+import com.distronode.districtai.core.designsystem.DistrictFilterChip
 import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictListRow
 import com.distronode.districtai.core.designsystem.DistrictRowDivider
@@ -42,6 +44,7 @@ import com.distronode.districtai.core.model.MessageSearchHit
 import com.distronode.districtai.l10n.inboxChannelLabel
 import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -77,6 +80,11 @@ fun InboxScreen(
      * already drops them; this is what makes a block made a moment ago take effect without a read.
      */
     blockedContactIds: Set<String> = emptySet(),
+    /**
+     * The "Assigned to me" filter: whether it is on, and how to flip it; null draws no chip. ⛔ It
+     * keeps the rows the SERVER marked `assignedToMe`, never an email compared here.
+     */
+    assignedToMe: AssignedToMeFilter? = null,
 ) {
     compose?.let { ComposeHost(it) }
     // ⚠️ NO `modifier` PARAMETER: the one caller (the nav graph) never sized or placed this screen.
@@ -121,13 +129,20 @@ fun InboxScreen(
                             title = stringResource(R.string.inbox_title),
                         )
                         is InboxUiState.Content -> {
+                            val onlyMine = assignedToMe?.on == true
                             val visible = state.copy(
-                                conversations = state.conversations.filterNot { it.contactId in blockedContactIds },
+                                conversations = state.conversations.filter { thread ->
+                                    thread.contactId !in blockedContactIds && (!onlyMine || thread.assignedToMe)
+                                },
                             )
-                            if (visible.conversations.isEmpty()) {
-                                InboxEmpty(onCompose = compose?.actions?.open)
-                            } else {
-                                Loaded(visible, onOpenThread)
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                assignedToMe?.let { AssignedToMeChip(it) }
+                                RefreshNotice(state.refreshFailure)
+                                when {
+                                    visible.conversations.isNotEmpty() -> Loaded(visible, onOpenThread)
+                                    onlyMine -> NothingAssigned(partial = state.partial)
+                                    else -> InboxEmpty(onCompose = compose?.actions?.open)
+                                }
                             }
                         }
                     }
@@ -290,6 +305,14 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
         // direction is carried by the badge rather than by a prefix, which would eat the preview.
         subtitle = thread.lastMessage.body.takeIf { it.isNotBlank() }
             ?: stringResource(R.string.inbox_no_preview),
+        // ⚠️ The owner, only when there is one: "Unassigned" on every other row would be noise.
+        detail = thread.assigneeEmail?.let { stringResource(R.string.inbox_assigned_to, it) },
+        // ⚠️ A thread with no contact name is titled by its address, which has no spaces: one line,
+        // ellipsized, rather than broken mid-token ("ig:555010 / 2").
+        titleMaxLines = if (thread.contactName == null) 1 else Int.MAX_VALUE,
+        // ⛔ ON A NARROW SCREEN THE BADGES GO UNDER THE PREVIEW. Beside it, two channel chips and an
+        // unread count took their width first and left the name and preview a sliver (320 dp).
+        stackTrailing = LocalConfiguration.current.screenWidthDp < NARROW_ROW_WIDTH_DP,
         onClick = onClick,
         leading = {
             Avatar(
@@ -376,6 +399,76 @@ private fun InboxEmpty(onCompose: (() -> Unit)?) {
     }
 }
 
+/** The filter's state and its toggle, from [InboxViewModel]. */
+data class AssignedToMeFilter(val on: Boolean, val onChange: (Boolean) -> Unit)
+
+@Composable
+private fun AssignedToMeChip(filter: AssignedToMeFilter) {
+    ContentContainer {
+        Row(
+            modifier = Modifier.padding(
+                start = DistrictTheme.spacing.gutter,
+                end = DistrictTheme.spacing.gutter,
+                bottom = DistrictTheme.spacing.tight,
+            ),
+        ) {
+            DistrictFilterChip(
+                label = stringResource(R.string.inbox_assigned_to_me),
+                selected = filter.on,
+                onClick = { filter.onChange(!filter.on) },
+                modifier = Modifier.testTag(INBOX_ASSIGNED_TO_ME_DESCRIPTION),
+            )
+        }
+    }
+}
+
+/** ⚠️ Not the empty Inbox: the filter is what is empty, and the way out is the chip above. */
+/** ⚠️ A re-read that failed: the list under it is the last good one, and says so. */
+@Composable
+private fun RefreshNotice(failure: FailureText?) {
+    failure ?: return
+    Text(
+        text = failure.message.resolve(),
+        style = MaterialTheme.typography.bodySmall,
+        color = DistrictTheme.colors.mutedForeground,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DistrictTheme.spacing.gutter)
+            .testTag(INBOX_REFRESH_FAILURE_DESCRIPTION),
+    )
+}
+
+@Composable
+private fun NothingAssigned(partial: Boolean) {
+    ContentContainer(modifier = Modifier.fillMaxSize()) {
+        Column {
+            EmptyState(
+                title = stringResource(R.string.inbox_assigned_to_me_empty_title),
+                body = stringResource(R.string.inbox_assigned_to_me_empty_body),
+                modifier = Modifier.testTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION),
+            )
+            // ⛔ THE FILTER RUNS ON THE LOADED ROWS ONLY. When the scan window was exhausted, a thread
+            // assigned to this operator may simply be older than the window, so "nothing is assigned"
+            // is said with the same caveat the full list carries, never as the whole truth.
+            if (partial) {
+                Text(
+                    text = stringResource(R.string.inbox_partial),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DistrictTheme.colors.mutedForeground,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(DistrictTheme.spacing.section)
+                        .testTag(INBOX_PARTIAL_DESCRIPTION),
+                )
+            }
+        }
+    }
+}
+
+/** Below this width a row's badges go under its text. */
+private const val NARROW_ROW_WIDTH_DP = 400
+
 private const val SKELETON_ROWS = 8
 private val SKELETON_ROW_HEIGHT = 56.dp
 
@@ -386,9 +479,12 @@ const val INBOX_EMPTY_DESCRIPTION: String = "district-inbox-empty"
 const val INBOX_EMPTY_COMPOSE_DESCRIPTION: String = "district-inbox-empty-compose"
 const val INBOX_FAILURE_DESCRIPTION: String = "district-inbox-failure"
 const val INBOX_PARTIAL_DESCRIPTION: String = "district-inbox-partial"
+const val INBOX_REFRESH_FAILURE_DESCRIPTION: String = "district-inbox-refresh-failure"
 const val INBOX_UNREAD_DESCRIPTION: String = "district-inbox-unread"
 const val INBOX_DRAFT_DESCRIPTION: String = "district-inbox-draft"
 const val INBOX_SEARCH_FIELD_DESCRIPTION: String = "district-inbox-search-field"
 const val INBOX_SEARCH_EMPTY_DESCRIPTION: String = "district-inbox-search-empty"
 const val INBOX_SEARCH_FAILURE_DESCRIPTION: String = "district-inbox-search-failure"
 const val INBOX_SEARCH_CAPPED_DESCRIPTION: String = "district-inbox-search-capped"
+const val INBOX_ASSIGNED_TO_ME_DESCRIPTION: String = "district-inbox-assigned-to-me"
+const val INBOX_ASSIGNED_EMPTY_DESCRIPTION: String = "district-inbox-assigned-empty"

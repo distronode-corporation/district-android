@@ -106,6 +106,16 @@ data class CallSummary(
      * outbound one (where [from] is the workspace's own line). See [PhoneIntel].
      */
     val phoneIntel: PhoneIntel? = null,
+    /**
+     * Whether the receptionist (the AI) takes part in this call: the server's `receptionistTakesPart`
+     * (website `src/lib/district/calls.ts`), false for a team member's own softphone call (a
+     * `direct_` room) and for a call that never had a room. ⛔ A screen offers whisper and takeover
+     * only where this is true; the server refuses them otherwise (`call_has_no_receptionist`).
+     *
+     * ⚠️ ABSENT READS AS TRUE (the coordinator's rule for 3.3.0): a server from before the key
+     * existed offers whisper and takeover as it always did, and the refusal stays the fallback.
+     */
+    val receptionistOnCall: Boolean = true,
 )
 
 /**

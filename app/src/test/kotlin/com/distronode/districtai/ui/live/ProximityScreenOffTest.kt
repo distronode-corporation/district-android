@@ -1,6 +1,8 @@
 package com.distronode.districtai.ui.live
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.PowerManager
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -13,6 +15,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.scheduling.admin.calendar.TestLifecycleOwner
+import java.time.Duration
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -26,6 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowPowerManager
+import org.robolectric.shadows.ShadowSystemClock
 
 /**
  * The takeover's proximity wake lock: acquired only while a takeover is on screen, and released
@@ -118,6 +122,30 @@ class ProximityScreenOffTest {
         composeRule.waitForIdle()
 
         assertFalse(held.isHeld)
+    }
+
+    @Test
+    fun `a lock left held ends on its own after the backstop`() {
+        val before = lock()
+        screen()
+        val held = takeOver(before)
+
+        ShadowSystemClock.advanceBy(Duration.ofMillis(PROXIMITY_LOCK_BACKSTOP_MS - 60_000))
+        assertTrue("held up to the backstop", held.isHeld)
+        ShadowSystemClock.advanceBy(Duration.ofMinutes(2))
+
+        assertFalse("never held forever", held.isHeld)
+    }
+
+    @Test
+    fun `the app declares WAKE_LOCK, which the lock needs`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val declared = context.packageManager
+            .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+            .requestedPermissions
+            .orEmpty()
+
+        assertTrue(Manifest.permission.WAKE_LOCK in declared)
     }
 
     @Test

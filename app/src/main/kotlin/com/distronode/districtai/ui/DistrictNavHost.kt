@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -142,7 +141,6 @@ import com.distronode.districtai.core.model.displayName
 import com.distronode.districtai.core.model.ReplyTarget
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.model.allowsMutation
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The signed-in navigation graph.
@@ -651,12 +649,16 @@ fun DistrictNavHost(
                     // is re-checked (the customer may have written, or the 24 hours run out).
                     // Not on the first start: entry has just read both, and a first read that
                     // answered at once would be read twice.
-                    val startedBefore = remember { AtomicBoolean(false) }
+                    // ⛔ SAVEABLE, NOT `remember`: a screen pushed on top (a push opening another
+                    // thread) disposes this composition, and a plain `remember` came back false,
+                    // so the return was taken for a first start and re-read nothing.
+                    var startedBefore by rememberSaveable { mutableStateOf(false) }
                     LifecycleStartEffect(viewModel, ownerViewModel) {
-                        if (startedBefore.getAndSet(true)) {
+                        if (startedBefore) {
                             if (!ownerViewModel.state.value.loaded) ownerViewModel.load()
                             viewModel.channels.recheckWindow()
                         }
+                        startedBefore = true
                         onStopOrDispose { }
                     }
                     // ⚠️ Tell the Inbox behind this thread to read its list again; see KEY_INBOX_STALE.

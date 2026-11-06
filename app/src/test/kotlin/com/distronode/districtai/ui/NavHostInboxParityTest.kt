@@ -12,13 +12,18 @@ import com.distronode.districtai.core.model.ConversationsResponse
 import com.distronode.districtai.core.model.MemberListResponse
 import com.distronode.districtai.core.model.ReplyOption
 import com.distronode.districtai.core.model.ReplyTarget
+import com.distronode.districtai.core.model.WhatsAppWindow
+import com.distronode.districtai.core.model.WhatsAppWindowResponse
 import com.distronode.districtai.core.model.WorkspaceMember
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.inbox.THREAD_CHANNEL_CHIP_DESCRIPTION
 import com.distronode.districtai.ui.inbox.THREAD_OWNER_OPTION_DESCRIPTION
 import com.distronode.districtai.ui.inbox.THREAD_OWNER_PICKER_DESCRIPTION
+import com.distronode.districtai.ui.inbox.THREAD_OWNER_RETRY_DESCRIPTION
+import com.distronode.districtai.ui.inbox.THREAD_TEMPLATE_OPEN_DESCRIPTION
 import com.distronode.districtai.ui.inbox.encodeReplyChoices
+import java.io.IOException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -149,4 +154,52 @@ class NavHostInboxParityTest {
         assertEquals("client@example.com", harness.assignments.writes.single().assigneeEmail)
         assertEquals("the list is read again once", reads + 1, harness.api.conversationsReads)
     }
+
+    // ── Back from a thread opened on top (max review F1) ─────────────────────────────────────────
+
+    /** Ada's thread, then another thread opened on top of it (as a push opens one), then Back. */
+    private fun backFromAThreadOnTop(between: () -> Unit) {
+        openInbox()
+        harness.tapText("Ada Lovelace")
+        composeRule.waitForIdle()
+        harness.navigate(Routes.inbox("ws-1", WorkspaceRole.AGENCY) + "/addr:fb:5550101")
+        composeRule.waitForIdle()
+        between()
+        harness.back()
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun `back from a thread opened on top re-checks the WhatsApp window`() {
+        harness.whatsApp.windowResult = whatsAppWindow(open = false)
+
+        backFromAThreadOnTop { harness.whatsApp.windowResult = whatsAppWindow(open = true) }
+
+        assertEquals("entry, then the return", 2, harness.whatsApp.windowReads.size)
+        composeRule.onNodeWithTag(THREAD_TEMPLATE_OPEN_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `back from a thread opened on top re-reads an owner that failed to read`() {
+        harness.assignments.assignmentsResult = ApiResult.NetworkFailure(IOException("offline"))
+        harness.api.memberListResult = ApiResult.Success(
+            MemberListResponse(success = true, members = listOf(WorkspaceMember("agency@example.com", "agency"))),
+        )
+
+        backFromAThreadOnTop {
+            harness.assignments.assignmentsResult = ApiResult.Success(
+                ConversationAssignmentsResponse(
+                    success = true,
+                    assignments = listOf(ConversationAssignment("contact:ct-4", "agency@example.com")),
+                ),
+            )
+        }
+
+        harness.awaitDescription(THREAD_OWNER_PICKER_DESCRIPTION)
+        composeRule.onNodeWithTag(THREAD_OWNER_RETRY_DESCRIPTION).assertDoesNotExist()
+    }
+
+    private fun whatsAppWindow(open: Boolean) = ApiResult.Success(
+        WhatsAppWindowResponse(success = true, window = WhatsAppWindow(open = open), senderId = "wa_sender_1"),
+    )
 }

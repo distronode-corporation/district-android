@@ -58,9 +58,12 @@ cp "$root/scripts/release-version.sh" "$repo/scripts/"
 )
 out=$(cd "$repo" && scripts/release-version.sh)
 check "main: 4101 plus the commit count" test "$out" = "$(printf 'version_code=4104\nversion_name=1.1')"
-out=$(cd "$repo" && BUILD_NUMBER_OFFSET=10 scripts/release-version.sh | head -n 1)
+# ⚠️ `sed -n 1p`, never `head -n 1`: head exits after the first line, so release-version.sh can
+# take SIGPIPE writing its second one, and under pipefail and `set -e` the whole run then stops
+# with no message (8 of 3,000 such pipelines in a local repro). sed reads to the end first.
+out=$(cd "$repo" && BUILD_NUMBER_OFFSET=10 scripts/release-version.sh | sed -n 1p)
 check "BUILD_NUMBER_OFFSET is honoured" test "$out" = "version_code=13"
-out=$(cd "$repo" && git checkout -q v1.1 && scripts/release-version.sh --tag v1.1 | head -n 1)
+out=$(cd "$repo" && git checkout -q v1.1 && scripts/release-version.sh --tag v1.1 | sed -n 1p)
 check "a tag that matches versionName and is on main" test "$out" = "version_code=4104"
 refuses "a tag that does not match versionName" bash -c "cd '$repo' && git checkout -q v1.0 && scripts/release-version.sh --tag v1.0"
 refuses "HEAD is not the tagged commit" bash -c "cd '$repo' && git checkout -q main~1 && scripts/release-version.sh --tag v1.1"
@@ -451,8 +454,12 @@ cat > "$rb/gradlew" << 'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "$RB_LOG/gradle-args"
 mkdir -p app/build/outputs/bundle/release app/build/outputs/mapping/release
-python3 -I -c 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1], "w"); z.writestr("META-INF/STUB.RSA", "sig"); z.writestr("base/manifest/AndroidManifest.xml", "m"); z.close()' \
-    app/build/outputs/bundle/release/app-release.aab
+aab=app/build/outputs/bundle/release/app-release.aab
+case "${RB_AAB:-signed}" in
+signed) python3 -I -c 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1], "w"); z.writestr("META-INF/STUB.RSA", "sig"); z.writestr("base/manifest/AndroidManifest.xml", "m"); z.close()' "$aab" ;;
+unsigned) python3 -I -c 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1], "w"); z.writestr("base/manifest/AndroidManifest.xml", "m"); z.close()' "$aab" ;;
+*) printf 'not a zip' > "$aab" ;;
+esac
 echo "mapping" > app/build/outputs/mapping/release/mapping.txt
 EOF
 printf '#!/bin/sh\nexit 0\n' > "$rbbin/keytool"
@@ -480,6 +487,13 @@ check "  (Gradle never ran)" test ! -e "$work/rblog/gradle-args"
 refuses "DISTRICT_FRENCH=yes is refused" rbrun yes
 check "  (the message quotes the value)" grep -q "DISTRICT_FRENCH is 'yes'" "$work/out"
 check "  (Gradle never ran)" test ! -e "$work/rblog/gradle-args"
+export RB_AAB=unsigned
+refuses "an unsigned bundle is refused" rbrun false
+check "  (it says so)" grep -q "carries no signature" "$work/out"
+export RB_AAB=garbage
+refuses "a bundle that is not a zip is refused" rbrun false
+check "  (it says so)" grep -q "is not a readable bundle" "$work/out"
+unset RB_AAB
 
 # The Sentry release after the build: the SDK's name, HEAD's commit, the EU host from
 # DISTRICT_SENTRY_URL, the token only in the environment, and never a failed build. sentry-cli and

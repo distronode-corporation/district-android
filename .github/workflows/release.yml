@@ -25,6 +25,11 @@ name: Release
 #
 # No pull_request trigger of any kind: nothing here may run on code that is not on main or a tag.
 # Inputs reach shell only through `env:`, never interpolated into a script.
+#
+# `correlation` only names the run, so the release train can find the exact run it dispatched
+# (GitHub's dispatch API returns no run id). No step reads it. Empty, the run is named
+# "Release".
+run-name: ${{ inputs.correlation && format('{0} [{1}]', github.workflow, inputs.correlation) || github.workflow }}
 on:
   push:
     tags: ["v*"]
@@ -34,6 +39,10 @@ on:
         description: "Maintainers' approval to submit for review. Leave empty to upload to the internal track only."
         type: string
         required: false
+        default: ""
+      correlation:
+        description: Set by the release train to find this exact run (manifest, lane, step, time). Leave empty.
+        type: string
         default: ""
 
 permissions: {}
@@ -179,6 +188,65 @@ jobs:
             *) echo "::error::DISTRICT_FRENCH is '$DISTRICT_FRENCH', not true or false."; exit 1 ;;
           esac
           scripts/french-guard.sh "$mode" app/build/outputs/bundle/release/app-release.aab
+
+      # What Play reads: the MERGED manifest, with everything the dependencies add, not
+      # app/src/main/AndroidManifest.xml alone. The release train compares both files with the
+      # last release's (its G12 permission and service diff); a run without them reads as
+      # unknown there, never as unchanged. Every build, a main dispatch included, since that is
+      # what the train stages.
+      #   merged-permissions.txt        `aapt2 dump permissions`, sorted
+      #   merged-manifest-entries.txt   one line per service, uses-permission and
+      #                                 uses-permission-sdk-23 with its own attributes, sorted
+      #                                 (no source line numbers, so an unrelated manifest edit
+      #                                 changes nothing here)
+      # The bundle keeps the manifest as protobuf under base/manifest/; aapt2 reads it at the root
+      # of a zip beside the module's resource table, as scripts/french-guard.sh does.
+      - name: The merged manifest's permissions and services
+        run: |
+          set -euo pipefail
+          aapt2="$ANDROID_HOME/build-tools/37.0.0/aapt2"
+          work="$RUNNER_TEMP/merged-manifest"
+          mkdir -p "$work/out"
+          unzip -q app/build/outputs/bundle/release/app-release.aab \
+            base/manifest/AndroidManifest.xml base/resources.pb -d "$work"
+          mv "$work/base/manifest/AndroidManifest.xml" "$work/base/AndroidManifest.xml"
+          (cd "$work/base" && zip -q "$work/base.apk" AndroidManifest.xml resources.pb)
+          "$aapt2" dump permissions "$work/base.apk" | LC_ALL=C sort > "$work/out/merged-permissions.txt"
+          "$aapt2" dump xmltree --file AndroidManifest.xml "$work/base.apk" | awk '
+            function flush() { if (cur != "") print cur; cur = "" }
+            /^ *E: / {
+              flush()
+              if ($2 == "service" || $2 == "uses-permission" || $2 == "uses-permission-sdk-23") cur = $2
+              next
+            }
+            /^ *A: / && cur != "" {
+              a = $0
+              sub(/^ *A: /, "", a)
+              sub(/ \(Raw: .*\)$/, "", a)
+              sub(/^http:\/\/schemas\.android\.com\/apk\/res\/android:/, "android:", a)
+              sub(/\(0x[0-9a-f]+\)=/, "=", a)
+              cur = cur " " a
+            }
+            END { flush() }
+          ' | LC_ALL=C sort > "$work/out/merged-manifest-entries.txt"
+          grep -q '^uses-permission: ' "$work/out/merged-permissions.txt"
+          grep -q '^service ' "$work/out/merged-manifest-entries.txt"
+          {
+            echo "### Merged manifest"
+            echo
+            echo '```'
+            cat "$work/out/merged-permissions.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: merged-permissions
+          path: |
+            ${{ runner.temp }}/merged-manifest/out/merged-permissions.txt
+            ${{ runner.temp }}/merged-manifest/out/merged-manifest-entries.txt
+          if-no-files-found: error
+          retention-days: 90
 
       # A second, fresh token: the build can take most of the first one's hour.
       - id: gcp_play

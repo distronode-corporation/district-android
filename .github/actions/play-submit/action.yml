@@ -30,6 +30,12 @@ inputs:
   service-account:
     description: The service account that can mint a token for the Play publishing account.
     required: true
+  changes-not-sent-for-review:
+    description: >-
+      "true" commits without sending the release for review, which Play requires while a Play
+      Console change is waiting to be sent; it is then sent from the Console. "false" by default.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -67,6 +73,7 @@ runs:
       shell: bash
       env:
         GCP_TOKEN: ${{ steps.gcp.outputs.access_token }}
+        PLAY_CHANGES_NOT_SENT_FOR_REVIEW: ${{ inputs.changes-not-sent-for-review }}
         VERSION_CODE: ${{ inputs.version-code }}
         VERSION_NAME: ${{ inputs.version-name }}
       run: scripts/play-publish.sh submit "$VERSION_CODE" "$VERSION_NAME" "$RUNNER_TEMP/release-notes"

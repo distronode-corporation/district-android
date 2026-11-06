@@ -29,6 +29,10 @@ on:
         description: "Maintainers' approval to submit for review."
         type: string
         required: true
+      changes-not-sent-for-review:
+        description: "Commit without sending for review (only while a Play Console change is pending; then send it from the Console)."
+        type: boolean
+        default: false
       correlation:
         description: Set by the release train to find this exact run (manifest, lane, step, time). Leave empty.
         type: string
@@ -108,13 +112,19 @@ jobs:
           version-name: ${{ steps.version.outputs.version_name }}
           workload-identity-provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service-account: ${{ env.RELEASE_SERVICE_ACCOUNT }}
+          changes-not-sent-for-review: ${{ inputs.changes-not-sent-for-review }}
 
   # The tag's GitHub Release, only after the production submit above succeeded. Its own job, so
   # the one token that can write to the repository never shares a job with the Google Cloud
   # credential, and the submit job keeps its read-only token.
+  #
+  # Not when the commit skipped review: the release says "submitted for review", which is not yet
+  # true. Once it is sent from the Play Console, re-run this workflow without the box ticked: the
+  # submit finds the build on production and changes nothing, and this job then publishes.
   github-release:
     name: GitHub Release
     needs: submit
+    if: ${{ !inputs.changes-not-sent-for-review }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

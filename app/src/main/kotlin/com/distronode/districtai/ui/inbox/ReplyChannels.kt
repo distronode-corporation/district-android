@@ -412,22 +412,28 @@ internal fun ReplyTarget.isMeta(): Boolean = channel == CHANNEL_MESSENGER || cha
 /**
  * Read Messenger's or Instagram's window for [target] and show it. ⚠️ Top-level for the reason
  * [windowIs] is. What is shown stays until the answer (a re-check never flashes "checking").
+ *
+ * ⛔ A RE-READ THAT FAILS KEEPS WHAT IS SHOWN. Only a FIRST read that fails is "unknown": a known
+ * closed or human agent window that a flaky re-check overwrote with "unknown" would hand back
+ * free text or the AI draft on a network error. (The web resets to unknown there; the send refuses
+ * a closed window either way, but the composer should not invite the refusal.)
  */
 private suspend fun MutableStateFlow<ReplyChannelState>.readMetaWindow(
     services: ThreadServices,
     workspaceId: String,
     target: ReplyTarget,
 ) {
-    val meta = when (val result = services.whatsApp.metaWindow(workspaceId, target.channel, target.to)) {
+    val answer = when (val result = services.whatsApp.metaWindow(workspaceId, target.channel, target.to)) {
         is ApiResult.Success -> when (result.value.window.state) {
             META_WINDOW_OPEN -> MetaWindowState.OPEN
             META_WINDOW_HUMAN_AGENT -> MetaWindowState.HUMAN_AGENT
             META_WINDOW_CLOSED -> MetaWindowState.CLOSED
             else -> MetaWindowState.UNKNOWN
         }
-        is ApiResult.Failure -> MetaWindowState.UNKNOWN
+        is ApiResult.Failure -> null
     }
-    value = value.copy(meta = meta)
+    val shown = value.meta
+    value = value.copy(meta = answer ?: shown.takeUnless { it == MetaWindowState.CHECKING } ?: MetaWindowState.UNKNOWN)
 }
 
 /** The send route's refusal for free text outside WhatsApp's 24-hour window. */

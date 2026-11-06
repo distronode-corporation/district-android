@@ -43,6 +43,7 @@ import com.distronode.districtai.core.model.MessageSearchHit
 import com.distronode.districtai.l10n.inboxChannelLabel
 import com.distronode.districtai.l10n.serverText
 import com.distronode.districtai.ui.FailureState
+import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.resolve
 
 /**
@@ -135,18 +136,7 @@ fun InboxScreen(
                             )
                             Column(modifier = Modifier.fillMaxSize()) {
                                 assignedToMe?.let { AssignedToMeChip(it) }
-                                // ⚠️ A re-read that failed: the list below is the last good one.
-                                state.refreshFailure?.let { failure ->
-                                    Text(
-                                        text = failure.message.resolve(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = DistrictTheme.colors.mutedForeground,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = DistrictTheme.spacing.gutter)
-                                            .testTag(INBOX_REFRESH_FAILURE_DESCRIPTION),
-                                    )
-                                }
+                                RefreshNotice(state.refreshFailure)
                                 when {
                                     visible.conversations.isNotEmpty() -> Loaded(visible, onOpenThread)
                                     onlyMine -> NothingAssigned(partial = state.partial)
@@ -426,6 +416,21 @@ private fun AssignedToMeChip(filter: AssignedToMeFilter) {
 }
 
 /** ⚠️ Not the empty Inbox: the filter is what is empty, and the way out is the chip above. */
+/** ⚠️ A re-read that failed: the list under it is the last good one, and says so. */
+@Composable
+private fun RefreshNotice(failure: FailureText?) {
+    failure ?: return
+    Text(
+        text = failure.message.resolve(),
+        style = MaterialTheme.typography.bodySmall,
+        color = DistrictTheme.colors.mutedForeground,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DistrictTheme.spacing.gutter)
+            .testTag(INBOX_REFRESH_FAILURE_DESCRIPTION),
+    )
+}
+
 @Composable
 private fun NothingAssigned(partial: Boolean) {
     ContentContainer(modifier = Modifier.fillMaxSize()) {

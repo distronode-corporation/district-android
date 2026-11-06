@@ -250,6 +250,21 @@ private fun Loaded(
             }
         }
 
+        // ⚠️ A re-read that failed: the conversation above is the last good one, and says so.
+        state.refreshFailure?.let { failure ->
+            ContentContainer {
+                Text(
+                    text = failure.message.resolve(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DistrictTheme.colors.mutedForeground,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = DistrictTheme.spacing.gutter)
+                        .testTag(THREAD_REFRESH_FAILURE_DESCRIPTION),
+                )
+            }
+        }
+
         // ⚠️ Offered only to a role the server would admit. `messages/send` excludes `viewer`.
         if (canReply) {
             channels?.let { ReplyChannelPicker(it) }
@@ -672,6 +687,7 @@ const val THREAD_FAILURE_DESCRIPTION: String = "district-thread-failure"
 const val THREAD_SEND_FAILURE_DESCRIPTION: String = "district-thread-send-failure"
 const val THREAD_REPLY_FIELD_DESCRIPTION: String = "district-thread-reply-field"
 const val THREAD_SEND_DESCRIPTION: String = "district-thread-send"
+const val THREAD_REFRESH_FAILURE_DESCRIPTION: String = "district-thread-refresh-failure"
 const val THREAD_CALL_DESCRIPTION: String = "district-thread-call"
 const val THREAD_ATTACH_DESCRIPTION: String = "district-thread-attach"
 const val THREAD_ATTACHMENTS_DESCRIPTION: String = "district-thread-attachments"

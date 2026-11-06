@@ -35,6 +35,12 @@ sealed interface InboxUiState {
          * an Inbox with no badges.
          */
         val draftThreadKeys: Set<String> = emptySet(),
+        /**
+         * The last re-read failed and this list is the one before it. ⛔ THE LIST STAYS: its owner
+         * lines and reply options are still the server's last word, and a failure screen in their
+         * place would forget them over a dropped connection. Cleared by the next good read.
+         */
+        val refreshFailure: FailureText? = null,
     ) : InboxUiState
 
     data class Failed(val failure: FailureText) : InboxUiState
@@ -97,6 +103,12 @@ sealed interface ThreadUiState {
         val events: List<TimelineEvent>,
         val sending: Boolean = false,
         val sendFailure: FailureText? = null,
+        /**
+         * A re-read of this thread failed (after a reply went, say): the timeline shown is the one
+         * before it. ⛔ IT STAYS, rather than a spinner and then a failure screen. Cleared by the next
+         * good read.
+         */
+        val refreshFailure: FailureText? = null,
         /**
          * Images uploaded and waiting to go out with the next send.
          *

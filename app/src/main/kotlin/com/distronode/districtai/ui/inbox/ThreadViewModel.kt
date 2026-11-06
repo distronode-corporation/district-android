@@ -17,6 +17,7 @@ import com.distronode.districtai.core.model.allowsMutation
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.UiText
+import com.distronode.districtai.ui.isRefusal
 import com.distronode.districtai.ui.toFailureText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -184,10 +185,18 @@ class ThreadViewModel(
      *
      * ⚠️ THE ATTACHMENTS ARE CARRIED OVER, NOT RESET. See [parkedAttachments]. [send] clears them
      * explicitly before its reload, which is the one caller that wants them gone.
+     *
+     * ⛔ A RE-READ KEEPS THE THREAD ON SCREEN, and a failed one keeps it with a notice: a spinner and
+     * then a failure screen in its place forgot the conversation the operator had just replied in,
+     * over a dropped connection. Only the server refusing the session or the access takes it away.
      */
     fun load() {
-        (_state.value as? ThreadUiState.Content)?.let { parkedAttachments = it.attachments }
-        _state.value = ThreadUiState.Loading
+        val shown = _state.value as? ThreadUiState.Content
+        if (shown != null) {
+            parkedAttachments = shown.attachments
+        } else {
+            _state.value = ThreadUiState.Loading
+        }
         viewModelScope.launch {
             when (val result = repository.thread(target.workspaceId, target.contactId, target.address)) {
                 is ApiResult.Success ->
@@ -195,10 +204,16 @@ class ThreadViewModel(
                         events = result.value.events,
                         hasMore = result.value.hasMore,
                         olderCursor = result.value.cursor,
-                        attachments = parkedAttachments,
+                        attachments = (_state.value as? ThreadUiState.Content)?.attachments ?: parkedAttachments,
                     )
-                is ApiResult.Failure ->
-                    _state.value = ThreadUiState.Failed(result.toFailureText())
+                is ApiResult.Failure -> {
+                    val latest = _state.value
+                    _state.value = if (shown != null && latest is ThreadUiState.Content && !result.isRefusal()) {
+                        latest.copy(refreshFailure = result.toFailureText())
+                    } else {
+                        ThreadUiState.Failed(result.toFailureText())
+                    }
+                }
             }
         }
     }
@@ -352,8 +367,9 @@ class ThreadViewModel(
                     autosaveJob?.cancel()
                     savedState[KEY_COMPOSER] = ""
                     // ⛔ CLEARED HERE BECAUSE [load] CARRIES THEM OVER. Left in place, the sent
-                    // pictures would ride along on the next reply.
-                    _state.withContent { it.copy(attachments = emptyList()) }
+                    // pictures would ride along on the next reply. ⚠️ And the send is over: the
+                    // re-read below keeps this Content on screen, so `sending` must not ride along.
+                    _state.withContent { it.copy(attachments = emptyList(), sending = false) }
                     composer.deleteDraft(target.workspaceId, target.threadKey)
                     load()
                     // ⚠️ A Messenger or Instagram window is read again after a reply, as the web

@@ -15,8 +15,10 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.ConversationLastMessage
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.str
+import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.MainLooperDrain
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
+import com.distronode.districtai.ui.UiText
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -65,12 +67,13 @@ class InboxParityScreenTest {
         conversations: List<ConversationSummary> = threads,
         startOn: Boolean = false,
         partial: Boolean = false,
+        refreshFailure: FailureText? = null,
     ) {
         composeRule.setContent {
             var on by remember { mutableStateOf(startOn) }
             DistrictTheme {
                 InboxScreen(
-                    state = InboxUiState.Content(conversations, partial = partial),
+                    state = InboxUiState.Content(conversations, partial = partial, refreshFailure = refreshFailure),
                     onOpenThread = {},
                     onRetry = {},
                     onSignIn = {},
@@ -128,6 +131,15 @@ class InboxParityScreenTest {
         composeRule.onNodeWithTag(INBOX_EMPTY_DESCRIPTION).assertDoesNotExist()
         composeRule.onNodeWithTag(INBOX_ASSIGNED_TO_ME_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithTag(INBOX_PARTIAL_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a refresh that failed keeps the rows and their owners, and says why above them`() {
+        render(refreshFailure = FailureText(UiText.Resource(R.string.failure_offline)))
+
+        composeRule.onNodeWithTag(INBOX_REFRESH_FAILURE_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.failure_offline)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_assigned_to, "teammate@example.com")).assertIsDisplayed()
     }
 
     @Test

@@ -325,7 +325,8 @@ class ReplyChannels(
     /**
      * ⚠️ AN UNREADABLE WINDOW BLOCKS NOTHING: free text goes and the route, which checks the same
      * window, refuses it if it must. Blocking on a failed preview would take WhatsApp away entirely.
-     * ⛔ EXCEPT A WINDOW ALREADY CLOSED, which a failed read leaves closed (see [windowClosed]).
+     * ⛔ ONLY A FIRST READ: a failed RE-read keeps what is shown, a closed window closed (see
+     * [windowClosed]) and an open one with its sender.
      *
      * ⛔ AN OPEN WINDOW IS OPEN UNTIL ITS `expiresAt`, NOT FOREVER: one already past is closed (the
      * web's reading), and one still open is read again when it passes, so the composer turns to
@@ -352,10 +353,19 @@ class ReplyChannels(
                     readWindow(to, waited = closesAt)
                 }
             }
-            // ⛔ Only a window not already closed falls back to open: a closed one (refused by the
-            // send, or read closed) stays closed when a re-read fails.
-            is ApiResult.Failure -> if (_state.value.whatsApp !is WhatsAppWindowState.Closed) {
-                _state.windowIs(WhatsAppWindowState.Open(senderId = null))
+            // ⛔ A FAILED RE-READ KEEPS WHAT IS SHOWN: a closed window stays closed, and an open one
+            // keeps the sender it named, so a send never quietly loses it to the route's default.
+            // Only a FIRST read that fails falls back to open with no sender.
+            // ⚠️ And the read at the window's own expiry: its `expiresAt` has passed, which reads as
+            // closed whatever the network does, as a past `expiresAt` in an answer does.
+            is ApiResult.Failure -> when {
+                waited != null -> _state.showClosed(
+                    services,
+                    workspaceId,
+                    (_state.value.whatsApp as? WhatsAppWindowState.Open)?.senderId,
+                )
+                _state.value.whatsApp is WhatsAppWindowState.Checking ->
+                    _state.windowIs(WhatsAppWindowState.Open(senderId = null))
             }
         }
     }

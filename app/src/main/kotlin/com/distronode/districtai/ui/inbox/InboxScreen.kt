@@ -135,6 +135,18 @@ fun InboxScreen(
                             )
                             Column(modifier = Modifier.fillMaxSize()) {
                                 assignedToMe?.let { AssignedToMeChip(it) }
+                                // ⚠️ A re-read that failed: the list below is the last good one.
+                                state.refreshFailure?.let { failure ->
+                                    Text(
+                                        text = failure.message.resolve(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = DistrictTheme.colors.mutedForeground,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = DistrictTheme.spacing.gutter)
+                                            .testTag(INBOX_REFRESH_FAILURE_DESCRIPTION),
+                                    )
+                                }
                                 when {
                                     visible.conversations.isNotEmpty() -> Loaded(visible, onOpenThread)
                                     onlyMine -> NothingAssigned(partial = state.partial)
@@ -452,6 +464,7 @@ const val INBOX_EMPTY_DESCRIPTION: String = "district-inbox-empty"
 const val INBOX_EMPTY_COMPOSE_DESCRIPTION: String = "district-inbox-empty-compose"
 const val INBOX_FAILURE_DESCRIPTION: String = "district-inbox-failure"
 const val INBOX_PARTIAL_DESCRIPTION: String = "district-inbox-partial"
+const val INBOX_REFRESH_FAILURE_DESCRIPTION: String = "district-inbox-refresh-failure"
 const val INBOX_UNREAD_DESCRIPTION: String = "district-inbox-unread"
 const val INBOX_DRAFT_DESCRIPTION: String = "district-inbox-draft"
 const val INBOX_SEARCH_FIELD_DESCRIPTION: String = "district-inbox-search-field"

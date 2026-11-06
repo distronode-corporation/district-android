@@ -334,6 +334,15 @@ class ThreadParityScreenTest {
     }
 
     @Test
+    fun `a re-read that failed keeps the conversation and says why`() {
+        render(state = content.copy(refreshFailure = FailureText(UiText.Resource(R.string.failure_offline))))
+
+        composeRule.onNodeWithTag(THREAD_REFRESH_FAILURE_DESCRIPTION).assertExists()
+        composeRule.onNodeWithText(str(R.string.failure_offline)).assertExists()
+        composeRule.onNodeWithText("hi").assertExists()
+    }
+
+    @Test
     fun `an open Messenger window shows neither line and offers the AI draft`() {
         render(meta(MetaWindowState.OPEN))
 

@@ -37,10 +37,18 @@ Generates `l10n/api_errors.toml` and `l10n/wire_labels.toml`, with their Kotlin 
 those files change, then `tools/l10n/l10n.py gen` for each catalog (CONTRIBUTING.md, "Strings").
 `--check` is what CI runs.
 
-An entry whose English is unchanged keeps the `fr`, `state` and other translation fields the committed
-catalog has, so French written by `tools/l10n/l10n.py import` survives a regeneration; a new entry, or one
-whose English changed, takes the contract's French as a draft. Tests: `python3 -m unittest discover -s
-scripts -p 'test_*.py'` (CI runs them).
+`python3 scripts/l10n-contracts.py --sync <monorepo checkout> [--ref <ref>]` does the whole re-sync: it
+copies the three contract files byte for byte from `distronode-website/contracts/i18n/` at the ref
+(default `origin/main`; fetch first) with `git show`, regenerates, and runs `gen` for both catalogs.
+
+⛔ **The website's French wins.** Wherever the contract has a `fr`, an entry whose committed French differs
+takes the contract's, as a draft for the release's sign-off. Until 3.3.0 an unchanged English kept the
+committed French, and French-only fixes on the website never reached the app. Android keeps its own French
+only where the contract has none (French written by `tools/l10n/l10n.py import`, kept while the English is
+unchanged) and in `FR_OVERRIDES`, which holds only while the website's French is still exactly the one it
+replaced (today: `live_changed` keeps « paramètres », frcheck's OS word, for the website's « réglages »).
+An entry whose French and English are unchanged keeps its `state` and other translation fields. Tests:
+`python3 -m unittest discover -s scripts -p 'test_*.py'` (CI runs them).
 
 ⚠️ A wire label's English is what this app has always shown (the raw value, or upper-cased for a
 region), not the portal's label: W1 changes no English. The portal's English is in each entry's note.

@@ -12,8 +12,8 @@
 #   --avd NAME   boot this AVD instead of $SMOKE_AVD / canary-pixel8
 #
 # Credentials come from the environment and are never written to disk:
-#   DISTRICT_SMOKE_EMAIL / DISTRICT_SMOKE_PASSWORD   the seeded UI-test account
-#       (appreview@, workspace "District Review"), NOT the store review demo account
+#   DISTRICT_SMOKE_EMAIL / DISTRICT_SMOKE_PASSWORD   the seeded review fixture account
+#       (see internal docs), NOT the store review demo account
 #   DISTRICT_SMOKE_CONTACT   a seeded contact's display name, default Amara Osei
 #   DISTRICT_SMOKE_PLAN      the raw tier the billing card prints, default VoicePro
 #   DISTRICT_SMOKE_HANDOFF   1 to also open Scheduling -> "Open dashboard" and wait for the

@@ -322,6 +322,8 @@ internal enum class WireCategory(
             "delivered" to R.string.wire_message_delivery_status_delivered,
             "failed" to R.string.wire_message_delivery_status_failed,
             "received" to R.string.wire_message_delivery_status_received,
+            "handled" to R.string.wire_message_delivery_status_handled,
+            "read" to R.string.wire_message_delivery_status_read,
         ),
         unknown = R.string.wire_message_delivery_status_unknown,
         upperCase = false,

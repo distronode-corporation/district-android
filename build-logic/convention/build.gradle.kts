@@ -48,8 +48,8 @@ dependencies {
 // covered without an edit. Same set and same number as the main build: `bouncyCastle` in
 // gradle/libs.versions.toml, which this build reads too (see settings.gradle.kts).
 //
-// ⚠️ The same four plugin-classpath patches the main build forces in its `buildscript` block
-// (freemarker, jdom2, jose4j, commons-lang3) are forced here too, for the same reason: AGP and
+// ⚠️ The same five plugin-classpath patches the main build forces in its `buildscript` block
+// (freemarker, jdom2, jose4j, commons-lang3, guava) are forced here too, for the same reason: AGP and
 // Kover resolve them into this build's accessor classpath, and it is reported the same way.
 val bouncyCastleVersion: String = libs.versions.bouncyCastle.get()
 val pluginClasspathForces: List<String> = listOf(
@@ -57,6 +57,8 @@ val pluginClasspathForces: List<String> = listOf(
     "org.jdom:jdom2:${libs.versions.jdom2.get()}",
     "org.bitbucket.b_c:jose4j:${libs.versions.jose4j.get()}",
     "org.apache.commons:commons-lang3:${libs.versions.commonsLang3.get()}",
+    // GHSA-xxph-c9ww-hj94, fixed in 33.7.2: AGP brings guava onto this build's classpath too.
+    "com.google.guava:guava:${libs.versions.guava.get()}",
 )
 
 configurations.configureEach {

@@ -533,7 +533,7 @@ fr = "Rappel demandé"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The disposition value `callback` as the server sends it, shown with the portal's label (\"Callback requested\")."
 
 [wire.disposition_escalated]
@@ -542,7 +542,7 @@ fr = "Transmis à une personne"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The disposition value `escalated` as the server sends it, shown with the portal's label (\"Passed to a person\")."
 
 [wire.disposition_info]
@@ -551,7 +551,7 @@ fr = "Renseignements"
 ctx = "label"
 screen = "call detail"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The disposition value `info` as the server sends it, shown with the portal's label (\"Information only\")."
 
 [wire.disposition_interested]
@@ -810,7 +810,7 @@ fr = "Traité"
 ctx = "label"
 screen = "inbox thread"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The messageDeliveryStatus value `handled` as the server sends it, shown with the portal's label (\"Handled\")."
 
 [wire.message_delivery_status_queued]
@@ -828,7 +828,7 @@ fr = "Lu"
 ctx = "label"
 screen = "inbox thread"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The messageDeliveryStatus value `read` as the server sends it, shown with the portal's label (\"Read\")."
 
 [wire.message_delivery_status_received]
@@ -1698,7 +1698,7 @@ fr = "Notifier l'équipe dans l'application"
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowAction value `notify_member_push` as the server sends it, shown with the portal's label (\"Notify the Team in the App\")."
 
 [wire.workflow_action_notify_ops]
@@ -1754,7 +1754,7 @@ fr = "Texto non envoyé\u00A0: le message venait d'un expéditeur automatisé (u
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `automated-sender` as the server sends it, shown with the portal's label (\"Not texted: the message came from an automated sender, such as a verification code\")."
 
 [wire.workflow_action_reason_consent_check_failed]
@@ -1763,7 +1763,7 @@ fr = "Texto non envoyé\u00A0: le consentement aux textos n'a pas pu être véri
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `consent-check-failed` as the server sends it, shown with the portal's label (\"Not texted: the texting consent could not be checked\")."
 
 [wire.workflow_action_reason_contact_not_found]
@@ -1835,7 +1835,7 @@ fr = "Texto non envoyé, l'alerte est partie par courriel à la place"
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `fallback-email` as the server sends it, shown with the portal's label (\"Not texted, so it was emailed instead\")."
 
 [wire.workflow_action_reason_fallback_email_push]
@@ -1844,7 +1844,7 @@ fr = "Texto non envoyé, l'alerte est partie par courriel et dans l'application 
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `fallback-email-push` as the server sends it, shown with the portal's label (\"Not texted, so it was emailed and sent to the app instead\")."
 
 [wire.workflow_action_reason_fallback_failed]
@@ -1853,7 +1853,7 @@ fr = "Texto non envoyé, et l'envoi par courriel et dans l'application a aussi �
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `fallback-failed` as the server sends it, shown with the portal's label (\"Not texted, and the email and app fallback failed too\")."
 
 [wire.workflow_action_reason_fallback_push]
@@ -1862,7 +1862,7 @@ fr = "Texto non envoyé et courriel en échec, l'alerte est partie dans l'applic
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `fallback-push` as the server sends it, shown with the portal's label (\"Not texted and the email failed, so it was sent to the app instead\")."
 
 [wire.workflow_action_reason_http_status]
@@ -1890,7 +1890,7 @@ fr = "Texto non envoyé\u00A0: les messages récents avec ce numéro n'ont pas p
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `loop-check-failed` as the server sends it, shown with the portal's label (\"Not texted: the recent messages with this number could not be checked\")."
 
 [wire.workflow_action_reason_loop_paused]
@@ -1899,7 +1899,7 @@ fr = "Texto non envoyé\u00A0: ce numéro a répondu automatiquement plusieurs f
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `loop-paused` as the server sends it, shown with the portal's label (\"Not texted: this number answered automatically several times in a row, so texts to it are paused for an hour\")."
 
 [wire.workflow_action_reason_missing_webhook_url]
@@ -1917,7 +1917,7 @@ fr = "Texto non envoyé\u00A0: aucun appel ni texto de cette personne depuis 24\
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `no-consent` as the server sends it, shown with the portal's label (\"Not texted: no call or text from them in the last 24 hours, and no consent on record\")."
 
 [wire.workflow_action_reason_no_devices]
@@ -1926,7 +1926,7 @@ fr = "Aucun membre de l'équipe n'a l'application sur un appareil qui peut recev
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `no-devices` as the server sends it, shown with the portal's label (\"No team member has the app on a device that can receive notifications\")."
 
 [wire.workflow_action_reason_no_message]
@@ -1935,7 +1935,7 @@ fr = "La notification de l'équipe ne fonctionne qu'avec le déclencheur d'un me
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `no-message` as the server sends it, shown with the portal's label (\"Notifying the team works only with the trigger for a message taken during a call\")."
 
 [wire.workflow_action_reason_no_provider_credentials]
@@ -1980,7 +1980,7 @@ fr = "La liste des appareils de l'équipe n'a pas pu être lue"
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `push-lookup-failed` as the server sends it, shown with the portal's label (\"The list of team devices could not be read\")."
 
 [wire.workflow_action_reason_push_not_delivered]
@@ -1989,7 +1989,7 @@ fr = "Aucun appareil n'a accepté la notification"
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `push-not-delivered` as the server sends it, shown with the portal's label (\"No device accepted the notification\")."
 
 [wire.workflow_action_reason_quiet_hours]
@@ -1998,7 +1998,7 @@ fr = "Texto non envoyé\u00A0: il n'était pas entre 8\u00A0h et 21\u00A0h là o
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `quiet-hours` as the server sends it, shown with the portal's label (\"Not texted: it was outside 8am to 9pm where their phone may be\")."
 
 [wire.workflow_action_reason_recipient_not_member]
@@ -2007,7 +2007,7 @@ fr = "La personne à qui envoyer le texto n'est plus membre de cet espace de tra
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `recipient-not-member` as the server sends it, shown with the portal's label (\"The person to text is no longer a member of this workspace\")."
 
 [wire.workflow_action_reason_recipient_number_held]
@@ -2016,7 +2016,7 @@ fr = "Non envoyé\u00A0: le numéro de cellulaire de cette personne appartient �
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `recipient-number-held` as the server sends it, shown with the portal's label (\"Not sent: the person's mobile is a business number on District\")."
 
 [wire.workflow_action_reason_report_recipient_refused]
@@ -2061,7 +2061,7 @@ fr = "Non envoyé\u00A0: le secret de signature des webhooks n'a pas pu être lu
 ctx = "label"
 screen = "workflows, run history"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowActionReason value `signing-unavailable` as the server sends it, shown with the portal's label (\"Not sent: the webhook signing secret could not be read\")."
 
 [wire.workflow_action_reason_tag_already_present]
@@ -2264,7 +2264,7 @@ fr = "Quand un appel est trié (urgence, type, détails)"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowTrigger value `call_triaged` as the server sends it, shown with the portal's label (\"When a Call is Triaged (urgency, type, details)\")."
 
 [wire.workflow_trigger_contact_created]
@@ -2300,7 +2300,7 @@ fr = "Quand un message est pris pendant un appel"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The workflowTrigger value `message_taken` as the server sends it, shown with the portal's label (\"When a Message is Taken During a Call\")."
 
 [wire.workflow_trigger_negative_sentiment]

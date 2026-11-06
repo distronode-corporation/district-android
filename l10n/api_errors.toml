@@ -26,7 +26,7 @@ fr = "Un Lecteur peut consulter les conversations, mais aucune ne peut lui être
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `assignee_is_viewer`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.assignee_not_member]
@@ -35,7 +35,7 @@ fr = "Cette personne n'est pas membre de cet espace de travail. Ajoutez-la d'abo
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `assignee_not_member`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.attachment_unsupported]
@@ -53,7 +53,7 @@ fr = "Deux auditions sont déjà en cours pour cet espace de travail. Terminez-e
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `audition_busy`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.audition_daily_cap]
@@ -62,7 +62,7 @@ fr = "Cet espace de travail a utilisé toutes ses auditions pour aujourd'hui. Vo
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `audition_daily_cap`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.audition_unavailable]
@@ -71,7 +71,7 @@ fr = "L'audition ne peut pas commencer pour le moment. Réessayez dans un instan
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `audition_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.auto_dial_contact_opted_out]
@@ -152,7 +152,7 @@ fr = "Cet appel est terminé."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `call_ended`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.call_has_no_receptionist]
@@ -161,7 +161,7 @@ fr = "Il s'agit de l'appel d'un membre de l'équipe. Votre réceptionniste n'y p
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `call_has_no_receptionist`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.call_has_no_room]
@@ -215,7 +215,7 @@ fr = "Impossible de joindre le transporteur de téléphonie. Réessayez dans que
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `caller_id_carrier_failed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.caller_id_mobile_unverified]
@@ -224,7 +224,7 @@ fr = "Confirmez d'abord votre numéro de cellulaire, puis inscrivez-le comme aff
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `caller_id_mobile_unverified`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.caller_id_not_confirmed]
@@ -233,7 +233,7 @@ fr = "Le transporteur n'a pas encore confirmé votre numéro. Répondez à l'app
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `caller_id_not_confirmed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.caller_id_request_too_soon]
@@ -242,7 +242,7 @@ fr = "Un appel de vérification a été fait il y a moins de 10 minutes. Attende
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `caller_id_request_too_soon`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.caller_id_unavailable]
@@ -251,7 +251,7 @@ fr = "L'utilisation de votre cellulaire comme afficheur n'est pas encore offerte
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `caller_id_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.carrier_error]
@@ -332,7 +332,7 @@ fr = "Toutes les démonstrations d'aujourd'hui ont été utilisées. Réessayez 
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `demo_daily_limit_reached`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.demo_lines_busy]
@@ -386,7 +386,7 @@ fr = "Le brouillon a changé depuis son ouverture. Consultez la dernière versio
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `draft_changed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.draft_field_invalid]
@@ -395,7 +395,7 @@ fr = "Cette valeur du brouillon ne peut pas être enregistrée. Vérifiez le cha
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `draft_field_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.draft_lint_refused]
@@ -404,7 +404,7 @@ fr = "Ce texte ne peut pas être enregistré\u00A0: il nie être une IA, préten
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `draft_lint_refused`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.draft_not_found]
@@ -413,7 +413,7 @@ fr = "Il n'y a aucun brouillon de la réceptionniste. Rédigez d'abord un change
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `draft_not_found`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.draft_nothing_to_undo]
@@ -422,7 +422,7 @@ fr = "Il n'y a pas de version antérieure du brouillon à rétablir."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `draft_nothing_to_undo`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.emergency_acknowledgement_required]
@@ -449,7 +449,7 @@ fr = "Ce moteur vocal n'est pas encore offert à cet espace de travail. Choisiss
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `engine_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.eu_vat_required]
@@ -467,7 +467,7 @@ fr = "Ce numéro s'ajoute à ceux qu'inclut le forfait et entraîne des frais me
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `extra_number_charge_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.file_required]
@@ -539,7 +539,7 @@ fr = "Cet espace de travail a utilisé toutes les minutes du mode vocal de Distr
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `hq_voice_allowance_reached`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.hq_voice_busy]
@@ -548,7 +548,7 @@ fr = "Le mode vocal de District HQ est occupé en ce moment. Réessayez dans que
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `hq_voice_busy`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.incorrect_password]
@@ -648,7 +648,7 @@ fr = "Cet espace de travail a atteint sa limite de 300 faits. Supprimez-en avant
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_facts_limit`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_file_doc_unsupported]
@@ -657,7 +657,7 @@ fr = "Les fichiers Word 97-2003 (.doc) ne peuvent pas être lus. Enregistrez le 
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_file_doc_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_file_no_text]
@@ -666,7 +666,7 @@ fr = "Aucun texte n'a été trouvé dans ce fichier."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_file_no_text`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_file_too_large]
@@ -675,7 +675,7 @@ fr = "Ce fichier est trop volumineux pour être lu. La limite est de 10\u00A0Mo.
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_file_too_large`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_file_too_many_pages]
@@ -684,7 +684,7 @@ fr = "Ce document compte trop de pages pour être lu en une fois. La limite est 
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_file_too_many_pages`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_file_unreadable]
@@ -693,7 +693,7 @@ fr = "Ce fichier n'a pas pu être ouvert. Il est peut-être endommagé ou proté
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_file_unreadable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_file_unsupported]
@@ -702,7 +702,7 @@ fr = "Ce fichier ne peut pas être lu. Utilisez un PDF ou une image (PNG, JPEG o
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_file_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_blocked]
@@ -711,7 +711,7 @@ fr = "Cette adresse mène à un réseau privé ou interne. Elle ne peut donc pas
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_blocked`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_empty]
@@ -720,7 +720,7 @@ fr = "Cette page ne contient aucun texte lisible à importer."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_empty`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_invalid]
@@ -729,7 +729,7 @@ fr = "Entrez une adresse Web complète qui commence par https://, sans numéro d
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_pdf_unsupported]
@@ -738,7 +738,7 @@ fr = "L'importation de fichiers PDF n'est pas encore offerte. Collez plutôt le 
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_pdf_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_timeout]
@@ -747,7 +747,7 @@ fr = "Cette page a mis trop de temps à répondre. Réessayez dans un instant."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_timeout`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_too_large]
@@ -756,7 +756,7 @@ fr = "Cette page dépasse 2\u00A0Mo. Importez une page plus petite ou collez plu
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_too_large`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_unreachable]
@@ -765,7 +765,7 @@ fr = "Impossible d'atteindre cette page. Vérifiez l'adresse et assurez-vous que
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_unreachable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.knowledge_url_unsupported_type]
@@ -774,7 +774,7 @@ fr = "Seuls le texte brut et les pages Web (HTML) peuvent être importés. Colle
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `knowledge_url_unsupported_type`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.language_unavailable]
@@ -855,7 +855,7 @@ fr = "Ce numéro appartient à une entreprise sur District, alors il ne peut pas
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_business_number`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_cannot_text]
@@ -864,7 +864,7 @@ fr = "Cette entreprise ne peut pas encore envoyer de textos. L'envoi de textos c
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_cannot_text`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_code_expired]
@@ -873,7 +873,7 @@ fr = "Ce code est expiré ou a déjà été utilisé. Demandez-en un nouveau."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_code_expired`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_code_wrong]
@@ -882,7 +882,7 @@ fr = "Ce code n'est pas le bon. Vérifiez le texto, puis réessayez."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_code_wrong`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_invalid]
@@ -891,7 +891,7 @@ fr = "Entrez un numéro de cellulaire avec son indicatif de pays, par exemple +1
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_opted_out]
@@ -900,7 +900,7 @@ fr = "Ce numéro a choisi de ne plus recevoir de textos de cette entreprise, alo
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_opted_out`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_resend_too_soon]
@@ -909,7 +909,7 @@ fr = "Un code a été envoyé il y a moins d'une minute. Attendez un moment avan
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_resend_too_soon`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_too_many_attempts]
@@ -918,7 +918,7 @@ fr = "Trop de codes erronés. Demandez un nouveau code pour réessayer."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_too_many_attempts`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_too_many_codes]
@@ -927,7 +927,7 @@ fr = "Cinq codes vous ont été envoyés au cours des dernières 24 heures. Rée
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `member_phone_too_many_codes`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.message_not_found]
@@ -954,7 +954,7 @@ fr = "Les textos sont configurés avec vos numéros de téléphone, pas comme un
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `messaging_app_sms_refused`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.messaging_apps_managed]
@@ -963,7 +963,7 @@ fr = "Les applications de messagerie ne peuvent pas être connectées au moyen d
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `messaging_apps_managed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.messaging_provider_not_configured]
@@ -981,7 +981,7 @@ fr = "La fenêtre de réponse Messenger ou Instagram avec ce contact est fermée
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `messenger_window_closed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.mfa_code_invalid]
@@ -1125,7 +1125,7 @@ fr = "Ce changement proposé a déjà été traité."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `proposal_already_handled`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.proposal_expired]
@@ -1134,7 +1134,7 @@ fr = "Ce changement proposé ne peut plus être confirmé, donc rien n'a été a
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `proposal_expired`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.provider_credentials_rejected]
@@ -1386,7 +1386,7 @@ fr = "Ce client écrit sur WhatsApp, Messenger ou Instagram et n'a jamais envoy�
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `sms_reply_not_customer_channel`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.status_change_failed]
@@ -1494,7 +1494,7 @@ fr = "Un transfert est déjà ouvert pour ce numéro dans cet espace de travail.
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_already_exists`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_cancel_refused]
@@ -1503,7 +1503,7 @@ fr = "Ce transfert ne peut plus être annulé ici, généralement parce que la d
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_cancel_refused`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_country_unsupported]
@@ -1512,7 +1512,7 @@ fr = "Seuls les numéros des États-Unis et du Canada peuvent être transférés
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_country_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_document_limit]
@@ -1521,7 +1521,7 @@ fr = "Ce transfert contient déjà le nombre maximal de documents. Retirez-en un
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_document_limit`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_emergency_acknowledgement_required]
@@ -1530,7 +1530,7 @@ fr = "Confirmez que vous comprenez qu'après le transfert, cette ligne ne joindr
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_emergency_acknowledgement_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_incomplete]
@@ -1539,7 +1539,7 @@ fr = "Il manque encore des renseignements ou des documents pour ce transfert. Te
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_incomplete`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_line_type_unknown]
@@ -1548,7 +1548,7 @@ fr = "Nous n'avons pas pu confirmer qu'il s'agit d'une ligne locale. Ce numéro 
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_line_type_unknown`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_managed_only]
@@ -1557,7 +1557,7 @@ fr = "Le transfert d'un numéro existant est accessible aux espaces de travail q
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_managed_only`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_mobile_unsupported]
@@ -1566,7 +1566,7 @@ fr = "Les numéros de cellulaire ne peuvent pas encore être transférés. Seuls
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_mobile_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_not_cancellable]
@@ -1575,7 +1575,7 @@ fr = "Ce transfert est déjà terminé et ne peut pas être annulé."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_not_cancellable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_not_editable]
@@ -1584,7 +1584,7 @@ fr = "Ce transfert a déjà été envoyé et ne peut plus être modifié ici."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_not_editable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_not_found]
@@ -1593,7 +1593,7 @@ fr = "Ce transfert de numéro est introuvable."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_not_found`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_number_already_held]
@@ -1602,7 +1602,7 @@ fr = "Cet espace de travail possède déjà ce numéro."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_number_already_held`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_number_country_mismatch]
@@ -1611,7 +1611,7 @@ fr = "Ce numéro n'appartient pas au pays choisi. Vérifiez le numéro et le pay
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_number_country_mismatch`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_number_unavailable]
@@ -1620,7 +1620,7 @@ fr = "Ce numéro ne peut pas être transféré dans cet espace de travail pour l
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_number_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_refused_by_provider]
@@ -1629,7 +1629,7 @@ fr = "Votre fournisseur actuel indique que ce numéro ne peut pas être transfé
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_refused_by_provider`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_region_unsupported]
@@ -1638,7 +1638,7 @@ fr = "La région de cet espace de travail ne peut pas encore recevoir ce numéro
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_region_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_release_confirmation_required]
@@ -1647,7 +1647,7 @@ fr = "Ce numéro a été transféré ici depuis votre ancien fournisseur. Le lib
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_release_confirmation_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_resubmit_unsupported]
@@ -1656,7 +1656,7 @@ fr = "Ce transfert ne peut pas être envoyé de nouveau d'ici. Annulez-le et com
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_resubmit_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_signature_required]
@@ -1665,7 +1665,7 @@ fr = "Saisissez le nom complet de la personne autorisée et confirmez l'autorisa
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_signature_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_submit_in_progress]
@@ -1674,7 +1674,7 @@ fr = "Ce transfert est en cours d'envoi. Attendez une minute, puis actualisez la
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_submit_in_progress`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.transfer_toll_free_unsupported]
@@ -1683,7 +1683,7 @@ fr = "Les numéros sans frais ne peuvent pas encore être transférés. Seuls le
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `transfer_toll_free_unsupported`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.unauthorized]
@@ -1900,7 +1900,7 @@ fr = "Ce modèle WhatsApp ne peut pas être envoyé. Il n'est pas approuvé pour
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `whatsapp_template_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.whatsapp_unsupported]
@@ -1918,7 +1918,7 @@ fr = "La fenêtre WhatsApp de 24 heures avec ce contact est fermée. Envoyez un 
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `whatsapp_window_closed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_action_needs_message]
@@ -1927,7 +1927,7 @@ fr = "La notification de l'équipe ne fonctionne qu'avec le déclencheur d'un me
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_action_needs_message`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_conditions_invalid]
@@ -1936,7 +1936,7 @@ fr = "Une des conditions de ce flux n'est pas valide. Vérifiez chaque condition
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_conditions_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_conditions_not_allowed]
@@ -1945,7 +1945,7 @@ fr = "Les conditions ne peuvent s'ajouter qu'à un flux qui s'exécute après un
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_conditions_not_allowed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_draft_dry_run_stale]
@@ -1954,7 +1954,7 @@ fr = "Testez d'abord cette version de l'automatisation, puis publiez-la."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_draft_dry_run_stale`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_draft_not_found]
@@ -1963,7 +1963,7 @@ fr = "Cette automatisation en brouillon est introuvable. Elle a peut-être été
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_draft_not_found`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_member_push_roles_invalid]
@@ -1981,7 +1981,7 @@ fr = "Un texto ne peut être envoyé qu'à l'appelant, au propriétaire ou à un
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_sms_recipient_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_sms_recipient_not_member]
@@ -1990,7 +1990,7 @@ fr = "Cette personne n'est pas membre de cet espace de travail, alors les textos
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_sms_recipient_not_member`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workflow_voice_cap]
@@ -1999,7 +1999,7 @@ fr = "Cet espace de travail a atteint la limite d'automatisations créées à la
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workflow_voice_cap`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.workspace_access_denied]
@@ -2071,5 +2071,5 @@ fr = "L'accès du propriétaire de l'espace de travail ne peut pas être modifi�
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `workspace_owner_protected`, verbatim from contracts/i18n/api-errors.json."

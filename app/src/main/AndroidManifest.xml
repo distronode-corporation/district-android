@@ -117,6 +117,14 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <!--
+      ⚠️ WAKE_LOCK (3.3.0) IS THE LIVE CALLS TAKEOVER'S PROXIMITY LOCK. A supervisor who takes a call
+         over holds the phone at the ear, and PROXIMITY_SCREEN_OFF_WAKE_LOCK turns the screen off
+         there so a cheek cannot press Hand back. Held only while a takeover is on screen
+         (`ProximityScreenOff`). A normal, install-time permission.
+    -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!--
          ⛔ REMOVED, NOT DECLARED, AND IT IS NOT OURS TO BEGIN WITH. The LiveKit SDK's
          own manifest contributes FOREGROUND_SERVICE_MEDIA_PROJECTION and a
          ScreenCaptureService through manifest merging, so a release bundle asks for

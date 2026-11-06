@@ -247,6 +247,11 @@ jobs:
             ${{ runner.temp }}/merged-manifest/out/merged-manifest-entries.txt
           if-no-files-found: error
           retention-days: 90
+          # A re-run of a failed build (after an upload that failed, say) is the same workflow
+          # run, which already holds this artifact from the earlier attempt; without this the
+          # re-run stops here with a conflict, before it reaches the Play upload. The re-run
+          # rebuilt the same commit, so its files replace the earlier ones.
+          overwrite: true
 
       # A second, fresh token: the build can take most of the first one's hour.
       - id: gcp_play

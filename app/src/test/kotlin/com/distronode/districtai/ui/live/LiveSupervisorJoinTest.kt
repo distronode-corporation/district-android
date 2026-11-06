@@ -101,6 +101,28 @@ class LiveSupervisorJoinTest {
         assertTrue(vm.supervision.value.takenOver && vm.supervision.value.live)
     }
 
+    @Test
+    fun `a microphone answer for a call that left the list meanwhile sends nothing`() = runTest(dispatcher) {
+        listOf(true, false).forEach { granted ->
+            log.callsResult = ApiResult.Success(listOf(FakeSuperviseApi.AI_CALL))
+            val vm = viewModel()
+            vm.listen(ai)
+            runCurrent()
+            vm.takeOver.ask(ai)
+            vm.takeOver.confirm()
+
+            // The call ended while the permission dialog was up.
+            log.callsResult = ApiResult.Success(emptyList())
+            vm.refresh()
+            runCurrent()
+            vm.takeOver.onMicrophonePermissionResult(granted)
+            runCurrent()
+
+            assertTrue("granted=$granted: no takeover for a call that is gone", api.takeovers.isEmpty())
+            assertEquals("granted=$granted", LiveSupervisor.State(), vm.supervision.value)
+        }
+    }
+
     // ── What the card may claim (M1) ──────────────────────────────────────────────────────────────
 
     @Test

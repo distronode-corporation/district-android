@@ -68,9 +68,13 @@ internal fun NavGraphBuilder.liveCallsDestination(
             ActivityResultContracts.RequestPermission(),
             viewModel.takeOver::onMicrophonePermissionResult,
         )
-        // ⚠️ A counter, so a second attempt after a denial asks again. See LiveCallsPrompt.
+        // ⚠️ A counter, so a second attempt after a denial asks again, and consumed once launched,
+        // so a rotation or a return to this screen never asks again. See LiveCallsPrompt.
         LaunchedEffect(prompt.microphoneRequest) {
-            if (prompt.microphoneRequest > 0) microphone.launch(Manifest.permission.RECORD_AUDIO)
+            if (prompt.microphoneRequest > 0) {
+                microphone.launch(Manifest.permission.RECORD_AUDIO)
+                viewModel.takeOver.onMicrophoneRequested()
+            }
         }
 
         LiveCallsScreen(

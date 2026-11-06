@@ -95,6 +95,22 @@ class InboxParityRequestTest {
     }
 
     @Test
+    fun `the Messenger window is a GET on the send path, with the channel and the scoped address`() = runTest {
+        server.enqueue(fixture("district-meta-window-human-agent.json"))
+
+        val result = HttpWhatsAppApi(client()).metaWindow("ws-1", "messenger", "fb:5550101")
+
+        assertEquals("human_agent", (result as ApiResult.Success).value.window.state)
+        val recorded = server.takeRequest()
+        assertEquals("GET", recorded.method)
+        assertEquals("/api/district/messages/send", recorded.url.encodedPath)
+        assertEquals("ws-1", recorded.url.queryParameter("workspaceId"))
+        assertEquals("messenger", recorded.url.queryParameter("channel"))
+        assertEquals("fb:5550101", recorded.url.queryParameter("to"))
+        assertEquals("a GET carries no body", 0, recorded.body?.size ?: 0)
+    }
+
+    @Test
     fun `the window is read for one number, its plus sign encoded`() = runTest {
         server.enqueue(fixture("district-whatsapp-window-closed.json"))
 

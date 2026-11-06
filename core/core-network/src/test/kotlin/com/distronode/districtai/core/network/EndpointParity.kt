@@ -132,5 +132,9 @@ internal object EndpointParity {
         // them is vendored. (`whisper` is already on both sides.)
         "monitorCall",
         "takeOverCall",
+        // ⚠️ THE MESSENGER AND INSTAGRAM REPLY WINDOW (3.3.0): the web Inbox's preview read, the GET
+        // beside the send POST. It leaves this set when the district-core-swift snapshot that adds
+        // it is vendored.
+        "metaWindow",
     )
 }

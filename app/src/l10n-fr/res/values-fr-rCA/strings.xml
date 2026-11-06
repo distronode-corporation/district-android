@@ -943,6 +943,8 @@
     <string name="thread_image_loading">Chargement de l\'image</string>
     <string name="thread_load_older">Anciens messages</string>
     <string name="thread_load_older_loading">Chargement…</string>
+    <string name="thread_meta_human_agent">Réponse d\'un agent humain (fenêtre de 7\u00A0jours)</string>
+    <string name="thread_meta_window_closed">Fenêtre de réponse fermée\u00A0: Messenger et Instagram n\'acceptent une réponse que dans les 24\u00A0heures suivant le dernier message du client (7\u00A0jours pour une réponse d\'un agent humain, si elle est activée). Vous pourrez répondre quand il vous écrira de nouveau.</string>
     <string name="thread_owner_failed">Impossible de savoir à qui cette conversation est assignée.</string>
     <string name="thread_reply_channel">Canal de réponse</string>
     <string name="thread_reply_label">Réponse</string>

@@ -3,8 +3,13 @@ package com.distronode.districtai.ui.inbox
 import com.distronode.districtai.core.data.ComposerRepository
 import com.distronode.districtai.core.data.InboxRepository
 import com.distronode.districtai.core.data.WhatsAppRepository
+import com.distronode.districtai.core.model.CHANNEL_INSTAGRAM
+import com.distronode.districtai.core.model.CHANNEL_MESSENGER
 import com.distronode.districtai.core.model.CHANNEL_SMS
 import com.distronode.districtai.core.model.CHANNEL_WHATSAPP
+import com.distronode.districtai.core.model.META_WINDOW_CLOSED
+import com.distronode.districtai.core.model.META_WINDOW_HUMAN_AGENT
+import com.distronode.districtai.core.model.META_WINDOW_OPEN
 import com.distronode.districtai.core.model.ReplyTarget
 import com.distronode.districtai.core.model.WhatsAppTemplate
 import com.distronode.districtai.core.model.fillWhatsAppTemplate
@@ -63,6 +68,27 @@ sealed interface WhatsAppTemplatesState {
 }
 
 /**
+ * Messenger's or Instagram's reply window for the chosen customer, as the web composer reads it.
+ *
+ * ⚠️ [UNKNOWN] IS A READ THAT FAILED OR AN ANSWER THIS BUILD DOES NOT KNOW, AND IT BLOCKS NOTHING:
+ * the send refuses a closed window itself, and blocking on a failed preview would take the channel
+ * away entirely. [CHECKING] blocks nothing either, as WhatsApp's does not.
+ */
+enum class MetaWindowState {
+    /** The chosen channel is neither Messenger nor Instagram. */
+    NOT_META,
+    CHECKING,
+    OPEN,
+
+    /** Only a person's reply may go (the 7-day human agent window): the AI draft is off. */
+    HUMAN_AGENT,
+
+    /** Nothing may go until the customer writes again: free text, the AI draft and Send are off. */
+    CLOSED,
+    UNKNOWN,
+}
+
+/**
  * The template sheet: one template, one value per `{{n}}`, and the send.
  *
  * ⛔ [preview] IS THE SAME FUNCTION AS THE BODY SENT (`InboxRepository.sendTemplate`), so what the
@@ -83,7 +109,8 @@ data class TemplateSheetState(
 }
 
 /**
- * The reply channels on offer and the one chosen, plus WhatsApp's window.
+ * The reply channels on offer and the one chosen, plus WhatsApp's window and Messenger's or
+ * Instagram's.
  *
  * @param choices the server's order; the first is chosen on open. Empty for a caller who may not
  *   reply, so nothing here sends for them.
@@ -93,9 +120,17 @@ data class ReplyChannelState(
     val selected: ReplyTarget? = null,
     val whatsApp: WhatsAppWindowState = WhatsAppWindowState.NotWhatsApp,
     val sheet: TemplateSheetState = TemplateSheetState(),
+    val meta: MetaWindowState = MetaWindowState.NOT_META,
 ) {
-    /** ⛔ A closed WhatsApp window takes free text and the AI draft away; only a template may go. */
-    val allowsFreeText: Boolean get() = whatsApp !is WhatsAppWindowState.Closed
+    /**
+     * ⛔ A closed window takes free text, the AI draft and Send away: WhatsApp's (only a template
+     * may go) and Messenger's or Instagram's (nothing may, until the customer writes again).
+     */
+    val allowsFreeText: Boolean
+        get() = whatsApp !is WhatsAppWindowState.Closed && meta != MetaWindowState.CLOSED
+
+    /** ⛔ The human agent window is for a person's reply only, so the AI draft is off there too. */
+    val allowsDraft: Boolean get() = allowsFreeText && meta != MetaWindowState.HUMAN_AGENT
 
     /** ⛔ Attachments go by SMS only (the other routes refuse them, or email drops them silently). */
     val attachmentsAllowed: Boolean get() = selected?.channel == CHANNEL_SMS
@@ -105,7 +140,8 @@ data class ReplyChannelState(
 }
 
 /**
- * The composer's channel picker and its WhatsApp window and templates (app parity 1, 2 and 5).
+ * The composer's channel picker, its WhatsApp window and templates (app parity 1, 2 and 5), and
+ * Messenger's or Instagram's reply window.
  *
  * ⚠️ A CLASS OF ITS OWN, OWNED BY [ThreadViewModel], because that class is at detekt's function
  * ceiling. It shares the ViewModel's scope, so nothing here outlives the thread.
@@ -146,10 +182,19 @@ class ReplyChannels(
      * The send route answered `whatsapp_window_closed`: the window shut since it was read (or the
      * read failed), so the composer turns to templates. ⚠️ With no sender known yet the window is
      * read again, because the templates belong to a sender.
+     *
+     * For Messenger and Instagram (`messenger_window_closed`) the window is simply closed: there is
+     * nothing to offer in its place. ⚠️ The refusal is for the channel the send went on, which is
+     * still the chosen one: switching is refused while a send is in flight.
      */
     fun windowClosed() {
         val current = _state.value
         val target = current.selected ?: return
+        if (target.isMeta()) {
+            windowJob.cancel()
+            _state.value = current.copy(meta = MetaWindowState.CLOSED)
+            return
+        }
         if (target.channel != CHANNEL_WHATSAPP || current.whatsApp is WhatsAppWindowState.Closed) return
         val senderId = current.whatsAppSenderId
         windowJob.cancel()
@@ -168,6 +213,12 @@ class ReplyChannels(
     fun recheckWindow() {
         val current = _state.value
         val target = current.selected ?: return
+        if (target.isMeta()) {
+            if (current.meta == MetaWindowState.CHECKING) return
+            windowJob.cancel()
+            windowJob = scope.launch { _state.readMetaWindow(services, workspaceId, target) }
+            return
+        }
         if (target.channel != CHANNEL_WHATSAPP || current.sheet.sending) return
         val window = current.whatsApp
         val reading = window is WhatsAppWindowState.Checking ||
@@ -241,15 +292,29 @@ class ReplyChannels(
         }
     }
 
+    /**
+     * Reply on [target], and read its window.
+     *
+     * ⛔ THE READ BELONGS TO THE TARGET IT WAS ASKED FOR: the previous one's is cancelled first, so
+     * an answer for another customer (a thread offering both Messenger and Instagram) never paints
+     * the one now chosen.
+     */
     private fun select(target: ReplyTarget) {
         windowJob.cancel()
         val whatsApp = target.channel == CHANNEL_WHATSAPP
+        val meta = target.isMeta()
         _state.value = _state.value.copy(
             selected = target,
             whatsApp = if (whatsApp) WhatsAppWindowState.Checking else WhatsAppWindowState.NotWhatsApp,
             sheet = TemplateSheetState(),
+            meta = if (meta) MetaWindowState.CHECKING else MetaWindowState.NOT_META,
         )
-        windowJob = scope.launch { if (whatsApp) readWindow(target.to) }
+        windowJob = scope.launch {
+            when {
+                whatsApp -> readWindow(target.to)
+                meta -> _state.readMetaWindow(services, workspaceId, target)
+            }
+        }
     }
 
     /**
@@ -341,9 +406,40 @@ private fun epochMillisOrNull(iso: String): Long? =
         null
     }
 
+/** Messenger or Instagram: the channels with a Meta reply window. */
+internal fun ReplyTarget.isMeta(): Boolean = channel == CHANNEL_MESSENGER || channel == CHANNEL_INSTAGRAM
+
+/**
+ * Read Messenger's or Instagram's window for [target] and show it. ⚠️ Top-level for the reason
+ * [windowIs] is. What is shown stays until the answer (a re-check never flashes "checking").
+ */
+private suspend fun MutableStateFlow<ReplyChannelState>.readMetaWindow(
+    services: ThreadServices,
+    workspaceId: String,
+    target: ReplyTarget,
+) {
+    val meta = when (val result = services.whatsApp.metaWindow(workspaceId, target.channel, target.to)) {
+        is ApiResult.Success -> when (result.value.window.state) {
+            META_WINDOW_OPEN -> MetaWindowState.OPEN
+            META_WINDOW_HUMAN_AGENT -> MetaWindowState.HUMAN_AGENT
+            META_WINDOW_CLOSED -> MetaWindowState.CLOSED
+            else -> MetaWindowState.UNKNOWN
+        }
+        is ApiResult.Failure -> MetaWindowState.UNKNOWN
+    }
+    value = value.copy(meta = meta)
+}
+
 /** The send route's refusal for free text outside WhatsApp's 24-hour window. */
 internal const val CODE_WHATSAPP_WINDOW_CLOSED = "whatsapp_window_closed"
 
 /** True for that refusal (HTTP 409 with its code). */
 internal fun ApiResult.Failure.isWhatsAppWindowClosed(): Boolean =
     this is ApiResult.HttpFailure && code == CODE_WHATSAPP_WINDOW_CLOSED
+
+/** The send route's refusal outside Messenger's or Instagram's reply window (HTTP 409). */
+internal const val CODE_META_WINDOW_CLOSED = "messenger_window_closed"
+
+/** True for that refusal. */
+internal fun ApiResult.Failure.isMetaWindowClosed(): Boolean =
+    this is ApiResult.HttpFailure && code == CODE_META_WINDOW_CLOSED

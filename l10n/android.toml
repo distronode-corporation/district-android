@@ -8383,6 +8383,24 @@ tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ⚠️ A distinct label rather than a spinner, matching Sending…/Attaching…: the control is disabled while the page is in flight, so the button has to say why it cannot be tapped."
 
+[thread.meta_human_agent]
+en = "Human agent reply (7-day window)"
+fr = "Réponse d'un agent humain (fenêtre de 7\u00A0jours)"
+ctx = "label"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "A badge over the composer while Messenger's or Instagram's 7-day human agent window is open, which allows a person's reply only (the AI draft is hidden). Meta's own term for the tag. Web French reused verbatim (inboxI18n.ts metaHumanAgent)."
+
+[thread.meta_window_closed]
+en = "Reply window closed: Messenger and Instagram allow a reply only within 24 hours of the customer's last message (7 days for a human agent reply, when it is turned on). You can reply once they write again."
+fr = "Fenêtre de réponse fermée\u00A0: Messenger et Instagram n'acceptent une réponse que dans les 24\u00A0heures suivant le dernier message du client (7\u00A0jours pour une réponse d'un agent humain, si elle est activée). Vous pourrez répondre quand il vous écrira de nouveau."
+ctx = "body"
+screen = "message thread"
+tier = "T3"
+state = "reviewed"
+note = "Over the composer when Messenger's or Instagram's reply window is closed: free text, the AI draft and Send are off. Web French reused verbatim (inboxI18n.ts metaWindowClosed)."
+
 [thread.owner_failed]
 en = "Could not load who this conversation is assigned to."
 fr = "Impossible de savoir à qui cette conversation est assignée."

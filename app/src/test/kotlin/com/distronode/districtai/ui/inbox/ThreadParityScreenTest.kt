@@ -375,9 +375,11 @@ class ThreadParityScreenTest {
     fun `a viewer reads the owner and gets no picker`() {
         render(owner = ThreadOwnerState(loaded = true, owner = "ada@example.com"))
 
-        composeRule.onNodeWithText(str(R.string.thread_assign_label).uppercase()).assertIsDisplayed()
-        composeRule.onNodeWithTag(THREAD_OWNER_VALUE_DESCRIPTION).assertIsDisplayed()
-        composeRule.onNodeWithText("ada@example.com").assertIsDisplayed()
+        // ⚠️ The unmerged tree: without a picker the label and the owner are one TalkBack reading.
+        composeRule.onNodeWithText(str(R.string.thread_assign_label).uppercase(), useUnmergedTree = true)
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_OWNER_VALUE_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("ada@example.com", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag(THREAD_OWNER_PICKER_DESCRIPTION).assertDoesNotExist()
     }
 

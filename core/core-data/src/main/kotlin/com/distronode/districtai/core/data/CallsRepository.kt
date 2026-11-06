@@ -108,15 +108,13 @@ class CallsRepository(
     suspend fun liveCalls(workspaceId: String): ApiResult<List<CallSummary>> {
         val cutoff = now().minus(LIVE_WINDOW).minus(CLOCK_SLACK)
         val seen = LinkedHashMap<String, CallSummary>()
-        var offset = 0
-        for (page in 1..MAX_LIVE_PAGES) {
+        for (offset in 0 until MAX_LIVE_PAGES * LIVE_SCAN_LIMIT step LIVE_SCAN_LIMIT) {
             val rows = when (val result = api.calls(workspaceId, limit = LIVE_SCAN_LIMIT, offset = offset)) {
                 is ApiResult.Success -> result.value
                 is ApiResult.Failure -> return result
             }
             rows.forEach { seen.putIfAbsent(it.id, it) }
             if (rows.size < LIVE_SCAN_LIMIT || olderThan(rows.last(), cutoff)) break
-            offset += LIVE_SCAN_LIMIT
         }
         return ApiResult.Success(seen.values.filter { it.isLive })
     }

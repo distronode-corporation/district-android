@@ -10,6 +10,7 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.ConversationLastMessage
 import com.distronode.districtai.core.model.ConversationSummary
 import com.distronode.districtai.R
+import com.distronode.districtai.plural
 import com.distronode.districtai.str
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
@@ -120,7 +121,9 @@ class InboxScreenTest {
     fun `an unread thread carries a count and a read one does not`() {
         render(InboxUiState.Content(listOf(thread(unread = 3)), partial = false))
         composeRule.onNodeWithTag(INBOX_UNREAD_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
-        composeRule.onNodeWithText("3").assertIsDisplayed()
+        // The badge draws "3"; TalkBack is given the count as messages (TalkBackSurfacesTest).
+        composeRule.onNodeWithText("3", useUnmergedTree = true).assertDoesNotExist()
+        composeRule.onNodeWithText(plural(R.plurals.inbox_unread_count, 3), useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test

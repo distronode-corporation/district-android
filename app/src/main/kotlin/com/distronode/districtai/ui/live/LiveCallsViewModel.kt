@@ -123,7 +123,10 @@ class LiveCallsViewModel(
             do {
                 reloadAfter = false
                 when (val result = calls.liveCalls(workspaceId)) {
-                    is ApiResult.Success -> show(withSupervised(result.value).filterNot { it.id in ended })
+                    is ApiResult.Success -> show(
+                        calls.withSupervised(workspaceId, result.value, supervisor.state.value, _list.value)
+                            .filterNot { it.id in ended },
+                    )
                     is ApiResult.Failure -> {
                         if (result is ApiResult.Unauthorized) leave()
                         val failure = result.toFailureText()
@@ -212,36 +215,6 @@ class LiveCallsViewModel(
         if (gone) leave()
     }
 
-    /**
-     * [rows], plus the supervised call when the read did not list it but the call is still live.
-     *
-     * ⛔ A CALL MISSING FROM A READ IS NOT A CALL THAT ENDED. The list stops reading at a bound
-     * ([CallsRepository.liveCalls]), so a call can be live and unlisted; leaving on its absence alone
-     * ended a listen or a takeover in a busy workspace. So the call being listened to, taken over or
-     * requested is read by id first (the contracted call detail, the same row the list carries):
-     * - still live: its row stays, after the listed ones (it is older than all of them);
-     * - over, or gone (`NotFound`): it is left out, and [show] leaves its session;
-     * - the read failed: the card it had stays, as a failed list read keeps its cards, because the
-     *   card holds the only control that ends the session. A call that really ended closes its room,
-     *   which ends the session anyway. ⚠️ Except `Unauthorized`: the session no longer holds.
-     */
-    private suspend fun withSupervised(rows: List<CallSummary>): List<CallSummary> {
-        val state = supervisor.state.value
-        val missing = listOfNotNull(state.callId, state.requestingCallId)
-            .distinct()
-            .filter { id -> rows.none { it.id == id } }
-        if (missing.isEmpty()) return rows
-        val shown = (_list.value as? LiveCallList.Loaded)?.calls.orEmpty()
-        val kept = missing.mapNotNull { id ->
-            when (val result = calls.detail(workspaceId, id)) {
-                is ApiResult.Success -> result.value.takeIf { it.isLive }
-                is ApiResult.NotFound, is ApiResult.Unauthorized -> null
-                is ApiResult.Failure -> shown.firstOrNull { it.id == id }
-            }
-        }
-        return rows + kept
-    }
-
     /** A writer, and a call the receptionist is on. */
     private fun writable(callId: String): Boolean {
         val row = (_list.value as? LiveCallList.Loaded)?.calls?.firstOrNull { it.id == callId }
@@ -262,4 +235,38 @@ class LiveCallsViewModel(
             }
         }
     }
+}
+
+/**
+ * [rows], plus the supervised call when the read did not list it but the call is still live.
+ *
+ * ⛔ A CALL MISSING FROM A READ IS NOT A CALL THAT ENDED. The list stops reading at a bound
+ * ([CallsRepository.liveCalls]), so a call can be live and unlisted; leaving on its absence alone
+ * ended a listen or a takeover in a busy workspace. So the call being listened to, taken over or
+ * requested ([state]) is read by id first (the contracted call detail, the same row the list carries):
+ * - still live: its row stays, after the listed ones (it is older than all of them);
+ * - over, or gone (`NotFound`): it is left out, and the ViewModel's `show` leaves its session;
+ * - the read failed: the card it had in [shown] stays, as a failed list read keeps its cards, because
+ *   the card holds the only control that ends the session. A call that really ended closes its room,
+ *   which ends the session anyway. ⚠️ Except `Unauthorized`: the session no longer holds.
+ */
+private suspend fun CallsRepository.withSupervised(
+    workspaceId: String,
+    rows: List<CallSummary>,
+    state: LiveSupervisor.State,
+    shown: LiveCallList,
+): List<CallSummary> {
+    val missing = listOfNotNull(state.callId, state.requestingCallId)
+        .distinct()
+        .filter { id -> rows.none { it.id == id } }
+    if (missing.isEmpty()) return rows
+    val cards = (shown as? LiveCallList.Loaded)?.calls.orEmpty()
+    val kept = missing.mapNotNull { id ->
+        when (val result = detail(workspaceId, id)) {
+            is ApiResult.Success -> result.value.takeIf { it.isLive }
+            is ApiResult.NotFound, is ApiResult.Unauthorized -> null
+            is ApiResult.Failure -> cards.firstOrNull { it.id == id }
+        }
+    }
+    return rows + kept
 }

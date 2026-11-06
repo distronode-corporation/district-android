@@ -3684,6 +3684,18 @@ tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ── Inbox ───────────────────────────────────────────────────────────── The unified Inbox: SMS and email folded into one thread per counterpart."
 
+[inbox.unread_count]
+en.one = "{count} unread message"
+en.other = "{count} unread messages"
+fr.one = "{count} message non lu"
+fr.other = "{count} messages non lus"
+ctx = "a11y"
+screen = "inbox"
+tier = "T3"
+args = { count = "int" }
+state = "draft"
+note = "What TalkBack reads for the unread badge on a conversation row, which shows only the number. Never drawn. App-authored French, a draft until the release's French sign-off."
+
 [incoming_call.answer]
 en = "Answer"
 fr = "Répondre"
@@ -4136,6 +4148,16 @@ screen = "live calls"
 tier = "T2"
 state = "reviewed"
 note = "Joins the call listen-only. The caller does not hear the supervisor. French reused verbatim from the web liveI18n.ts liveCopy.monitorAudio."
+
+[live_calls.listen_to]
+en = "Listen to {name}"
+fr = "Écouter {name}"
+ctx = "a11y"
+screen = "live calls"
+tier = "T3"
+args = { name = "str" }
+state = "draft"
+note = "What TalkBack reads for a call card's Listen button, so a list of calls does not read \"Listen\" several times over. {name} is the caller's name or number as the card shows it. Keeps the visible word first (live_calls.listen). App-authored French, a draft until the release's French sign-off."
 
 [live_calls.listening]
 en = "You are listening"
@@ -8207,6 +8229,15 @@ screen = "message thread"
 tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist."
+
+[thread.assign_change]
+en = "Change the assignee"
+fr = "Changer la personne assignée"
+ctx = "a11y"
+screen = "message thread"
+tier = "T3"
+state = "draft"
+note = "TalkBack's action on the thread owner picker (\"double tap to change the assignee\"), which opens the list of members. Never drawn. App-authored French, a draft until the release's French sign-off."
 
 [thread.assign_label]
 en = "Assigned to"

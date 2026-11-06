@@ -18,7 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -315,7 +319,9 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
         stackTrailing = LocalConfiguration.current.screenWidthDp < NARROW_ROW_WIDTH_DP,
         onClick = onClick,
         leading = {
+            // ⚠️ DECORATIVE TO TALKBACK: the initials ("AL") are the name beside them, read twice.
             Avatar(
+                modifier = Modifier.clearAndSetSemantics {},
                 name = serverText(thread.contactName.orEmpty()),
                 // ⚠️ Neutral for an unresolved address, so a thread with no Contact row does not wear
                 // the brand accent as if it were a known customer.
@@ -346,10 +352,17 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
                     )
                 }
                 if (thread.hasUnread) {
+                    // ⛔ TALKBACK READ A BARE "2". The badge speaks "2 unread messages", and as the
+                    // node's TEXT rather than a contentDescription: the row merges its children, and a
+                    // contentDescription in the merged node would be read in place of every line.
+                    val count = thread.unreadCount
+                    val spoken = pluralStringResource(R.plurals.inbox_unread_count, count, count)
                     DistrictBadge(
                         text = thread.unreadCount.toString(),
                         tone = Tone.District,
-                        modifier = Modifier.testTag(INBOX_UNREAD_DESCRIPTION),
+                        modifier = Modifier
+                            .testTag(INBOX_UNREAD_DESCRIPTION)
+                            .clearAndSetSemantics { text = AnnotatedString(spoken) },
                     )
                 }
             }

@@ -14,6 +14,11 @@ import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -146,15 +151,16 @@ private fun LoadedCalls(list: LiveCallList.Loaded, view: LiveCallsView, actions:
 private fun LiveCallCard(call: CallSummary, view: LiveCallsView, actions: LiveCallsActions) {
     val supervision = view.supervision
     val here = supervision.callId == call.id
+    val name = call.toDisplay().displayName ?: stringResource(R.string.live_calls_unknown_caller)
     DistrictCard(modifier = Modifier.testTag(liveCallTag(call.id))) {
         Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.row)) {
-            CallHeading(call)
+            CallHeading(call, name)
             if (here) {
                 SupervisedState(supervision)
             }
             // ⚠️ A taken-over call offers only the hand back: "Stop listening" would name the wrong thing.
             if (!(here && supervision.takenOver)) {
-                ListenControl(call.id, here, supervision.busy, actions)
+                ListenControl(call.id, name, here, supervision.busy, actions)
             }
             if (here && !call.receptionistOnCall) {
                 Note(
@@ -172,13 +178,17 @@ private fun LiveCallCard(call: CallSummary, view: LiveCallsView, actions: LiveCa
     }
 }
 
+/**
+ * @param name the call log's own reading of the row (the server's "Unknown" is no name).
+ *   ⚠️ A HEADING, so TalkBack's heading navigation steps from call to call.
+ */
 @Composable
-private fun CallHeading(call: CallSummary) {
+private fun CallHeading(call: CallSummary, name: String) {
     Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline)) {
-        // ⚠️ The call log's own reading of the row: the server's "Unknown" is no name.
         Text(
-            text = call.toDisplay().displayName ?: stringResource(R.string.live_calls_unknown_caller),
+            text = name,
             style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.semantics { heading() },
         )
         if (!call.receptionistOnCall) {
             Text(
@@ -207,17 +217,22 @@ private fun SupervisedState(supervision: LiveSupervisor.State) {
         else -> R.string.live_calls_listening to R.string.live_calls_listening_body
     }
     Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline)) {
+        // ⛔ A LIVE REGION: connecting, listening, reconnecting and "you are on the call" change
+        // under a supervisor who may be listening with the screen reader at the same time, and
+        // each change is a thing they must hear (owed from #123's review).
         Text(
             text = stringResource(title),
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.testTag(LIVE_CALLS_STATE_TAG),
+            modifier = Modifier
+                .testTag(LIVE_CALLS_STATE_TAG)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         )
         body?.let { Note(stringResource(it)) }
     }
 }
 
 @Composable
-private fun ListenControl(callId: String, here: Boolean, busy: Boolean, actions: LiveCallsActions) {
+private fun ListenControl(callId: String, name: String, here: Boolean, busy: Boolean, actions: LiveCallsActions) {
     if (here) {
         DistrictButton(
             text = stringResource(R.string.live_calls_stop_listening),
@@ -227,12 +242,17 @@ private fun ListenControl(callId: String, here: Boolean, busy: Boolean, actions:
             modifier = Modifier.testTag(LIVE_CALLS_LEAVE_TAG),
         )
     } else {
+        // ⚠️ "Listen to Dana Smith" to TalkBack: a list of calls otherwise reads "Listen" once per
+        // card, and the visible word stays first in what is read.
+        val spoken = stringResource(R.string.live_calls_listen_to, name)
         DistrictButton(
             text = stringResource(R.string.live_calls_listen),
             onClick = @DontMemoize { actions.onListen(callId) },
             size = ButtonSize.Sm,
             enabled = !busy,
-            modifier = Modifier.testTag(LIVE_CALLS_LISTEN_TAG),
+            modifier = Modifier
+                .testTag(LIVE_CALLS_LISTEN_TAG)
+                .semantics { contentDescription = spoken },
         )
     }
 }

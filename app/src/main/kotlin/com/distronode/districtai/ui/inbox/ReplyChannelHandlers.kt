@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -79,13 +85,18 @@ internal fun ReplyChannelPicker(channels: ReplyChannelHandlers) {
                 .testTag(THREAD_CHANNELS_DESCRIPTION),
         ) {
             Eyebrow(stringResource(R.string.thread_reply_channel))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+                modifier = Modifier.selectableGroup(),
+            ) {
                 state.choices.forEachIndexed { index, choice ->
                     DistrictFilterChip(
                         label = inboxChannelLabel(choice.channel),
                         selected = choice == state.selected,
                         onClick = { channels.onChoose(choice) },
-                        modifier = Modifier.testTag(THREAD_CHANNEL_CHIP_DESCRIPTION + index),
+                        modifier = Modifier
+                            .testTag(THREAD_CHANNEL_CHIP_DESCRIPTION + index)
+                            .oneOfMany(),
                     )
                 }
             }
@@ -119,7 +130,9 @@ internal fun ComposerNotices(state: ThreadUiState.Content, channels: ReplyChanne
                     text = stringResource(R.string.thread_whatsapp_window_closed),
                     style = MaterialTheme.typography.bodySmall,
                     color = DistrictTheme.colors.mutedForeground,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
                 )
                 DistrictButton(
                     text = stringResource(R.string.thread_whatsapp_template_label),
@@ -136,6 +149,9 @@ internal fun ComposerNotices(state: ThreadUiState.Content, channels: ReplyChanne
 /**
  * The web composer's two Meta lines, in its words: a badge for the human agent window, a warning
  * when closed. ⚠️ No countdown, as the web shows none: `until` is not drawn.
+ *
+ * ⚠️ BOTH ARE LIVE REGIONS: they arrive after the window is read (or a send is refused), below
+ * where TalkBack's focus is, so without one a screen reader user is never told the window shut.
  */
 @Composable
 private fun MetaWindowNotice(meta: MetaWindowState) {
@@ -148,7 +164,8 @@ private fun MetaWindowNotice(meta: MetaWindowState) {
                 tone = Tone.Info,
                 modifier = Modifier
                     .padding(horizontal = DistrictTheme.spacing.gutter)
-                    .testTag(THREAD_META_HUMAN_AGENT_DESCRIPTION),
+                    .testTag(THREAD_META_HUMAN_AGENT_DESCRIPTION)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
         else -> Unit
@@ -165,7 +182,8 @@ private fun Notice(text: String, tag: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = DistrictTheme.spacing.gutter)
-                .testTag(tag),
+                .testTag(tag)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         )
     }
 }
@@ -200,7 +218,9 @@ private fun TemplateSheet(channels: ReplyChannelHandlers) {
                         text = failure.message.resolve(),
                         style = MaterialTheme.typography.bodySmall,
                         color = DistrictTheme.colors.destructive,
-                        modifier = Modifier.testTag(THREAD_TEMPLATE_FAILURE_DESCRIPTION),
+                        modifier = Modifier
+                            .testTag(THREAD_TEMPLATE_FAILURE_DESCRIPTION)
+                            .semantics { liveRegion = LiveRegionMode.Polite },
                     )
                 }
             }
@@ -244,18 +264,25 @@ private fun TemplateChoices(
         Text(
             text = stringResource(message),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag(THREAD_TEMPLATE_STATUS_DESCRIPTION),
+            modifier = Modifier
+                .testTag(THREAD_TEMPLATE_STATUS_DESCRIPTION)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         )
         return
     }
     Eyebrow(stringResource(R.string.thread_whatsapp_template_placeholder))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
+        modifier = Modifier.selectableGroup(),
+    ) {
         ready.forEachIndexed { index, template ->
             DistrictFilterChip(
                 label = stringResource(R.string.thread_whatsapp_template_option, template.name, template.language),
                 selected = template == sheet.chosen,
                 onClick = { onChoose(template) },
-                modifier = Modifier.testTag(THREAD_TEMPLATE_OPTION_DESCRIPTION + index),
+                modifier = Modifier
+                    .testTag(THREAD_TEMPLATE_OPTION_DESCRIPTION + index)
+                    .oneOfMany(),
             )
         }
     }
@@ -293,6 +320,13 @@ private fun TemplateFields(sheet: TemplateSheetState, onValue: (Int, String) -> 
         modifier = Modifier.testTag(THREAD_TEMPLATE_PREVIEW_DESCRIPTION),
     )
 }
+
+/**
+ * A chip that is one choice of several (a channel, a template): TalkBack reads a radio button.
+ *
+ * ⚠️ A filter chip reads as a checkbox ("checked"), which promises that several can be on at once.
+ */
+private fun Modifier.oneOfMany(): Modifier = semantics { role = Role.RadioButton }
 
 /** Stable handles for tests. Those ending in `-` take the item's index. */
 const val THREAD_CHANNELS_DESCRIPTION: String = "district-thread-channels"

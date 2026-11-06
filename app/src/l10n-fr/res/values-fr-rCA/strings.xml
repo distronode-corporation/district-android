@@ -411,6 +411,11 @@
     <string name="inbox_search_none_title">Aucun résultat</string>
     <string name="inbox_search_running">Recherche…</string>
     <string name="inbox_title">Boîte de réception</string>
+    <plurals name="inbox_unread_count">
+        <item quantity="one">%1$d message non lu</item>
+        <item quantity="many">%1$d messages non lus</item>
+        <item quantity="other">%1$d messages non lus</item>
+    </plurals>
     <string name="incoming_call_answer">Répondre</string>
     <string name="incoming_call_caller">Appelant</string>
     <string name="incoming_call_connecting">Connexion…</string>
@@ -461,6 +466,7 @@
     <string name="live_calls_hand_back">Redonner l\'appel à votre réceptionniste</string>
     <string name="live_calls_joined_elsewhere">Cet appel a été rejoint avec votre compte sur un autre appareil ou dans un autre onglet. Cette session s\'est donc arrêtée ici.</string>
     <string name="live_calls_listen">Écouter</string>
+    <string name="live_calls_listen_to">Écouter %1$s</string>
     <string name="live_calls_listening">Vous écoutez l\'appel</string>
     <string name="live_calls_listening_body">Entendez l\'appel en direct. L\'appelant ne vous entend pas.</string>
     <string name="live_calls_microphone_denied">Autorisez l\'accès au micro pour prendre l\'appel.</string>
@@ -920,6 +926,7 @@
     <string name="support_viewer_title">Non disponible avec le rôle Lecteur</string>
     <string name="thread_ai_draft">Ébaucher une réponse</string>
     <string name="thread_ai_drafting">Ébauche en cours…</string>
+    <string name="thread_assign_change">Changer la personne assignée</string>
     <string name="thread_assign_label">Assignée à</string>
     <string name="thread_attach">Joindre une image</string>
     <string name="thread_attach_too_large">Les pièces jointes doivent faire entre 1 octet et 5 Mo.</string>

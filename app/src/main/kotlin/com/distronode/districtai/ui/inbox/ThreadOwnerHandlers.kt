@@ -18,6 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -59,9 +66,20 @@ internal fun ThreadOwnerRow(owner: ThreadOwnerHandlers) {
                 .padding(horizontal = DistrictTheme.spacing.gutter, vertical = DistrictTheme.spacing.hairline)
                 .testTag(THREAD_OWNER_DESCRIPTION),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Eyebrow(stringResource(R.string.thread_assign_label))
+            // ⚠️ ONE THING TO TALKBACK: "Assigned to" and the owner are a single reading. Without a
+            // picker the row merges them; with one the button says both, and what a tap does.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = if (state.canAssign) Modifier else Modifier.semantics(mergeDescendants = true) {},
+            ) {
+                Eyebrow(
+                    stringResource(R.string.thread_assign_label),
+                    modifier = if (state.canAssign) Modifier.clearAndSetSemantics {} else Modifier,
+                )
                 if (state.canAssign) {
+                    val spoken = state.owner?.let { stringResource(R.string.inbox_assigned_to, serverText(it)) }
+                        ?: stringResource(R.string.thread_unassigned)
+                    val change = stringResource(R.string.thread_assign_change)
                     Box {
                         DistrictButton(
                             text = shown,
@@ -69,15 +87,31 @@ internal fun ThreadOwnerRow(owner: ThreadOwnerHandlers) {
                             variant = ButtonVariant.Ghost,
                             size = ButtonSize.Sm,
                             enabled = !state.assigning,
-                            modifier = Modifier.testTag(THREAD_OWNER_PICKER_DESCRIPTION),
+                            modifier = Modifier
+                                .testTag(THREAD_OWNER_PICKER_DESCRIPTION)
+                                .semantics {
+                                    contentDescription = spoken
+                                    onClick(label = change) {
+                                        open = true
+                                        true
+                                    }
+                                },
                         )
                         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                            OwnerOption(stringResource(R.string.thread_unassigned), THREAD_OWNER_NOBODY_DESCRIPTION) {
+                            OwnerOption(
+                                stringResource(R.string.thread_unassigned),
+                                THREAD_OWNER_NOBODY_DESCRIPTION,
+                                selected = state.owner == null,
+                            ) {
                                 open = false
                                 owner.onAssign(null)
                             }
                             state.members.forEachIndexed { index, email ->
-                                OwnerOption(serverText(email), THREAD_OWNER_OPTION_DESCRIPTION + index) {
+                                OwnerOption(
+                                    serverText(email),
+                                    THREAD_OWNER_OPTION_DESCRIPTION + index,
+                                    selected = email == state.owner,
+                                ) {
                                     open = false
                                     owner.onAssign(email)
                                 }
@@ -103,7 +137,8 @@ internal fun ThreadOwnerRow(owner: ThreadOwnerHandlers) {
                         color = DistrictTheme.colors.destructive,
                         modifier = Modifier
                             .weight(1f)
-                            .testTag(THREAD_OWNER_FAILURE_DESCRIPTION),
+                            .testTag(THREAD_OWNER_FAILURE_DESCRIPTION)
+                            .semantics { liveRegion = LiveRegionMode.Polite },
                     )
                     DistrictButton(
                         text = stringResource(R.string.thread_dismiss),
@@ -144,9 +179,16 @@ private fun OwnerReadFailed(onRetry: () -> Unit) {
     }
 }
 
+/** ⚠️ The current owner reads "selected": the menu draws no mark, and the button above it is closed. */
 @Composable
-private fun OwnerOption(label: String, tag: String, onClick: () -> Unit) {
-    DropdownMenuItem(text = { Text(label) }, onClick = onClick, modifier = Modifier.testTag(tag))
+private fun OwnerOption(label: String, tag: String, selected: Boolean, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        onClick = onClick,
+        modifier = Modifier
+            .testTag(tag)
+            .semantics { this.selected = selected },
+    )
 }
 
 /** Stable handles for tests. Those ending in `-` take the item's index. */

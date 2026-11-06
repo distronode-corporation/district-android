@@ -67,6 +67,7 @@ data class LiveCallsView(
 @Composable
 fun LiveCallsScreen(view: LiveCallsView, actions: LiveCallsActions) {
     KeepScreenOn(active = view.supervision.callId != null)
+    ProximityScreenOff(active = view.supervision.takenOver)
     DistrictScaffold(
         modifier = Modifier.testTag(LIVE_CALLS_ROOT_TAG),
         topBar = {

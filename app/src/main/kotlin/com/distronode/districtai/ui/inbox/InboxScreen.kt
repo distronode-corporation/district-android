@@ -137,7 +137,7 @@ fun InboxScreen(
                                 assignedToMe?.let { AssignedToMeChip(it) }
                                 when {
                                     visible.conversations.isNotEmpty() -> Loaded(visible, onOpenThread)
-                                    onlyMine -> NothingAssigned()
+                                    onlyMine -> NothingAssigned(partial = state.partial)
                                     else -> InboxEmpty(onCompose = compose?.actions?.open)
                                 }
                             }
@@ -415,13 +415,30 @@ private fun AssignedToMeChip(filter: AssignedToMeFilter) {
 
 /** ⚠️ Not the empty Inbox: the filter is what is empty, and the way out is the chip above. */
 @Composable
-private fun NothingAssigned() {
+private fun NothingAssigned(partial: Boolean) {
     ContentContainer(modifier = Modifier.fillMaxSize()) {
-        EmptyState(
-            title = stringResource(R.string.inbox_assigned_to_me_empty_title),
-            body = stringResource(R.string.inbox_assigned_to_me_empty_body),
-            modifier = Modifier.testTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION),
-        )
+        Column {
+            EmptyState(
+                title = stringResource(R.string.inbox_assigned_to_me_empty_title),
+                body = stringResource(R.string.inbox_assigned_to_me_empty_body),
+                modifier = Modifier.testTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION),
+            )
+            // ⛔ THE FILTER RUNS ON THE LOADED ROWS ONLY. When the scan window was exhausted, a thread
+            // assigned to this operator may simply be older than the window, so "nothing is assigned"
+            // is said with the same caveat the full list carries, never as the whole truth.
+            if (partial) {
+                Text(
+                    text = stringResource(R.string.inbox_partial),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DistrictTheme.colors.mutedForeground,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(DistrictTheme.spacing.section)
+                        .testTag(INBOX_PARTIAL_DESCRIPTION),
+                )
+            }
+        }
     }
 }
 

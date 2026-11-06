@@ -61,12 +61,16 @@ class InboxParityScreenTest {
         thread("addr:ig:5550102", "Di"),
     )
 
-    private fun render(conversations: List<ConversationSummary> = threads, startOn: Boolean = false) {
+    private fun render(
+        conversations: List<ConversationSummary> = threads,
+        startOn: Boolean = false,
+        partial: Boolean = false,
+    ) {
         composeRule.setContent {
             var on by remember { mutableStateOf(startOn) }
             DistrictTheme {
                 InboxScreen(
-                    state = InboxUiState.Content(conversations, partial = false),
+                    state = InboxUiState.Content(conversations, partial = partial),
                     onOpenThread = {},
                     onRetry = {},
                     onSignIn = {},
@@ -123,6 +127,16 @@ class InboxParityScreenTest {
         composeRule.onNodeWithText(str(R.string.inbox_assigned_to_me_empty_body)).assertIsDisplayed()
         composeRule.onNodeWithTag(INBOX_EMPTY_DESCRIPTION).assertDoesNotExist()
         composeRule.onNodeWithTag(INBOX_ASSIGNED_TO_ME_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_PARTIAL_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `on a partial scan, a filter that leaves nothing says the list is partial`() {
+        render(conversations = threads.drop(1), startOn = true, partial = true)
+
+        composeRule.onNodeWithTag(INBOX_ASSIGNED_EMPTY_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithTag(INBOX_PARTIAL_DESCRIPTION).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.inbox_partial)).assertIsDisplayed()
     }
 
     @Test

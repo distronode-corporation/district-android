@@ -166,6 +166,7 @@ class FailedRereadTest {
     @Test
     fun `a thread re-read the server refuses takes the conversation away`() = runTest(dispatcher) {
         val vm = thread()
+        assertTrue("the conversation is on screen first", vm.state.value is ThreadUiState.Content)
         threadApi.timelineResult = ApiResult.Forbidden("No access.")
 
         vm.load()

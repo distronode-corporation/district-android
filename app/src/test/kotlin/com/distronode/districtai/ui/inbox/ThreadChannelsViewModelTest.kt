@@ -327,6 +327,46 @@ class ThreadChannelsViewModelTest {
     }
 
     @Test
+    fun `that refusal keeps the window closed when the re-read fails too`() = runTest(dispatcher) {
+        // The first read failed, so the window read as open with no sender; the send is refused,
+        // and the re-read for a sender fails again.
+        whatsAppApi.windowResult = ApiResult.NetworkFailure(IOException("offline"))
+        api.sendResult = ApiResult.HttpFailure(status = 409, message = "closed", code = "whatsapp_window_closed")
+        val vm = viewModel(whatsApp)
+        advanceUntilIdle()
+        assertEquals(WhatsAppWindowState.Open(null), vm.via().whatsApp)
+
+        vm.send("hello?")
+        advanceUntilIdle()
+
+        assertEquals(2, whatsAppApi.windowReads.size)
+        assertEquals(
+            "closed, with no sender to read templates for",
+            WhatsAppWindowState.Closed(null, WhatsAppTemplatesState.Ready(emptyList())),
+            vm.via().whatsApp,
+        )
+        assertFalse(vm.via().allowsFreeText)
+        vm.send("still there?")
+        advanceUntilIdle()
+        assertEquals("nothing more is sent into a closed window", 1, api.sends.size)
+    }
+
+    @Test
+    fun `a re-check that fails leaves a closed window closed`() = runTest(dispatcher) {
+        whatsAppApi.windowResult = closed()
+        val vm = viewModel(whatsApp)
+        advanceUntilIdle()
+        assertTrue(vm.via().whatsApp is WhatsAppWindowState.Closed)
+
+        whatsAppApi.windowResult = ApiResult.NetworkFailure(IOException("offline"))
+        vm.channels.recheckWindow()
+        advanceUntilIdle()
+
+        assertTrue(vm.via().whatsApp is WhatsAppWindowState.Closed)
+        assertFalse(vm.via().allowsFreeText)
+    }
+
+    @Test
     fun `that code on another channel, or another code on WhatsApp, leaves the window alone`() = runTest(dispatcher) {
         api.sendResult = ApiResult.HttpFailure(status = 409, message = "closed", code = "whatsapp_window_closed")
         val onSms = viewModel(sms)

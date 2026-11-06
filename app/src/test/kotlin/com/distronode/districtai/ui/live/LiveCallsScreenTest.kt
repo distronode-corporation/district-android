@@ -1,5 +1,7 @@
 package com.distronode.districtai.ui.live
 
+import android.content.Context
+import android.os.PowerManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +16,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -28,11 +31,14 @@ import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.live.LiveSupervisor.Phase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowPowerManager
 
 /**
  * What the Live calls screen offers on each call, and what each control asks for.
@@ -252,6 +258,27 @@ class LiveCallsScreenTest {
         supervision = LiveSupervisor.State()
         composeRule.waitForIdle()
         assertFalse(root.keepScreenOn)
+    }
+
+    @Test
+    fun `a takeover on screen holds the proximity lock, and idle releases it`() {
+        val power = ApplicationProvider.getApplicationContext<Context>().getSystemService(PowerManager::class.java)
+        shadowOf(power).setIsWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, true)
+        // ⚠️ The shadow's latest lock is static across tests: "made here" is "a new one".
+        val before = ShadowPowerManager.getLatestWakeLock()
+        var supervision by mutableStateOf(listening(takenOver = true))
+        composeRule.setContent {
+            DistrictTheme { LiveCallsScreen(view(calls = listOf(ai), supervision = supervision), actions) }
+        }
+        composeRule.waitForIdle()
+        val held = checkNotNull(ShadowPowerManager.getLatestWakeLock())
+        assertNotSame(before, held)
+        assertTrue(held.isHeld)
+        assertEquals(PROXIMITY_LOCK_TAG, shadowOf(held).tag)
+
+        supervision = LiveSupervisor.State()
+        composeRule.waitForIdle()
+        assertFalse(held.isHeld)
     }
 
     @Test

@@ -64,14 +64,20 @@ class TakeOverFlow(
         _prompt.value = _prompt.value.copy(microphoneRequest = 0)
     }
 
-    /** ⚠️ A result with nothing pending (the screen was left meanwhile) is dropped. */
+    /**
+     * ⚠️ A result with nothing pending (the screen was left meanwhile) is dropped.
+     *
+     * ⛔ THE CALL IS CHECKED AGAIN WHEN THE ANSWER COMES: the permission dialog can stay up while
+     * the call ends or leaves the list (and the answer can arrive after a rotation), so a grant for
+     * a call no longer writable sends nothing. Its card is gone, and so is the session with it.
+     */
     fun onMicrophonePermissionResult(granted: Boolean) {
         val callId = pending ?: return
         pending = null
-        if (granted) {
-            supervisor.takeOver(callId)
-        } else {
-            supervisor.fail(callId, UiText.Resource(R.string.live_calls_microphone_denied))
+        when {
+            !writable(callId) -> Unit
+            granted -> supervisor.takeOver(callId)
+            else -> supervisor.fail(callId, UiText.Resource(R.string.live_calls_microphone_denied))
         }
     }
 

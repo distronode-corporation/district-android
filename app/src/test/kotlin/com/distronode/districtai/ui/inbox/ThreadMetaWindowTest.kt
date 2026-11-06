@@ -128,6 +128,24 @@ class ThreadMetaWindowTest {
         }
 
     @Test
+    fun `a re-check that fails keeps a closed or human agent window, and never lifts its limits`() =
+        runTest(dispatcher) {
+            val known = listOf("closed" to MetaWindowState.CLOSED, "human_agent" to MetaWindowState.HUMAN_AGENT)
+            known.forEach { (state, shown) ->
+                whatsAppApi.metaWindowResult = window(state)
+                val vm = viewModel()
+                assertEquals(shown, vm.meta())
+
+                whatsAppApi.metaWindowResult = ApiResult.NetworkFailure(IOException("offline"))
+                vm.channels.recheckWindow()
+                advanceUntilIdle()
+
+                assertEquals("$state stays $shown on a failed re-check", shown, vm.meta())
+                assertFalse(vm.channels.state.value.allowsDraft)
+            }
+        }
+
+    @Test
     fun `a send refused for a closed window closes it`() = runTest(dispatcher) {
         val vm = viewModel()
         api.sendResult = ApiResult.HttpFailure(status = 409, message = "closed", code = "messenger_window_closed")

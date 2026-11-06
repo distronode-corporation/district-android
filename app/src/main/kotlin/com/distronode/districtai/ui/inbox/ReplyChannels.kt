@@ -146,6 +146,10 @@ class ReplyChannels(
      * The send route answered `whatsapp_window_closed`: the window shut since it was read (or the
      * read failed), so the composer turns to templates. ⚠️ With no sender known yet the window is
      * read again, because the templates belong to a sender.
+     *
+     * ⛔ THE REFUSAL IS THE SERVER'S ANSWER, SO THE WINDOW IS CLOSED AT ONCE, before that re-read:
+     * a re-read that then fails keeps it closed ([readWindow]), rather than falling back to an open
+     * window and inviting the same refusal again.
      */
     fun windowClosed() {
         val current = _state.value
@@ -154,7 +158,8 @@ class ReplyChannels(
         val senderId = current.whatsAppSenderId
         windowJob.cancel()
         windowJob = scope.launch {
-            if (senderId != null) _state.showClosed(services, workspaceId, senderId) else readWindow(target.to)
+            _state.showClosed(services, workspaceId, senderId)
+            if (senderId == null) readWindow(target.to)
         }
     }
 
@@ -255,6 +260,7 @@ class ReplyChannels(
     /**
      * ⚠️ AN UNREADABLE WINDOW BLOCKS NOTHING: free text goes and the route, which checks the same
      * window, refuses it if it must. Blocking on a failed preview would take WhatsApp away entirely.
+     * ⛔ EXCEPT A WINDOW ALREADY CLOSED, which a failed read leaves closed (see [windowClosed]).
      *
      * ⛔ AN OPEN WINDOW IS OPEN UNTIL ITS `expiresAt`, NOT FOREVER: one already past is closed (the
      * web's reading), and one still open is read again when it passes, so the composer turns to
@@ -281,7 +287,11 @@ class ReplyChannels(
                     readWindow(to, waited = closesAt)
                 }
             }
-            is ApiResult.Failure -> _state.windowIs(WhatsAppWindowState.Open(senderId = null))
+            // ⛔ Only a window not already closed falls back to open: a closed one (refused by the
+            // send, or read closed) stays closed when a re-read fails.
+            is ApiResult.Failure -> if (_state.value.whatsApp !is WhatsAppWindowState.Closed) {
+                _state.windowIs(WhatsAppWindowState.Open(senderId = null))
+            }
         }
     }
 }

@@ -12,6 +12,10 @@ import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -74,7 +78,14 @@ private fun WhisperControl(callId: String, box: WhisperBox, actions: LiveCallsAc
             )
         }
         box.error?.let { Failure(it.resolve(), Modifier.testTag(LIVE_CALLS_WHISPER_ERROR_TAG)) }
-        box.receipt?.let { Note(receiptText(it), Modifier.testTag(LIVE_CALLS_RECEIPT_TAG)) }
+        box.receipt?.let {
+            Note(
+                receiptText(it),
+                Modifier
+                    .testTag(LIVE_CALLS_RECEIPT_TAG)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
     }
 }
 
@@ -97,9 +108,15 @@ private fun TakeOverConfirmation(actions: LiveCallsActions) {
         modifier = Modifier.testTag(LIVE_CALLS_CONFIRM_TAG),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
+        // ⚠️ It replaces the Take over button in place, so TalkBack's focus has nothing to land on:
+        // the title is announced, and is a heading to step to.
         Text(
             text = stringResource(R.string.live_calls_take_over_confirm_title),
             style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.semantics {
+                heading()
+                liveRegion = LiveRegionMode.Polite
+            },
         )
         Note(stringResource(R.string.live_calls_take_over_confirm_body))
         Row(horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
@@ -129,12 +146,15 @@ internal fun Note(text: String, modifier: Modifier = Modifier) {
     )
 }
 
+/** A failure line on the screen. ⚠️ A live region: every one of them appears after a tap or a read. */
 @Composable
 internal fun Failure(text: String, modifier: Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.destructive,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics { liveRegion = LiveRegionMode.Polite },
     )
 }

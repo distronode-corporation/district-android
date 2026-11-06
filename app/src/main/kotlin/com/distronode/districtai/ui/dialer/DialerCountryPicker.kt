@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -26,7 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.distronode.districtai.R
@@ -71,6 +79,7 @@ internal fun DialerCountryPicker(
                     text = stringResource(R.string.dialer_country),
                     style = MaterialTheme.typography.titleMedium,
                     color = DistrictTheme.colors.foreground,
+                    modifier = Modifier.semantics { heading() },
                 )
                 OutlinedTextField(
                     value = query,
@@ -88,19 +97,21 @@ internal fun DialerCountryPicker(
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     if (query.isBlank()) {
                         val suggested = DialCountryNames.suggested(home, current)
-                        group(R.string.dialer_countries_suggested, suggested, "s", onPick)
-                        group(R.string.dialer_countries_all, all, "a", onPick)
+                        group(R.string.dialer_countries_suggested, suggested, "s", current, onPick)
+                        group(R.string.dialer_countries_all, all, "a", current, onPick)
                     } else if (matches.isEmpty()) {
                         item {
                             Text(
                                 text = stringResource(R.string.dialer_countries_no_match),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = DistrictTheme.colors.mutedForeground,
-                                modifier = Modifier.testTag(DIALER_COUNTRY_NO_MATCH_DESCRIPTION),
+                                modifier = Modifier
+                                    .testTag(DIALER_COUNTRY_NO_MATCH_DESCRIPTION)
+                                    .semantics { liveRegion = LiveRegionMode.Polite },
                             )
                         }
                     } else {
-                        group(null, matches, "m", onPick)
+                        group(null, matches, "m", current, onPick)
                     }
                 }
             }
@@ -109,24 +120,43 @@ internal fun DialerCountryPicker(
 }
 
 /** ⚠️ [keyPrefix] because a suggested country is also in the full list, and keys must be unique. */
-private fun LazyListScope.group(title: Int?, countries: List<String>, keyPrefix: String, onPick: (String) -> Unit) {
-    title?.let { item(key = "$keyPrefix-title") { Eyebrow(stringResource(it)) } }
-    items(countries, key = { "$keyPrefix-$it" }) { iso -> CountryRow(iso, onPick) }
+private fun LazyListScope.group(
+    title: Int?,
+    countries: List<String>,
+    keyPrefix: String,
+    current: String?,
+    onPick: (String) -> Unit,
+) {
+    title?.let {
+        item(key = "$keyPrefix-title") { Eyebrow(stringResource(it), Modifier.semantics { heading() }) }
+    }
+    items(countries, key = { "$keyPrefix-$it" }) { iso -> CountryRow(iso, iso == current, onPick) }
 }
 
+/**
+ * ⛔ AT LEAST 48dp TALL: the bare text with its padding was about 40dp, under the touch target.
+ * ⚠️ TalkBack reads the name and the code, not the flag ("flag: Canada, Canada"), and the country on
+ * the button reads "selected".
+ */
 @Composable
-private fun CountryRow(iso: String, onPick: (String) -> Unit) {
+private fun CountryRow(iso: String, selected: Boolean, onPick: (String) -> Unit) {
     val locale = DialCountryNames.localeFor(appLanguage())
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = MIN_ROW_HEIGHT)
             .clickable { onPick(iso) }
+            .semantics { this.selected = selected }
             .padding(vertical = DistrictTheme.spacing.tight)
             .testTag(countryRowDescription(iso)),
     ) {
-        Text(text = DialCountries.flag(iso), style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = DialCountries.flag(iso),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
         Text(
             text = DialCountryNames.name(iso, locale),
             style = MaterialTheme.typography.bodyLarge,
@@ -141,6 +171,9 @@ private fun CountryRow(iso: String, onPick: (String) -> Unit) {
     }
     DistrictRowDivider()
 }
+
+/** The touch target's floor. */
+private val MIN_ROW_HEIGHT = 48.dp
 
 /** The share of the screen's height the list takes. */
 private const val PICKER_HEIGHT = 0.85f

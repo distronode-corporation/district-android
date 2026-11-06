@@ -8,6 +8,14 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Fixed
+
+- Live calls: a busy workspace's calls past the newest 100 are listed, and listening to or taking
+  over one of them no longer ends when newer calls push it down the list.
+- TalkBack: the unread count, the assign picker, the reply channel and template choices, the
+  Messenger and Instagram reply window, the live call cards and the dialler's country list read
+  what they show and announce what changes; country rows are a full 48dp touch target.
+
 ## [3.3.0] - 2026-11-06
 
 ### Added

@@ -415,6 +415,10 @@
     <string name="inbox_search_none_title">No matches</string>
     <string name="inbox_search_running">Searching…</string>
     <string name="inbox_title">Inbox</string>
+    <plurals name="inbox_unread_count">
+        <item quantity="one">%1$d unread message</item>
+        <item quantity="other">%1$d unread messages</item>
+    </plurals>
     <string name="incoming_call_answer">Answer</string>
     <string name="incoming_call_caller">Caller</string>
     <string name="incoming_call_connecting">Connecting…</string>
@@ -465,6 +469,7 @@
     <string name="live_calls_hand_back">Hand back to your receptionist</string>
     <string name="live_calls_joined_elsewhere">This call was joined with your account on another device or tab, so this session ended here.</string>
     <string name="live_calls_listen">Listen</string>
+    <string name="live_calls_listen_to">Listen to %1$s</string>
     <string name="live_calls_listening">You are listening</string>
     <string name="live_calls_listening_body">Hear the call as it happens. The caller does not hear you.</string>
     <string name="live_calls_microphone_denied">Allow the microphone to take the call over.</string>
@@ -927,6 +932,7 @@
     <string name="support_viewer_title">Not available on a viewer seat</string>
     <string name="thread_ai_draft">Draft reply</string>
     <string name="thread_ai_drafting">Drafting…</string>
+    <string name="thread_assign_change">Change the assignee</string>
     <string name="thread_assign_label">Assigned to</string>
     <string name="thread_attach">Attach image</string>
     <string name="thread_attach_too_large">Attachments must be between 1 byte and 5MB.</string>

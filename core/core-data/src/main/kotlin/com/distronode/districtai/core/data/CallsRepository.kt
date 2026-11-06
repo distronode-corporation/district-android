@@ -6,10 +6,16 @@ import androidx.paging.PagingData
 import com.distronode.districtai.core.model.CallSummary
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DistrictApi
+import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 
 /** The call log, plus the two per-call reads the detail screen makes on demand. */
-class CallsRepository(private val api: DistrictApi) {
+class CallsRepository(
+    private val api: DistrictApi,
+    /** The Live calls list's clock, for where its paging stops ([liveCalls]); a test pins it. */
+    private val now: () -> Instant = Instant::now,
+) {
 
     /**
      * A paged call log for [workspaceId], newest first.
@@ -79,14 +85,46 @@ class CallsRepository(private val api: DistrictApi) {
      * reads `no-answer` once it is older than the stuck-call ceiling (`displayCallStatus`), so these
      * two values are exactly the server's `isLiveStatus` over rows it still treats as live.
      *
-     * ⚠️ ONE PAGE AT THE SERVER'S CEILING. A live call is among the newest rows; one older than the
-     * [LIVE_SCAN_LIMIT] newest calls is not listed.
+     * ⛔ PAGED BACK TO THE LIVE WINDOW, NOT ONE PAGE. The web's Live page lists every call the server
+     * still counts as live, which is every in-progress or ringing row younger than the stuck-call
+     * ceiling ([LIVE_WINDOW]). One page of [LIVE_SCAN_LIMIT] stopped short of that in a busy
+     * workspace, and a call pushed past it dropped off the list and took its listen or takeover with
+     * it. So this reads page after page (newest first, the route's `createdAt`, `id` order) and stops
+     * at the first of: a short page (the end of the log), a page whose oldest row is older than the
+     * window (nothing past it can read live: the server already shows those as `no-answer`), or
+     * [MAX_LIVE_PAGES].
+     *
+     * ⚠️ THE WINDOW IS MEASURED ON THIS DEVICE'S CLOCK, WITH [CLOCK_SLACK] ADDED, so a phone whose
+     * clock runs ahead reads a page further rather than stopping early. It only decides where to stop
+     * reading; which rows are live is still the server's display status.
+     *
+     * ⚠️ A CALL THAT STARTS DURING THE SCAN SHIFTS THE OFFSETS BY ONE, so a row can come back twice
+     * on consecutive pages; it is kept once. It cannot be skipped: a new row only pushes older rows
+     * further down.
+     *
+     * ⚠️ A FAILED PAGE FAILS THE WHOLE READ, never a partial list: a list missing the calls past page
+     * one would end their sessions exactly as the one-page read did.
      */
-    suspend fun liveCalls(workspaceId: String): ApiResult<List<CallSummary>> =
-        when (val result = api.calls(workspaceId, limit = LIVE_SCAN_LIMIT, offset = 0)) {
-            is ApiResult.Success -> ApiResult.Success(result.value.filter { it.status in LIVE_STATUSES })
-            is ApiResult.Failure -> result
+    suspend fun liveCalls(workspaceId: String): ApiResult<List<CallSummary>> {
+        val cutoff = now().minus(LIVE_WINDOW).minus(CLOCK_SLACK)
+        val seen = LinkedHashMap<String, CallSummary>()
+        for (offset in 0 until MAX_LIVE_PAGES * LIVE_SCAN_LIMIT step LIVE_SCAN_LIMIT) {
+            val rows = when (val result = api.calls(workspaceId, limit = LIVE_SCAN_LIMIT, offset = offset)) {
+                is ApiResult.Success -> result.value
+                is ApiResult.Failure -> return result
+            }
+            rows.forEach { seen.putIfAbsent(it.id, it) }
+            if (rows.size < LIVE_SCAN_LIMIT || olderThan(rows.last(), cutoff)) break
         }
+        return ApiResult.Success(seen.values.filter { it.isLive })
+    }
+
+    /**
+     * Whether [row] started before [cutoff]. ⚠️ A `createdAt` that does not parse is never "older":
+     * reading one page more is the safe mistake, and [MAX_LIVE_PAGES] bounds it.
+     */
+    private fun olderThan(row: CallSummary, cutoff: Instant): Boolean =
+        runCatching { Instant.parse(row.createdAt) }.getOrNull()?.isBefore(cutoff) == true
 
     /**
      * One call, fetched by id.
@@ -159,13 +197,31 @@ class CallsRepository(private val api: DistrictApi) {
         /** The `Call.direction` value whose `from` is somebody else's number. See [recentCallbacks]. */
         const val INBOUND = "inbound"
 
-        /** The server's `limit` ceiling: the newest calls the Live calls list looks through. */
+        /** The server's `limit` ceiling: one page of the Live calls list's scan. */
         const val LIVE_SCAN_LIMIT = 100
 
-        /** The server's `isLiveStatus` values, as the call log's display status spells them. */
-        val LIVE_STATUSES = setOf("in-progress", "ringing")
+        /**
+         * The server's `STALE_LIVE_CALL_MS` (the stuck-call ceiling, 4 h 15 min): a row older than
+         * this never reads live, and it is the window the web's Live page lists.
+         */
+        val LIVE_WINDOW: Duration = Duration.ofMinutes(4 * 60 + 15)
+
+        /** Room for a device clock that runs ahead of the server's. See [liveCalls]. */
+        val CLOCK_SLACK: Duration = Duration.ofMinutes(30)
+
+        /**
+         * ⚠️ A BOUND, NOT AN EXPECTATION: 2,000 calls inside the live window. Past it the list stops
+         * reading, and the ViewModel still keeps a supervised call by reading it by id.
+         */
+        const val MAX_LIVE_PAGES = 20
 
         const val DETAIL_ENVELOPE = "CallDetailResponse"
         const val TRANSCRIPT_ENVELOPE = "CallTranscriptResponse"
     }
 }
+
+/** The server's `isLiveStatus` values, as the call log's display status spells them. */
+private val LIVE_STATUSES = setOf("in-progress", "ringing")
+
+/** In progress or ringing, by the server's display status: a row the Live calls list shows. */
+val CallSummary.isLive: Boolean get() = status in LIVE_STATUSES

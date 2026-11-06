@@ -37,6 +37,11 @@ data class ThreadOwnerState(
     val assigning: Boolean = false,
     val failure: FailureText? = null,
     val assignments: Int = 0,
+    /**
+     * The owner could not be read and nothing is shown for it: the row says so, with Try again.
+     * Cleared while a read is out and by an answer.
+     */
+    val readFailed: Boolean = false,
 )
 
 /**
@@ -86,12 +91,15 @@ class ThreadOwnerViewModel(
         if (!readingOwner) {
             readingOwner = true
             val made = _state.value.assignments
+            _state.value = _state.value.copy(readFailed = false)
             viewModelScope.launch {
                 val result = assignments.owner(workspaceId, threadKey)
                 readingOwner = false
                 val latest = _state.value
-                if (result is ApiResult.Success && latest.assignments == made) {
-                    _state.value = latest.copy(loaded = true, owner = result.value).withMembers()
+                _state.value = when {
+                    result !is ApiResult.Success -> latest.copy(readFailed = !latest.loaded)
+                    latest.assignments == made -> latest.copy(loaded = true, owner = result.value).withMembers()
+                    else -> latest
                 }
             }
         }

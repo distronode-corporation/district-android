@@ -4074,6 +4074,15 @@ tier = "T2"
 state = "reviewed"
 note = "Shown at the call when the listen-in could not join the room, or lost it. French reused verbatim from the web liveI18n.ts liveCopy.monitorConnectFailed."
 
+[live_calls.connecting]
+en = "Connecting…"
+fr = "Connexion…"
+ctx = "label"
+screen = "live calls"
+tier = "T3"
+state = "reviewed"
+note = "The state line on a call whose room is still being joined (or, on a takeover, whose microphone is not live yet), in place of You are listening or You are on the call. French reused verbatim from the app's reviewed room.state_connecting."
+
 [live_calls.empty_body]
 en = "When someone is on the phone with your receptionist, the call shows up here."
 fr = "Quand quelqu'un est en ligne avec votre réceptionniste, l'appel s'affiche ici."
@@ -4200,6 +4209,15 @@ screen = "live calls"
 tier = "T2"
 state = "reviewed"
 note = "The receptionist held the whisper back because the call is being transferred. French reused verbatim from the web liveI18n.ts liveCopy.whisperReceipt (transfer)."
+
+[live_calls.reconnecting]
+en = "Reconnecting…"
+fr = "Reconnexion…"
+ctx = "label"
+screen = "live calls"
+tier = "T3"
+state = "reviewed"
+note = "The state line on a supervised call whose room dropped and is reconnecting. French reused verbatim from the app's reviewed live_transcript.reconnecting."
 
 [live_calls.refresh]
 en = "Refresh"
@@ -8337,6 +8355,15 @@ screen = "message thread"
 tier = "T3"
 state = "reviewed"
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ⚠️ A distinct label rather than a spinner, matching Sending…/Attaching…: the control is disabled while the page is in flight, so the button has to say why it cannot be tapped."
+
+[thread.owner_failed]
+en = "Could not load who this conversation is assigned to."
+fr = "Impossible de savoir à qui cette conversation est assignée."
+ctx = "error"
+screen = "message thread"
+tier = "T3"
+state = "draft"
+note = "In place of the Assigned to line when the owner read failed, beside Try again (overview.retry). The web has no such line. App-authored French, awaiting sign-off."
 
 [thread.reply_channel]
 en = "Reply channel"

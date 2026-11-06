@@ -458,6 +458,7 @@
     <string name="l10n_language">en</string>
     <string name="labels_unknown_value">%1$s</string>
     <string name="live_calls_connect_failed">Could not connect you to the call. Try again.</string>
+    <string name="live_calls_connecting">Connecting…</string>
     <string name="live_calls_empty_body">When someone is on the phone with your receptionist, the call shows up here.</string>
     <string name="live_calls_empty_title">No calls right now</string>
     <string name="live_calls_hand_back">Hand back to your receptionist</string>
@@ -472,6 +473,7 @@
     <string name="live_calls_receipt_applied_words">Your receptionist acted on it and said: “%1$s”</string>
     <string name="live_calls_receipt_taken_over">Not used: a team member is holding the call.</string>
     <string name="live_calls_receipt_transfer">Not used: the call is being transferred.</string>
+    <string name="live_calls_reconnecting">Reconnecting…</string>
     <string name="live_calls_refresh">Refresh</string>
     <string name="live_calls_stop_listening">Stop listening</string>
     <string name="live_calls_subtitle">Calls happening right now. Listen in, send your receptionist a private note, or take the call yourself.</string>
@@ -944,6 +946,7 @@
     <string name="thread_image_loading">Loading image</string>
     <string name="thread_load_older">Older messages</string>
     <string name="thread_load_older_loading">Loading older…</string>
+    <string name="thread_owner_failed">Could not load who this conversation is assigned to.</string>
     <string name="thread_reply_channel">Reply channel</string>
     <string name="thread_reply_label">Reply</string>
     <string name="thread_send">Send</string>

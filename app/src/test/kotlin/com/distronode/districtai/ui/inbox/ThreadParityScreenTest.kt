@@ -112,6 +112,7 @@ class ThreadParityScreenTest {
                             state = it,
                             onAssign = { email -> calls += "assign $email" },
                             onDismissFailure = { calls += "dismiss owner" },
+                            onRetry = { calls += "retry owner" },
                         )
                     },
                 )
@@ -267,6 +268,15 @@ class ThreadParityScreenTest {
     }
 
     @Test
+    fun `a variable of only a zero-width no-break space is empty, by the hint as by Send`() {
+        val sheet = TemplateSheetState(open = true, chosen = reminder, values = listOf("Ada", "\uFEFF"))
+        render(closed(WhatsAppTemplatesState.Ready(listOf(reminder)), sheet))
+
+        composeRule.onNodeWithText(str(R.string.thread_whatsapp_template_variable_required)).assertExists()
+        composeRule.onNodeWithTag(THREAD_TEMPLATE_SEND_DESCRIPTION).assertIsNotEnabled()
+    }
+
+    @Test
     fun `a complete template can be sent`() {
         val sheet = TemplateSheetState(open = true, chosen = reminder, values = listOf("Ada", "Thursday"))
         render(closed(WhatsAppTemplatesState.Ready(listOf(reminder)), sheet))
@@ -298,6 +308,18 @@ class ThreadParityScreenTest {
     fun `nothing is drawn until the owner is read`() {
         render(owner = ThreadOwnerState(loaded = false, canAssign = true))
         composeRule.onNodeWithTag(THREAD_OWNER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_OWNER_READ_FAILED_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `an owner that could not be read says so, never Unassigned, and Try again reads it again`() {
+        render(owner = ThreadOwnerState(loaded = false, canAssign = true, readFailed = true))
+
+        composeRule.onNodeWithText(str(R.string.thread_owner_failed)).assertIsDisplayed()
+        composeRule.onNodeWithText(str(R.string.thread_unassigned)).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_OWNER_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_OWNER_RETRY_DESCRIPTION).performClick()
+        assertEquals(listOf("retry owner"), calls)
     }
 
     @Test

@@ -3,8 +3,10 @@ package com.distronode.districtai.ui.live
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -25,6 +27,8 @@ import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.live.LiveSupervisor.Phase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,7 +78,7 @@ class LiveCallsScreenTest {
     }
 
     private fun listening(callId: String = ai.id, takenOver: Boolean = false) =
-        LiveSupervisor.State(callId = callId, takenOver = takenOver, phase = Phase.CONNECTED)
+        LiveSupervisor.State(callId = callId, takenOver = takenOver, phase = Phase.CONNECTED, joined = true)
 
     private fun assertAbsent(tag: String) = composeRule.onNodeWithTag(tag).assertDoesNotExist()
 
@@ -191,6 +195,63 @@ class LiveCallsScreenTest {
         composeRule.onNodeWithTag(LIVE_CALLS_WHISPER_FIELD_TAG).performTextInput("Offer Thursday.")
 
         assertEquals(listOf("ask:${ai.id}", "leave", "draft:${ai.id}:Offer Thursday."), asked)
+    }
+
+    @Test
+    fun `a listen still joining says connecting, never that the supervisor is listening`() {
+        render(
+            view(
+                calls = listOf(ai),
+                supervision = LiveSupervisor.State(callId = ai.id, phase = Phase.CONNECTED),
+            ),
+        )
+
+        composeRule.onNodeWithTag(LIVE_CALLS_STATE_TAG).assertTextEquals(str(R.string.live_calls_connecting))
+        composeRule.onNodeWithText(str(R.string.live_calls_listening)).assertDoesNotExist()
+        composeRule.onNodeWithTag(LIVE_CALLS_LEAVE_TAG).assertExists()
+    }
+
+    @Test
+    fun `a takeover whose microphone is not live yet says connecting, not on the call`() {
+        render(
+            view(
+                calls = listOf(ai),
+                supervision = LiveSupervisor.State(callId = ai.id, takenOver = true, phase = Phase.CONNECTED),
+            ),
+        )
+
+        composeRule.onNodeWithTag(LIVE_CALLS_STATE_TAG).assertTextEquals(str(R.string.live_calls_connecting))
+        composeRule.onNodeWithText(str(R.string.live_calls_taken_over_title)).assertDoesNotExist()
+        composeRule.onNodeWithTag(LIVE_CALLS_HAND_BACK_TAG).assertExists()
+    }
+
+    @Test
+    fun `a joined room that dropped says reconnecting`() {
+        render(
+            view(
+                calls = listOf(ai),
+                supervision = LiveSupervisor.State(callId = ai.id, phase = Phase.RECONNECTING, joined = true),
+            ),
+        )
+
+        composeRule.onNodeWithTag(LIVE_CALLS_STATE_TAG).assertTextEquals(str(R.string.live_calls_reconnecting))
+        composeRule.onNodeWithTag(LIVE_CALLS_LEAVE_TAG).assertExists()
+    }
+
+    @Test
+    fun `the screen stays on while a session is active, and only then`() {
+        var supervision by mutableStateOf(listening())
+        lateinit var root: android.view.View
+        composeRule.setContent {
+            root = LocalView.current
+            DistrictTheme { LiveCallsScreen(view(calls = listOf(ai), supervision = supervision), actions) }
+        }
+        composeRule.waitForIdle()
+        assertTrue(root.keepScreenOn)
+
+        supervision = LiveSupervisor.State()
+        composeRule.waitForIdle()
+        assertFalse(root.keepScreenOn)
     }
 
     @Test

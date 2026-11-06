@@ -454,6 +454,7 @@
     <string name="l10n_language">fr</string>
     <string name="labels_unknown_value">Valeur inconnue\u00A0: %1$s</string>
     <string name="live_calls_connect_failed">Impossible de vous connecter à l\'appel. Réessayez.</string>
+    <string name="live_calls_connecting">Connexion…</string>
     <string name="live_calls_empty_body">Quand quelqu\'un est en ligne avec votre réceptionniste, l\'appel s\'affiche ici.</string>
     <string name="live_calls_empty_title">Aucun appel en ce moment</string>
     <string name="live_calls_hand_back">Redonner l\'appel à votre réceptionniste</string>
@@ -468,6 +469,7 @@
     <string name="live_calls_receipt_applied_words">Votre réceptionniste a suivi la consigne et a dit\u00A0: «\u00A0%1$s\u00A0»</string>
     <string name="live_calls_receipt_taken_over">Consigne non utilisée\u00A0: un membre de l\'équipe a pris l\'appel.</string>
     <string name="live_calls_receipt_transfer">Consigne non utilisée\u00A0: l\'appel est en cours de transfert.</string>
+    <string name="live_calls_reconnecting">Reconnexion…</string>
     <string name="live_calls_refresh">Actualiser</string>
     <string name="live_calls_stop_listening">Arrêter d\'écouter</string>
     <string name="live_calls_subtitle">Les appels en ce moment. Écoutez, soufflez une consigne à votre réceptionniste ou prenez l\'appel vous-même.</string>
@@ -938,6 +940,7 @@
     <string name="thread_image_loading">Chargement de l\'image</string>
     <string name="thread_load_older">Anciens messages</string>
     <string name="thread_load_older_loading">Chargement…</string>
+    <string name="thread_owner_failed">Impossible de savoir à qui cette conversation est assignée.</string>
     <string name="thread_reply_channel">Canal de réponse</string>
     <string name="thread_reply_label">Réponse</string>
     <string name="thread_send">Envoyer</string>

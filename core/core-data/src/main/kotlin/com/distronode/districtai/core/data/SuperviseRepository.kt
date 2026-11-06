@@ -13,7 +13,8 @@ import com.distronode.districtai.core.network.SuperviseApi
  *
  * ⛔ AN ID WITH AN UNDERSCORE IS REFUSED HERE, BEFORE ANY REQUEST. `calls/token` reads a `meet_` or
  * `video_` value as a standalone ROOM rather than a call, and a `video_` join starts a billed avatar
- * session; a `direct_` value is a room name, never a call id. A `Call.id` is a cuid and never holds
+ * session; a `direct_` value is a room name, never a call id. A `Call.id` is a UUID (hex digits and
+ * hyphens: Prisma's `@default(uuid())`, the voice agent's `gen_random_uuid()`) and never holds
  * one, so the rule costs no real call and closes all three at once.
  *
  * ⛔ A 200 THAT DOES NOT AFFIRM `success: true`, OR A GRANT WITH A BLANK TOKEN OR URL, IS A FAILURE.
@@ -30,7 +31,11 @@ class SuperviseRepository(private val api: SuperviseApi) {
     suspend fun monitor(callId: String): SuperviseOutcome<LiveCallGrant> {
         if (!isSupervisableId(callId)) return SuperviseOutcome.NotACall
         return when (val result = api.monitorCall(callId)) {
-            is ApiResult.Success -> grant(MONITOR_ENVELOPE, result.value.success, result.value.url, result.value.token)
+            is ApiResult.Success -> grant(
+                MONITOR_ENVELOPE,
+                result.value.success,
+                LiveCallGrant(result.value.url, result.value.token, result.value.e2ee?.key?.takeIf { it.isNotBlank() }),
+            )
             is ApiResult.Failure -> SuperviseOutcome.Refused(result)
         }
     }
@@ -39,7 +44,11 @@ class SuperviseRepository(private val api: SuperviseApi) {
     suspend fun takeOver(workspaceId: String, callId: String): SuperviseOutcome<LiveCallGrant> {
         if (!isSupervisableId(callId)) return SuperviseOutcome.NotACall
         return when (val result = api.takeOverCall(workspaceId, callId)) {
-            is ApiResult.Success -> grant(TAKEOVER_ENVELOPE, result.value.success, result.value.url, result.value.token)
+            is ApiResult.Success -> grant(
+                TAKEOVER_ENVELOPE,
+                result.value.success,
+                LiveCallGrant(result.value.url, result.value.token),
+            )
             is ApiResult.Failure -> SuperviseOutcome.Refused(result)
         }
     }
@@ -55,17 +64,17 @@ class SuperviseRepository(private val api: SuperviseApi) {
         }
     }
 
-    private fun grant(envelope: String, success: Boolean, url: String, token: String): SuperviseOutcome<LiveCallGrant> {
+    private fun grant(envelope: String, success: Boolean, granted: LiveCallGrant): SuperviseOutcome<LiveCallGrant> {
         rejectedEnvelope(envelope, success)?.let { return SuperviseOutcome.Refused(it) }
-        if (url.isBlank() || token.isBlank()) {
+        if (granted.url.isBlank() || granted.token.isBlank()) {
             return SuperviseOutcome.Refused(
                 ApiResult.DecodeFailure(
                     IllegalStateException("$envelope carried no join credential"),
-                    "$envelope{token=${token.isNotBlank()},url=${url.isNotBlank()}}",
+                    "$envelope{token=${granted.token.isNotBlank()},url=${granted.url.isNotBlank()}}",
                 ),
             )
         }
-        return SuperviseOutcome.Done(LiveCallGrant(url = url, token = token))
+        return SuperviseOutcome.Done(granted)
     }
 
     companion object {
@@ -83,10 +92,14 @@ class SuperviseRepository(private val api: SuperviseApi) {
  *
  * ⛔ [url] IS THE ROOM'S DEPLOYMENT, AS THE ROUTE ANSWERED IT, AND IS USED VERBATIM: never the
  * workspace's default LiveKit URL, which for a phone call is often not where the room is.
- * [token] is a credential and is never logged.
+ * [token] and [e2eeKey] are credentials and are never logged.
+ *
+ * @param e2eeKey the room's end-to-end key, or null for a room without one (a phone call's, today).
+ *   ⛔ Never blank: a blank key derives an AES key nobody else has, so it is dropped to null.
  */
-data class LiveCallGrant(val url: String, val token: String) {
-    override fun toString(): String = "LiveCallGrant(url=$url, token=<redacted>)"
+data class LiveCallGrant(val url: String, val token: String, val e2eeKey: String? = null) {
+    override fun toString(): String =
+        "LiveCallGrant(url=$url, token=<redacted>, e2eeKey=${if (e2eeKey == null) "none" else "<redacted>"})"
 }
 
 /** What one supervise action came to. */

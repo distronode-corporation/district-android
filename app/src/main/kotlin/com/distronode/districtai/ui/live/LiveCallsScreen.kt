@@ -66,6 +66,7 @@ data class LiveCallsView(
  */
 @Composable
 fun LiveCallsScreen(view: LiveCallsView, actions: LiveCallsActions) {
+    KeepScreenOn(active = view.supervision.callId != null)
     DistrictScaffold(
         modifier = Modifier.testTag(LIVE_CALLS_ROOT_TAG),
         topBar = {
@@ -189,12 +190,20 @@ private fun CallHeading(call: CallSummary) {
     }
 }
 
+/**
+ * ⛔ "YOU ARE LISTENING" AND "YOU ARE ON THE CALL" ONLY ONCE TRUE ([LiveSupervisor.State.live]).
+ * Before that the room is still joining (or, on a takeover, the microphone is not yet live) and
+ * the card says connecting; a joined room that drops says reconnecting. The web gates the same
+ * states on `connectionState === "connected"`.
+ */
 @Composable
 private fun SupervisedState(supervision: LiveSupervisor.State) {
-    val (title, body) = if (supervision.takenOver) {
-        R.string.live_calls_taken_over_title to R.string.live_calls_taken_over_body
-    } else {
-        R.string.live_calls_listening to R.string.live_calls_listening_body
+    val (title, body) = when {
+        supervision.joined && supervision.phase == LiveSupervisor.Phase.RECONNECTING ->
+            R.string.live_calls_reconnecting to null
+        !supervision.live -> R.string.live_calls_connecting to null
+        supervision.takenOver -> R.string.live_calls_taken_over_title to R.string.live_calls_taken_over_body
+        else -> R.string.live_calls_listening to R.string.live_calls_listening_body
     }
     Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline)) {
         Text(
@@ -202,7 +211,7 @@ private fun SupervisedState(supervision: LiveSupervisor.State) {
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.testTag(LIVE_CALLS_STATE_TAG),
         )
-        Note(stringResource(body))
+        body?.let { Note(stringResource(it)) }
     }
 }
 

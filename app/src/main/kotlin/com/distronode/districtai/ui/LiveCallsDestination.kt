@@ -6,7 +6,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
@@ -20,6 +19,7 @@ import com.distronode.districtai.ui.live.LiveCallsFeed
 import com.distronode.districtai.ui.live.LiveCallsScreen
 import com.distronode.districtai.ui.live.LiveCallsView
 import com.distronode.districtai.ui.live.LiveCallsViewModel
+import com.distronode.districtai.ui.live.SupervisionLifecycle
 
 /**
  * Live calls: listen to, whisper into and take over a live AI call.
@@ -32,7 +32,7 @@ import com.distronode.districtai.ui.live.LiveCallsViewModel
  *
  * ⛔ THE ROOM FOLLOWS THE DESTINATION'S LIFECYCLE: stopping it (the app backgrounded, another screen
  * pushed on top) leaves the call, so no supervisor and no microphone is left in a customer's call
- * behind a screen nobody sees. See [LiveCallsViewModel].
+ * behind a screen nobody sees. A rotation does not leave it. See [SupervisionLifecycle].
  */
 internal fun NavGraphBuilder.liveCallsDestination(
     container: AppContainer,
@@ -60,10 +60,7 @@ internal fun NavGraphBuilder.liveCallsDestination(
         val prompt by viewModel.prompt.collectAsStateWithLifecycle()
 
         OnSessionChanged(sessionEpoch, viewModel::refresh)
-        LifecycleStartEffect(viewModel) {
-            viewModel.onScreenStarted(true)
-            onStopOrDispose { viewModel.onScreenStarted(false) }
-        }
+        SupervisionLifecycle(viewModel)
         val microphone = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission(),
             viewModel.takeOver::onMicrophonePermissionResult,

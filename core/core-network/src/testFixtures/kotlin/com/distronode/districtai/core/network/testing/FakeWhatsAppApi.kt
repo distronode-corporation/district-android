@@ -11,7 +11,9 @@ import kotlinx.coroutines.CompletableDeferred
  * A [WhatsAppApi] that records every read and answers as configured.
  *
  * ⚠️ The defaults are an OPEN window from `wa_sender_1` and no templates, so a test that opens a
- * WhatsApp thread for another reason sends free text as before.
+ * WhatsApp thread for another reason sends free text as before. ⚠️ With no `expiresAt`: the
+ * composer reads a past one as closed and re-reads at a future one, so a fixed date here would
+ * change what every such test sees once the clock passes it.
  */
 class FakeWhatsAppApi : WhatsAppApi {
 
@@ -24,7 +26,7 @@ class FakeWhatsAppApi : WhatsAppApi {
     var windowResult: ApiResult<WhatsAppWindowResponse> = ApiResult.Success(
         WhatsAppWindowResponse(
             success = true,
-            window = WhatsAppWindow(open = true, expiresAt = "2026-11-06T12:00:00.000Z"),
+            window = WhatsAppWindow(open = true),
             senderId = "wa_sender_1",
         ),
     )

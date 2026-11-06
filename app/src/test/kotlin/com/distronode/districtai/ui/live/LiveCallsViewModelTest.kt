@@ -191,7 +191,7 @@ class LiveCallsViewModelTest {
         // ⛔ THE ROOM'S DEPLOYMENT, VERBATIM, never a workspace default.
         assertEquals(listOf("connect:${FakeSuperviseApi.ROOM_URL}:monitor-jwt", "speaker:true"), engine.calls)
         assertNull("a phone call's room is never encrypted", engine.lastE2eeKey)
-        assertEquals(LiveSupervisor.State(callId = ai, phase = Phase.CONNECTED), vm.supervision.value)
+        assertEquals(LiveSupervisor.State(callId = ai, phase = Phase.CONNECTED, joined = true), vm.supervision.value)
     }
 
     @Test
@@ -370,7 +370,10 @@ class LiveCallsViewModelTest {
             listOf("connect:${FakeSuperviseApi.ROOM_URL}:takeover-jwt", "speaker:false", "mic:true"),
             engines[1].calls,
         )
-        assertEquals(LiveSupervisor.State(callId = ai, takenOver = true, phase = Phase.CONNECTED), vm.supervision.value)
+        assertEquals(
+            LiveSupervisor.State(callId = ai, takenOver = true, phase = Phase.CONNECTED, joined = true),
+            vm.supervision.value,
+        )
     }
 
     @Test
@@ -482,8 +485,13 @@ class LiveCallsViewModelTest {
         vm.takeOver.onMicrophonePermissionResult(true)
         runCurrent()
 
+        // The takeover failed, so the listening room was rejoined once; it failed too here, and
+        // the takeover's own sentence is the one still shown.
         assertEquals(UiText.Resource(R.string.live_calls_take_over_join_failed), vm.supervision.value.failure)
-        assertTrue(joined.single().calls.none { it == "mic:true" })
+        assertEquals("one listen to put the supervisor back, never more", listOf(ai), api.monitors)
+        assertEquals(2, joined.size)
+        assertTrue(joined.all { engine -> engine.calls.none { it == "mic:true" } })
+        assertFalse(vm.supervision.value.busy)
     }
 
     @Test

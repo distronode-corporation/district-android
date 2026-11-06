@@ -12,8 +12,11 @@ import com.distronode.districtai.core.model.jsTrim
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.FailureText
 import com.distronode.districtai.ui.toFailureText
+import java.time.Instant
+import java.time.format.DateTimeParseException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -150,7 +153,28 @@ class ReplyChannels(
         if (target.channel != CHANNEL_WHATSAPP || current.whatsApp is WhatsAppWindowState.Closed) return
         val senderId = current.whatsAppSenderId
         windowJob.cancel()
-        windowJob = scope.launch { if (senderId != null) showClosed(senderId) else readWindow(target.to) }
+        windowJob = scope.launch {
+            if (senderId != null) _state.showClosed(services, workspaceId, senderId) else readWindow(target.to)
+        }
+    }
+
+    /**
+     * Read the window again: the screen came back to the front, and the customer may have written
+     * (a closed window opens) or the 24 hours may have run out meanwhile.
+     *
+     * ⚠️ A READ ALREADY OUT IS LEFT TO ANSWER, and nothing is re-read while a template is on its
+     * way. What is shown stays until the answer: a re-check never flashes "checking".
+     */
+    fun recheckWindow() {
+        val current = _state.value
+        val target = current.selected ?: return
+        if (target.channel != CHANNEL_WHATSAPP || current.sheet.sending) return
+        val window = current.whatsApp
+        val reading = window is WhatsAppWindowState.Checking ||
+            (window is WhatsAppWindowState.Closed && window.templates is WhatsAppTemplatesState.Loading)
+        if (reading) return
+        windowJob.cancel()
+        windowJob = scope.launch { readWindow(target.to) }
     }
 
     /** Open the template sheet. Only a closed window has one. */
@@ -231,31 +255,34 @@ class ReplyChannels(
     /**
      * ⚠️ AN UNREADABLE WINDOW BLOCKS NOTHING: free text goes and the route, which checks the same
      * window, refuses it if it must. Blocking on a failed preview would take WhatsApp away entirely.
+     *
+     * ⛔ AN OPEN WINDOW IS OPEN UNTIL ITS `expiresAt`, NOT FOREVER: one already past is closed (the
+     * web's reading), and one still open is read again when it passes, so the composer turns to
+     * templates when the server would. An open window with no readable `expiresAt` stays open
+     * and the route decides, as on the web.
+     *
+     * @param waited the closing instant the last read waited for. ⚠️ An answer at that re-read
+     *   that does not close later is closed: only a window the customer re-opened is waited on
+     *   again, so the re-reads always end.
      */
-    private suspend fun readWindow(to: String) {
+    private suspend fun readWindow(to: String, waited: Long? = null) {
         when (val result = services.whatsApp.window(workspaceId, to)) {
-            is ApiResult.Success ->
-                if (result.value.window.open) {
-                    _state.windowIs(WhatsAppWindowState.Open(result.value.senderId))
-                } else {
-                    showClosed(result.value.senderId)
+            is ApiResult.Success -> {
+                val closesAt = result.value.window.expiresAt?.let(::epochMillisOrNull)
+                val now = System.currentTimeMillis()
+                val passed = closesAt != null && (closesAt <= now || (waited != null && closesAt <= waited))
+                if (!result.value.window.open || passed) {
+                    _state.showClosed(services, workspaceId, result.value.senderId)
+                    return
                 }
+                _state.windowOpened(result.value.senderId)
+                if (closesAt != null) {
+                    delay(closesAt - now)
+                    readWindow(to, waited = closesAt)
+                }
+            }
             is ApiResult.Failure -> _state.windowIs(WhatsAppWindowState.Open(senderId = null))
         }
-    }
-
-    /** ⚠️ A closed window with no sender has no templates to read: it shows "none". */
-    private suspend fun showClosed(senderId: String?) {
-        if (senderId == null) {
-            _state.windowIs(WhatsAppWindowState.Closed(null, WhatsAppTemplatesState.Ready(emptyList())))
-            return
-        }
-        _state.windowIs(WhatsAppWindowState.Closed(senderId, WhatsAppTemplatesState.Loading))
-        val templates = when (val result = services.whatsApp.templates(workspaceId, senderId)) {
-            is ApiResult.Success -> WhatsAppTemplatesState.Ready(result.value)
-            is ApiResult.Failure -> WhatsAppTemplatesState.Failed
-        }
-        _state.windowIs(WhatsAppWindowState.Closed(senderId, templates))
     }
 }
 
@@ -263,6 +290,56 @@ class ReplyChannels(
 private fun MutableStateFlow<ReplyChannelState>.windowIs(window: WhatsAppWindowState) {
     value = value.copy(whatsApp = window)
 }
+
+/**
+ * The window is open. ⚠️ A window that was closed (the customer wrote since) also closes the
+ * template sheet: its templates were for a closed window, and free text may go again.
+ */
+private fun MutableStateFlow<ReplyChannelState>.windowOpened(senderId: String?) {
+    val current = value
+    value = current.copy(
+        whatsApp = WhatsAppWindowState.Open(senderId),
+        sheet = if (current.whatsApp is WhatsAppWindowState.Closed) TemplateSheetState() else current.sheet,
+    )
+}
+
+/**
+ * The window is closed: show it, with [senderId]'s sendable templates.
+ *
+ * ⚠️ A closed window with no sender has no templates to read: it shows "none". The same sender's
+ * templates already read are kept, so a re-check of a window still closed reads nothing more.
+ * Top-level for the reason [windowIs] is.
+ */
+private suspend fun MutableStateFlow<ReplyChannelState>.showClosed(
+    services: ThreadServices,
+    workspaceId: String,
+    senderId: String?,
+) {
+    if (senderId == null) {
+        windowIs(WhatsAppWindowState.Closed(null, WhatsAppTemplatesState.Ready(emptyList())))
+        return
+    }
+    val shown = value.whatsApp
+    if (shown is WhatsAppWindowState.Closed && shown.senderId == senderId &&
+        shown.templates is WhatsAppTemplatesState.Ready
+    ) {
+        return
+    }
+    windowIs(WhatsAppWindowState.Closed(senderId, WhatsAppTemplatesState.Loading))
+    val templates = when (val result = services.whatsApp.templates(workspaceId, senderId)) {
+        is ApiResult.Success -> WhatsAppTemplatesState.Ready(result.value)
+        is ApiResult.Failure -> WhatsAppTemplatesState.Failed
+    }
+    windowIs(WhatsAppWindowState.Closed(senderId, templates))
+}
+
+/** An ISO-8601 instant as epoch milliseconds, or null when it is not one (an unknown closing time). */
+private fun epochMillisOrNull(iso: String): Long? =
+    try {
+        Instant.parse(iso).toEpochMilli()
+    } catch (_: DateTimeParseException) {
+        null
+    }
 
 /** The send route's refusal for free text outside WhatsApp's 24-hour window. */
 internal const val CODE_WHATSAPP_WINDOW_CLOSED = "whatsapp_window_closed"

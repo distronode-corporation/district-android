@@ -57,7 +57,10 @@ sealed interface LiveCallList {
  * ⛔ LEAVING THE SCREEN LEAVES THE CALL. [onScreenStarted] false stops listening or hands the call
  * back, as closing the web page does: no foreground service holds the room, so a call left running
  * behind a stopped screen would be a supervisor (and on a takeover, a live microphone) in a
- * customer's call with nothing on screen to end it.
+ * customer's call with nothing on screen to end it. ⚠️ EXCEPT A ROTATION, which is a stop too
+ * (MainActivity is recreated): the session is held here, above the activity, and survives it.
+ * The screen stays on while a session is active, so a screen timeout never stops it either
+ * ([SupervisionLifecycle]).
  *
  * @param feed makes the telemetry socket in the scope it is given; null where there is none (a test
  *   about the rest of the screen).
@@ -126,12 +129,20 @@ class LiveCallsViewModel(
         }
     }
 
-    fun onScreenStarted(started: Boolean) {
+    /**
+     * The screen started or stopped.
+     *
+     * @param recreating the stop is a configuration change (a rotation): the activity comes straight
+     *   back and this ViewModel, the engine and the room survive it, so the session and a pending
+     *   microphone answer are kept. ⛔ Any other stop (the app backgrounded, the screen left) leaves.
+     */
+    fun onScreenStarted(started: Boolean, recreating: Boolean = false) {
         if (started) {
             socket?.start()
             return
         }
         socket?.stop()
+        if (recreating) return
         takeOver.reset()
         supervisor.leave()
     }

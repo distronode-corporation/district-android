@@ -13,6 +13,11 @@ name: Submit for review
 #
 # Same rules as release.yml: the `release` environment and workload identity for credentials,
 # no pull_request trigger, inputs reach shell only through `env:`.
+#
+# `correlation` only names the run, so the release train can find the exact run it dispatched
+# (GitHub's dispatch API returns no run id). No step reads it. Empty, the run is named
+# "Submit for review".
+run-name: ${{ inputs.correlation && format('{0} [{1}]', github.workflow, inputs.correlation) || github.workflow }}
 on:
   workflow_dispatch:
     inputs:
@@ -24,6 +29,10 @@ on:
         description: "Maintainers' approval to submit for review."
         type: string
         required: true
+      correlation:
+        description: Set by the release train to find this exact run (manifest, lane, step, time). Leave empty.
+        type: string
+        default: ""
 
 permissions: {}
 

@@ -7,6 +7,7 @@ import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.data.CallsRepository
+import com.distronode.districtai.core.model.CallDetailResponse
 import com.distronode.districtai.core.model.MAX_WHISPER_CHARS
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
@@ -156,6 +157,86 @@ class LiveCallsViewModelTest {
 
         assertTrue("nothing was joined", engines.isEmpty())
         assertEquals(LiveSupervisor.State(), vm.supervision.value)
+    }
+
+    // ── A supervised call the list no longer reaches (Seer on #123) ─────────────────────────────
+
+    /** Listening to [ai], then a read that does not list it (it is past the list's bound). */
+    private fun TestScope.listeningThenUnlisted(): LiveCallsViewModel {
+        val vm = viewModel()
+        vm.listen(ai)
+        runCurrent()
+        log.callsResult = ApiResult.Success(listOf(FakeSuperviseApi.TEAM_CALL))
+        return vm
+    }
+
+    @Test
+    fun `a supervised call missing from a read but live by id keeps its card and its session`() =
+        runTest(dispatcher) {
+            val vm = listeningThenUnlisted()
+            log.detail = ApiResult.Success(CallDetailResponse(success = true, call = FakeSuperviseApi.AI_CALL))
+
+            vm.refresh()
+            runCurrent()
+
+            assertEquals(listOf(ai), log.detailReads)
+            // ⛔ Its card stays, after the listed rows, and still ends the session.
+            assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.TEAM_CALL, FakeSuperviseApi.AI_CALL)), vm.list.value)
+            assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
+            assertFalse("never left", engines.single().calls.contains("disconnect"))
+        }
+
+    @Test
+    fun `a supervised call missing from a read that is over by id is left`() = runTest(dispatcher) {
+        val vm = listeningThenUnlisted()
+        log.detail = ApiResult.Success(
+            CallDetailResponse(success = true, call = FakeSuperviseApi.AI_CALL.copy(status = "completed")),
+        )
+
+        vm.refresh()
+        runCurrent()
+
+        assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.TEAM_CALL)), vm.list.value)
+        assertEquals("disconnect", engines.single().calls.last())
+        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+    }
+
+    @Test
+    fun `a supervised call whose read by id fails keeps the card it had, until a read can tell`() =
+        runTest(dispatcher) {
+            val vm = listeningThenUnlisted()
+            log.detail = ApiResult.NetworkFailure(IOException("offline"))
+
+            vm.refresh()
+            runCurrent()
+            assertEquals(LiveCallList.Loaded(listOf(FakeSuperviseApi.TEAM_CALL, FakeSuperviseApi.AI_CALL)), vm.list.value)
+            assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
+
+            log.detail = null // the call log's own answer: not listed, so not found
+            vm.refresh()
+            runCurrent()
+            assertEquals(LiveSupervisor.State(), vm.supervision.value)
+        }
+
+    @Test
+    fun `a supervised call whose read by id is refused for the session is left`() = runTest(dispatcher) {
+        val vm = listeningThenUnlisted()
+        log.detail = ApiResult.Unauthorized(null)
+
+        vm.refresh()
+        runCurrent()
+
+        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+    }
+
+    @Test
+    fun `a supervised call the read lists is not read by id`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.listen(ai)
+        runCurrent()
+        vm.refresh()
+        runCurrent()
+        assertTrue("listed: no read by id", log.detailReads.isEmpty())
     }
 
     @Test

@@ -949,6 +949,8 @@
     <string name="thread_image_loading">Loading image</string>
     <string name="thread_load_older">Older messages</string>
     <string name="thread_load_older_loading">Loading older…</string>
+    <string name="thread_meta_human_agent">Human agent reply (7-day window)</string>
+    <string name="thread_meta_window_closed">Reply window closed: Messenger and Instagram allow a reply only within 24 hours of the customer\'s last message (7 days for a human agent reply, when it is turned on). You can reply once they write again.</string>
     <string name="thread_owner_failed">Could not load who this conversation is assigned to.</string>
     <string name="thread_reply_channel">Reply channel</string>
     <string name="thread_reply_label">Reply</string>

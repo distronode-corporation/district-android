@@ -21,10 +21,12 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
 import com.distronode.districtai.core.designsystem.ContentContainer
+import com.distronode.districtai.core.designsystem.DistrictBadge
 import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictFilterChip
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
+import com.distronode.districtai.core.designsystem.Tone
 import com.distronode.districtai.core.designsystem.districtFieldColors
 import com.distronode.districtai.core.model.ReplyTarget
 import com.distronode.districtai.core.model.WhatsAppTemplate
@@ -92,8 +94,9 @@ internal fun ReplyChannelPicker(channels: ReplyChannelHandlers) {
 }
 
 /**
- * The two reasons the composer cannot send free text as it stands: attachments on a channel that
- * cannot carry them, and WhatsApp's closed window (with the way forward, a template).
+ * Why the composer cannot send free text as it stands, and what it may send: attachments on a
+ * channel that cannot carry them, WhatsApp's closed window (with the way forward, a template), and
+ * Messenger's or Instagram's window (closed, or open for a human agent's reply only).
  */
 @Composable
 internal fun ComposerNotices(state: ThreadUiState.Content, channels: ReplyChannelHandlers?) {
@@ -101,7 +104,8 @@ internal fun ComposerNotices(state: ThreadUiState.Content, channels: ReplyChanne
     if (state.attachments.isNotEmpty() && !via.attachmentsAllowed) {
         Notice(stringResource(R.string.thread_attachments_sms_only), THREAD_ATTACHMENTS_SMS_ONLY_DESCRIPTION)
     }
-    if (!via.allowsFreeText) {
+    MetaWindowNotice(via.meta)
+    if (via.whatsApp is WhatsAppWindowState.Closed) {
         ContentContainer {
             Row(
                 modifier = Modifier
@@ -127,6 +131,28 @@ internal fun ComposerNotices(state: ThreadUiState.Content, channels: ReplyChanne
         }
     }
     if (via.sheet.open) TemplateSheet(channels)
+}
+
+/**
+ * The web composer's two Meta lines, in its words: a badge for the human agent window, a warning
+ * when closed. ⚠️ No countdown, as the web shows none: `until` is not drawn.
+ */
+@Composable
+private fun MetaWindowNotice(meta: MetaWindowState) {
+    when (meta) {
+        MetaWindowState.CLOSED ->
+            Notice(stringResource(R.string.thread_meta_window_closed), THREAD_META_WINDOW_CLOSED_DESCRIPTION)
+        MetaWindowState.HUMAN_AGENT -> ContentContainer {
+            DistrictBadge(
+                text = stringResource(R.string.thread_meta_human_agent),
+                tone = Tone.Info,
+                modifier = Modifier
+                    .padding(horizontal = DistrictTheme.spacing.gutter)
+                    .testTag(THREAD_META_HUMAN_AGENT_DESCRIPTION),
+            )
+        }
+        else -> Unit
+    }
 }
 
 @Composable
@@ -274,6 +300,8 @@ const val THREAD_CHANNEL_CHIP_DESCRIPTION: String = "district-thread-channel-"
 const val THREAD_ATTACHMENTS_SMS_ONLY_DESCRIPTION: String = "district-thread-attachments-sms-only"
 const val THREAD_WINDOW_CLOSED_DESCRIPTION: String = "district-thread-window-closed"
 const val THREAD_TEMPLATE_OPEN_DESCRIPTION: String = "district-thread-template-open"
+const val THREAD_META_WINDOW_CLOSED_DESCRIPTION: String = "district-thread-meta-window-closed"
+const val THREAD_META_HUMAN_AGENT_DESCRIPTION: String = "district-thread-meta-human-agent"
 const val THREAD_TEMPLATE_SHEET_DESCRIPTION: String = "district-thread-template-sheet"
 const val THREAD_TEMPLATE_STATUS_DESCRIPTION: String = "district-thread-template-status"
 const val THREAD_TEMPLATE_OPTION_DESCRIPTION: String = "district-thread-template-option-"

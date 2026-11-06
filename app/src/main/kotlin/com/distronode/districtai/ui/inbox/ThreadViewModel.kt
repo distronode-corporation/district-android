@@ -356,10 +356,14 @@ class ThreadViewModel(
                     _state.withContent { it.copy(attachments = emptyList()) }
                     composer.deleteDraft(target.workspaceId, target.threadKey)
                     load()
+                    // ⚠️ A Messenger or Instagram window is read again after a reply, as the web
+                    // does: the reply may have been the one the human agent window allowed.
+                    if (recipient.isMeta()) channels.recheckWindow()
                 }
                 is ApiResult.Failure -> {
-                    // ⚠️ The window shut since it was read: the composer turns to templates.
-                    if (result.isWhatsAppWindowClosed()) channels.windowClosed()
+                    // ⚠️ The window shut since it was read: the composer turns to templates, or
+                    // (Messenger, Instagram) says it is closed.
+                    if (result.isWhatsAppWindowClosed() || result.isMetaWindowClosed()) channels.windowClosed()
                     val latest = _state.value
                     // ⚠️ The failure is attached to the CONTENT state, so the conversation stays on
                     // screen. The thread is still good; only the reply failed, and blanking it would
@@ -457,8 +461,9 @@ class ThreadViewModel(
      * most destructive thing this button could do.
      */
     fun generateDraft() {
-        // ⛔ Not while WhatsApp's window is closed: a draft there could only be thrown away.
-        if (!canReply || !channels.state.value.allowsFreeText) return
+        // ⛔ Not while a window is closed (a draft there could only be thrown away), nor in the
+        // human agent window, which allows a person's reply only.
+        if (!canReply || !channels.state.value.allowsDraft) return
         val current = _state.value
         if (current !is ThreadUiState.Content || current.generating) return
 

@@ -1,5 +1,6 @@
 package com.distronode.districtai.core.data
 
+import com.distronode.districtai.core.model.MetaWindowResponse
 import com.distronode.districtai.core.model.WhatsAppTemplate
 import com.distronode.districtai.core.model.WhatsAppWindowResponse
 import com.distronode.districtai.core.model.sendableWhatsAppTemplates
@@ -7,8 +8,9 @@ import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.WhatsAppApi
 
 /**
- * The WhatsApp composer's reads (app parity 5): the window, and the templates for a closed one. The
- * template send is [InboxRepository.sendTemplate], beside every other send.
+ * The composer's channel-window reads: WhatsApp's window and the templates for a closed one (app
+ * parity 5), and the Messenger and Instagram reply window. The template send is
+ * [InboxRepository.sendTemplate], beside every other send.
  */
 class WhatsAppRepository(private val api: WhatsAppApi) {
 
@@ -32,7 +34,20 @@ class WhatsAppRepository(private val api: WhatsAppApi) {
             is ApiResult.Failure -> result
         }
 
+    /**
+     * Messenger's or Instagram's reply window for [to] on [channel].
+     *
+     * ⚠️ A 200 that does not affirm `success: true` is a failure, as for the WhatsApp window; the
+     * caller reads a failure as "unknown", which blocks nothing.
+     */
+    suspend fun metaWindow(workspaceId: String, channel: String, to: String): ApiResult<MetaWindowResponse> =
+        when (val result = api.metaWindow(workspaceId, channel, to)) {
+            is ApiResult.Success -> rejectedEnvelope(META_WINDOW_ENVELOPE, result.value.success) ?: result
+            is ApiResult.Failure -> result
+        }
+
     private companion object {
+        const val META_WINDOW_ENVELOPE = "MetaWindowResponse"
         const val WINDOW_ENVELOPE = "WhatsAppWindowResponse"
         const val TEMPLATES_ENVELOPE = "WhatsAppTemplatesResponse"
     }

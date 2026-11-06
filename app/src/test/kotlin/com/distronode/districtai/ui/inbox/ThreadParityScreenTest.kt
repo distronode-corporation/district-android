@@ -18,6 +18,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.CHANNEL_EMAIL
 import com.distronode.districtai.core.model.CHANNEL_INSTAGRAM
+import com.distronode.districtai.core.model.CHANNEL_MESSENGER
 import com.distronode.districtai.core.model.CHANNEL_SMS
 import com.distronode.districtai.core.model.CHANNEL_WHATSAPP
 import com.distronode.districtai.core.model.ReplyTarget
@@ -300,6 +301,45 @@ class ThreadParityScreenTest {
         composeRule.onNodeWithText(str(R.string.inbox_compose_cancel)).assertIsNotEnabled()
         // ⚠️ Exists rather than displayed: the sheet scrolls, and the failure sits under the fields.
         composeRule.onNodeWithTag(THREAD_TEMPLATE_FAILURE_DESCRIPTION).assertExists()
+    }
+
+    // ── Messenger and Instagram's reply window ───────────────────────────────
+
+    private val messengerTarget = ReplyTarget("fb:5550101", CHANNEL_MESSENGER)
+
+    private fun meta(window: MetaWindowState) =
+        ReplyChannelState(choices = listOf(messengerTarget), selected = messengerTarget, meta = window)
+
+    @Test
+    fun `a closed Messenger window says why, and Send and the AI draft are off, with no template on offer`() {
+        render(meta(MetaWindowState.CLOSED), startText = "Hello?")
+
+        composeRule.onNodeWithTag(THREAD_META_WINDOW_CLOSED_DESCRIPTION).assertExists()
+        composeRule.onNodeWithText(str(R.string.thread_meta_window_closed)).assertExists()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_AI_DRAFT_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(THREAD_TEMPLATE_OPEN_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_META_HUMAN_AGENT_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the human agent window shows its badge and hides the AI draft, and a reply can go`() {
+        render(meta(MetaWindowState.HUMAN_AGENT), startText = "Booked for Thursday.")
+
+        composeRule.onNodeWithTag(THREAD_META_HUMAN_AGENT_DESCRIPTION).assertExists()
+        composeRule.onNodeWithText(str(R.string.thread_meta_human_agent)).assertExists()
+        composeRule.onNodeWithTag(THREAD_AI_DRAFT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_SEND_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(THREAD_META_WINDOW_CLOSED_DESCRIPTION).assertDoesNotExist()
+    }
+
+    @Test
+    fun `an open Messenger window shows neither line and offers the AI draft`() {
+        render(meta(MetaWindowState.OPEN))
+
+        composeRule.onNodeWithTag(THREAD_META_WINDOW_CLOSED_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_META_HUMAN_AGENT_DESCRIPTION).assertDoesNotExist()
+        composeRule.onNodeWithTag(THREAD_AI_DRAFT_DESCRIPTION).assertIsEnabled()
     }
 
     // ── The owner ────────────────────────────────────────────────────────────

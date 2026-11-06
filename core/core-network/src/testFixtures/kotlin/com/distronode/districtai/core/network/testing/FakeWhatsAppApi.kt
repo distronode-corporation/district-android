@@ -1,5 +1,7 @@
 package com.distronode.districtai.core.network.testing
 
+import com.distronode.districtai.core.model.MetaWindow
+import com.distronode.districtai.core.model.MetaWindowResponse
 import com.distronode.districtai.core.model.WhatsAppTemplatesResponse
 import com.distronode.districtai.core.model.WhatsAppWindow
 import com.distronode.districtai.core.model.WhatsAppWindowResponse
@@ -40,6 +42,17 @@ class FakeWhatsAppApi : WhatsAppApi {
     /** When set, a template read waits for it. */
     var templatesGate: CompletableDeferred<Unit>? = null
 
+    /** (workspaceId, channel, to) triples. */
+    val metaWindowReads: MutableList<Triple<String, String, String>> = mutableListOf()
+
+    /** ⚠️ The default is an OPEN Messenger window, so a Messenger thread sends free text as before. */
+    var metaWindowResult: ApiResult<MetaWindowResponse> = ApiResult.Success(
+        MetaWindowResponse(success = true, window = MetaWindow(state = "open")),
+    )
+
+    /** When set, a Messenger or Instagram window read waits for it: an answer still on its way. */
+    var metaWindowGate: CompletableDeferred<Unit>? = null
+
     override suspend fun whatsAppWindow(workspaceId: String, to: String): ApiResult<WhatsAppWindowResponse> {
         windowReads += workspaceId to to
         windowGate?.await()
@@ -53,5 +66,11 @@ class FakeWhatsAppApi : WhatsAppApi {
         templateReads += workspaceId to senderId
         templatesGate?.await()
         return templatesResult
+    }
+
+    override suspend fun metaWindow(workspaceId: String, channel: String, to: String): ApiResult<MetaWindowResponse> {
+        metaWindowReads += Triple(workspaceId, channel, to)
+        metaWindowGate?.await()
+        return metaWindowResult
     }
 }

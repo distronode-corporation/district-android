@@ -3,6 +3,7 @@ package com.distronode.districtai.core.data
 import com.distronode.districtai.core.model.ConversationAssignResponse
 import com.distronode.districtai.core.model.ConversationAssignment
 import com.distronode.districtai.core.model.ConversationAssignmentsResponse
+import com.distronode.districtai.core.model.MetaWindowResponse
 import com.distronode.districtai.core.model.SendMessageRequest
 import com.distronode.districtai.core.model.SendMessageResponse
 import com.distronode.districtai.core.model.SentMessage
@@ -90,6 +91,19 @@ class InboxParityRepositoryTest {
         assertTrue(repository.window("ws-1", "+1") is ApiResult.DecodeFailure)
         api.windowResult = ApiResult.Forbidden("no")
         assertEquals(ApiResult.Forbidden("no"), repository.window("ws-1", "+1"))
+    }
+
+    @Test
+    fun `the Meta window passes through, and a false envelope or a failure is not an open window`() = runTest {
+        val api = FakeWhatsAppApi()
+        val repository = WhatsAppRepository(api)
+
+        assertEquals(api.metaWindowResult, repository.metaWindow("ws-1", "instagram", "ig:5550102"))
+        assertEquals(listOf(Triple("ws-1", "instagram", "ig:5550102")), api.metaWindowReads)
+        api.metaWindowResult = ApiResult.Success(MetaWindowResponse(success = false))
+        assertTrue(repository.metaWindow("ws-1", "messenger", "fb:1") is ApiResult.DecodeFailure)
+        api.metaWindowResult = ApiResult.Forbidden("no")
+        assertEquals(ApiResult.Forbidden("no"), repository.metaWindow("ws-1", "messenger", "fb:1"))
     }
 
     @Test

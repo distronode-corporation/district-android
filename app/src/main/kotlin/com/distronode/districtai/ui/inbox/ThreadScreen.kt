@@ -447,16 +447,20 @@ private fun ComposerActions(
                 modifier = Modifier.testTag(THREAD_ATTACH_DESCRIPTION),
             )
         }
-        DistrictButton(
-            text = stringResource(
-                if (state.generating) R.string.thread_ai_drafting else R.string.thread_ai_draft,
-            ),
-            onClick = composer.onGenerateDraft,
-            variant = ButtonVariant.Ghost,
-            size = ButtonSize.Sm,
-            enabled = !state.generating && !state.sending && freeText,
-            modifier = Modifier.testTag(THREAD_AI_DRAFT_DESCRIPTION),
-        )
+        // ⚠️ HIDDEN, NOT DISABLED, IN THE HUMAN AGENT WINDOW, as on the web: Meta allows that window
+        // for a person's reply only, so an AI draft is not a thing this reply can be.
+        if (via?.meta != MetaWindowState.HUMAN_AGENT) {
+            DistrictButton(
+                text = stringResource(
+                    if (state.generating) R.string.thread_ai_drafting else R.string.thread_ai_draft,
+                ),
+                onClick = composer.onGenerateDraft,
+                variant = ButtonVariant.Ghost,
+                size = ButtonSize.Sm,
+                enabled = !state.generating && !state.sending && freeText,
+                modifier = Modifier.testTag(THREAD_AI_DRAFT_DESCRIPTION),
+            )
+        }
         // ⛔ DISABLED WHILE A SEND IS IN FLIGHT, AND THAT GUARD IS ABOUT MONEY. Every send is
         // billable and the server caps a workspace at 30/min, so a double tap must not become two
         // charges and a message the customer receives twice.

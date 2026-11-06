@@ -2,11 +2,13 @@ package com.distronode.districtai.core.designsystem
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -97,12 +99,17 @@ class PrimitivesTest {
                 Column {
                     Avatar(name = "Ada Lovelace")
                     Avatar(name = "", modifier = Modifier)
+                    Avatar(name = "+1 416 555 0142")
                 }
             }
         }
 
         composeRule.onNodeWithText("AL").assertIsDisplayed()
-        composeRule.onNodeWithText("·").assertIsDisplayed()
+        // ⚠️ No letter to take initials from (empty, or a phone number): the person icon, never a
+        // dot or a "+".
+        composeRule.onAllNodesWithTag(AVATAR_FALLBACK_TAG, useUnmergedTree = true).assertCountEquals(2)
+        composeRule.onNodeWithText("·").assertDoesNotExist()
+        composeRule.onNodeWithText("+4").assertDoesNotExist()
     }
 
     @Test

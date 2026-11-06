@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -306,6 +307,12 @@ private fun ThreadRow(thread: ConversationSummary, hasDraft: Boolean, onClick: (
             ?: stringResource(R.string.inbox_no_preview),
         // ⚠️ The owner, only when there is one: "Unassigned" on every other row would be noise.
         detail = thread.assigneeEmail?.let { stringResource(R.string.inbox_assigned_to, it) },
+        // ⚠️ A thread with no contact name is titled by its address, which has no spaces: one line,
+        // ellipsized, rather than broken mid-token ("ig:555010 / 2").
+        titleMaxLines = if (thread.contactName == null) 1 else Int.MAX_VALUE,
+        // ⛔ ON A NARROW SCREEN THE BADGES GO UNDER THE PREVIEW. Beside it, two channel chips and an
+        // unread count took their width first and left the name and preview a sliver (320 dp).
+        stackTrailing = LocalConfiguration.current.screenWidthDp < NARROW_ROW_WIDTH_DP,
         onClick = onClick,
         leading = {
             Avatar(
@@ -458,6 +465,9 @@ private fun NothingAssigned(partial: Boolean) {
         }
     }
 }
+
+/** Below this width a row's badges go under its text. */
+private const val NARROW_ROW_WIDTH_DP = 400
 
 private const val SKELETON_ROWS = 8
 private val SKELETON_ROW_HEIGHT = 56.dp

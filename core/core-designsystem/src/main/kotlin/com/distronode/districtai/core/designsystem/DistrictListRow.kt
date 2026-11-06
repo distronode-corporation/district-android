@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.ceil
@@ -43,15 +47,25 @@ fun DistrictListRow(
     onClick: (() -> Unit)? = null,
     leading: @Composable (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
-    /** A third line under the subtitle, e.g. a thread's owner. */
+    /**
+     * A third line under the subtitle, e.g. a thread's owner. ⚠️ ONE LINE, ELLIPSIZED AT THE END:
+     * an email address wrapped at a narrow width broke mid-address ("teammate@e / xample.com").
+     */
     detail: String? = null,
+    /**
+     * The title's line limit. ⚠️ 1 for a title that is a bare identifier (an `ig:`, `fb:` or phone
+     * address): it has no spaces, so wrapping could only break it mid-token; it ellipsizes instead.
+     */
+    titleMaxLines: Int = Int.MAX_VALUE,
+    /** Put the trailing slot under the text, as a large font scale does (a narrow screen, say). */
+    stackTrailing: Boolean = false,
 ) {
     val colors = DistrictTheme.colors
     // ⛔ AT A LARGE FONT SCALE THE TRAILING SLOT MOVES UNDER THE TEXT. Beside it, a badge measured at
     // its own width first and left the title a column two or three letters wide, so names, emails and
     // phone numbers broke mid-word at 200% ("Soph / ie Bouc / hard", "fo / un / de / r"; visual QA
     // AA10, AB3, AB4). Under the subtitle it costs a line and the text keeps the row's width.
-    val stacked = LocalDensity.current.fontScale >= STACK_FONT_SCALE
+    val stacked = stackTrailing || LocalDensity.current.fontScale >= STACK_FONT_SCALE
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -72,6 +86,8 @@ fun DistrictListRow(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 color = colors.foreground,
+                maxLines = titleMaxLines,
+                overflow = TextOverflow.Ellipsis,
             )
             if (subtitle != null) {
                 Text(
@@ -86,6 +102,8 @@ fun DistrictListRow(
                     text = detail,
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.mutedForeground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = SUBTITLE_GAP),
                 )
             }
@@ -121,9 +139,11 @@ fun DistrictRowDivider(modifier: Modifier = Modifier) {
  * cheapest possible avatar — no image loading, so no placeholder or error states, and nothing to
  * fake in a test.
  *
- * ⚠️ Falls back to a single glyph rather than rendering empty. An unnamed contact is common — the
+ * ⚠️ Falls back to a person icon rather than rendering empty. An unnamed contact is common — the
  * voice agent writes "Unknown" for an unidentified caller — and an empty circle looks like a
- * loading failure rather than an absence of data.
+ * loading failure rather than an absence of data. ⚠️ INITIALS ARE LETTERS ONLY: a word that starts
+ * with a digit or a sign (a phone number, an `ig:` id) gives none, so such a name gets the icon,
+ * never a "+" or a stray dot.
  */
 @Composable
 fun Avatar(
@@ -133,11 +153,10 @@ fun Avatar(
 ) {
     val initials = name.trim()
         .split(' ')
-        .filter { it.isNotBlank() }
+        .filter { it.firstOrNull()?.isLetter() == true }
         .take(2)
         .map { it.first().uppercaseChar() }
         .joinToString(separator = "")
-        .ifEmpty { "·" }
 
     Box(
         modifier = modifier
@@ -145,13 +164,27 @@ fun Avatar(
             .circleAround(AVATAR_SIZE),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = initials,
-            style = MaterialTheme.typography.labelMedium,
-            color = tone.ink(DistrictTheme.colors),
-        )
+        if (initials.isEmpty()) {
+            Icon(
+                imageVector = DistrictIcons.Person,
+                contentDescription = null,
+                tint = tone.ink(DistrictTheme.colors),
+                modifier = Modifier.size(AVATAR_ICON_SIZE).testTag(AVATAR_FALLBACK_TAG),
+            )
+        } else {
+            Text(
+                text = initials,
+                style = MaterialTheme.typography.labelMedium,
+                color = tone.ink(DistrictTheme.colors),
+            )
+        }
     }
 }
+
+/** The person icon an [Avatar] shows for a name with no letter to take initials from. */
+const val AVATAR_FALLBACK_TAG: String = "district-avatar-fallback"
+
+private val AVATAR_ICON_SIZE = 20.dp
 
 /**
  * A square at least [min] wide that grows until a circle drawn in it holds its content.

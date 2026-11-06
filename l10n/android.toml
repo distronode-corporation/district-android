@@ -8362,8 +8362,8 @@ fr = "Impossible de savoir à qui cette conversation est assignée."
 ctx = "error"
 screen = "message thread"
 tier = "T3"
-state = "draft"
-note = "In place of the Assigned to line when the owner read failed, beside Try again (overview.retry). The web has no such line. App-authored French, awaiting sign-off."
+state = "reviewed"
+note = "In place of the Assigned to line when the owner read failed, beside Try again (overview.retry). The web has no such line. App-authored French, signed off by Sean on 2026-11-06."
 
 [thread.reply_channel]
 en = "Reply channel"

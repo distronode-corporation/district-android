@@ -111,7 +111,12 @@ mapping=app/build/outputs/mapping/release/mapping.txt
 [ -s "$mapping" ] || fail "no R8 mapping at $mapping."
 # An unsigned bundle is a supported local state (see the signing block in build-logic), so prove
 # this one carries a signature rather than finding out from Play.
-unzip -l "$aab" | grep -Eq 'META-INF/[^/]+\.(RSA|EC|DSA)$' || fail "$aab carries no signature."
+#
+# ⚠️ THE LISTING IS READ WHOLE, NEVER PIPED INTO `grep -q`: grep -q exits at its first match, unzip
+# can then take SIGPIPE on the lines after it, and under pipefail a signed bundle reads as unsigned
+# (95 of 2,000 runs of the piped form in a local repro).
+listing=$(unzip -l "$aab") || fail "$aab is not a readable bundle."
+grep -Eq 'META-INF/[^/]+\.(RSA|EC|DSA)$' <<< "$listing" || fail "$aab carries no signature."
 echo "Built $aab (versionCode $VERSION_CODE), signed, with its mapping."
 
 sentry_release() {

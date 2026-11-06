@@ -13,6 +13,7 @@ import com.distronode.districtai.core.network.testing.FakeDistrictApi
 import com.distronode.districtai.core.network.testing.MainDispatcherRule
 import com.distronode.districtai.ui.UiText
 import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -171,6 +172,111 @@ class ThreadOwnerViewModelTest {
         vm.assign("agency@example.com")
         advanceUntilIdle()
         assertTrue(assignments.writes.isEmpty())
+    }
+
+    @Test
+    fun `an owner that failed to read is read again by load, and can then be changed`() = runTest(dispatcher) {
+        assignments.assignmentsResult = ApiResult.NetworkFailure(IOException("offline"))
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertFalse(vm.state.value.loaded)
+
+        assignments.assignmentsResult = ApiResult.Success(
+            ConversationAssignmentsResponse(
+                success = true,
+                assignments = listOf(ConversationAssignment("contact:c1", "agency@example.com")),
+            ),
+        )
+        vm.load()
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.loaded)
+        assertEquals("agency@example.com", vm.state.value.owner)
+        vm.assign("client@example.com")
+        advanceUntilIdle()
+        assertEquals(1, assignments.writes.size)
+    }
+
+    @Test
+    fun `a load while the first reads are in flight sends nothing more`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.load()
+        advanceUntilIdle()
+
+        assertEquals(1, assignments.reads.size)
+        assertEquals(1, district.memberListRequests.size)
+        vm.load()
+        advanceUntilIdle()
+        assertEquals("the owner is read again", 2, assignments.reads.size)
+        assertEquals("members read once are not read again", 1, district.memberListRequests.size)
+    }
+
+    @Test
+    fun `a failed re-read keeps the owner shown`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        assignments.assignmentsResult = ApiResult.NetworkFailure(IOException("offline"))
+        vm.load()
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.loaded)
+        assertEquals("viewer@example.com", vm.state.value.owner)
+    }
+
+    @Test
+    fun `a re-read answering while an assignment is out ends on the assignment's owner`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+        val read = CompletableDeferred<Unit>()
+        val write = CompletableDeferred<Unit>()
+        assignments.readGate = read
+        assignments.assignGate = write
+
+        vm.load()
+        advanceUntilIdle()
+        vm.assign("client@example.com")
+        advanceUntilIdle()
+        read.complete(Unit)
+        advanceUntilIdle()
+        assertTrue("the read answered while the write was out", vm.state.value.assigning)
+        write.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals("client@example.com", vm.state.value.owner)
+    }
+
+    @Test
+    fun `a re-read that started before a finished assignment is dropped`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+        val read = CompletableDeferred<Unit>()
+        assignments.readGate = read
+
+        vm.load()
+        advanceUntilIdle()
+        vm.assign("client@example.com")
+        advanceUntilIdle()
+        assertFalse(vm.state.value.assigning)
+        read.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals("client@example.com", vm.state.value.owner)
+    }
+
+    @Test
+    fun `members that failed to read are read again by load`() = runTest(dispatcher) {
+        val members = district.memberListResult
+        district.memberListResult = ApiResult.NetworkFailure(IOException("offline"))
+        val vm = viewModel(threadKey = "contact:none")
+        advanceUntilIdle()
+        assertEquals(emptyList<String>(), vm.state.value.members)
+
+        district.memberListResult = members
+        vm.load()
+        advanceUntilIdle()
+
+        assertEquals(listOf("agency@example.com", "client@example.com", "norole@example.com"), vm.state.value.members)
     }
 
     @Test

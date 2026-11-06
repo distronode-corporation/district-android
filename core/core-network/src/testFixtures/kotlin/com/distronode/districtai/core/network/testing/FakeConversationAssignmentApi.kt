@@ -30,8 +30,15 @@ class FakeConversationAssignmentApi : ConversationAssignmentApi {
     /** When set, a write waits for it before answering: a write still in flight. */
     var assignGate: CompletableDeferred<Unit>? = null
 
+    /**
+     * When set, a read waits for it, then answers what [assignmentsResult] holds at that moment: a
+     * read still in flight.
+     */
+    var readGate: CompletableDeferred<Unit>? = null
+
     override suspend fun conversationAssignments(workspaceId: String): ApiResult<ConversationAssignmentsResponse> {
         reads += workspaceId
+        readGate?.await()
         return assignmentsResult
     }
 

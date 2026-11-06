@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
  *
  * @param loaded the owner read answered. ⚠️ Until then (and after a failed read) nothing is drawn:
  *   "Unassigned" shown for a thread whose owner could not be read would be a claim, not a fact.
+ *   [ThreadOwnerViewModel.load] reads it again.
  * @param members who the picker offers besides "Unassigned": the workspace's members who are not
  *   viewers, plus the current owner when they are not among them (a viewer who already owns a
  *   thread keeps showing until it is changed).
@@ -62,15 +63,39 @@ class ThreadOwnerViewModel(
 
     /** The assignable members as read, before the current owner is folded in. */
     private var roster: List<String> = emptyList()
+    private var membersRead = false
+    private var readingOwner = false
+    private var readingMembers = false
 
     init {
-        viewModelScope.launch {
-            val result = assignments.owner(workspaceId, threadKey)
-            if (result is ApiResult.Success) {
-                _state.value = _state.value.copy(loaded = true, owner = result.value).withMembers()
+        load()
+    }
+
+    /**
+     * Read the owner (and, for a writer, the members until they have been read once). On entry, on
+     * the thread's Retry, after a session change, and when the screen starts again with the owner
+     * still unread. Without this, one failed first read hid the owner and the picker until the
+     * thread was left.
+     *
+     * ⚠️ SINGLE-FLIGHT PER READ, and a failed read keeps what is shown (nothing, before the first
+     * answer). ⛔ AN ANSWER THAT ARRIVES AFTER AN ASSIGNMENT LANDED IS DROPPED: it was read before
+     * the write, so it would put the old owner back. One that arrives while a write is still out
+     * needs no guard, since the write's own answer replaces it.
+     */
+    fun load() {
+        if (!readingOwner) {
+            readingOwner = true
+            val made = _state.value.assignments
+            viewModelScope.launch {
+                val result = assignments.owner(workspaceId, threadKey)
+                readingOwner = false
+                val latest = _state.value
+                if (result is ApiResult.Success && latest.assignments == made) {
+                    _state.value = latest.copy(loaded = true, owner = result.value).withMembers()
+                }
             }
         }
-        if (_state.value.canAssign) loadMembers()
+        if (_state.value.canAssign && !membersRead) loadMembers()
     }
 
     /**
@@ -104,12 +129,16 @@ class ThreadOwnerViewModel(
 
     /**
      * ⚠️ FAIL-SOFT: unreadable members leave the picker with "Unassigned" and the current owner,
-     * which is still a working control.
+     * which is still a working control, and the next [load] reads them again.
      */
     private fun loadMembers() {
+        if (readingMembers) return
+        readingMembers = true
         viewModelScope.launch {
             val result = membersRepository.members(workspaceId)
+            readingMembers = false
             if (result is ApiResult.Success) {
+                membersRead = true
                 roster = assignableMembers(result.value)
                 _state.value = _state.value.withMembers()
             }

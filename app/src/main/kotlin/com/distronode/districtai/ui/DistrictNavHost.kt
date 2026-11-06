@@ -644,6 +644,13 @@ fun DistrictNavHost(
                         ),
                     )
                     val ownerState by ownerViewModel.state.collectAsStateWithLifecycle()
+                    // ⚠️ An owner still unread when the screen starts again (back from the
+                    // background, or from a screen pushed on top) is read again. The first start
+                    // finds init's read in flight, and load() is single-flight.
+                    LifecycleStartEffect(ownerViewModel) {
+                        if (!ownerViewModel.state.value.loaded) ownerViewModel.load()
+                        onStopOrDispose { }
+                    }
                     // ⚠️ Tell the Inbox behind this thread to read its list again; see KEY_INBOX_STALE.
                     LaunchedEffect(ownerState.assignments) {
                         if (ownerState.assignments > 0) {
@@ -662,7 +669,11 @@ fun DistrictNavHost(
                     val picker = rememberLauncherForActivityResult(
                         ActivityResultContracts.PickVisualMedia(),
                     ) { uri -> uri?.let { viewModel.attach(it.toString()) } }
-                    OnSessionChanged(sessionEpoch, viewModel::load)
+                    val reloadThread = {
+                        viewModel.load()
+                        ownerViewModel.load()
+                    }
+                    OnSessionChanged(sessionEpoch, reloadThread)
                     ThreadScreen(
                         // ⚠️ The conversation's display name (contact name, else the counterpart)
                         // is preferred: a contact-keyed thread has no address to fall back to, and
@@ -674,7 +685,7 @@ fun DistrictNavHost(
                         canReply = viewModel.canReply,
                         onBack = { navController.popBackStack() },
                         onSend = viewModel::send,
-                        onRetry = viewModel::load,
+                        onRetry = reloadThread,
                         onSignIn = onSignIn,
                         onDismissSendFailure = viewModel::dismissSendFailure,
                         onLoadOlder = viewModel::loadOlder,

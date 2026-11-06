@@ -36,6 +36,9 @@ class FakeSuperviseApi : SuperviseApi {
     /** When set, a listen waits for it before answering. */
     var monitorGate: CompletableDeferred<Unit>? = null
 
+    /** When set, a takeover waits for it before answering: a grant still on its way. */
+    var takeoverGate: CompletableDeferred<Unit>? = null
+
     override suspend fun monitorCall(callId: String): ApiResult<CallMonitorTokenResponse> {
         monitors += callId
         monitorGate?.await()
@@ -44,6 +47,7 @@ class FakeSuperviseApi : SuperviseApi {
 
     override suspend fun takeOverCall(workspaceId: String, callId: String): ApiResult<CallTakeoverResponse> {
         takeovers += "$workspaceId/$callId"
+        takeoverGate?.await()
         return takeoverResult
     }
 

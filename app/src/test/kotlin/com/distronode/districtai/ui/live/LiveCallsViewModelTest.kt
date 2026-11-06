@@ -322,10 +322,13 @@ class LiveCallsViewModelTest {
         runCurrent()
         assertEquals(Phase.CONNECTED, vm.supervision.value.phase)
 
-        // The call ended: the room went away.
+        // The call ended: the room went away, and the card says so.
         engine.emitConnection(CallConnectionState.Disconnected("ROOM_DELETED"))
         runCurrent()
-        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+        assertEquals(
+            LiveSupervisor.State(failedCallId = ai, failure = UiText.Resource(R.string.api_error_call_ended)),
+            vm.supervision.value,
+        )
         assertEquals("disconnect", engine.calls.last())
     }
 

@@ -6,6 +6,8 @@ import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.core.media.CallConnectionState
 import com.distronode.districtai.core.media.CallEngine
 import com.distronode.districtai.core.media.CallEngineFactory
+import com.distronode.districtai.core.model.CallMonitorTokenResponse
+import com.distronode.districtai.core.model.E2eeInfo
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
 import com.distronode.districtai.core.network.testing.MainDispatcherRule
@@ -83,6 +85,10 @@ class LiveSupervisorJoinTest {
     }
 
     private val takeOverFailed = UiText.Resource(R.string.live_calls_take_over_join_failed)
+
+    /** Idle, with the reason the room's `ROOM_DELETED` carries said at the call. */
+    private val callEnded =
+        LiveSupervisor.State(failedCallId = ai, failure = UiText.Resource(R.string.api_error_call_ended))
 
     @Test
     fun `a stop that is a rotation keeps the call and the pending microphone answer`() = runTest(dispatcher) {
@@ -167,7 +173,7 @@ class LiveSupervisorJoinTest {
         vm.listen(ai)
         runCurrent()
 
-        assertEquals(LiveSupervisor.State(), vm.supervision.value)
+        assertEquals(callEnded, vm.supervision.value)
         assertFalse("Listen and Take over are offered again", vm.supervision.value.busy)
         assertEquals("disconnect", engines.single().calls.last())
     }
@@ -178,9 +184,49 @@ class LiveSupervisorJoinTest {
             val vm = viewModel { n -> if (n == 1) FakeCallEngine() else EndingMicEngine() }
             listeningThenTakingOver(vm)
 
-            assertEquals(LiveSupervisor.State(), vm.supervision.value)
+            assertEquals(callEnded, vm.supervision.value)
             assertEquals("no rejoin into a call that ended", listOf(ai), api.monitors)
         }
+
+    @Test
+    fun `a room that closes while the takeover's microphone publishes is read when the join ends`() =
+        runTest(dispatcher) {
+            // The watch sees the room go while the join is still running and must leave it to the
+            // join; only the join's own read of the room's state, as it ends, catches it.
+            val gate = CompletableDeferred<Unit>()
+            val vm = viewModel { n -> if (n == 1) FakeCallEngine() else SlowMicEngine(gate) }
+            listeningThenTakingOver(vm)
+            engines[1].emitConnection(CallConnectionState.Disconnected("ROOM_DELETED"))
+            runCurrent()
+            assertTrue("the watch left it to the join", vm.supervision.value.takenOver)
+
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(callEnded, vm.supervision.value)
+            assertEquals("no rejoin into a call that ended", listOf(ai), api.monitors)
+        }
+
+    // ── The room's key (L4) ──────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `a listen grant's end-to-end key reaches the engine`() = runTest(dispatcher) {
+        api.monitorResult = ApiResult.Success(
+            CallMonitorTokenResponse(
+                success = true,
+                token = "monitor-jwt",
+                url = FakeSuperviseApi.ROOM_URL,
+                e2ee = E2eeInfo("room-key"),
+            ),
+        )
+        val vm = viewModel()
+
+        vm.listen(ai)
+        runCurrent()
+
+        assertEquals("room-key", engines.single().lastE2eeKey)
+        assertTrue(vm.supervision.value.live)
+    }
 
     // ── A takeover whose join fails (N3) ──────────────────────────────────────────────────────────
 

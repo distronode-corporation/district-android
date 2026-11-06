@@ -228,20 +228,31 @@ class LiveSupervisor(
         when (connection) {
             CallConnectionState.Connected -> _state.value = current.copy(phase = Phase.CONNECTED)
             CallConnectionState.Reconnecting -> _state.value = current.copy(phase = Phase.RECONNECTING)
-            // ⚠️ THE ROOM WENT AWAY WITHOUT US: the call ended, or the session was lost for good.
-            is CallConnectionState.Disconnected -> ended(current, failure = null)
+            // ⚠️ THE ROOM WENT AWAY WITHOUT US: the call ended, the supervisor was removed or
+            // joined elsewhere, or the connection was lost. The card says which.
+            is CallConnectionState.Disconnected -> ended(current, failure = droppedText(connection.reason))
             is CallConnectionState.Failed ->
                 ended(current, failure = UiText.Resource(R.string.live_calls_connect_failed))
             CallConnectionState.Idle, CallConnectionState.Connecting -> Unit
         }
     }
 
-    /** ⚠️ Not while the join runs: [join] reads the room's state itself when it ends. */
+    /**
+     * The room went away without us.
+     *
+     * ⚠️ Not while the join runs: [join] reads the room's state itself when it ends.
+     *
+     * ⛔ A TAKEOVER OF THE CALL WHOSE ROOM ENDED IS CANCELLED HERE. It was asked for from that room;
+     * a grant landing after it closed would join the call again with the microphone live, into a
+     * call that is over. A listen asked for ANOTHER call is not about this room, and goes on.
+     */
     private fun ended(current: State, failure: UiText?) {
         if (!current.joined) return
         leaveEngine()
+        val sameCall = current.requestingCallId != null && current.requestingCallId == current.callId
+        if (sameCall) action?.cancel()
         _state.value = State(
-            requestingCallId = current.requestingCallId,
+            requestingCallId = current.requestingCallId.takeUnless { sameCall },
             failedCallId = failure?.let { current.callId },
             failure = failure,
         )
@@ -254,4 +265,20 @@ class LiveSupervisor(
         engine = null
         engineScope.launch { leaving.disconnect() }
     }
+}
+
+/**
+ * Why a joined room went away, from the engine's disconnect reason (LiveKit's `DisconnectReason`
+ * name), as the card says it.
+ *
+ * ⚠️ Top-level, not a member: [LiveSupervisor] sits at detekt's function ceiling. A reason this
+ * app does not know reads as a lost connection, never as nothing: the card must not just reset.
+ */
+internal fun droppedText(reason: String?): UiText? = when (reason) {
+    "ROOM_DELETED", "ROOM_CLOSED" -> UiText.Resource(R.string.api_error_call_ended)
+    "PARTICIPANT_REMOVED" -> UiText.Resource(R.string.live_calls_removed)
+    "DUPLICATE_IDENTITY" -> UiText.Resource(R.string.live_calls_joined_elsewhere)
+    // This app's own leave: never seen here, since the watch is cancelled before the disconnect.
+    "CLIENT_INITIATED" -> null
+    else -> UiText.Resource(R.string.live_calls_connection_lost)
 }

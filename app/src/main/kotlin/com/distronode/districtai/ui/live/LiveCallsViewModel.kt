@@ -104,8 +104,16 @@ class LiveCallsViewModel(
         refresh()
     }
 
-    /** Read the list. ⚠️ A refresh asked for while one runs runs once more after it, never alongside. */
-    fun refresh() {
+    /**
+     * Read the list. ⚠️ A refresh asked for while one runs runs once more after it, never alongside.
+     *
+     * ⛔ A SESSION THAT ENDED TAKES THE CALL WITH IT. [sessionChanged] (a sign-in or a sign-out
+     * while this screen is up) leaves first, and a read answered `Unauthorized` (the session was
+     * revoked) leaves too: no supervisor, and no live microphone, stays in a customer's call under
+     * credentials that no longer hold.
+     */
+    fun refresh(sessionChanged: Boolean = false) {
+        if (sessionChanged) leave()
         if (loading?.isActive == true) {
             reloadAfter = true
             return
@@ -116,6 +124,7 @@ class LiveCallsViewModel(
                 when (val result = calls.liveCalls(workspaceId)) {
                     is ApiResult.Success -> show(result.value.filterNot { it.id in ended })
                     is ApiResult.Failure -> {
+                        if (result is ApiResult.Unauthorized) leave()
                         val failure = result.toFailureText()
                         val current = _list.value
                         _list.value = if (current is LiveCallList.Loaded) {
@@ -143,14 +152,21 @@ class LiveCallsViewModel(
         }
         socket?.stop()
         if (recreating) return
-        takeOver.reset()
-        supervisor.leave()
+        leave()
     }
 
     fun listen(callId: String) = supervisor.listen(callId)
 
-    /** Stop listening, or hand a taken-over call back. */
-    fun leave() = supervisor.leave()
+    /**
+     * Stop listening, or hand a taken-over call back.
+     *
+     * ⚠️ A takeover being confirmed, or waiting on the microphone's answer, goes with it: a grant
+     * arriving after Stop must not take the call over.
+     */
+    fun leave() {
+        takeOver.reset()
+        supervisor.leave()
+    }
 
     fun setWhisperDraft(callId: String, text: String) {
         if (writable(callId)) whisperDesk.setDraft(callId, text)
@@ -192,7 +208,7 @@ class LiveCallsViewModel(
         val listed = rows.map { it.id }.toSet()
         val state = supervisor.state.value
         val gone = listOfNotNull(state.callId, state.requestingCallId).any { it !in listed }
-        if (gone) supervisor.leave()
+        if (gone) leave()
     }
 
     /** A writer, and a call the receptionist is on. */

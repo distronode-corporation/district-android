@@ -15,6 +15,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import com.distronode.districtai.ui.scheduling.admin.calendar.TestLifecycleOwner
+import java.io.File
 import java.time.Duration
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -138,14 +139,23 @@ class ProximityScreenOffTest {
     }
 
     @Test
-    fun `the app declares WAKE_LOCK, which the lock needs`() {
+    fun `the app declares WAKE_LOCK itself, and the merged manifest carries it`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val declared = context.packageManager
+        val merged = context.packageManager
             .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
             .requestedPermissions
             .orEmpty()
+        assertTrue(Manifest.permission.WAKE_LOCK in merged)
 
-        assertTrue(Manifest.permission.WAKE_LOCK in declared)
+        // ⚠️ The merged manifest has it from firebase-messaging too, so only the app's own manifest
+        // proves the lock does not lean on a push library's declaration. Gradle runs unit tests
+        // from the module directory.
+        val own = File("src/main/AndroidManifest.xml")
+        assertTrue("run from the app module: ${own.absolutePath}", own.isFile)
+        assertTrue(
+            "the app's own manifest declares WAKE_LOCK",
+            own.readText().contains("""<uses-permission android:name="android.permission.WAKE_LOCK" />"""),
+        )
     }
 
     @Test

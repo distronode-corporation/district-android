@@ -4089,8 +4089,8 @@ fr = "La connexion à l'appel a été perdue."
 ctx = "error"
 screen = "live calls"
 tier = "T3"
-state = "draft"
-note = "At a call whose room dropped while the supervisor was listening or on it, for a lost connection or a reason the app does not know. Listen stays on the card. App-authored French, awaiting sign-off."
+state = "reviewed"
+note = "At a call whose room dropped while the supervisor was listening or on it, for a lost connection or a reason the app does not know. Listen stays on the card. App-authored French, signed off by Sean on 2026-11-06."
 
 [live_calls.empty_body]
 en = "When someone is on the phone with your receptionist, the call shows up here."
@@ -4125,8 +4125,8 @@ fr = "Cet appel a été rejoint avec votre compte sur un autre appareil ou dans 
 ctx = "error"
 screen = "live calls"
 tier = "T3"
-state = "draft"
-note = "At a call the supervisor joined again elsewhere with the same account, which replaced this device in the room. App-authored French, awaiting sign-off."
+state = "reviewed"
+note = "At a call the supervisor joined again elsewhere with the same account, which replaced this device in the room. App-authored French, signed off by Sean on 2026-11-06."
 
 [live_calls.listen]
 en = "Listen"
@@ -4252,8 +4252,8 @@ fr = "On vous a retiré de l'appel."
 ctx = "error"
 screen = "live calls"
 tier = "T3"
-state = "draft"
-note = "At a call whose room removed the supervisor (the room's own decision, not this app's). Phrased without gender agreement. App-authored French, awaiting sign-off."
+state = "reviewed"
+note = "At a call whose room removed the supervisor (the room's own decision, not this app's). Phrased without gender agreement. App-authored French, signed off by Sean on 2026-11-06."
 
 [live_calls.stop_listening]
 en = "Stop listening"

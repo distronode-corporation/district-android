@@ -401,6 +401,34 @@ class LiveCallsViewModelTest {
     }
 
     @Test
+    fun `a launched microphone request is consumed, and the answer still takes the call over`() = runTest(dispatcher) {
+        val vm = viewModel()
+        listeningThenConfirmed(vm)
+
+        vm.takeOver.onMicrophoneRequested()
+        assertEquals("nothing left for a re-entered screen to launch", LiveCallsPrompt(), vm.prompt.value)
+
+        vm.takeOver.onMicrophonePermissionResult(true)
+        runCurrent()
+
+        assertEquals(listOf("ws-1/$ai"), api.takeovers)
+    }
+
+    @Test
+    fun `after a refusal, a second confirm asks for the microphone again`() = runTest(dispatcher) {
+        val vm = viewModel()
+        listeningThenConfirmed(vm)
+        vm.takeOver.onMicrophoneRequested()
+        vm.takeOver.onMicrophonePermissionResult(false)
+        runCurrent()
+
+        vm.takeOver.ask(ai)
+        vm.takeOver.confirm()
+
+        assertEquals(LiveCallsPrompt(microphoneRequest = 1), vm.prompt.value)
+    }
+
+    @Test
     fun `a microphone answer with nothing pending is dropped`() = runTest(dispatcher) {
         val vm = viewModel()
 

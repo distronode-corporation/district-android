@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * The take-over confirmation and the microphone request.
  *
  * @property microphoneRequest ⚠️ A COUNTER, like the dialer's: a permission launcher cannot be
- *   called from a ViewModel, and a flag would not fire again after a denial.
+ *   called from a ViewModel, and a flag would not fire again after a denial. ⛔ CONSUMED ONCE
+ *   LAUNCHED ([TakeOverFlow.onMicrophoneRequested]): the screen's effect re-runs whenever it
+ *   re-enters composition (a rotation, a return from a screen pushed on top), and a count left
+ *   above zero would ask for the microphone again with nothing to take over.
  */
 data class LiveCallsPrompt(
     val confirmingTakeover: String? = null,
@@ -50,6 +53,15 @@ class TakeOverFlow(
         val callId = _prompt.value.confirmingTakeover ?: return
         pending = callId
         _prompt.value = LiveCallsPrompt(microphoneRequest = _prompt.value.microphoneRequest + 1)
+    }
+
+    /**
+     * The screen launched the microphone request: back to zero, so the effect's next run (on any
+     * re-entry) launches nothing. The pending call is kept for the answer, which the launcher
+     * still delivers after a recreation.
+     */
+    fun onMicrophoneRequested() {
+        _prompt.value = _prompt.value.copy(microphoneRequest = 0)
     }
 
     /** ⚠️ A result with nothing pending (the screen was left meanwhile) is dropped. */

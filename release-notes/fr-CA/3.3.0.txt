@@ -1,7 +1,7 @@
-• Le composeur a un bouton de pays : tapez le numéro comme sur place et voyez où il sonne avant l'appel.
-• Le français suit celui du tableau de bord Web.
-• Les flux de travail disent dans votre langue pourquoi une étape a été sautée.
-• Les composants de l'application sont mis à jour.
-• Le composeur lit bien les préfixes interurbains, les numéros collés et sans frais +1.
+• Appels en cours : écoutez, soufflez une consigne ou prenez l'appel, écran éteint à l'oreille.
+• Répondez par Messenger, Instagram ou WhatsApp.
+• Modèles WhatsApp après la fenêtre de 24 heures, et fenêtre de réponse Messenger et Instagram.
+• Assignez les conversations et filtrez les vôtres.
+• Le composeur a un bouton de pays.
+• Le français suit le tableau de bord Web, un flux dit pourquoi une étape est sautée, et les composants sont à jour.
 • Les messages lus ou traités affichent leur statut.
-• Voice Studio affiche de nouveau le délai mesuré avant le premier mot.

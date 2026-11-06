@@ -8,24 +8,26 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
-## [3.3.0] - 2026-11-05
+## [3.3.0] - 2026-11-06
 
 ### Added
 
-- The dialler has a country button: type the number the local way and see the country it rings
-  before you call.
+- Live calls: listen in, send your receptionist a note, or take the call over, with the screen
+  off at your ear.
+- Reply by Messenger, Instagram or WhatsApp.
+- WhatsApp templates once its 24-hour window closes, and the Messenger and Instagram reply
+  window.
+- Assign conversations, and filter to yours.
+- A country button on the dialler.
 
 ### Changed
 
-- French wording matches the web dashboard.
-- Workflow runs say why a step was skipped, in your language.
-- The app's components are updated.
+- French matches the web dashboard, skipped workflow steps say why, and the app's components
+  are updated.
 
 ### Fixed
 
-- The dialler reads trunk prefixes, pasted numbers and +1 toll-free numbers correctly.
-- Read or handled messages show their status, not an unknown value.
-- Voice Studio shows the measured time to first word again while you edit an engine.
+- Read or handled messages show their status.
 
 ## [3.1.0] - 2026-10-25
 

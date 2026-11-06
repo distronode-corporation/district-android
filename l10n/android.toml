@@ -4083,6 +4083,15 @@ tier = "T3"
 state = "reviewed"
 note = "The state line on a call whose room is still being joined (or, on a takeover, whose microphone is not live yet), in place of You are listening or You are on the call. French reused verbatim from the app's reviewed room.state_connecting."
 
+[live_calls.connection_lost]
+en = "The connection to the call was lost."
+fr = "La connexion à l'appel a été perdue."
+ctx = "error"
+screen = "live calls"
+tier = "T3"
+state = "draft"
+note = "At a call whose room dropped while the supervisor was listening or on it, for a lost connection or a reason the app does not know. Listen stays on the card. App-authored French, awaiting sign-off."
+
 [live_calls.empty_body]
 en = "When someone is on the phone with your receptionist, the call shows up here."
 fr = "Quand quelqu'un est en ligne avec votre réceptionniste, l'appel s'affiche ici."
@@ -4109,6 +4118,15 @@ screen = "live calls"
 tier = "T2"
 state = "reviewed"
 note = "Leaves the call, and the receptionist carries on. French reused verbatim from the web liveI18n.ts liveCopy.handBack."
+
+[live_calls.joined_elsewhere]
+en = "This call was joined with your account on another device or tab, so this session ended here."
+fr = "Cet appel a été rejoint avec votre compte sur un autre appareil ou dans un autre onglet. Cette session s'est donc arrêtée ici."
+ctx = "error"
+screen = "live calls"
+tier = "T3"
+state = "draft"
+note = "At a call the supervisor joined again elsewhere with the same account, which replaced this device in the room. App-authored French, awaiting sign-off."
 
 [live_calls.listen]
 en = "Listen"
@@ -4227,6 +4245,15 @@ screen = "live calls"
 tier = "T2"
 state = "reviewed"
 note = "Reads the list of calls in progress again. French signed off by Sean (GitLab #2, note 4173250442)."
+
+[live_calls.removed]
+en = "You were removed from the call."
+fr = "On vous a retiré de l'appel."
+ctx = "error"
+screen = "live calls"
+tier = "T3"
+state = "draft"
+note = "At a call whose room removed the supervisor (the room's own decision, not this app's). Phrased without gender agreement. App-authored French, awaiting sign-off."
 
 [live_calls.stop_listening]
 en = "Stop listening"

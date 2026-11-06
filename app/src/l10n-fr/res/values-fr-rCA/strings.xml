@@ -455,9 +455,11 @@
     <string name="labels_unknown_value">Valeur inconnue\u00A0: %1$s</string>
     <string name="live_calls_connect_failed">Impossible de vous connecter à l\'appel. Réessayez.</string>
     <string name="live_calls_connecting">Connexion…</string>
+    <string name="live_calls_connection_lost">La connexion à l\'appel a été perdue.</string>
     <string name="live_calls_empty_body">Quand quelqu\'un est en ligne avec votre réceptionniste, l\'appel s\'affiche ici.</string>
     <string name="live_calls_empty_title">Aucun appel en ce moment</string>
     <string name="live_calls_hand_back">Redonner l\'appel à votre réceptionniste</string>
+    <string name="live_calls_joined_elsewhere">Cet appel a été rejoint avec votre compte sur un autre appareil ou dans un autre onglet. Cette session s\'est donc arrêtée ici.</string>
     <string name="live_calls_listen">Écouter</string>
     <string name="live_calls_listening">Vous écoutez l\'appel</string>
     <string name="live_calls_listening_body">Entendez l\'appel en direct. L\'appelant ne vous entend pas.</string>
@@ -471,6 +473,7 @@
     <string name="live_calls_receipt_transfer">Consigne non utilisée\u00A0: l\'appel est en cours de transfert.</string>
     <string name="live_calls_reconnecting">Reconnexion…</string>
     <string name="live_calls_refresh">Actualiser</string>
+    <string name="live_calls_removed">On vous a retiré de l\'appel.</string>
     <string name="live_calls_stop_listening">Arrêter d\'écouter</string>
     <string name="live_calls_subtitle">Les appels en ce moment. Écoutez, soufflez une consigne à votre réceptionniste ou prenez l\'appel vous-même.</string>
     <string name="live_calls_take_over">Prendre l\'appel</string>

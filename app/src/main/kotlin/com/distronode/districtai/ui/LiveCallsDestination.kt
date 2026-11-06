@@ -59,7 +59,8 @@ internal fun NavGraphBuilder.liveCallsDestination(
         val whispers by viewModel.whispers.collectAsStateWithLifecycle()
         val prompt by viewModel.prompt.collectAsStateWithLifecycle()
 
-        OnSessionChanged(sessionEpoch, viewModel::refresh)
+        // ⛔ A sign-in or a sign-out while this screen is up leaves the call before the re-read.
+        OnSessionChanged(sessionEpoch) { viewModel.refresh(sessionChanged = true) }
         SupervisionLifecycle(viewModel)
         val microphone = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission(),

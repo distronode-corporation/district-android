@@ -268,4 +268,14 @@ class LabelsTest {
             "Valeur inconnue\u00A0: RCS" to { inboxChannelLabel("rcs") },
         )
     }
+
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `a message the customer read, or a person handled, reads as the portal names it, not as unknown`() {
+        // 3.3.0: the contract listed neither until monorepo 14cf1a186, so both read « Valeur inconnue ».
+        assertRendered(
+            "Lu" to { wireLabel(WireCategory.MESSAGE_DELIVERY_STATUS, "read") },
+            "Traité" to { wireLabel(WireCategory.MESSAGE_DELIVERY_STATUS, "handled") },
+        )
+    }
 }

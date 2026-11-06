@@ -30,9 +30,22 @@ sent.
 ⚠️ A LABEL WHOSE ENGLISH MOVED FROM THE RAW VALUE TO THE PORTAL'S KEEPS ITS REVIEWED FRENCH: the French
 always named the same value, so only the English presentation changed (see `keep_translations`).
 
-An entry whose English is unchanged keeps the translation fields the committed catalog has (`fr`, `state`,
-`fr_variant` and the rest of KEPT), so French written by `tools/l10n/l10n.py import` survives a regeneration.
-A new entry, or one whose English changed, takes the contract's French as a draft.
+⛔ THE WEBSITE'S FRENCH WINS. The contract carries French only where the portal ships it, and the website's
+French is reviewed and signed off there before it reaches the contract (a label the portal has none for is
+null). So wherever the contract has a `fr`, a catalog entry whose French differs takes the contract's, as a
+draft for this release's sign-off: until 3.3.0 an entry kept its committed French while the English was
+unchanged, and French-only fixes on the website never reached the app. Android keeps its own French in two
+cases only: where the contract has none (French written by `tools/l10n/l10n.py import`, kept while the
+English is unchanged), and FR_OVERRIDES, a deliberate local wording held only while the website's French is
+still exactly the one it replaced. An entry whose French and English are both unchanged keeps the
+translation fields the committed catalog has (`state`, `fr_variant` and the rest of KEPT).
+
+    python3 scripts/l10n-contracts.py --sync ~/distronode            re-sync from the monorepo's origin/main
+    python3 scripts/l10n-contracts.py --sync ~/distronode --ref X    from another ref (fetch first)
+
+`--sync` copies the three contract files byte for byte from `distronode-website/contracts/i18n/` at the ref
+(`git show`, so the monorepo's checkout is never touched), regenerates, and runs `l10n.py gen` for both
+catalogs: one command from a website change to the app's resources.
 
 Python 3.11 or newer, standard library only. It imports tools/l10n/l10n.py for the canonical TOML writer.
 Tests: python3 -m unittest discover -s scripts -p 'test_*.py'.
@@ -43,6 +56,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -86,7 +100,7 @@ WIRE_CATEGORIES = {
     "workflowRunStatus": ("WORKFLOW_RUN_STATUS", "label", "workflows"),
     "workflowAction": ("WORKFLOW_ACTION", "portal", "workflows, run history"),
     "workflowActionOutcome": ("WORKFLOW_ACTION_OUTCOME", "label", "workflows, run history"),
-    "workflowActionReason": ("WORKFLOW_ACTION_REASON", "label", NOT_SHOWN),
+    "workflowActionReason": ("WORKFLOW_ACTION_REASON", "label", "workflows, run history"),
     "numberType": ("NUMBER_TYPE", "portal", "phone numbers, search results"),
     "numberCapability": ("NUMBER_CAPABILITY", "label", "workspace settings, messaging; phone numbers, search results"),
     "numberProvider": ("NUMBER_PROVIDER", "portal", "phone numbers, carrier, number search"),
@@ -371,11 +385,28 @@ def placeholder_tables(placeholders: list) -> list[str]:
 KEPT = ("fr", "state", "same_ok", "fr_variant", "waive", "max", "id")
 
 
+# Android's own French where it deliberately differs from the website's, by catalog key: (the contract's
+# French it replaces, Android's French, why). ⛔ IT HOLDS ONLY WHILE THE CONTRACT STILL SAYS EXACTLY THAT: when
+# the website rewords the sentence, the contract's new French wins as a draft (and frcheck says whether it
+# fits), so a website fix is never masked by an old override. test_l10n_contracts.py fails on a stale one.
+FR_OVERRIDES: dict[str, tuple[str, str, str]] = {
+    "api_error.live_changed": (
+        "Quelqu'un a modifié ces réglages depuis la rédaction du brouillon. Mettez le brouillon à jour avec les"
+        " réglages en vigueur, relisez-le, puis publiez-le.",
+        "Quelqu'un a modifié ces paramètres depuis la rédaction du brouillon. Mettez le brouillon à jour avec les"
+        " paramètres en vigueur, relisez-le, puis publiez-le.",
+        "frcheck OS-WORD: « Réglages » is the Apple word; every other catalog says « Paramètres » (as core-rust"
+        " does for the same sentence).",
+    ),
+}
+
+
 def keep_translations(data: dict, previous: Path) -> dict:
-    """`data` with the translation fields of `previous` (the committed catalog) put back on every
-    entry whose English is unchanged (letter case aside), or whose English moved from the raw value to the
-    portal's label (the French named the same value all along). A changed English, or an entry the catalog has no
-    French for, takes the contract's French."""
+    """`data` with the translation fields of `previous` (the committed catalog) put back on every entry
+    whose English is unchanged (letter case aside), or moved from the raw value to the portal's label (the
+    French named the same value all along), and whose French is the contract's (or FR_OVERRIDES') or the
+    contract has none. An entry whose French the website changed takes the contract's as a draft; a changed
+    English, or an entry the catalog does not have, takes the contract's French as a draft too."""
     old = (
         {e.key: e.fields for e in l10n.load_catalog(previous).entries.values()} if previous.is_file() else {}
     )
@@ -384,14 +415,65 @@ def keep_translations(data: dict, previous: Path) -> dict:
             continue
         for seg, fields in table.items():
             was = fields.pop(WAS, None)
-            before = old.get(f"{group}.{seg}")
+            key = f"{group}.{seg}"
+            override = FR_OVERRIDES.get(key)
+            if override and fields.get("fr") == override[0]:
+                fields["fr"] = override[1]
+            before = old.get(key)
             # ⚠️ A CHANGE OF LETTER CASE ALONE ("Sms" -> "SMS") keeps the French too: the words are the same.
             if before is None or before.get("en", "").casefold() not in (fields["en"].casefold(), (was or "").casefold()):
+                continue
+            # ⛔ THE WEBSITE'S FRENCH WINS: a contract French that differs from the committed one stays a draft.
+            if "fr" in fields and before.get("fr") != fields["fr"]:
                 continue
             for field in KEPT:
                 if field in before:
                     fields[field] = before[field]
     return data
+
+
+# The monorepo's copy of the contracts, and the files this app carries from it.
+MONOREPO_CONTRACTS = "distronode-website/contracts/i18n"
+CONTRACT_FILES = ("api-errors.json", "format-vectors.json", "wire-vocabulary.json")
+
+
+def fetch_contracts(monorepo: Path, ref: str, dest: Path) -> list[str]:
+    """Copy CONTRACT_FILES byte for byte from `monorepo` at `ref` into `dest` with `git show`, so the
+    monorepo's working tree and branch are never touched. Every file is read before any is written: a ref
+    missing one leaves `dest` as it was. Returns the files whose bytes changed."""
+    blobs = {}
+    for name in CONTRACT_FILES:
+        spec = f"{ref}:{MONOREPO_CONTRACTS}/{name}"
+        run = subprocess.run(["git", "-C", str(monorepo), "show", spec], capture_output=True, check=False)
+        if run.returncode != 0:
+            raise SystemExit(f"git show {spec} failed in {monorepo}: {run.stderr.decode(errors='replace').strip()}")
+        blobs[name] = run.stdout
+    changed = []
+    for name, blob in blobs.items():
+        path = dest / name
+        if not path.is_file() or path.read_bytes() != blob:
+            path.write_bytes(blob)
+            changed.append(name)
+    return changed
+
+
+def commit_of(monorepo: Path, ref: str) -> str:
+    """The full commit id `ref` names in `monorepo`, for the commit message."""
+    run = subprocess.run(
+        ["git", "-C", str(monorepo), "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        capture_output=True, text=True, check=False,
+    )
+    if run.returncode != 0:
+        raise SystemExit(f"{ref} is not a commit in {monorepo}: {run.stderr.strip()}")
+    return run.stdout.strip()
+
+
+# The `l10n.py gen` run for each generated catalog (CONTRIBUTING.md, "Strings").
+GEN_COMMANDS = [
+    [sys.executable, "tools/l10n/l10n.py", "gen", f"l10n/{name}.toml", "--backend", "android", "--out", "l10n/res",
+     "--opt", f"name={name}"]
+    for name in ("api_errors", "wire_labels")
+]
 
 
 def outputs() -> list[tuple[Path, str]]:
@@ -410,7 +492,16 @@ def outputs() -> list[tuple[Path, str]]:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     p.add_argument("--check", action="store_true", help="fail if a generated file differs")
+    p.add_argument("--sync", metavar="MONOREPO", type=Path,
+                   help="first copy contracts/i18n from this monorepo checkout at --ref, then regenerate and gen")
+    p.add_argument("--ref", default="origin/main", help="the monorepo ref --sync reads (default origin/main)")
     args = p.parse_args(argv)
+    if args.sync and args.check:
+        p.error("--sync writes; it cannot be combined with --check")
+    if args.sync:
+        commit = commit_of(args.sync, args.ref)
+        changed = fetch_contracts(args.sync, commit, CONTRACTS)
+        print(f"contracts/i18n from monorepo {commit} ({args.ref}): " + (", ".join(changed) or "unchanged"))
     stale = []
     for path, text in outputs():
         current = path.read_text(encoding="utf-8") if path.exists() else None
@@ -424,6 +515,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"wrote {path.relative_to(ROOT)}")
     for s in stale:
         print(f"{s}: differs from what scripts/l10n-contracts.py writes (run it)", file=sys.stderr)
+    if args.sync:
+        for cmd in GEN_COMMANDS:
+            subprocess.run(cmd, cwd=ROOT, check=True)
     return 1 if stale else 0
 
 

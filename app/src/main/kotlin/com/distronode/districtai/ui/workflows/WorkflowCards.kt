@@ -373,10 +373,11 @@ private fun RunCard(run: WorkflowRun) {
                     // ⛔ THE MOST USEFUL LINE ON THE CARD. The engine attaches a reason when it
                     // SKIPS an action — no contact, no phone number, missing metadata — which is
                     // exactly the case where the outcome alone tells an operator nothing they can
-                    // act on.
+                    // act on. It reads as its code's label, in the reader's language
+                    // ([actionReasonLabel]).
                     action.reason?.let {
                         Text(
-                            text = it,
+                            text = actionReasonLabel(it),
                             style = MaterialTheme.typography.bodySmall,
                             color = DistrictTheme.colors.mutedForeground,
                         )

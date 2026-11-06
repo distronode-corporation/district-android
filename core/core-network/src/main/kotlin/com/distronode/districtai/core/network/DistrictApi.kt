@@ -740,9 +740,9 @@ data class DeviceRevokeRequest(val deviceId: String)
  *
  * ⛔ THERE IS NO CANCEL, NO PLAN CHANGE, NO PAYMENT-METHOD EDIT AND NO PROMO CODE IN THIS
  * INTERFACE, AND ADDING ONE WOULD BREACH GOOGLE PLAY'S PAYMENTS POLICY. `POST /api/billing` exists
- * and does all four; this client deliberately does not reach it. The marketplace's read-only
- * decision (see [NumbersApi]) was ours to reverse; this one is not. The app shows what is being
- * billed and says where a change happens.
+ * and does all four; this client deliberately does not reach it. What the marketplace may change
+ * (see [NumbersApi]) was ours to decide, and 3.0 opened it up; this one is not ours. The app shows
+ * what is being billed and says where a change happens.
  *
  * ⛔ TWO ROUTES FROM DIFFERENT FAMILIES, AND THEIR ENVELOPES DISAGREE. [workspaceBilling] is a
  * District route under `/api/district/workspace/` answering `{success, billing}`; [stripeBilling]
@@ -1265,7 +1265,7 @@ interface MembersApi {
  *
  * ⚠️ EXCLUDES `viewer` SERVER-SIDE (`["agency","client"]`), so the UI must hide the entry rather
  * than offer a button that 403s. That is presence, not wording — the same call `WorkspaceSettings`
- * makes and unlike the marketplace's read-only caption.
+ * makes and unlike the marketplace's viewer caption.
  */
 interface DialApi {
 

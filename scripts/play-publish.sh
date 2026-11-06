@@ -9,9 +9,16 @@
 #       <notes-dir>/<language>.txt (scripts/release-notes.sh <version> --dir writes them). Every
 #       language the store listing has must have its own file: a missing one fails before
 #       anything is changed, and is never filled in from another language. For a published app,
-#       committing that edit sends the release for review.
+#       committing that edit sends the release for review. A notes file for a language the
+#       listing does not have fails too, so a translation is never dropped without a word.
 #   scripts/play-publish.sh status <versionCode>
 #       Print every track that holds the versionCode, read from a fresh edit.
+#
+# PLAY_CHANGES_NOT_SENT_FOR_REVIEW=true commits with `changesNotSentForReview=true`, which Play
+# requires while a change made in the Play Console is still waiting to be sent for review: without
+# it the commit is refused. The edit is then saved but NOT sent for review; someone sends it from
+# the Console's Publishing overview. Unset or `false` is the normal commit. Any other value fails
+# before anything is called.
 #
 # Credentials: GCP_TOKEN is the `release` environment's own short-lived Google Cloud token
 # (google-github-actions/auth). The service account behind it may only mint a token for the
@@ -46,6 +53,12 @@ fail() {
 }
 
 : "${GCP_TOKEN:?GCP_TOKEN must hold a Google Cloud access token}"
+
+case "${PLAY_CHANGES_NOT_SENT_FOR_REVIEW:-false}" in
+    true) commit_query='?changesNotSentForReview=true' ;;
+    false) commit_query='' ;;
+    *) fail "PLAY_CHANGES_NOT_SENT_FOR_REVIEW must be true or false, got '$PLAY_CHANGES_NOT_SENT_FOR_REVIEW'." ;;
+esac
 
 umask 077
 work=$(mktemp -d)
@@ -91,7 +104,7 @@ open_edit() {
 }
 
 commit_edit() {
-    call POST "$BASE/edits/${eid}:commit" > /dev/null
+    call POST "$BASE/edits/${eid}:commit$commit_query" > /dev/null
     eid=""
 }
 
@@ -143,6 +156,9 @@ case "$cmd" in
         call PUT "$BASE/edits/${eid}/tracks/internal" -H 'Content-Type: application/json' --data "$body" > /dev/null
         commit_edit
         echo "Committed: versionCode $vc on the internal track."
+        if [ -n "$commit_query" ]; then
+            echo "Not sent for review (PLAY_CHANGES_NOT_SENT_FOR_REVIEW): send it from the Play Console's Publishing overview."
+        fi
         report "$vc"
         ;;
     submit)
@@ -183,6 +199,16 @@ case "$cmd" in
         done <<< "$languages"
         [ -z "$missing" ] ||
             fail "no release notes for the listing's language(s)$missing in $notes_dir. Add release-notes/<language>/<version>.txt. Nothing was submitted."
+        # The other way round: notes written for a language the listing does not have would be
+        # left out of the release without a word, so they fail too.
+        extra=""
+        for file in "$notes_dir"/*.txt; do
+            [ -e "$file" ] || continue
+            language=$(basename "$file" .txt)
+            grep -qxF -- "$language" <<< "$languages" || extra="$extra $language"
+        done
+        [ -z "$extra" ] ||
+            fail "release notes for language(s)$extra in $notes_dir, which the store listing does not have. Add the language to the listing in the Play Console, or remove its release-notes/<language>/ directory. Nothing was submitted."
         body=$(jq -n --arg vc "$vc" --arg name "$vc ($name)" --argjson notes "$notes_json" '
             {track: "production", releases: [{
                 name: $name, versionCodes: [$vc], status: "completed",
@@ -190,7 +216,11 @@ case "$cmd" in
             }]}')
         call PUT "$BASE/edits/${eid}/tracks/production" -H 'Content-Type: application/json' --data "$body" > /dev/null
         commit_edit
-        echo "Committed: versionCode $vc released to production, which sends it for review."
+        if [ -n "$commit_query" ]; then
+            echo "Committed: versionCode $vc released to production, NOT sent for review (PLAY_CHANGES_NOT_SENT_FOR_REVIEW). Send it from the Play Console's Publishing overview."
+        else
+            echo "Committed: versionCode $vc released to production, which sends it for review."
+        fi
         report "$vc"
         ;;
     status)

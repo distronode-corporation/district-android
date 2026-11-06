@@ -151,6 +151,8 @@ cat > "$stubbin/curl" << 'EOF'
 # $STUB_DIR/argv; saves each request body as $STUB_DIR/body-<METHOD>-<last path segment>.
 set -euo pipefail
 method=GET out=/dev/stdout fmt="" url="" data=""
+# Before the loop below shifts every argument away (recorded after it, argv was always empty).
+printf '%s\n' "$*" >> "$STUB_DIR/argv"
 while [ $# -gt 0 ]; do
     case "$1" in
         -o) out=$2; shift ;;
@@ -163,7 +165,6 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
-printf '%s\n' "$*" >> "$STUB_DIR/argv"
 path=${url#*://*/}
 path=${path%%\?*}
 echo "$method /$path" >> "$STUB_DIR/calls"
@@ -277,6 +278,41 @@ printf '%s\n' "$(printf 'é%.0s' $(seq 1 501))" > "$work/notes-long/fr-CA.txt"
 refuses "notes over 500 characters in any language" play submit 4185 1.0 "$work/notes-long"
 check "  (and production is not touched)" not_called "PUT $P/edits/E1/tracks/production"
 check "  (and nothing is committed)" not_called ":commit"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+mkdir -p "$work/notes-extra"
+cp "$work/notes/en-US.txt" "$work/notes/fr-CA.txt" "$work/notes-extra/"
+printf 'Línea uno.\n' > "$work/notes-extra/es-ES.txt"
+refuses "a notes file for a language the listing does not have" play submit 4185 1.0 "$work/notes-extra"
+check "  (refused, naming the language)" grep -q "language(s) es-ES in" "$work/out"
+check "  (and production is not touched)" not_called "PUT $P/edits/E1/tracks/production"
+check "  (and nothing is committed)" not_called ":commit"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+play submit 4185 1.0 "$work/notes" > "$work/out"
+check "a normal commit carries no changesNotSentForReview" bash -c "! grep -q changesNotSentForReview '$STUB_DIR/argv'"
+check "  (and says it was sent for review)" grep -q "which sends it for review" "$work/out"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+PLAY_CHANGES_NOT_SENT_FOR_REVIEW=true play submit 4185 1.0 "$work/notes" > "$work/out"
+check "PLAY_CHANGES_NOT_SENT_FOR_REVIEW=true commits with changesNotSentForReview=true" \
+    grep -qF "/edits/E1:commit?changesNotSentForReview=true" "$STUB_DIR/argv"
+check "  (and says it was NOT sent for review)" grep -q "NOT sent for review" "$work/out"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4102},{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+PLAY_CHANGES_NOT_SENT_FOR_REVIEW=true play upload "$work/app.aab" "$work/mapping.txt" 4185 1.0 > "$work/out"
+check "  (the internal upload commit takes it too)" \
+    grep -qF "/edits/E1:commit?changesNotSentForReview=true" "$STUB_DIR/argv"
+
+reset_stub
+echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"
+refuses "PLAY_CHANGES_NOT_SENT_FOR_REVIEW with any value but true or false" \
+    env PLAY_CHANGES_NOT_SENT_FOR_REVIEW=yes PATH="$stubbin:$PATH" GCP_TOKEN=gcp-token-ABC "$root/scripts/play-publish.sh" submit 4185 1.0 "$work/notes"
+check "  (and nothing is called at all)" test ! -s "$STUB_DIR/calls"
 
 reset_stub
 echo '{"bundles":[{"versionCode":4185}]}' > "$STUB_DIR/bundles"

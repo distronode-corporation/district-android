@@ -1016,6 +1016,169 @@ state = "reviewed"
 fr_variant = "numberProvider: a status label, capitalized like the provider names (the contract has no French for `unknown`)"
 note = "The numberProvider value `unknown` as the server sends it, shown with the portal's label; the portal has none, so English shows the value as sent."
 
+[wire.number_registration_end_user_type_business]
+en = "Business"
+fr = "Entreprise"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRegistrationEndUserType value `business` as the server sends it, shown with the portal's label (\"Business\")."
+
+[wire.number_registration_end_user_type_individual]
+en = "Individual"
+fr = "Particulier"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRegistrationEndUserType value `individual` as the server sends it, shown with the portal's label (\"Individual\")."
+
+[wire.number_registration_end_user_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "draft"
+note = "A numberRegistrationEndUserType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.number_registration_number_type_local]
+en = "Local"
+fr = "Local"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+same_ok = true
+note = "The numberRegistrationNumberType value `local` as the server sends it, shown with the portal's label (\"Local\")."
+
+[wire.number_registration_number_type_mobile]
+en = "Mobile"
+fr = "Mobile"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+same_ok = true
+note = "The numberRegistrationNumberType value `mobile` as the server sends it, shown with the portal's label (\"Mobile\")."
+
+[wire.number_registration_number_type_national]
+en = "National"
+fr = "National"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+same_ok = true
+note = "The numberRegistrationNumberType value `national` as the server sends it, shown with the portal's label (\"National\")."
+
+[wire.number_registration_number_type_toll_free]
+en = "Toll-free"
+fr = "Sans frais"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRegistrationNumberType value `toll free` as the server sends it, shown with the portal's label (\"Toll-free\")."
+
+[wire.number_registration_number_type_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "draft"
+note = "A numberRegistrationNumberType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.number_registration_status_draft]
+en = "Draft"
+fr = "Brouillon"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRegistrationStatus value `draft` as the server sends it, shown with the portal's label (\"Draft\")."
+
+[wire.number_registration_status_in_review]
+en = "In review"
+fr = "En cours d'examen"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+fr_variant = "numberRegistrationStatus: contract label"
+note = "The numberRegistrationStatus value `in-review` as the server sends it, shown with the portal's label (\"In review\")."
+
+[wire.number_registration_status_pending_review]
+en = "Pending review"
+fr = "En attente d'examen"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+fr_variant = "numberRegistrationStatus: contract label"
+note = "The numberRegistrationStatus value `pending-review` as the server sends it, shown with the portal's label (\"Pending review\")."
+
+[wire.number_registration_status_twilio_approved]
+en = "Approved"
+fr = "Approuvée"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRegistrationStatus value `twilio-approved` as the server sends it, shown with the portal's label (\"Approved\")."
+
+[wire.number_registration_status_twilio_rejected]
+en = "Rejected"
+fr = "Refusée"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRegistrationStatus value `twilio-rejected` as the server sends it, shown with the portal's label (\"Rejected\")."
+
+[wire.number_registration_status_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "draft"
+note = "A numberRegistrationStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
+[wire.number_requirement_kind_end_user]
+en = "Your details"
+fr = "Vos renseignements"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+note = "The numberRequirementKind value `end_user` as the server sends it, shown with the portal's label (\"Your details\")."
+
+[wire.number_requirement_kind_supporting_document]
+en = "Documents"
+fr = "Documents"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+state = "draft"
+same_ok = true
+note = "The numberRequirementKind value `supporting_document` as the server sends it, shown with the portal's label (\"Documents\")."
+
+[wire.number_requirement_kind_unknown]
+en = "{value}"
+fr = "Valeur inconnue\u00A0: {value}"
+ctx = "label"
+screen = "not shown in this app yet"
+tier = "T3"
+args = { value = "str" }
+state = "draft"
+note = "A numberRequirementKind value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
+
 [wire.number_status_active]
 en = "Active"
 fr = "Actif"
@@ -1144,7 +1307,7 @@ screen = "wire placeholder"
 tier = "T3"
 state = "reviewed"
 same_ok = true
-note = "Text the service stores or sends in English in place of a real value, in the booking name inside a scheduling timeline message. Shown where that value is shown."
+note = "Text the service stores or sends in English in place of a real value, in the booking name inside a booking line's Message.body, when the event type has no name and no slug (a French read, Accept-Language: fr-CA, gets the whole line in French from Message.bookingEvent). Shown where that value is shown."
 
 [wire.placeholder_customer]
 en = "Customer"

@@ -30,7 +30,7 @@ internal object ContractManifest {
      * without re-counting. A new fixture should arrive DECODED by its own test, so the count moves
      * and [NOT_YET_MODELLED] does not grow, which it may not.
      */
-    const val EXPECTED_FIXTURE_COUNT: Int = 211
+    const val EXPECTED_FIXTURE_COUNT: Int = 231
 
     /**
      * ⛔ SHRINK-ONLY RATCHET. [NOT_YET_MODELLED] may LOSE entries and must never gain one.
@@ -73,20 +73,50 @@ internal object ContractManifest {
     /**
      * Fixtures for routes Android never calls, because the feature is not on Android.
      *
-     * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Both entries are the iOS Live Activity
-     * routes (the call card on the Lock Screen and its push-to-start token). A DTO and a decode
+     * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
+     * calls because the feature is not on Android today: the iOS Live Activity routes, and the iOS
+     * parity routes (the native setup wizard, the integrations read, the campaign dialer, District HQ
+     * by voice, and native re-authentication, two-factor and account deletion). A DTO and a decode
      * test for a route nothing here calls would be coverage of nothing, so they are not in the
      * shrink-only list either. They are here only because the corpus is shared with iOS and every
-     * file must be accounted for.
+     * file must be accounted for. When Android gains one of these features, its fixtures leave this
+     * set with the DTO and decode test that read them.
      *
      * ⛔ PINNED EXACTLY: [ContractManifestTest] fails on any entry not on disk, any entry that
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 2
+    const val NOT_ON_ANDROID_COUNT: Int = 22
 
     val NOT_ON_ANDROID: Set<String> = setOf(
+        // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
+        "district-account-delete.json",
         "district-call-live-activity.json", // iOS Live Activity: the call card
+        // The campaign dialer: Android has the human dialer (`calls/dial`) only.
+        "district-calls-outbound.json",
+        // The integrations read: Android has no integrations screen.
+        "district-connections-viewer.json",
+        "district-connections.json",
+        // The setup wizard's forwarding check: Android's setup reads progress and finishes on the web.
+        "district-forwarding-check-start.json",
+        "district-forwarding-check.json",
+        // District HQ by voice: Android's HQ is the text console, which declines a proposal locally.
+        "district-hq-proposal-cancel.json",
+        "district-hq-voice-context.json",
+        "district-hq-voice-settings-put.json",
+        "district-hq-voice-settings.json",
+        "district-hq-voice-token-allowance.json",
+        "district-hq-voice-token.json",
         "district-live-activity-start-token.json", // iOS Live Activity: push-to-start token
+        // Two-factor and native re-authentication: Android signs in through the browser.
+        "district-mfa-confirm.json",
+        "district-mfa-disable.json",
+        "district-mfa-enroll.json",
+        "district-native-reauth.json",
+        // The rest of the native setup wizard (business lookup, the facts patch, the test call).
+        "district-setup-lookup-unreadable.json",
+        "district-setup-lookup.json",
+        "district-setup-patch.json",
+        "district-setup-test-call.json",
     )
 }

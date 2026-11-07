@@ -488,6 +488,47 @@ internal enum class WireCategory(
         upperCase = false,
         unknownTakesValue = true,
     ),
+    NUMBER_REGISTRATION_STATUS(
+        labels = mapOf(
+            "draft" to R.string.wire_number_registration_status_draft,
+            "pending-review" to R.string.wire_number_registration_status_pending_review,
+            "in-review" to R.string.wire_number_registration_status_in_review,
+            "twilio-approved" to R.string.wire_number_registration_status_twilio_approved,
+            "twilio-rejected" to R.string.wire_number_registration_status_twilio_rejected,
+        ),
+        unknown = R.string.wire_number_registration_status_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_REGISTRATION_END_USER_TYPE(
+        labels = mapOf(
+            "individual" to R.string.wire_number_registration_end_user_type_individual,
+            "business" to R.string.wire_number_registration_end_user_type_business,
+        ),
+        unknown = R.string.wire_number_registration_end_user_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_REGISTRATION_NUMBER_TYPE(
+        labels = mapOf(
+            "local" to R.string.wire_number_registration_number_type_local,
+            "mobile" to R.string.wire_number_registration_number_type_mobile,
+            "national" to R.string.wire_number_registration_number_type_national,
+            "toll free" to R.string.wire_number_registration_number_type_toll_free,
+        ),
+        unknown = R.string.wire_number_registration_number_type_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
+    NUMBER_REQUIREMENT_KIND(
+        labels = mapOf(
+            "end_user" to R.string.wire_number_requirement_kind_end_user,
+            "supporting_document" to R.string.wire_number_requirement_kind_supporting_document,
+        ),
+        unknown = R.string.wire_number_requirement_kind_unknown,
+        upperCase = false,
+        unknownTakesValue = true,
+    ),
 }
 
 /**

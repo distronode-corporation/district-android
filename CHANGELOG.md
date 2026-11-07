@@ -8,6 +8,12 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+### Changed
+
+- Contracts: the server's 20 new fixtures (for features this app does not have, recorded in
+  `NOT_ON_ANDROID`), and the error and wire catalogs regenerated: three error codes for
+  re-authentication and account deletion, four number registration categories.
+
 ### Fixed
 
 - Live calls: a busy workspace's calls past the newest 100 are listed, and listening to or taking

@@ -299,6 +299,15 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `checkout_subscription_exists`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.confirmation_mismatch]
+en = "Type the account's email address exactly to confirm."
+fr = "Tapez exactement l'adresse courriel du compte pour confirmer."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `confirmation_mismatch`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.connector_not_found]
 en = "That connector could not be found."
 fr = "Ce connecteur est introuvable."
@@ -1190,6 +1199,24 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `rate_limited`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.reauth_failed]
+en = "We could not confirm it is you. Please try again."
+fr = "Nous n'avons pas pu confirmer qu'il s'agit bien de vous. Veuillez réessayer."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `reauth_failed`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.reauth_required]
+en = "Confirm it is you again, then try once more."
+fr = "Confirmez de nouveau qu'il s'agit bien de vous, puis réessayez."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `reauth_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.region_elsewhere]
 en = "Your account is hosted in another region. Sign in there."

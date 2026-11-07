@@ -121,6 +121,12 @@ WIRE_CATEGORIES = {
     "schedulingWebhookDeliveryStatus": ("SCHEDULING_WEBHOOK_DELIVERY_STATUS", "label", NOT_SHOWN),
     "schedulingHostRole": ("SCHEDULING_HOST_ROLE", "label", NOT_SHOWN),
     "schedulingQuestionType": ("SCHEDULING_QUESTION_TYPE", "label", NOT_SHOWN),
+    # ⚠️ The registrations tab labels a filing's status with its own strings (RegistrationsTab.kt), not
+    # these, so the four number-registration categories are not shown from this catalog yet.
+    "numberRegistrationStatus": ("NUMBER_REGISTRATION_STATUS", "label", NOT_SHOWN),
+    "numberRegistrationEndUserType": ("NUMBER_REGISTRATION_END_USER_TYPE", "label", NOT_SHOWN),
+    "numberRegistrationNumberType": ("NUMBER_REGISTRATION_NUMBER_TYPE", "label", NOT_SHOWN),
+    "numberRequirementKind": ("NUMBER_REQUIREMENT_KIND", "label", NOT_SHOWN),
 }
 
 

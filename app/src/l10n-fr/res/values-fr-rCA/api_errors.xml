@@ -34,6 +34,7 @@
     <string name="api_error_carrier_rejected">Le transporteur a refusé cette inscription. Corrigez les éléments indiqués, puis soumettez de nouveau.</string>
     <string name="api_error_checkout_setup_in_progress">Votre forfait est déjà payé. Terminez la configuration de votre réceptionniste depuis votre tableau de bord avant d\'acheter un autre forfait.</string>
     <string name="api_error_checkout_subscription_exists">Vous avez déjà un forfait actif. Modifiez-le depuis la section Facturation de votre tableau de bord plutôt que d\'en acheter un deuxième.</string>
+    <string name="api_error_confirmation_mismatch">Tapez exactement l\'adresse courriel du compte pour confirmer.</string>
     <string name="api_error_connector_not_found">Ce connecteur est introuvable.</string>
     <string name="api_error_contact_not_found">Ce contact est introuvable dans cet espace de travail.</string>
     <string name="api_error_default_card_in_use">Définissez une autre carte comme carte par défaut avant de retirer celle-ci.</string>
@@ -133,6 +134,8 @@
     <string name="api_error_provider_requires_twilio">Cette fonction exige pour l\'instant un compte Twilio connecté à cet espace de travail.</string>
     <string name="api_error_provider_unsupported">Ce fournisseur n\'est pas pris en charge ici.</string>
     <string name="api_error_rate_limited">Cette action a été tentée plusieurs fois à l\'instant. Attendez un moment, puis réessayez.</string>
+    <string name="api_error_reauth_failed">Nous n\'avons pas pu confirmer qu\'il s\'agit bien de vous. Veuillez réessayer.</string>
+    <string name="api_error_reauth_required">Confirmez de nouveau qu\'il s\'agit bien de vous, puis réessayez.</string>
     <string name="api_error_region_elsewhere">Votre compte est hébergé dans une autre région. Connectez-vous dans cette région.</string>
     <string name="api_error_region_handoff">Ce paiement se poursuit sur le site de la région des données que vous avez choisie.</string>
     <string name="api_error_region_move_not_found">Aucune demande de changement de région n\'est en cours pour cet espace de travail.</string>

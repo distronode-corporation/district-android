@@ -28,7 +28,7 @@ description = "LiveKit E2EE keys in contract fixtures and tests (test data)"
 targetRules = ["generic-api-key"]
 condition = "AND"
 paths = [
-  '''(^|/)contracts/district-(room-token|room-token-viewer|persona-preview-token)\.json$''',
+  '''(^|/)contracts/district-(room-token|room-token-viewer|persona-preview-token|hq-voice-token)\.json$''',
   '''(^|/)app/src/test/kotlin/com/distronode/districtai/ui/rooms/ActiveRoomViewModelTest\.kt$''',
   '''(^|/)app/src/test/kotlin/com/distronode/districtai/ui/settings/workspace/PersonaPreviewViewModelTest\.kt$''',
   '''(^|/)core/core-data/src/test/kotlin/com/distronode/districtai/core/data/PersonaOptionsRepositoryTest\.kt$''',
@@ -40,6 +40,7 @@ regexes = [
   '''^cUwBK6pBSbabCBfQZ8VZW\+bW5dOg2dwb3JG8q7E4Jc4=$''',
   '''^YfxKDUkaaGp2WrLLGHCHbe2nn5ArCWBd\+x\+k7EzDr/8=$''',
   '''^CgAZ6Mja5niqpHLjUH0iEwcJVPHbcGBtE51R056G4OE=$''',
+  '''^YFT\+/ceW4bhgizPFpeX9E5a3PVZ9T07aWRQq4uwQwW0=$''',
 ]
 
 # The published SHA-256 of the sentry-cli release binary that release.yml pins and checks before

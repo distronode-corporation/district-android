@@ -119,9 +119,9 @@ Secret scanners flag these. Each is deliberate:
   (`API_KEY`, the sender id and the app ids). It ships in every APK, identifies the Firebase
   project to Google's client SDKs and grants nothing by itself. Sending a push needs a service
   account that only the server holds.
-- **LiveKit end-to-end-encryption keys** in three contract fixtures
+- **LiveKit end-to-end-encryption keys** in four contract fixtures
   (`contracts/district-room-token.json`, `district-room-token-viewer.json`,
-  `district-persona-preview-token.json`) and in the unit tests that use them
+  `district-persona-preview-token.json`, `district-hq-voice-token.json`) and in the unit tests that use them
   (`ActiveRoomViewModelTest`, `PersonaPreviewViewModelTest`, `PersonaOptionsRepositoryTest`,
   `PersonaOptionsContractFixtureTest`, `CallEngineModelsTest`, `LiveKitCallEngineTest`). They
   are produced by the server's test suite from fixed test inputs, are reproducible from those

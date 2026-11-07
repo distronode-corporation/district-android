@@ -36,7 +36,7 @@
 
 [versions]
 # ── Build tooling ────────────────────────────────────────────────────────────
-agp = "9.5.0"
+agp = "9.5.1"
 
 # ⛔ KOTLIN IS ABOVE THE KGP AGP BUNDLES, ON PURPOSE, AND THROUGH ONE ROUTE ONLY.
 # AGP 9.0 introduced *built-in Kotlin*: the `org.jetbrains.kotlin.android` plugin is

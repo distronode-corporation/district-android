@@ -34,6 +34,7 @@
     <string name="api_error_carrier_rejected">The carrier refused this registration. Fix the items listed and submit again.</string>
     <string name="api_error_checkout_setup_in_progress">Your plan is already paid for. Finish setting up your receptionist from your dashboard before buying another plan.</string>
     <string name="api_error_checkout_subscription_exists">You already have an active plan. Change it from Billing in your dashboard instead of buying a second one.</string>
+    <string name="api_error_confirmation_mismatch">Type the account\'s email address exactly to confirm.</string>
     <string name="api_error_connector_not_found">That connector could not be found.</string>
     <string name="api_error_contact_not_found">That contact could not be found in this workspace.</string>
     <string name="api_error_default_card_in_use">Set another card as default before removing this one.</string>
@@ -133,6 +134,8 @@
     <string name="api_error_provider_requires_twilio">That feature currently needs a Twilio account connected to this workspace.</string>
     <string name="api_error_provider_unsupported">That provider is not supported here.</string>
     <string name="api_error_rate_limited">That has been tried several times just now. Please wait a moment and try again.</string>
+    <string name="api_error_reauth_failed">We could not confirm it is you. Please try again.</string>
+    <string name="api_error_reauth_required">Confirm it is you again, then try once more.</string>
     <string name="api_error_region_elsewhere">Your account is hosted in another region. Sign in there.</string>
     <string name="api_error_region_handoff">This checkout continues on the site for the data region you chose.</string>
     <string name="api_error_region_move_not_found">There is no open region move request for this workspace.</string>

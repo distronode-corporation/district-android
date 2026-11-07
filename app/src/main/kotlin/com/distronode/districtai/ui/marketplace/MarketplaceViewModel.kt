@@ -24,8 +24,9 @@ import kotlinx.coroutines.launch
  * nobody asked — and would fill the tab with US local numbers regardless of where the workspace
  * operates.
  *
- * ⛔ NOTHING HERE WRITES. There is no purchase, release or configure path in this ViewModel
- * because there is none in the client at all — see [MarketplaceUiState].
+ * ⛔ NOTHING HERE WRITES. This ViewModel only reads. Releasing and configuring a number are
+ * [NumberProvisioningViewModel]'s, with their own state, so a failed write never blanks either
+ * read; buying opens the web marketplace and has no path in the app (see [MarketplaceUiState]).
  */
 class MarketplaceViewModel(
     private val repository: NumbersRepository,

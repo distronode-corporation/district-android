@@ -530,6 +530,14 @@
       "en": "That WhatsApp template cannot be sent. It is not approved for this number, or its variables do not match it.",
       "fr": "Ce modèle WhatsApp ne peut pas être envoyé. Il n'est pas approuvé pour ce numéro, ou ses variables ne lui correspondent pas."
     },
+    "messenger_window_closed": {
+      "en": "The Messenger or Instagram reply window with this contact is closed. You can reply once they write to you again.",
+      "fr": "La fenêtre de réponse Messenger ou Instagram avec ce contact est fermée. Vous pourrez répondre quand il vous écrira de nouveau."
+    },
+    "sms_reply_not_customer_channel": {
+      "en": "This customer writes on WhatsApp, Messenger or Instagram and has never texted this number. Reply on their channel from the notification, the web Inbox or an updated app.",
+      "fr": "Ce client écrit sur WhatsApp, Messenger ou Instagram et n'a jamais envoyé de texto à ce numéro. Répondez-lui sur son canal à partir de la notification, de la boîte de réception Web ou d'une version à jour de l'application."
+    },
     "messaging_apps_managed": {
       "en": "Messaging apps cannot be connected on the platform's Sinch account. Connect your own Sinch account to add WhatsApp, Messenger or RCS.",
       "fr": "Les applications de messagerie ne peuvent pas être connectées sur le compte Sinch de la plateforme. Connectez votre propre compte Sinch pour ajouter WhatsApp, Messenger ou RCS."

@@ -95,6 +95,15 @@ data class TimelineEvent(
     val subject: String? = null,
     /** MMS/email attachments. Absent on a plain SMS. */
     val mediaUrls: List<String> = emptyList(),
+    /**
+     * One entry per [mediaUrls] URL, in the same order, with its type and name. Absent on a plain
+     * SMS, like [mediaUrls].
+     *
+     * ⚠️ READ THROUGH [fileAttachmentFor], NOT BY INDEX. A URL with no entry here (a row recorded
+     * before the server sent this key) is drawn as an image, which is what every attachment was
+     * drawn as before.
+     */
+    val attachments: List<TimelineAttachment> = emptyList(),
     /** Call only, in seconds. */
     val duration: Int? = null,
     /** The voice agent's post-call summary, when one exists. */
@@ -108,10 +117,34 @@ data class TimelineEvent(
     /** True for a call that was never answered — rendered as an event, not as a bubble. */
     val isMissedCall: Boolean get() = type == CALL && direction == MISSED
 
+    /**
+     * The attachment behind [url] when the server says it is NOT an image (a PDF, say), else null.
+     *
+     * ⛔ A FILE IS NEVER HANDED TO THE THUMBNAIL LOADER. The loader downloads the whole body and
+     * asks `BitmapFactory` to decode it, so a PDF cost its full download and then read as an image
+     * that failed to load.
+     */
+    fun fileAttachmentFor(url: String): TimelineAttachment? =
+        attachments.firstOrNull { it.url == url }?.takeUnless { it.isImage }
+
     private companion object {
         const val CALL = "call"
         const val MISSED = "missed"
     }
+}
+
+/**
+ * One attachment of a [TimelineEvent]: its URL (one of the event's `mediaUrls`), its MIME type and
+ * the file name the server shows for it.
+ */
+@Serializable
+data class TimelineAttachment(
+    val url: String = "",
+    val mimeType: String = "",
+    val fileName: String = "",
+) {
+    /** An `image/` type. An empty type counts as an image, the shape every attachment had before. */
+    val isImage: Boolean get() = mimeType.isEmpty() || mimeType.startsWith("image/")
 }
 
 /**

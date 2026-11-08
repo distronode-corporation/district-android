@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import kotlinx.coroutines.CoroutineDispatcher
@@ -196,6 +198,44 @@ fun MediaImage(
 }
 
 /**
+ * One attachment that is not an image, drawn as a tappable tile carrying its file name.
+ *
+ * ⛔ NOTHING IS FETCHED. [MediaImage]'s loader downloads the whole body to decode it, so a PDF
+ * there cost its full download and then read as an image that failed to load. Tapping opens the
+ * URL the same way a thumbnail does.
+ *
+ * ⚠️ THE NAME IS THE SERVER'S `fileName`, which is data, not copy. An empty one falls back to the
+ * URL's last path segment so the tile is never blank.
+ */
+@Composable
+fun MediaFile(
+    url: String,
+    fileName: String,
+    onOpen: (String) -> Unit,
+) {
+    val label = fileName.ifBlank { url.substringBefore('?').substringAfterLast('/') }
+    Box(
+        modifier = Modifier
+            .size(THUMBNAIL_SIZE)
+            .clip(RoundedCornerShape(THUMBNAIL_RADIUS))
+            .background(DistrictTheme.colors.muted)
+            .clickable { onOpen(url) }
+            .testTag(THREAD_MEDIA_FILE_DESCRIPTION),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = DistrictTheme.colors.foreground,
+            textAlign = TextAlign.Center,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(DistrictTheme.spacing.hairline),
+        )
+    }
+}
+
+/**
  * ⛔ THREE STATES, NOT A NULLABLE BITMAP. Null cannot say whether the fetch is in flight or has
  * already failed, and rendering a permanent shimmer for an image that will never arrive is the
  * worst of the three outcomes — the operator waits for something that is not coming.
@@ -213,6 +253,7 @@ private val THUMBNAIL_RADIUS = 8.dp
 const val THREAD_MEDIA_DESCRIPTION: String = "district-thread-media"
 const val THREAD_MEDIA_LOADING_DESCRIPTION: String = "district-thread-media-loading"
 const val THREAD_MEDIA_FAILED_DESCRIPTION: String = "district-thread-media-failed"
+const val THREAD_MEDIA_FILE_DESCRIPTION: String = "district-thread-media-file"
 
 /** The smallest a thumbnail's status word gets, in dp so a large font cannot push it out of the tile. */
 private val TILE_TEXT_FLOOR = 9.dp

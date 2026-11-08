@@ -390,7 +390,7 @@ class ContractFixtureTest {
         val response = json.decodeFromString<TimelineResponse>(fixture("district-timeline.json"))
 
         assertEquals(true, response.success)
-        assertEquals(5, response.timeline.size)
+        assertEquals(6, response.timeline.size)
 
         // ⛔ CALLS ARE IN THE MESSAGE THREAD ON PURPOSE. An operator reading a conversation needs
         // to see that the customer phoned between two texts. A client that filtered this to
@@ -438,6 +438,13 @@ class ContractFixtureTest {
         // to decode, and the empty case must arrive as an empty list rather than throwing.
         assertTrue("fixture must cover an MMS", sms.any { it.mediaUrls.isNotEmpty() })
         assertTrue("fixture must cover a plain SMS", sms.any { it.mediaUrls.isEmpty() })
+        // ⚠️ attachments PAIRS WITH mediaUrls, one entry per URL in the same order, and says which
+        // URL is a file rather than an image. Only the file is kept away from the thumbnail loader.
+        sms.forEach { event -> assertEquals(event.mediaUrls, event.attachments.map { it.url }) }
+        val photo = sms.first { it.attachments.any { a -> a.mimeType == "image/jpeg" } }
+        assertNull(photo.fileAttachmentFor(photo.mediaUrls.single()))
+        val quote = sms.first { it.attachments.any { a -> a.mimeType == "application/pdf" } }
+        assertEquals("Roof quote.pdf", quote.fileAttachmentFor(quote.mediaUrls.single())?.fileName)
 
         // ⛔ pageInfo IS ALWAYS PRESENT, CURSOR OR NOT — it is not a field that appears only when
         // there is more to read. This fixture is a short thread, so `hasMore` is false and the

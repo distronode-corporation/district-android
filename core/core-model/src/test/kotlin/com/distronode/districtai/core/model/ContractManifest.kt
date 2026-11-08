@@ -30,7 +30,7 @@ internal object ContractManifest {
      * without re-counting. A new fixture should arrive DECODED by its own test, so the count moves
      * and [NOT_YET_MODELLED] does not grow, which it may not.
      */
-    const val EXPECTED_FIXTURE_COUNT: Int = 231
+    const val EXPECTED_FIXTURE_COUNT: Int = 233
 
     /**
      * ⛔ SHRINK-ONLY RATCHET. [NOT_YET_MODELLED] may LOSE entries and must never gain one.
@@ -86,7 +86,7 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 22
+    const val NOT_ON_ANDROID_COUNT: Int = 24
 
     val NOT_ON_ANDROID: Set<String> = setOf(
         // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
@@ -103,6 +103,8 @@ internal object ContractManifest {
         // District HQ by voice: Android's HQ is the text console, which declines a proposal locally.
         "district-hq-proposal-cancel.json",
         "district-hq-voice-context.json",
+        "district-hq-voice-discard.json",
+        "district-hq-voice-end.json",
         "district-hq-voice-settings-put.json",
         "district-hq-voice-settings.json",
         "district-hq-voice-token-allowance.json",

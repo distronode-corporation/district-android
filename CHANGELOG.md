@@ -13,6 +13,9 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - Contracts: the server's 20 new fixtures (for features this app does not have, recorded in
   `NOT_ON_ANDROID`), and the error and wire catalogs regenerated: three error codes for
   re-authentication and account deletion, four number registration categories.
+- Contracts: the server's two HQ voice session endings (`district-hq-voice-end.json`, the
+  member's Stop, and `district-hq-voice-discard.json`, a session that never started), also in
+  `NOT_ON_ANDROID`: HQ by voice is not on Android.
 
 ### Fixed
 

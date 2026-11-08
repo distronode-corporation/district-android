@@ -588,7 +588,13 @@ private fun MessageBubble(
                     horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
                 ) {
                     event.mediaUrls.forEach { url ->
-                        MediaImage(url = url, loader = imageLoader, onOpen = onOpenMedia)
+                        // ⚠️ A FILE (a PDF quote, say) is a named tile, never a thumbnail fetch.
+                        val file = event.fileAttachmentFor(url)
+                        if (file != null) {
+                            MediaFile(url = url, fileName = file.fileName, onOpen = onOpenMedia)
+                        } else {
+                            MediaImage(url = url, loader = imageLoader, onOpen = onOpenMedia)
+                        }
                     }
                 }
             }

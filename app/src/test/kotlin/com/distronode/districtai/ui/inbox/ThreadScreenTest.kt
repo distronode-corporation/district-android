@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.core.designsystem.DistrictTheme
+import com.distronode.districtai.core.model.TimelineAttachment
 import com.distronode.districtai.core.model.TimelineEvent
 import com.distronode.districtai.core.model.UploadedMedia
 import com.distronode.districtai.R
@@ -477,6 +478,59 @@ class ThreadScreenTest {
         composeRule.onNodeWithTag(THREAD_MEDIA_DESCRIPTION).performClick()
 
         assertEquals("https://x/api/media/m1", opened)
+    }
+
+    /**
+     * ⛔ A FILE IS NEVER FETCHED AS A THUMBNAIL. The loader downloads the whole body to decode it,
+     * so a PDF cost its download and then read as an image that failed to load.
+     */
+    @Test
+    fun `a pdf attachment is a named tile that fetches nothing and opens its url`() {
+        val pdf = "https://x/api/media/m2?name=Roof%20quote.pdf"
+        val photo = "https://x/api/media/m1"
+        val fetched = mutableListOf<String>()
+        var opened: String? = null
+        render(
+            ThreadUiState.Content(
+                listOf(
+                    message(media = listOf(photo, pdf)).copy(
+                        attachments = listOf(
+                            TimelineAttachment(url = photo, mimeType = "image/jpeg", fileName = "roof.jpg"),
+                            TimelineAttachment(url = pdf, mimeType = "application/pdf", fileName = "Roof quote.pdf"),
+                        ),
+                    ),
+                ),
+            ),
+            wiring = Wiring(
+                imageLoader = MediaImageLoader { url ->
+                    fetched += url
+                    null
+                },
+                onOpenMedia = { opened = it },
+            ),
+        )
+
+        composeRule.onNodeWithText("Roof quote.pdf", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("2 attachments").assertIsDisplayed()
+        composeRule.waitForIdle()
+        assertEquals(listOf(photo), fetched)
+
+        composeRule.onNodeWithTag(THREAD_MEDIA_FILE_DESCRIPTION).performClick()
+        assertEquals(pdf, opened)
+    }
+
+    @Test
+    fun `an attachment with no type recorded is still drawn as an image`() {
+        val url = "https://x/api/media/m1"
+        render(
+            ThreadUiState.Content(
+                listOf(message(media = listOf(url)).copy(attachments = listOf(TimelineAttachment(url = url)))),
+            ),
+            wiring = Wiring(imageLoader = MediaImageLoader { null }),
+        )
+
+        composeRule.onNodeWithTag(THREAD_MEDIA_FAILED_DESCRIPTION, useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag(THREAD_MEDIA_FILE_DESCRIPTION, useUnmergedTree = true).assertDoesNotExist()
     }
 
     // ── Expand-only paging ───────────────────────────────────────────────────

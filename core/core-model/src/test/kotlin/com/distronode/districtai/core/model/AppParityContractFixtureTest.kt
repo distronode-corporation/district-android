@@ -65,6 +65,17 @@ class AppParityContractFixtureTest {
     }
 
     @Test
+    fun `call handling decodes its read and the patch's echo`() {
+        val read = WireMirror.assertMirrors(CallHandlingResponse.serializer(), "district-call-handling.json")
+        val patch = WireMirror.assertMirrors(CallHandlingResponse.serializer(), "district-call-handling-patch.json")
+
+        assertEquals(CallHandling.AI_THEN_APP, read.callHandling)
+        assertTrue(CallHandling.isKnown(patch.callHandling))
+        assertEquals(CallHandling.clampRing(read.appRingSeconds), read.appRingSeconds)
+        assertEquals(true, patch.success)
+    }
+
+    @Test
     fun `assign returns the row and unassign returns null`() {
         val assigned = WireMirror.assertMirrors(
             ConversationAssignResponse.serializer(),

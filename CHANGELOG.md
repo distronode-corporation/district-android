@@ -16,9 +16,16 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - Contracts: the server's two HQ voice session endings (`district-hq-voice-end.json`, the
   member's Stop, and `district-hq-voice-discard.json`, a session that never started), also in
   `NOT_ON_ANDROID`: HQ by voice is not on Android.
+- Contracts: the server's call handling, email identity, two-factor status, sending domain,
+  settings calendar disconnect and agent picture library fixtures. Call handling is decoded;
+  the other nine are in `NOT_ON_ANDROID`. The timeline fixtures now carry each attachment's
+  type and file name, which the timeline decodes.
 
 ### Fixed
 
+- Threads: a PDF or other file attached to a message shows as a tile with its file name and
+  opens in the browser, instead of being downloaded whole for a thumbnail and then shown as
+  "Image unavailable".
 - Live calls: a busy workspace's calls past the newest 100 are listed, and listening to or taking
   over one of them no longer ends when newer calls push it down the list.
 - TalkBack: the unread count, the assign picker, the reply channel and template choices, the

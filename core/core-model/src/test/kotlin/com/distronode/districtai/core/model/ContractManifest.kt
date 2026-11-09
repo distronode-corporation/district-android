@@ -30,7 +30,7 @@ internal object ContractManifest {
      * without re-counting. A new fixture should arrive DECODED by its own test, so the count moves
      * and [NOT_YET_MODELLED] does not grow, which it may not.
      */
-    const val EXPECTED_FIXTURE_COUNT: Int = 244
+    const val EXPECTED_FIXTURE_COUNT: Int = 245
 
     /**
      * ⛔ SHRINK-ONLY RATCHET. [NOT_YET_MODELLED] may LOSE entries and must never gain one.
@@ -76,9 +76,10 @@ internal object ContractManifest {
      * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
      * calls because the feature is not on Android today: the iOS Live Activity routes, the iOS
      * parity routes (the native setup wizard, the integrations read, the campaign dialer, District HQ
-     * by voice, and native re-authentication, two-factor and account deletion), and the web
+     * by voice, and native re-authentication, two-factor and account deletion), the web
      * settings routes Android has no screen for (the email identity, the sending domain, the
-     * calendar disconnect and the agent's picture library). A DTO and a decode
+     * calendar disconnect and the agent's picture library), and the destructive campaign-settings
+     * write Android refuses to call (it pauses through `campaign-status`). A DTO and a decode
      * test for a route nothing here calls would be coverage of nothing, so they are not in the
      * shrink-only list either. They are here only because the corpus is shared with iOS and every
      * file must be accounted for. When Android gains one of these features, its fixtures leave this
@@ -88,7 +89,7 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 33
+    const val NOT_ON_ANDROID_COUNT: Int = 34
 
     val NOT_ON_ANDROID: Set<String> = setOf(
         // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
@@ -102,6 +103,8 @@ internal object ContractManifest {
         "district-call-live-activity.json", // iOS Live Activity: the call card
         // The campaign dialer: Android has the human dialer (`calls/dial`) only.
         "district-calls-outbound.json",
+        // The destructive campaign-settings write: Android pauses through `campaign-status` only.
+        "district-campaign-settings.json",
         // The integrations read: Android has no integrations screen.
         "district-connections-viewer.json",
         "district-connections.json",

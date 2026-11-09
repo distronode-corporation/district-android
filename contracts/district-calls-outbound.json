@@ -9,10 +9,22 @@
       "accountId": "acct_contract"
     },
     {
+      "contactId": "contact_country",
+      "status": "skipped",
+      "error": "Automated calls are not permitted to this contact's country.",
+      "code": "auto_dial_country_not_permitted"
+    },
+    {
+      "contactId": "contact_hours",
+      "status": "skipped",
+      "error": "Outside the hours automated calls may be placed (09:00-20:00 Monday to Friday and 10:00-18:00 on weekends, in the called party's local time).",
+      "code": "auto_dial_outside_hours"
+    },
+    {
       "contactId": "contact_dnc",
       "status": "skipped",
-      "error": "Number is on the Do Not Call list",
-      "code": "do_not_call"
+      "error": "Contact is opted out (DNC)",
+      "code": "auto_dial_contact_opted_out"
     },
     {
       "contactId": "contact_failed",

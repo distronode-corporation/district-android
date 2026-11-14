@@ -415,6 +415,10 @@
       "en": "This workspace is billed through Microsoft Marketplace, which sets its plan and subscription status. Change them in Microsoft, or move the workspace off Microsoft billing once its Microsoft subscription is cancelled.",
       "fr": "Cet espace de travail est facturé par Microsoft Marketplace, qui fixe son forfait et l'état de son abonnement. Modifiez-les chez Microsoft, ou retirez l'espace de travail de la facturation Microsoft une fois son abonnement Microsoft annulé."
     },
+    "marketplace_cancel_refused": {
+      "en": "Microsoft would not cancel a Microsoft Marketplace subscription on your workspace, so nothing was deleted. Cancel it in the Microsoft 365 admin center, then try again.",
+      "fr": "Microsoft n'a pas voulu annuler un abonnement Microsoft Marketplace de votre espace de travail; rien n'a donc été supprimé. Annulez-le dans le Centre d'administration Microsoft 365, puis réessayez."
+    },
     "marketplace_intro_numbers_locked": {
       "en": "Phone numbers can be added 72 hours after your Microsoft Marketplace subscription is activated.",
       "fr": "Les numéros de téléphone peuvent être ajoutés 72 heures après l'activation de votre abonnement Microsoft Marketplace."

@@ -95,6 +95,7 @@
     <string name="api_error_mailbox_not_found">No mailbox is connected to this workspace.</string>
     <string name="api_error_managed_billing_required">Managed carrier billing is not enabled for this workspace. Contact support to switch to a managed plan.</string>
     <string name="api_error_marketplace_billed_workspace">This workspace is billed through Microsoft Marketplace, which sets its plan and subscription status. Change them in Microsoft, or move the workspace off Microsoft billing once its Microsoft subscription is cancelled.</string>
+    <string name="api_error_marketplace_cancel_refused">Microsoft would not cancel a Microsoft Marketplace subscription on your workspace, so nothing was deleted. Cancel it in the Microsoft 365 admin center, then try again.</string>
     <string name="api_error_marketplace_intro_minutes_reached">This workspace has used its plan\'s included voice minutes. For the first 72 hours after your Microsoft Marketplace subscription is activated, outgoing calls stop at the included minutes. They resume when the 72 hours end.</string>
     <string name="api_error_marketplace_intro_numbers_locked">Phone numbers can be added 72 hours after your Microsoft Marketplace subscription is activated.</string>
     <string name="api_error_marketplace_subscription_pending">This workspace\'s Microsoft Marketplace purchase is still being set up. Calls and messaging start once Microsoft confirms it.</string>

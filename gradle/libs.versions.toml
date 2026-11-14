@@ -191,7 +191,7 @@ kover = "0.9.11"
 # the fix is a detekt upgrade, not a code change.
 detekt = "1.23.8"
 
-livekit = "2.29.2"
+livekit = "2.30.0"
 
 # ── Push ─────────────────────────────────────────────────────────────────────
 # ⛔ THE MESSAGING ARTIFACT ONLY, AND DELIBERATELY NO FIREBASE BOM. A BoM would
@@ -216,10 +216,10 @@ livekit = "2.29.2"
 firebaseMessaging = "26.0.1"
 
 # ── Crash reporting ──────────────────────────────────────────────────────────
-# ⚠️ 8.58.0 is the latest stable `io.sentry:sentry-android-core` (and `io.sentry:sentry`),
-# resolved from the Maven Central metadata on 2026-09-26. It is also the exact
-# `io.sentry:sentry` version the 6.23.0 Gradle plugin below carries as a runtime dependency
-# (read from that plugin's POM), so the two lines move together: a plugin newer than the SDK
+# ⚠️ 8.63.0 is the exact `io.sentry:sentry` version the 6.26.0 Gradle plugin below carries
+# as a runtime dependency (read from that plugin's POM on Maven Central, 2026-11-14), and
+# this pins `io.sentry:sentry-android-core` to the same version. It is not necessarily the
+# newest SDK release: the two lines move together, because a plugin newer than the SDK
 # uploads a mapping keyed to a UUID the SDK does not report.
 #
 # ⛔ `sentry-android-core`, NOT THE `sentry-android` AGGREGATOR, AND THE OBVIOUS REASON
@@ -238,15 +238,15 @@ firebaseMessaging = "26.0.1"
 # instrumentation this app has decided not to pay for.
 #
 # ⚠️ IT STILL BRINGS ONE NON-OBVIOUS THIRD-PARTY COORDINATE, AND DEPENDENCY SCANNING WILL
-# SURFACE IT: `com.abovevacant:epitaph:0.1.1`, a 31 KB MIT-licensed Android tombstone
-# protobuf decoder with two published releases and a single maintainer. It is declared by
+# SURFACE IT: `com.abovevacant:epitaph:0.2.0` (as of 8.63.0), an MIT-licensed Android tombstone
+# protobuf decoder from a single maintainer. It is declared by
 # Sentry's OWN published POM and Gradle module metadata (verified against Maven Central,
 # not inferred), so it is an upstream choice rather than anything this build resolved
 # oddly. `io.sentry.android.core.internal.tombstone.TombstoneParser` references it
 # directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
 # reporter is a worse outcome than the coordinate. With no native code here it parses
 # nothing.
-sentry = "8.62.0"
+sentry = "8.63.0"
 
 # ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
 # renames every class in the release build, so a crash report without the mapping is a
@@ -261,7 +261,7 @@ sentry = "8.62.0"
 # source of truth and silently disagree with the lockfiles; `tracingInstrumentation`
 # rewrites bytecode to add performance spans, which is ingest this account is not
 # paying for. See the `sentry { }` block for the rest.
-sentryGradlePlugin = "6.25.0"
+sentryGradlePlugin = "6.26.0"
 
 # ── Forced transitive versions ───────────────────────────────────────────────
 # ⛔ NO LIBRARY ENTRY USES THIS, AND THAT IS DELIBERATE. bouncycastle is never declared

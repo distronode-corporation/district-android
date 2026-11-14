@@ -849,6 +849,15 @@ tier = "T2"
 state = "draft"
 note = "The sentence for the server's error code `marketplace_billed_workspace`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.marketplace_cancel_refused]
+en = "Microsoft would not cancel a Microsoft Marketplace subscription on your workspace, so nothing was deleted. Cancel it in the Microsoft 365 admin center, then try again."
+fr = "Microsoft n'a pas voulu annuler un abonnement Microsoft Marketplace de votre espace de travail; rien n'a donc été supprimé. Annulez-le dans le Centre d'administration Microsoft 365, puis réessayez."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `marketplace_cancel_refused`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.marketplace_intro_minutes_reached]
 en = "This workspace has used its plan's included voice minutes. For the first 72 hours after your Microsoft Marketplace subscription is activated, outgoing calls stop at the included minutes. They resume when the 72 hours end."
 fr = "Cet espace de travail a utilisé les minutes vocales incluses dans son forfait. Pendant les 72 heures suivant l'activation de votre abonnement Microsoft Marketplace, les appels sortants s'arrêtent aux minutes incluses. Ils reprennent à la fin de ces 72 heures."

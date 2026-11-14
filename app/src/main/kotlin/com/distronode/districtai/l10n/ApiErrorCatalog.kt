@@ -106,6 +106,7 @@ internal val API_ERROR_SENTENCES: Map<String, Int> = mapOf(
     "default_card_in_use" to R.string.api_error_default_card_in_use,
     "checkout_marketplace_billed" to R.string.api_error_checkout_marketplace_billed,
     "marketplace_billed_workspace" to R.string.api_error_marketplace_billed_workspace,
+    "marketplace_cancel_refused" to R.string.api_error_marketplace_cancel_refused,
     "marketplace_intro_numbers_locked" to R.string.api_error_marketplace_intro_numbers_locked,
     "marketplace_intro_minutes_reached" to R.string.api_error_marketplace_intro_minutes_reached,
     "microsoft_attach_stripe_billed" to R.string.api_error_microsoft_attach_stripe_billed,

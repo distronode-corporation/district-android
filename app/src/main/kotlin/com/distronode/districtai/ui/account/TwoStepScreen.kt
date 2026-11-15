@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
@@ -78,7 +79,7 @@ private fun TwoStepContent(state: TwoStepUiState, actions: TwoStepActions) {
             TwoStepMessages(state)
             DistrictButton(
                 text = stringResource(R.string.two_step_retry),
-                onClick = actions::load,
+                onClick = @DontMemoize { actions.load() },
                 variant = ButtonVariant.Secondary,
                 enabled = !state.busy,
                 modifier = Modifier.testTag(TWO_STEP_RETRY_TAG),
@@ -99,9 +100,9 @@ private fun TwoStepContent(state: TwoStepUiState, actions: TwoStepActions) {
                     },
                 ),
                 busy = state.busy,
-                onProvider = actions::reauthenticate,
-                onUsePassword = actions::usePassword,
-                onBack = actions::back,
+                onProvider = @DontMemoize { actions.reauthenticate(it) },
+                onUsePassword = @DontMemoize { actions.usePassword() },
+                onBack = @DontMemoize { actions.back() },
             )
         }
         is TwoStepStep.Password -> {
@@ -112,10 +113,10 @@ private fun TwoStepContent(state: TwoStepUiState, actions: TwoStepActions) {
                 needsCode = step.needsCode,
                 busy = state.busy,
                 canSubmit = state.canSubmitPassword,
-                onPassword = { actions.onField(TwoStepField.PASSWORD, it) },
-                onCode = { actions.onField(TwoStepField.CODE, it) },
-                onSubmit = actions::submitPassword,
-                onBack = actions::back,
+                onPassword = @DontMemoize { actions.onField(TwoStepField.PASSWORD, it) },
+                onCode = @DontMemoize { actions.onField(TwoStepField.CODE, it) },
+                onSubmit = @DontMemoize { actions.submitPassword() },
+                onBack = @DontMemoize { actions.back() },
             )
         }
         // ⚠️ NO MESSAGE LINE ABOVE THE CARD HERE: the card is taller than a phone, so a refusal drawn
@@ -162,7 +163,7 @@ private fun TwoStepStatusCard(
             if (signsInWithoutPassword) AccountParagraph(stringResource(R.string.two_step_no_password_note))
             DistrictButton(
                 text = stringResource(R.string.two_step_turn_off),
-                onClick = { actions.begin(TwoStepIntent.TURN_OFF) },
+                onClick = @DontMemoize { actions.begin(TwoStepIntent.TURN_OFF) },
                 variant = ButtonVariant.Danger,
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().testTag(TWO_STEP_TURN_OFF_TAG),
@@ -171,7 +172,7 @@ private fun TwoStepStatusCard(
             AccountParagraph(stringResource(R.string.two_step_off_explain))
             DistrictButton(
                 text = stringResource(R.string.two_step_turn_on),
-                onClick = { actions.begin(TwoStepIntent.TURN_ON) },
+                onClick = @DontMemoize { actions.begin(TwoStepIntent.TURN_ON) },
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().testTag(TWO_STEP_TURN_ON_TAG),
             )
@@ -185,10 +186,10 @@ private fun TwoStepStatusCard(
  * is not an instant is shown as sent rather than dropped.
  */
 @Composable
-private fun enrolledDate(iso: String, zone: ZoneId = ZoneId.systemDefault()): String {
+private fun enrolledDate(iso: String): String {
     val language = appLanguage()
     return runCatching { Instant.parse(iso) }
-        .map { DistrictFormat.date(it, zone, DistrictFormat.DateStyle.LONG, language) }
+        .map { DistrictFormat.date(it, ZoneId.systemDefault(), DistrictFormat.DateStyle.LONG, language) }
         .getOrDefault(iso)
 }
 

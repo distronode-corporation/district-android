@@ -2,6 +2,7 @@ package com.distronode.districtai.ui.account
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,8 +26,9 @@ fun TwoStepDestination(container: AppContainer, context: Context, onBack: () -> 
         factory = TwoStepViewModel.factory(
             settings = container.twoStepSettingsRepository,
             reauth = container.nativeReauthRepository,
-            sso = { provider ->
-                container.ssoReauthenticator.reauthenticate(provider, NativeReauthAction.TWO_FACTOR_CHANGE) { url ->
+            sso = @DontMemoize { provider ->
+                val action = NativeReauthAction.TWO_FACTOR_CHANGE
+                container.ssoReauthenticator.reauthenticate(provider, action) @DontMemoize { url ->
                     CustomTabsLauncher.launch(context, url) !is CustomTabsLauncher.LaunchResult.NoBrowser
                 }
             },

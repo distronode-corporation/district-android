@@ -5,8 +5,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.Handler
-import android.os.Looper
 import android.util.Base64
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
@@ -23,6 +21,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.AnnotatedString
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
@@ -36,6 +37,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -85,6 +88,21 @@ class TwoStepScreenTest {
     }
 
     private val actions = RecordingActions()
+
+    /** The clipboard wipes [SensitiveClipboard] asked for, run by hand rather than left on the looper. */
+    private val scheduled = mutableListOf<Pair<Runnable, Long>>()
+    private val realSchedule = SensitiveClipboard.schedule
+
+    @Before
+    fun recordWipes() {
+        SensitiveClipboard.schedule = { task, delay -> scheduled += task to delay }
+    }
+
+    @After
+    fun restore() {
+        SensitiveClipboard.schedule = realSchedule
+        shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).checkActivities(false)
+    }
     private var backs = 0
     private var activity: Activity? = null
     private var state by mutableStateOf(TwoStepUiState())
@@ -195,8 +213,14 @@ class TwoStepScreenTest {
 
         composeRule.onNodeWithTag(TWO_STEP_MESSAGE_TAG).assertIsDisplayed()
         composeRule.onNodeWithText(str(R.string.reauth_code_prompt)).assertIsDisplayed()
-        composeRule.onNodeWithTag(REAUTH_PASSWORD_TAG).performTextInput("x")
-        composeRule.onNodeWithTag(REAUTH_CODE_TAG).performTextInput("2")
+        // ⚠️ SET, NOT TYPED: typing focuses the password field, and the focused secure field left
+        // behind keeps the next test classes' lists from drawing. Setting the text needs no focus.
+        composeRule.onNodeWithTag(REAUTH_PASSWORD_TAG).performSemanticsAction(SemanticsActions.SetText) {
+            it(AnnotatedString("xpw"))
+        }
+        composeRule.onNodeWithTag(REAUTH_CODE_TAG).performSemanticsAction(SemanticsActions.SetText) {
+            it(AnnotatedString("21"))
+        }
         composeRule.onNodeWithTag(REAUTH_PASSWORD_CONTINUE_TAG).assertIsEnabled().performClick()
 
         assertEquals("field:PASSWORD=xpw", actions.calls.first())
@@ -340,16 +364,110 @@ class TwoStepScreenTest {
     @Test
     fun `the clipboard is wiped after two minutes only if it still holds the secret`() {
         val clipboard = clipboard()
-        val handler = Handler(Looper.getMainLooper())
 
-        SensitiveClipboard.copy(ApplicationProvider.getApplicationContext(), "secret-1", handler)
-        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(SensitiveClipboard.EXPIRY_MILLIS))
+        SensitiveClipboard.copy(ApplicationProvider.getApplicationContext(), "secret-1")
+        assertEquals(SensitiveClipboard.EXPIRY_MILLIS, scheduled.single().second)
+        scheduled.removeAt(0).first.run()
         assertFalse("wiped", clipboard.hasPrimaryClip() && clipboard.primaryClip!!.getItemAt(0).text == "secret-1")
 
-        SensitiveClipboard.copy(ApplicationProvider.getApplicationContext(), "secret-2", handler)
+        SensitiveClipboard.copy(ApplicationProvider.getApplicationContext(), "secret-2")
         clipboard.setPrimaryClip(ClipData.newPlainText("", "something else"))
-        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(SensitiveClipboard.EXPIRY_MILLIS))
+        scheduled.removeAt(0).first.run()
         assertEquals("something else", clipboard.primaryClip!!.getItemAt(0).text.toString())
+    }
+
+    @Test
+    fun `the real wipe is posted to the main looper`() {
+        var ran = false
+
+        realSchedule(Runnable { ran = true }, 0L)
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+
+        assertTrue(ran)
+    }
+
+    @Test
+    fun `every step keeps its controls still while a call is in flight`() {
+        render(TwoStepUiState(step = TwoStepStep.LoadFailed, busy = true))
+        composeRule.onNodeWithTag(TWO_STEP_RETRY_TAG).assertIsNotEnabled()
+
+        state = TwoStepUiState(step = TwoStepStep.Overview, status = on, busy = true)
+        composeRule.onNodeWithTag(TWO_STEP_TURN_OFF_TAG).assertIsNotEnabled()
+
+        state = TwoStepUiState(step = TwoStepStep.Reauth(TwoStepIntent.TURN_ON), status = off, busy = true)
+        composeRule.onNodeWithTag(REAUTH_USE_PASSWORD_TAG).assertIsNotEnabled()
+        composeRule.onNodeWithTag(reauthProviderTag(ReauthProvider.APPLE)).assertIsNotEnabled()
+
+        state = TwoStepUiState(step = TwoStepStep.Password(TwoStepIntent.TURN_ON, needsCode = true), busy = true)
+        composeRule.onNodeWithTag(REAUTH_BACK_TAG).assertIsNotEnabled()
+
+        state = TwoStepUiState(step = TwoStepStep.Scan, enrollment = enrollment, busy = true)
+        composeRule.onNodeWithTag(TWO_STEP_TOTP_TAG).assertIsNotEnabled()
+
+        state = TwoStepUiState(step = TwoStepStep.RecoveryCodes, recoveryCodes = listOf("a"), busy = true)
+        composeRule.onNodeWithTag(TWO_STEP_CODES_DONE_TAG).assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a step missing what it draws draws nothing rather than failing`() {
+        render(TwoStepUiState(step = TwoStepStep.Overview, status = null))
+        composeRule.onNodeWithTag(TWO_STEP_STATUS_TAG).assertDoesNotExist()
+
+        state = TwoStepUiState(step = TwoStepStep.Scan, enrollment = null)
+        composeRule.onNodeWithTag(TWO_STEP_SECRET_TAG).assertDoesNotExist()
+
+        state = TwoStepUiState(step = TwoStepStep.Overview, status = on.copy(enrolledAt = null))
+        composeRule.onNodeWithTag(TWO_STEP_TURN_OFF_TAG).assertIsDisplayed()
+
+        state = TwoStepUiState(step = TwoStepStep.Password(TwoStepIntent.TURN_ON, needsCode = false))
+        composeRule.onNodeWithTag(REAUTH_CODE_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun `open hands the link over and says nothing more when an app takes it`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val app = android.content.pm.ResolveInfo().apply {
+            activityInfo = android.content.pm.ActivityInfo().apply {
+                packageName = "com.example.authenticator"
+                name = "Main"
+            }
+        }
+        val uri = android.net.Uri.parse(enrollment.otpauthUri)
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        shadowOf(context.packageManager).addResolveInfoForIntent(intent, app)
+        render(TwoStepUiState(step = TwoStepStep.Scan, enrollment = enrollment))
+
+        composeRule.onNodeWithTag(TWO_STEP_OPEN_TAG).performScrollTo().performClick()
+
+        composeRule.onNodeWithText(str(R.string.two_step_open_failed)).assertDoesNotExist()
+    }
+
+    @Test
+    fun `with no activity to secure, the secret steps still draw`() {
+        composeRule.setContent {
+            androidx.compose.runtime.CompositionLocalProvider(LocalActivity provides null) {
+                DistrictTheme { SecureWindow(secure = true) }
+            }
+        }
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun `a device with no clipboard copies nothing, and an empty clipboard is left alone`() {
+        val app = ApplicationProvider.getApplicationContext<Context>()
+        val noClipboard = object : android.content.ContextWrapper(app) {
+            override fun getSystemService(name: String): Any? =
+                if (name == Context.CLIPBOARD_SERVICE) null else super.getSystemService(name)
+        }
+
+        SensitiveClipboard.copy(noClipboard, "secret")
+        assertTrue(scheduled.isEmpty())
+
+        val clipboard = clipboard()
+        clipboard.clearPrimaryClip()
+        SensitiveClipboard.clearIfStill(clipboard, "secret")
+        assertFalse(clipboard.hasPrimaryClip())
     }
 
     @Test

@@ -570,6 +570,23 @@ class TwoStepViewModelTest {
     }
 
     @Test
+    fun `what the state allows follows from its fields`() {
+        assertFalse("no status, no note", TwoStepUiState().signsInWithoutPassword)
+        val offNoPassword = FakeAccountSecurityApi.STATUS_OFF.copy(canDisable = false)
+        assertFalse(TwoStepUiState(status = offNoPassword).signsInWithoutPassword)
+        assertFalse(TwoStepUiState(status = FakeAccountSecurityApi.STATUS_ON).signsInWithoutPassword)
+
+        val password = TwoStepStep.Password(TwoStepIntent.TURN_ON, needsCode = false)
+        assertFalse("not on the password step", TwoStepUiState(password = "pw").canSubmitPassword)
+        assertFalse("busy", TwoStepUiState(step = password, password = "pw", busy = true).canSubmitPassword)
+        assertTrue(TwoStepUiState(step = password, password = "pw").canSubmitPassword)
+
+        assertFalse("busy", TwoStepUiState(step = TwoStepStep.Scan, totp = "1", busy = true).canConfirm)
+        assertFalse("not scanning", TwoStepUiState(step = TwoStepStep.Overview, totp = "1").canConfirm)
+        assertFalse("blank", TwoStepUiState(step = TwoStepStep.Scan, totp = " ").canConfirm)
+    }
+
+    @Test
     fun `the key is grouped in fours for reading only`() {
         assertEquals("AAAA BBBB CCCC DDDD", groupedKey("AAAABBBBCCCCDDDD"))
         assertEquals("ABCD E", groupedKey("ABCDE"))

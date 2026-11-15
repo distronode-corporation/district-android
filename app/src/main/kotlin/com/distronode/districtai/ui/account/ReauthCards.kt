@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -45,7 +46,7 @@ internal fun ReauthMethodsCard(
         ReauthProvider.entries.forEach { provider ->
             DistrictButton(
                 text = stringResource(R.string.reauth_continue_with, provider.displayName),
-                onClick = { onProvider(provider) },
+                onClick = @DontMemoize { onProvider(provider) },
                 variant = ButtonVariant.Secondary,
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().testTag(reauthProviderTag(provider)),
@@ -131,12 +132,12 @@ internal fun AccountCard(content: @Composable ColumnScope.() -> Unit) {
 
 /** A body paragraph inside an account card. */
 @Composable
-internal fun AccountParagraph(text: String, modifier: Modifier = Modifier) {
+internal fun AccountParagraph(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = DistrictTheme.colors.foreground,
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 

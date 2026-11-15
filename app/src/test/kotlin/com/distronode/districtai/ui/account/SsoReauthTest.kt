@@ -122,6 +122,17 @@ class SsoReauthTest {
         callbacks.deliver(query(opened.single())["state"], "")
 
         assertEquals(SsoReauthOutcome.NoCode, outcome.await())
+
+        val missing = async {
+            reauthenticator.reauthenticate(ReauthProvider.APPLE, NativeReauthAction.TWO_FACTOR_CHANGE) {
+                opened += it
+                true
+            }
+        }
+        runCurrent()
+        callbacks.deliver(query(opened.last())["state"], null)
+
+        assertEquals(SsoReauthOutcome.NoCode, missing.await())
     }
 
     @Test

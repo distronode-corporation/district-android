@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +59,7 @@ import com.distronode.districtai.ui.resolve
 internal fun TwoStepScanCard(state: TwoStepUiState, enrollment: TwoStepEnrollment, actions: TwoStepActions) {
     val context = LocalContext.current
     // ⚠️ `remember`, NOT `rememberSaveable`: the key is never written into saved instance state.
-    var copied by remember(enrollment) { mutableStateOf(false) }
+    var copied by remember { mutableStateOf(false) }
     var openFailed by rememberSaveable { mutableStateOf(false) }
     AccountCard {
         Eyebrow(text = stringResource(R.string.two_step_scan_title))
@@ -72,7 +73,7 @@ internal fun TwoStepScanCard(state: TwoStepUiState, enrollment: TwoStepEnrollmen
         TwoStepSecretText(groupedKey(enrollment.secret), TWO_STEP_SECRET_TAG)
         DistrictButton(
             text = stringResource(if (copied) R.string.two_step_copied else R.string.two_step_copy_key),
-            onClick = {
+            onClick = @DontMemoize {
                 SensitiveClipboard.copy(context, enrollment.secret)
                 copied = true
             },
@@ -81,7 +82,7 @@ internal fun TwoStepScanCard(state: TwoStepUiState, enrollment: TwoStepEnrollmen
         )
         DistrictButton(
             text = stringResource(R.string.two_step_open_authenticator),
-            onClick = { openFailed = !openAuthenticator(context, enrollment.otpauthUri) },
+            onClick = @DontMemoize { openFailed = !openAuthenticator(context, enrollment.otpauthUri) },
             variant = ButtonVariant.Secondary,
             modifier = Modifier.fillMaxWidth().testTag(TWO_STEP_OPEN_TAG),
         )
@@ -89,7 +90,7 @@ internal fun TwoStepScanCard(state: TwoStepUiState, enrollment: TwoStepEnrollmen
         AccountParagraph(stringResource(R.string.two_step_code_prompt))
         OutlinedTextField(
             value = state.totp,
-            onValueChange = { actions.onField(TwoStepField.TOTP, it) },
+            onValueChange = @DontMemoize { actions.onField(TwoStepField.TOTP, it) },
             label = { Text(stringResource(R.string.reauth_code_placeholder)) },
             colors = districtFieldColors(),
             singleLine = true,
@@ -100,11 +101,11 @@ internal fun TwoStepScanCard(state: TwoStepUiState, enrollment: TwoStepEnrollmen
         state.failure?.let { AccountMessage(it.resolve(), failure = true, tag = TWO_STEP_MESSAGE_TAG) }
         DistrictButton(
             text = stringResource(R.string.two_step_confirm_button),
-            onClick = actions::confirm,
+            onClick = @DontMemoize { actions.confirm() },
             enabled = state.canConfirm,
             modifier = Modifier.fillMaxWidth().testTag(TWO_STEP_CONFIRM_TAG),
         )
-        AccountBackButton(state.busy, actions::back)
+        AccountBackButton(state.busy, @DontMemoize { actions.back() })
         AccountBusy(state.busy)
     }
 }
@@ -113,7 +114,7 @@ internal fun TwoStepScanCard(state: TwoStepUiState, enrollment: TwoStepEnrollmen
 @Composable
 internal fun TwoStepCodesCard(state: TwoStepUiState, actions: TwoStepActions) {
     val context = LocalContext.current
-    var copied by remember(state.recoveryCodes) { mutableStateOf(false) }
+    var copied by remember { mutableStateOf(false) }
     val joined = state.recoveryCodes.joinToString("\n")
     AccountCard {
         Eyebrow(text = stringResource(R.string.two_step_codes_title))
@@ -126,7 +127,7 @@ internal fun TwoStepCodesCard(state: TwoStepUiState, actions: TwoStepActions) {
         TwoStepSecretText(joined, TWO_STEP_CODES_TAG)
         DistrictButton(
             text = stringResource(if (copied) R.string.two_step_copied else R.string.two_step_copy_all),
-            onClick = {
+            onClick = @DontMemoize {
                 SensitiveClipboard.copy(context, joined)
                 copied = true
             },
@@ -135,7 +136,7 @@ internal fun TwoStepCodesCard(state: TwoStepUiState, actions: TwoStepActions) {
         )
         DistrictButton(
             text = stringResource(R.string.two_step_codes_done),
-            onClick = actions::finishRecoveryCodes,
+            onClick = @DontMemoize { actions.finishRecoveryCodes() },
             enabled = !state.busy,
             modifier = Modifier.fillMaxWidth().testTag(TWO_STEP_CODES_DONE_TAG),
         )

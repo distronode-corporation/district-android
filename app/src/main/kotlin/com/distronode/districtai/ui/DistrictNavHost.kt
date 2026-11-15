@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -379,7 +380,7 @@ fun DistrictNavHost(
                         // with the sign-in screen. Popping first would briefly show the overview mid-teardown.
                         onSignOut = container::signOut,
                         onOpenDevices = { navController.navigate(Routes.DEVICES) },
-                        onOpenTwoStep = { navController.navigate(Routes.TWO_STEP) },
+                        onOpenTwoStep = @DontMemoize { navController.navigate(Routes.TWO_STEP) },
                         onDeleteAccount = {
                             // ⚠️ The SAME hand-off as sign-in, so deletion opens in the system browser
                             // with the user's real session — a WebView could neither authenticate them
@@ -390,7 +391,7 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.TWO_STEP) {
-                    TwoStepDestination(container, context, onBack = { navController.popBackStack() })
+                    TwoStepDestination(container, context, onBack = @DontMemoize { navController.popBackStack() })
                 }
 
                 composable(Routes.DEVICES) {

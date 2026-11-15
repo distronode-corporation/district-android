@@ -2,6 +2,7 @@ package com.distronode.districtai.ui.account
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,12 +21,13 @@ fun DeleteAccountDestination(container: AppContainer, context: Context, onBack: 
         // ⚠️ UNKEYED: the account is not a workspace's.
         factory = DeleteAccountViewModel.factory(
             repository = container.nativeReauthRepository,
-            sso = { provider ->
-                container.ssoReauthenticator.reauthenticate(provider, NativeReauthAction.DELETE_ACCOUNT) { url ->
+            sso = @DontMemoize { provider ->
+                val action = NativeReauthAction.DELETE_ACCOUNT
+                container.ssoReauthenticator.reauthenticate(provider, action) @DontMemoize { url ->
                     CustomTabsLauncher.launch(context, url) !is CustomTabsLauncher.LaunchResult.NoBrowser
                 }
             },
-            deleted = container::finishDeletedAccount,
+            deleted = @DontMemoize { container.finishDeletedAccount(it) },
         ),
     )
     val state by viewModel.state.collectAsStateWithLifecycle()

@@ -54,16 +54,25 @@ internal object SensitiveClipboard {
      */
     private const val EXTRA_IS_SENSITIVE = "android.content.extra.IS_SENSITIVE"
 
-    fun copy(context: Context, text: String, handler: Handler = Handler(Looper.getMainLooper())) {
+    /**
+     * Runs the wipe after [EXPIRY_MILLIS]. ⚠️ A seam for tests, which must not leave a two-minute
+     * message on the shared main looper for the tests after them.
+     */
+    internal var schedule: (Runnable, Long) -> Unit = { task, delay ->
+        Handler(Looper.getMainLooper()).postDelayed(task, delay)
+    }
+
+    fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         val clip = ClipData.newPlainText("", text)
         clip.description.extras = PersistableBundle().apply { putBoolean(EXTRA_IS_SENSITIVE, true) }
         clipboard.setPrimaryClip(clip)
-        handler.postDelayed({ clearIfStill(clipboard, text) }, EXPIRY_MILLIS)
+        schedule({ clearIfStill(clipboard, text) }, EXPIRY_MILLIS)
     }
 
     internal fun clearIfStill(clipboard: ClipboardManager, text: String) {
-        val held = clipboard.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+        // ⚠️ An empty clipboard, or one holding something that is not text, is not the secret.
+        val held = runCatching { clipboard.primaryClip!!.getItemAt(0).text.toString() }.getOrNull()
         if (held != text) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             clipboard.clearPrimaryClip()

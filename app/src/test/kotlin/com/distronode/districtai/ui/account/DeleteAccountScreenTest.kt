@@ -13,7 +13,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.AnnotatedString
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.DistrictTheme
@@ -97,8 +99,14 @@ class DeleteAccountScreenTest {
     fun `the password step types into the model, and back goes to the first step`() {
         render(DeleteAccountUiState(step = DeleteAccountStep.Password(needsCode = true), password = "pw", code = "1"))
 
-        composeRule.onNodeWithTag(REAUTH_PASSWORD_TAG).performTextInput("x")
-        composeRule.onNodeWithTag(REAUTH_CODE_TAG).performTextInput("2")
+        // ⚠️ SET, NOT TYPED: a focused secure field left behind keeps later test classes' lists from
+        // drawing (see TwoStepScreenTest).
+        composeRule.onNodeWithTag(REAUTH_PASSWORD_TAG).performSemanticsAction(SemanticsActions.SetText) {
+            it(AnnotatedString("xpw"))
+        }
+        composeRule.onNodeWithTag(REAUTH_CODE_TAG).performSemanticsAction(SemanticsActions.SetText) {
+            it(AnnotatedString("21"))
+        }
         composeRule.onNodeWithTag(REAUTH_PASSWORD_CONTINUE_TAG).assertIsEnabled().performClick()
         pressBack()
 
@@ -113,7 +121,9 @@ class DeleteAccountScreenTest {
         render(DeleteAccountUiState(step = DeleteAccountStep.Confirm, confirmation = "owner@example.test"))
 
         composeRule.onNodeWithText(str(R.string.delete_account_type_email)).assertIsDisplayed()
-        composeRule.onNodeWithTag(DELETE_ACCOUNT_EMAIL_TAG).performTextInput("x")
+        composeRule.onNodeWithTag(DELETE_ACCOUNT_EMAIL_TAG).performSemanticsAction(SemanticsActions.SetText) {
+            it(AnnotatedString("xowner@example.test"))
+        }
         composeRule.onNodeWithTag(DELETE_ACCOUNT_SUBMIT_TAG).assertIsEnabled().performClick()
 
         assertEquals("field:EMAIL=xowner@example.test", actions.calls.first())

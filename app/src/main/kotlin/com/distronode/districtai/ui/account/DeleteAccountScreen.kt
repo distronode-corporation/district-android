@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -72,8 +73,8 @@ private fun DeleteAccountContent(state: DeleteAccountUiState, actions: DeleteAcc
             ReauthMethodsCard(
                 intro = stringResource(R.string.delete_account_confirm_intro),
                 busy = state.busy,
-                onProvider = actions::reauthenticate,
-                onUsePassword = actions::usePassword,
+                onProvider = @DontMemoize { actions.reauthenticate(it) },
+                onUsePassword = @DontMemoize { actions.usePassword() },
                 onBack = null,
             )
         }
@@ -85,10 +86,10 @@ private fun DeleteAccountContent(state: DeleteAccountUiState, actions: DeleteAcc
                 needsCode = step.needsCode,
                 busy = state.busy,
                 canSubmit = state.canSubmitPassword,
-                onPassword = { actions.onField(DeleteAccountField.PASSWORD, it) },
-                onCode = { actions.onField(DeleteAccountField.CODE, it) },
-                onSubmit = actions::submitPassword,
-                onBack = actions::back,
+                onPassword = @DontMemoize { actions.onField(DeleteAccountField.PASSWORD, it) },
+                onCode = @DontMemoize { actions.onField(DeleteAccountField.CODE, it) },
+                onSubmit = @DontMemoize { actions.submitPassword() },
+                onBack = @DontMemoize { actions.back() },
             )
         }
         DeleteAccountStep.Confirm -> {
@@ -119,7 +120,7 @@ private fun DeleteAccountConfirmCard(state: DeleteAccountUiState, actions: Delet
         AccountParagraph(stringResource(R.string.delete_account_type_email))
         OutlinedTextField(
             value = state.confirmation,
-            onValueChange = { actions.onField(DeleteAccountField.EMAIL, it) },
+            onValueChange = @DontMemoize { actions.onField(DeleteAccountField.EMAIL, it) },
             label = { Text(stringResource(R.string.delete_account_email_label)) },
             colors = districtFieldColors(),
             singleLine = true,
@@ -129,7 +130,7 @@ private fun DeleteAccountConfirmCard(state: DeleteAccountUiState, actions: Delet
         )
         DistrictButton(
             text = stringResource(if (state.busy) R.string.delete_account_deleting else R.string.delete_account_submit),
-            onClick = actions::delete,
+            onClick = @DontMemoize { actions.delete() },
             variant = ButtonVariant.Danger,
             enabled = state.canDelete,
             modifier = Modifier.fillMaxWidth().testTag(DELETE_ACCOUNT_SUBMIT_TAG),

@@ -1,5 +1,6 @@
 package com.distronode.districtai.core.network
 
+import com.distronode.districtai.core.model.AccountDeleteResponse
 import com.distronode.districtai.core.model.MfaConfirmResponse
 import com.distronode.districtai.core.model.MfaDisableResponse
 import com.distronode.districtai.core.model.MfaEnrollResponse
@@ -63,6 +64,15 @@ interface AccountSecurityApi {
      * password's place, which is also how an account without a password turns it off.
      */
     suspend fun mfaDisable(): ApiResult<MfaDisableResponse>
+
+    /**
+     * Deletes the signed-in account, spending a `delete-account` proof.
+     *
+     * ⛔ [confirmation] IS THE ACCOUNT'S EMAIL ADDRESS, TYPED: the service compares it without case
+     * before it spends the proof, so a typo costs nothing (`confirmation_mismatch`). ⚠️ A DELETE WITH A
+     * JSON BODY, the website's own route.
+     */
+    suspend fun deleteAccount(confirmation: String): ApiResult<AccountDeleteResponse>
 }
 
 /** [AccountSecurityApi] over [DistrictApiClient]. */
@@ -128,6 +138,14 @@ class HttpAccountSecurityApi(private val client: DistrictApiClient) : AccountSec
             serializer = MfaDisableResponse.serializer()
         )
 
+    override suspend fun deleteAccount(confirmation: String): ApiResult<AccountDeleteResponse> =
+        client.send(
+            method = "DELETE",
+            segments = AccountSecurityPaths.DELETE_ACCOUNT,
+            serializer = AccountDeleteResponse.serializer(),
+            body = jsonObjectOf("confirmation" to JsonPrimitive(confirmation)),
+        )
+
     private companion object {
         /** The one 401 on these routes that answers the request rather than the session. */
         val MFA_CHALLENGE = setOf("MFA_REQUIRED")
@@ -146,4 +164,7 @@ private object AccountSecurityPaths {
     val MFA_ENROLL = MFA + "enroll"
     val MFA_CONFIRM = MFA + "confirm"
     val MFA_DISABLE = MFA + "disable"
+
+    /** ⚠️ Under `auth`, not `auth/native`: the website's own route, which takes a native proof. */
+    val DELETE_ACCOUNT = AUTH + "delete-account"
 }

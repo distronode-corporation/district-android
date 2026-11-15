@@ -95,4 +95,9 @@ class CallToneTest {
         // frame does not assert a severity this client cannot judge.
         assertEquals(Tone.Neutral, toneForLoginStatus(LoginStatus.Denied("sso_refused")))
     }
+
+    @Test
+    fun `a deleted account is a confirmation, not a warning`() {
+        assertEquals(Tone.Success, toneForLoginStatus(LoginStatus.AccountDeleted(externalErasurePending = true)))
+    }
 }

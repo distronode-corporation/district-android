@@ -6,7 +6,7 @@ import com.distronode.districtai.core.network.AccountSecurityApi
 import com.distronode.districtai.core.network.ApiResult
 
 /**
- * A fresh re-authentication for one action. The Kotlin mirror of district-core-swift's
+ * A fresh re-authentication for one action, and deleting the account with it. The Kotlin mirror of district-core-swift's
  * `NativeReauthRepository`.
  *
  * ⛔ EVERY ACCOUNT TYPE RE-AUTHENTICATES THE SAME WAY: a fresh sign-in at its provider, or its
@@ -32,6 +32,20 @@ class NativeReauthRepository(private val api: AccountSecurityApi) {
         password: String,
         code: String? = null,
     ): ApiResult<Int> = proof(action, api.nativeReauthPassword(action, password, code))
+
+    /**
+     * Deletes the signed-in account with the typed email address. Answers whether vendor-held
+     * support data is still being erased (the account itself is gone either way). ⚠️ A 200 that does
+     * not say the account was deleted is a decoding failure, never a deletion.
+     */
+    suspend fun deleteAccount(confirmation: String): ApiResult<Boolean> =
+        when (val result = api.deleteAccount(confirmation)) {
+            is ApiResult.Success -> {
+                val gone = result.value.success && result.value.accountDeleted
+                rejectedEnvelope("AccountDeleteResponse", gone) ?: ApiResult.Success(result.value.externalErasurePending)
+            }
+            is ApiResult.Failure -> result
+        }
 
     /** ⚠️ A PROOF FOR ANOTHER ACTION IS NOT THIS ONE'S, so it is refused rather than trusted. */
     private fun proof(action: NativeReauthAction, result: ApiResult<NativeReauthResponse>): ApiResult<Int> =

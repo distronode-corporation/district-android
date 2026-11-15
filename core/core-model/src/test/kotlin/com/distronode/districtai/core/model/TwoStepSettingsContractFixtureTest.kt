@@ -80,6 +80,17 @@ class TwoStepSettingsContractFixtureTest {
     }
 
     @Test
+    fun `the account deletion decodes, the erasure counts kept whole`() {
+        val deleted = json.decodeFromString<AccountDeleteResponse>(fixture("district-account-delete.json"))
+
+        assertTrue(deleted.success)
+        assertTrue(deleted.accountDeleted)
+        assertFalse(deleted.externalErasurePending)
+        assertEquals("complete", deleted.supportErasure!!["status"].toString().trim('"'))
+        WireMirror.assertMirrors(AccountDeleteResponse.serializer(), "district-account-delete.json")
+    }
+
+    @Test
     fun `each fixture writes back what it decoded`() {
         WireMirror.assertMirrors(MfaStatusResponse.serializer(), "district-mfa-status.json")
         WireMirror.assertMirrors(MfaEnrollResponse.serializer(), "district-mfa-enroll.json")

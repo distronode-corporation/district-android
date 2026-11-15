@@ -29,6 +29,18 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
   app switcher (`FLAG_SECURE`) while on screen, and are dropped when the screen closes. A
   password re-authentication's 401 `MFA_REQUIRED` is read as the request's answer, not the
   session's, so the password is sent once.
+- Account deletion in the app, as in the iOS app (Google Play's account deletion requirement).
+  Account, Delete account opens a screen that says what is deleted (the profile, the settings
+  and every workspace the person owns, whose subscriptions are cancelled at once) and what is
+  kept (workspaces they belong to but do not own). A fresh re-authentication for the
+  `delete-account` action comes first, the same two ways as for two-step verification, then the
+  typed email address deletes. Every refusal has a sentence saying what to do; a block the
+  service answers is shown under "Your account was not deleted.", and a deletion whose answer
+  is lost says it cannot tell. The final button is single-flight. After the deletion the app
+  forgets the session and the workspace choice, with no revoke or unregister call (the account
+  is gone), and the sign-in screen says the account was deleted, and when vendor-held support
+  data is still being erased. The row no longer opens the deletion page in the browser; its
+  address stays as the store listing's data-deletion URL.
 
 ### Changed
 

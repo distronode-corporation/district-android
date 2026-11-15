@@ -136,9 +136,11 @@ internal object EndpointParity {
         // beside the send POST. It leaves this set when the district-core-swift snapshot that adds
         // it is vendored.
         "metaWindow",
-        // ⚠️ TWO-STEP VERIFICATION SETTINGS AND THE FRESH RE-AUTHENTICATION BEFORE THEM: the names
+        // ⚠️ TWO-STEP VERIFICATION SETTINGS, ACCOUNT DELETION AND THE FRESH RE-AUTHENTICATION BEFORE
+        // THEM: the names
         // district-core-swift's `EndpointID` declares after 8.0.0. They leave this set when the
         // snapshot that declares them is vendored.
+        "deleteAccount",
         "mfaConfirm",
         "mfaDisable",
         "mfaEnroll",

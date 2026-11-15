@@ -41,4 +41,7 @@ fun toneForLoginStatus(status: LoginStatus): Tone = when (status) {
     // ⚠️ Server-authored reason. It could be anything from "user cancelled" to a policy refusal, so
     // the frame stays neutral rather than asserting a severity this client cannot judge.
     is LoginStatus.Denied -> Tone.Neutral
+
+    // What the person asked for, done: a confirmation, not a warning.
+    is LoginStatus.AccountDeleted -> Tone.Success
 }

@@ -149,6 +149,9 @@ private fun LoginStatus.text(): String = when (this) {
     LoginStatus.Unreachable -> stringResource(R.string.login_status_unreachable)
     // ⚠️ The reason is the server's own text and is not translatable; the frame around it is.
     is LoginStatus.Denied -> stringResource(R.string.login_status_denied, reason)
+    is LoginStatus.AccountDeleted -> stringResource(
+        if (externalErasurePending) R.string.delete_account_deleted_erasure_pending else R.string.delete_account_deleted,
+    )
 }
 
 /**

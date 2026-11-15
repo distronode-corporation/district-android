@@ -2043,6 +2043,177 @@ tier = "T3"
 state = "reviewed"
 note = "Contacts"
 
+[delete_account.cannot_be_undone]
+en = "This cannot be undone."
+fr = "Cette action est irréversible."
+ctx = "body"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.confirm_intro]
+en = "Sign in again the way you usually do. You then have a few minutes to delete the account."
+fr = "Connectez-vous de nouveau comme d'habitude. Vous aurez ensuite quelques minutes pour supprimer le compte."
+ctx = "body"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.deleted]
+en = "Your account was deleted."
+fr = "Votre compte a été supprimé."
+ctx = "body"
+screen = "sign in"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.deleted_erasure_pending]
+en = "Your account was deleted. Support data held by a provider is still being erased."
+fr = "Votre compte a été supprimé. Des données de soutien conservées par un fournisseur sont encore en cours d'effacement."
+ctx = "body"
+screen = "sign in"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.deleting]
+en = "Deleting…"
+fr = "Suppression…"
+ctx = "button"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.email_label]
+en = "Your email address"
+fr = "Votre adresse courriel"
+ctx = "label"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.error_email_mismatch]
+en = "That is not this account's email address. Type it exactly, then try again. Nothing was deleted."
+fr = "Ce n'est pas l'adresse courriel de ce compte. Tapez-la exactement, puis réessayez. Rien n'a été supprimé."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.error_offline_outcome_unknown]
+en = "The connection failed before we heard back, so we cannot tell whether your account was deleted. Check your connection, then close this and sign in again to check."
+fr = "La connexion a échoué avant que nous recevions une réponse, et nous ne savons pas si votre compte a été supprimé. Vérifiez votre connexion, puis fermez cette fenêtre et reconnectez-vous pour vérifier."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.error_outcome_unknown]
+en = "We could not read the answer, so we cannot tell whether your account was deleted. Close this and sign in again to check."
+fr = "Nous n'avons pas pu lire la réponse, et nous ne savons pas si votre compte a été supprimé. Fermez cette fenêtre et reconnectez-vous pour vérifier."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.error_proof_expired]
+en = "Your confirmation ran out before the account was deleted. Confirm it is you again."
+fr = "Votre confirmation a expiré avant la suppression du compte. Confirmez de nouveau qu'il s'agit bien de vous."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.error_try_again_shortly]
+en = "Something went wrong on our side. Try again in a moment."
+fr = "Un problème est survenu de notre côté. Réessayez dans un instant."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.last_step]
+en = "Last step"
+fr = "Dernière étape"
+ctx = "label"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.not_deleted]
+en = "Your account was not deleted."
+fr = "Votre compte n'a pas été supprimé."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.submit]
+en = "Delete my account"
+fr = "Supprimer mon compte"
+ctx = "button"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.subscriptions_cancelled]
+en = "The subscriptions of the workspaces you own are cancelled at once."
+fr = "Les abonnements des espaces de travail dont vous êtes propriétaire sont annulés sur-le-champ."
+ctx = "body"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.title]
+en = "Delete your account"
+fr = "Supprimer votre compte"
+ctx = "title"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.type_email]
+en = "Type your account's email address to confirm. Nothing is deleted until you tap Delete my account."
+fr = "Tapez l'adresse courriel de votre compte pour confirmer. Rien n'est supprimé avant que vous touchiez Supprimer mon compte."
+ctx = "body"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.what_is_deleted]
+en = "Your user profile, your settings and all workspaces where you are the owner are deleted for good."
+fr = "Votre profil d'utilisateur, vos paramètres et tous les espaces de travail dont vous êtes propriétaire sont supprimés pour de bon."
+ctx = "body"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
+[delete_account.what_is_kept]
+en = "Workspaces you belong to but do not own are kept. You are removed from them, and their owners keep their data."
+fr = "Les espaces de travail dont vous êtes membre sans en être propriétaire sont conservés. Vous n'en faites plus partie, et leurs propriétaires gardent leurs données."
+ctx = "body"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
+
 [desk.author_assistant]
 en = "Receptionist"
 fr = "Réceptionniste"
@@ -7792,13 +7963,13 @@ state = "reviewed"
 note = "Settings / account. ⛔ THE TWO ROWS BELOW ARE PLAY REQUIREMENTS, NOT FEATURES. Google's User Data policy requires an in-app route to initiate account deletion for any app with accounts, and reviewers probe for sign-out alongside it."
 
 [settings.delete_account_caption]
-en = "Request deletion of your account and its data. Opens in your browser."
-fr = "Demander la suppression de votre compte et de ses données. S'ouvre dans votre navigateur."
+en = "Delete your account and its data for good. You confirm it is you first."
+fr = "Supprimez votre compte et ses données pour de bon. Vous confirmez d'abord qu'il s'agit bien de vous."
 ctx = "body"
 screen = "account"
 tier = "T0"
 state = "reviewed"
-note = "Settings / account. ⛔ THE TWO ROWS BELOW ARE PLAY REQUIREMENTS, NOT FEATURES. Google's User Data policy requires an in-app route to initiate account deletion for any app with accounts, and reviewers probe for sign-out alongside it. Says \"opens in your browser\" because it does, and because deletion is irreversible: the user should not be surprised by the hand-off mid-decision."
+note = "Settings / account. ⛔ THE TWO ROWS BELOW ARE PLAY REQUIREMENTS, NOT FEATURES. Google's User Data policy requires an in-app route to initiate account deletion for any app with accounts, and reviewers probe for sign-out alongside it. The iOS app's wording: deletion happens in the app, after a fresh re-authentication."
 
 [settings.devices]
 en = "Devices"

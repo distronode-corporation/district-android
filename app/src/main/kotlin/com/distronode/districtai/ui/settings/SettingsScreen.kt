@@ -42,15 +42,15 @@ import com.distronode.districtai.core.designsystem.Eyebrow
  * session; the account card's only row starts an irreversible deletion, and grouping a routine
  * action beside it would borrow that weight.
  *
- * ⚠️ DELETION IS A LINK, NOT A BUTTON THAT DELETES. The flow is identity-verified and irreversible
- * and the web already owns it; reimplementing it natively would mean duplicating that verification
- * on the least-reviewable surface. Policy asks that the app let the user START the process, which
- * a hand-off to the live page does.
+ * ⚠️ DELETION OPENS A SCREEN, NOT A BUTTON THAT DELETES. The screen says what goes and what stays,
+ * asks for a fresh re-authentication and the typed email address, and only its last button deletes
+ * (as in the iOS app). The service enforces every step.
  *
  * ⚠️ THE DELETION ROW IS NOT PAINTED RED. It is destructive, but it does not delete anything on
- * tap — it opens a page. Colouring it `destructive` would promise irreversibility one tap early and
- * make the row look like it had already failed, which is the same reason `ButtonVariant.Danger` is a
- * tinted outline rather than a solid fill. The caption carries the warning instead.
+ * tap — it opens the deletion screen. Colouring it `destructive` would promise irreversibility one
+ * tap early and make the row look like it had already failed, which is the same reason
+ * `ButtonVariant.Danger` is a tinted outline rather than a solid fill. The caption carries the
+ * warning instead.
  */
 @Composable
 fun SettingsScreen(
@@ -161,9 +161,9 @@ const val SETTINGS_TWO_STEP_DESCRIPTION: String = "district-settings-two-step"
 /**
  * The live, public deletion page.
  *
- * ⚠️ A FULL URL RATHER THAN A PATH ON `ApiEnvironment.baseUrl`. This is a marketing/legal page
- * that must resolve for a Play reviewer with no session and no app build config, and it is the URL
- * declared in the store listing's data-deletion field — so the two have to be the same literal.
+ * ⚠️ THE APP NO LONGER OPENS IT (deletion happens in the app), and it stays as the URL declared in
+ * the store listing's data-deletion field, which must resolve for a Play reviewer with no session and
+ * no app build config. Kept here, beside the row, so the two stay the same literal.
  */
 const val ACCOUNT_DELETION_URL: String = "https://www.distronode.com/privacy/account-deletion"
 

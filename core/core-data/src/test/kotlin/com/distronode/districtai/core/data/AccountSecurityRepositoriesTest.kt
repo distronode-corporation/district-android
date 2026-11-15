@@ -1,5 +1,6 @@
 package com.distronode.districtai.core.data
 
+import com.distronode.districtai.core.model.AccountDeleteResponse
 import com.distronode.districtai.core.model.MfaConfirmResponse
 import com.distronode.districtai.core.model.MfaDisableResponse
 import com.distronode.districtai.core.model.MfaStatusResponse
@@ -67,6 +68,28 @@ class AccountSecurityRepositoriesTest {
         api.passwordResults += refusal
 
         assertEquals(refusal, reauth.reauthenticate(NativeReauthAction.TWO_FACTOR_CHANGE, "pw"))
+    }
+
+    @Test
+    fun `a deletion answers whether support data is still being erased`() = runTest {
+        assertEquals(ApiResult.Success(false), reauth.deleteAccount("owner@example.test"))
+        assertEquals(listOf("owner@example.test"), api.deleteConfirmations)
+
+        api.deleteResult = ApiResult.Success(AccountDeleteResponse(true, true, externalErasurePending = true))
+        assertEquals(ApiResult.Success(true), reauth.deleteAccount("owner@example.test"))
+    }
+
+    @Test
+    fun `a 200 that does not say the account is gone is never a deletion`() = runTest {
+        api.deleteResult = ApiResult.Success(AccountDeleteResponse(true, accountDeleted = false, externalErasurePending = false))
+        assertTrue(reauth.deleteAccount("x") is ApiResult.DecodeFailure)
+
+        api.deleteResult = ApiResult.Success(AccountDeleteResponse(false, accountDeleted = true, externalErasurePending = false))
+        assertTrue(reauth.deleteAccount("x") is ApiResult.DecodeFailure)
+
+        val refusal = ApiResult.HttpFailure(400, "Type it", "confirmation_mismatch")
+        api.deleteResult = refusal
+        assertEquals(refusal, reauth.deleteAccount("x"))
     }
 
     // ── Two-step settings ────────────────────────────────────────────────────

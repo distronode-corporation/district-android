@@ -3693,8 +3693,8 @@ ctx = "a11y"
 screen = "inbox"
 tier = "T3"
 args = { count = "int" }
-state = "draft"
-note = "What TalkBack reads for the unread badge on a conversation row, which shows only the number. Never drawn. App-authored French, a draft until the release's French sign-off."
+state = "reviewed"
+note = "What TalkBack reads for the unread badge on a conversation row, which shows only the number. Never drawn. App-authored French, reviewed by an AI agent for the 3.3.1 sign-off."
 
 [incoming_call.answer]
 en = "Answer"
@@ -4156,8 +4156,8 @@ ctx = "a11y"
 screen = "live calls"
 tier = "T3"
 args = { name = "str" }
-state = "draft"
-note = "What TalkBack reads for a call card's Listen button, so a list of calls does not read \"Listen\" several times over. {name} is the caller's name or number as the card shows it. Keeps the visible word first (live_calls.listen). App-authored French, a draft until the release's French sign-off."
+state = "reviewed"
+note = "What TalkBack reads for a call card's Listen button, so a list of calls does not read \"Listen\" several times over. {name} is the caller's name or number as the card shows it. Keeps the visible word first (live_calls.listen). App-authored French, reviewed by an AI agent for the 3.3.1 sign-off."
 
 [live_calls.listening]
 en = "You are listening"
@@ -8236,8 +8236,8 @@ fr = "Changer la personne assignée"
 ctx = "a11y"
 screen = "message thread"
 tier = "T3"
-state = "draft"
-note = "TalkBack's action on the thread owner picker (\"double tap to change the assignee\"), which opens the list of members. Never drawn. App-authored French, a draft until the release's French sign-off."
+state = "reviewed"
+note = "TalkBack's action on the thread owner picker (\"double tap to change the assignee\"), which opens the list of members. Never drawn. App-authored French, reviewed by an AI agent for the 3.3.1 sign-off."
 
 [thread.assign_label]
 en = "Assigned to"

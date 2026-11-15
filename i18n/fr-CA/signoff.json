@@ -1,15 +1,15 @@
 {
-  "signed_off_by": "Sean Dean, 2026-11-06",
-  "release": "v3.3.0",
-  "commit": "aa8255e22125f0055ba58efc76a094b2aa47f3fd",
+  "signed_off_by": "Sean Dean, by approving this file's pull request, 2026-11-15. The 43 French strings changed since v3.3.0 were reviewed by an AI agent and 0 were corrected.",
+  "release": "v3.3.1",
+  "commit": "b9eee28469e1c8cffce220f48efc2a952301ae78",
   "catalogs": [
     {
       "path": "l10n/android.toml",
-      "sha256": "bd161af55a904307a072f7104ff3f6cf24c5d73ea989c14f7819271cd22862c9"
+      "sha256": "678d0a9532838d351740909001b31b36831daff4f1de2e959a782bc57f6af771"
     },
     {
       "path": "l10n/api_errors.toml",
-      "sha256": "e5cc245fa235352ee34bdb43b6fc625bca8dadfbcf881cbdcea5cdf9b3ee5f72"
+      "sha256": "692526b816835a0fe90c773cdfc75724e1f5102dd89522d1afca87266e13a3a5"
     },
     {
       "path": "l10n/numbers.toml",
@@ -21,7 +21,7 @@
     },
     {
       "path": "l10n/wire_labels.toml",
-      "sha256": "52cf1b7d6b7f19e18bc8acea553a402ba7a7c21484ae4b4969329e1df3292198"
+      "sha256": "6eda478629f2c4e70b2c5835f859cacaa6c3ca62c22b672d41ab311287883f06"
     }
   ]
 }

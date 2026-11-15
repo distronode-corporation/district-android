@@ -1022,7 +1022,7 @@ fr = "Entreprise"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRegistrationEndUserType value `business` as the server sends it, shown with the portal's label (\"Business\")."
 
 [wire.number_registration_end_user_type_individual]
@@ -1031,7 +1031,7 @@ fr = "Particulier"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRegistrationEndUserType value `individual` as the server sends it, shown with the portal's label (\"Individual\")."
 
 [wire.number_registration_end_user_type_unknown]
@@ -1041,7 +1041,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 args = { value = "str" }
-state = "draft"
+state = "reviewed"
 note = "A numberRegistrationEndUserType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.number_registration_number_type_local]
@@ -1050,7 +1050,7 @@ fr = "Local"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 same_ok = true
 note = "The numberRegistrationNumberType value `local` as the server sends it, shown with the portal's label (\"Local\")."
 
@@ -1060,7 +1060,7 @@ fr = "Mobile"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 same_ok = true
 note = "The numberRegistrationNumberType value `mobile` as the server sends it, shown with the portal's label (\"Mobile\")."
 
@@ -1070,7 +1070,7 @@ fr = "National"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 same_ok = true
 note = "The numberRegistrationNumberType value `national` as the server sends it, shown with the portal's label (\"National\")."
 
@@ -1080,7 +1080,7 @@ fr = "Sans frais"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRegistrationNumberType value `toll free` as the server sends it, shown with the portal's label (\"Toll-free\")."
 
 [wire.number_registration_number_type_unknown]
@@ -1090,7 +1090,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 args = { value = "str" }
-state = "draft"
+state = "reviewed"
 note = "A numberRegistrationNumberType value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.number_registration_status_draft]
@@ -1099,7 +1099,7 @@ fr = "Brouillon"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRegistrationStatus value `draft` as the server sends it, shown with the portal's label (\"Draft\")."
 
 [wire.number_registration_status_in_review]
@@ -1108,7 +1108,7 @@ fr = "En cours d'examen"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 fr_variant = "numberRegistrationStatus: contract label"
 note = "The numberRegistrationStatus value `in-review` as the server sends it, shown with the portal's label (\"In review\")."
 
@@ -1118,7 +1118,7 @@ fr = "En attente d'examen"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 fr_variant = "numberRegistrationStatus: contract label"
 note = "The numberRegistrationStatus value `pending-review` as the server sends it, shown with the portal's label (\"Pending review\")."
 
@@ -1128,7 +1128,7 @@ fr = "Approuvée"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRegistrationStatus value `twilio-approved` as the server sends it, shown with the portal's label (\"Approved\")."
 
 [wire.number_registration_status_twilio_rejected]
@@ -1137,7 +1137,7 @@ fr = "Refusée"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRegistrationStatus value `twilio-rejected` as the server sends it, shown with the portal's label (\"Rejected\")."
 
 [wire.number_registration_status_unknown]
@@ -1147,7 +1147,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 args = { value = "str" }
-state = "draft"
+state = "reviewed"
 note = "A numberRegistrationStatus value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.number_requirement_kind_end_user]
@@ -1156,7 +1156,7 @@ fr = "Vos renseignements"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 note = "The numberRequirementKind value `end_user` as the server sends it, shown with the portal's label (\"Your details\")."
 
 [wire.number_requirement_kind_supporting_document]
@@ -1165,7 +1165,7 @@ fr = "Documents"
 ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
-state = "draft"
+state = "reviewed"
 same_ok = true
 note = "The numberRequirementKind value `supporting_document` as the server sends it, shown with the portal's label (\"Documents\")."
 
@@ -1176,7 +1176,7 @@ ctx = "label"
 screen = "not shown in this app yet"
 tier = "T3"
 args = { value = "str" }
-state = "draft"
+state = "reviewed"
 note = "A numberRequirementKind value this app does not know, passed through as {value}. English shows it as sent, as it always has. In French, name it generically and keep {value} in it, e.g. a status this app does not know."
 
 [wire.number_status_active]

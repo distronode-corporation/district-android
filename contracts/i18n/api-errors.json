@@ -339,6 +339,18 @@
       "en": "Someone changed these settings since they were drafted. Rebase the draft on the live settings, review it, then publish.",
       "fr": "Quelqu'un a modifié ces réglages depuis la rédaction du brouillon. Mettez le brouillon à jour avec les réglages en vigueur, relisez-le, puis publiez-le."
     },
+    "email_changed": {
+      "en": "This contact's email address changed since you opened it. Check the new address before confirming it.",
+      "fr": "L'adresse courriel de ce contact a changé depuis l'ouverture de sa fiche. Vérifiez la nouvelle adresse avant de la confirmer."
+    },
+    "no_email": {
+      "en": "This contact has no email address to confirm.",
+      "fr": "Ce contact n'a aucune adresse courriel à confirmer."
+    },
+    "email_unconfirmed": {
+      "en": "This contact's email address is unconfirmed. Confirm it in the contact panel before emailing it.",
+      "fr": "L'adresse courriel de ce contact n'est pas confirmée. Confirmez-la dans la fiche du contact avant de lui écrire."
+    },
     "audition_busy": {
       "en": "Two auditions are already running for this workspace. End one and try again.",
       "fr": "Deux auditions sont déjà en cours pour cet espace de travail. Terminez-en une et réessayez."
@@ -417,7 +429,7 @@
     },
     "marketplace_cancel_refused": {
       "en": "Microsoft would not cancel a Microsoft Marketplace subscription on your workspace, so nothing was deleted. Cancel it in the Microsoft 365 admin center, then try again.",
-      "fr": "Microsoft n'a pas voulu annuler un abonnement Microsoft Marketplace de votre espace de travail; rien n'a donc été supprimé. Annulez-le dans le Centre d'administration Microsoft 365, puis réessayez."
+      "fr": "Microsoft a refusé d'annuler un abonnement Microsoft Marketplace de votre espace de travail; rien n'a donc été supprimé. Annulez-le dans le Centre d'administration Microsoft 365, puis réessayez."
     },
     "marketplace_intro_numbers_locked": {
       "en": "Phone numbers can be added 72 hours after your Microsoft Marketplace subscription is activated.",
@@ -449,7 +461,7 @@
     },
     "microsoft_landing_identity_mismatch": {
       "en": "Sign in with the Microsoft account that bought District AI, or the one it was bought for.",
-      "fr": "Connectez-vous avec le compte Microsoft qui a acheté District AI, ou celui pour qui il a été acheté."
+      "fr": "Connectez-vous avec le compte Microsoft qui a acheté District AI, ou celui pour lequel il a été acheté."
     },
     "microsoft_landing_too_many_tries": {
       "en": "Too many tries for this purchase. Open it again from Microsoft to start over.",
@@ -461,7 +473,7 @@
     },
     "microsoft_landing_us_regional_account": {
       "en": "A Distronode account in another region can't hold a US purchase. Buy in that region to keep one account, or use a different email address to create a separate US account.",
-      "fr": "Un compte Distronode d'une autre région ne peut pas détenir un achat des États-Unis. Achetez dans cette région pour garder un seul compte, ou utilisez une autre adresse courriel pour créer un compte distinct aux États-Unis."
+      "fr": "Un compte Distronode d'une autre région ne peut pas détenir un achat fait aux États-Unis. Achetez dans cette région pour garder un seul compte, ou utilisez une autre adresse courriel pour créer un compte distinct aux États-Unis."
     },
     "microsoft_landing_busy": {
       "en": "This purchase is being updated right now, perhaps in another tab. Try again in a moment.",

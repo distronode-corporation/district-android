@@ -193,6 +193,14 @@ class DistrictApiClient(
      * NON-idempotent endpoint through here — anything that spends money, notably `messages/send`,
      * `messages/draft` and `contacts/enrich` — check that a duplicate delivery is acceptable, because
      * a 401 on the first attempt would send it twice.
+     *
+     * @param challenges ⛔ THE 401 `code`s THAT ANSWER THIS REQUEST RATHER THAN THE SESSION. A fresh
+     *   re-authentication with a password answers 401 `MFA_REQUIRED` when the account has two-step
+     *   verification, with a bearer that is perfectly good. Read as the session's 401, it would
+     *   refresh, send the password a second time (spending one of the few tries a minute the
+     *   service allows) and come back as [ApiResult.Unauthorized] with the code lost. A 401 whose
+     *   code is in this set is neither retried nor read as the session: it is an
+     *   [ApiResult.HttpFailure] carrying its code. Empty for every other route.
      */
     suspend fun <T> send(
         method: String,
@@ -200,6 +208,7 @@ class DistrictApiClient(
         serializer: DeserializationStrategy<T>,
         query: Map<String, String?> = emptyMap(),
         body: JsonElement? = null,
+        challenges: Set<String> = emptySet(),
     ): ApiResult<T> {
         val builder = Request.Builder().url(buildUrl(baseUrl, segments, query))
         // ⚠️ An explicit empty body for methods that require one. OkHttp rejects POST/PATCH with a
@@ -222,7 +231,7 @@ class DistrictApiClient(
 
         // ⛔ THE SAME `authorizedCall` THE READ USES, not a second branch here: one dispatcher hop,
         // one place the bearer is attached.
-        return authorizedCall(builder = builder, client = httpClient) { response ->
+        return authorizedCall(builder = builder, client = httpClient, challenges = challenges) { response ->
             if (response.isSuccessful) decodeBody(response, serializer) else null
         }
     }
@@ -307,6 +316,7 @@ class DistrictApiClient(
     private suspend fun <T> authorizedCall(
         builder: Request.Builder,
         client: OkHttpClient,
+        challenges: Set<String> = emptySet(),
         handle: (Response) -> ApiResult<T>?,
     ): ApiResult<T> = withContext(io) {
         // ⛔ THE ONE PLACE THE DISPATCHER IS SWITCHED, ON PURPOSE. Every request in this class
@@ -320,12 +330,13 @@ class DistrictApiClient(
         // once and was invisible — `withContext` stayed imported and unused, the crash it was
         // meant to fix was still live, and only a thread-name assertion caught it. If you are
         // reading this because a test is asserting on a thread name, that is why it exists.
-        performAuthorizedCall(builder, client, handle)
+        performAuthorizedCall(builder, client, challenges, handle)
     }
 
     private suspend fun <T> performAuthorizedCall(
         builder: Request.Builder,
         client: OkHttpClient,
+        challenges: Set<String>,
         handle: (Response) -> ApiResult<T>?,
     ): ApiResult<T> {
         var refreshedOnce = false
@@ -346,6 +357,10 @@ class DistrictApiClient(
                 // ⚠️ Carries the cause rather than swallowing it: "offline" and "TLS rejected"
                 // need different diagnostics, and this is the only place that distinction exists.
                 return ApiResult.NetworkFailure(e)
+            }
+
+            if (isChallenge(response, challenges)) {
+                response.use { return mapFailure(it, challenged = true) }
             }
 
             if (response.code == HTTP_UNAUTHORIZED && !refreshedOnce) {
@@ -437,7 +452,7 @@ class DistrictApiClient(
      * in hand by this point, so any failure to read the body still has something true to report.
      */
     @Suppress("TooGenericExceptionCaught")
-    private fun mapFailure(response: Response): ApiResult<Nothing> {
+    private fun mapFailure(response: Response, challenged: Boolean = false): ApiResult<Nothing> {
         val body = try {
             // Never null in OkHttp 5 (see decodeBody), so there is no absent body to default.
             response.body.string()
@@ -468,7 +483,7 @@ class DistrictApiClient(
             ?: response.header(ApiErrorEnvelope.CODE_HEADER)?.takeIf { it.isNotBlank() }
 
         return when {
-            response.code == HTTP_UNAUTHORIZED -> ApiResult.Unauthorized(reason = null)
+            response.code == HTTP_UNAUTHORIZED && !challenged -> ApiResult.Unauthorized(reason = null)
             response.code == HTTP_FORBIDDEN -> ApiResult.Forbidden(message, code)
             response.code == HTTP_NOT_FOUND -> ApiResult.NotFound(message, code)
             response.code == HTTP_TOO_MANY_REQUESTS -> ApiResult.RateLimited(message, code = code)
@@ -481,6 +496,23 @@ class DistrictApiClient(
             )
             else -> ApiResult.HttpFailure(response.code, message, code)
         }
+    }
+
+    /**
+     * Whether [response] is a 401 whose `code` is one of [challenges] (see [send]).
+     *
+     * ⚠️ READ OFF A PEEK, so the body is still whole for `mapFailure`, and bounded: a challenge is a
+     * short JSON object, and anything that is not one simply has no code here. ⛔ A body that cannot
+     * be read is not a challenge, never a throw: the ordinary 401 path then reports it.
+     */
+    private fun isChallenge(response: Response, challenges: Set<String>): Boolean {
+        if (response.code != HTTP_UNAUTHORIZED || challenges.isEmpty()) return false
+        val peeked = try {
+            response.peekBody(CHALLENGE_PEEK_BYTES).string()
+        } catch (_: IOException) {
+            return false
+        }
+        return parseError(peeked).code in challenges
     }
 
     /**
@@ -509,6 +541,9 @@ class DistrictApiClient(
         private const val HTTP_FORBIDDEN = 403
         private const val HTTP_NOT_FOUND = 404
         private const val HTTP_TOO_MANY_REQUESTS = 429
+
+        /** Enough of a 401 to read a challenge's `code`; see [challengeCode]. */
+        private const val CHALLENGE_PEEK_BYTES = 4_096L
 
         /** Enough of a body to identify a shape mismatch, short enough not to log a transcript. */
         private const val BODY_PREVIEW_CHARS = 512

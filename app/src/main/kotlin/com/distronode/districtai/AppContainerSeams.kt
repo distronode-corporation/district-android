@@ -1,6 +1,7 @@
 package com.distronode.districtai
 
 import com.distronode.districtai.core.network.AccountApi
+import com.distronode.districtai.core.network.AccountSecurityApi
 import com.distronode.districtai.l10n.SavedLanguage
 import com.distronode.districtai.core.auth.RevokeApi
 import com.distronode.districtai.core.auth.TokenStore
@@ -99,4 +100,6 @@ data class AppContainerSeams(
     /** The account-language write, and where its last saved value is kept. */
     val accountApi: AccountApi? = null,
     val savedLanguage: SavedLanguage? = null,
+    /** Re-authentication and two-step verification. */
+    val accountSecurityApi: AccountSecurityApi? = null,
 )

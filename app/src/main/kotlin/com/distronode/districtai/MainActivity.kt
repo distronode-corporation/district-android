@@ -241,11 +241,13 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         loginController.onHostPaused()
+        container.reauthCallbacks.onHostPaused()
     }
 
     override fun onResume() {
         super.onResume()
         loginController.onHostResumed()
+        container.reauthCallbacks.onHostResumed()
     }
 
     /**
@@ -278,7 +280,13 @@ class MainActivity : ComponentActivity() {
         when (uri.host) {
             ApiEnvironment.PKCE_CALLBACK_HOST -> {
                 intent.data = null
-                loginController.onCallback(uri)
+                // ⛔ A RE-AUTHENTICATION IN THE BROWSER COMES BACK ON THIS SAME REDIRECT (the service
+                // allows one native redirect), so a pending one takes it first; see ReauthCallbacks.
+                val reauth = container.reauthCallbacks.deliver(
+                    state = uri.getQueryParameter("state"),
+                    code = uri.getQueryParameter("code"),
+                )
+                if (!reauth) loginController.onCallback(uri)
             }
             // ⛔ THE DASHBOARD HAND-OFF'S NONCE CALLBACK, HANDLED HERE RATHER THAN IN A FUNCTION OF
             // ITS OWN because this class is at detekt's function ceiling, and because it obeys the

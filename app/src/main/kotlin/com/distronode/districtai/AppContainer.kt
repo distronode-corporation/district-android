@@ -21,6 +21,10 @@ import com.distronode.districtai.core.data.MessageSearchRepository
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.VoiceStudioRepository
 import com.distronode.districtai.core.data.DevicesRepository
+import com.distronode.districtai.core.data.NativeReauthRepository
+import com.distronode.districtai.core.data.TwoStepSettingsRepository
+import com.distronode.districtai.ui.account.ReauthCallbacks
+import com.distronode.districtai.ui.account.SsoReauthenticator
 import com.distronode.districtai.core.data.DialRepository
 import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.ContactsRepository
@@ -67,6 +71,7 @@ import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.DistrictHttp
 import com.distronode.districtai.core.network.HttpAccountApi
+import com.distronode.districtai.core.network.HttpAccountSecurityApi
 import com.distronode.districtai.l10n.AccountLanguageReporter
 import com.distronode.districtai.l10n.PreferencesSavedLanguage
 import com.distronode.districtai.l10n.acceptLanguage
@@ -376,6 +381,33 @@ class AppContainer(
      * signed in".
      */
     val devicesRepository: DevicesRepository = DevicesRepository(districtApi)
+
+    private val accountSecurityApi = seams.accountSecurityApi ?: HttpAccountSecurityApi(apiClient)
+
+    /** A fresh re-authentication, before a two-step change. */
+    val nativeReauthRepository: NativeReauthRepository = NativeReauthRepository(accountSecurityApi)
+
+    /** Two-step verification: its status, and turning it on and off. */
+    val twoStepSettingsRepository: TwoStepSettingsRepository = TwoStepSettingsRepository(accountSecurityApi)
+
+    /**
+     * The one re-authentication in the browser that may be waiting for its callback.
+     *
+     * ⛔ PROCESS-SCOPED AND SINGLE, FOR THE SAME REASON AS [loginFlow]: it holds the pending PKCE
+     * verifier in memory, and `MainActivity` hands it the callback and the host's pause and resume.
+     */
+    val reauthCallbacks: ReauthCallbacks = ReauthCallbacks()
+
+    /** The SSO leg of a fresh re-authentication. ⚠️ `by lazy`: [deviceId]'s first read can write. */
+    val ssoReauthenticator: SsoReauthenticator by lazy {
+        SsoReauthenticator(
+            baseUrl = ApiEnvironment.baseUrl,
+            redirectUri = ApiEnvironment.PKCE_REDIRECT_URI,
+            deviceId = { deviceId },
+            repository = nativeReauthRepository,
+            callbacks = reauthCallbacks,
+        )
+    }
 
     /**
      * Billing, read-only.

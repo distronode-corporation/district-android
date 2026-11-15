@@ -287,7 +287,7 @@ fr = "Vos espaces de travail sont facturés par Microsoft Marketplace; un forfai
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `checkout_marketplace_billed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.checkout_setup_in_progress]
@@ -314,7 +314,7 @@ fr = "Tapez exactement l'adresse courriel du compte pour confirmer."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `confirmation_mismatch`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.connector_not_found]
@@ -846,7 +846,7 @@ fr = "Cet espace de travail est facturé par Microsoft Marketplace, qui fixe son
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_billed_workspace`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_cancel_refused]
@@ -855,7 +855,7 @@ fr = "Microsoft n'a pas voulu annuler un abonnement Microsoft Marketplace de vot
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_cancel_refused`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_intro_minutes_reached]
@@ -864,7 +864,7 @@ fr = "Cet espace de travail a utilisé les minutes vocales incluses dans son for
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_intro_minutes_reached`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_intro_numbers_locked]
@@ -873,7 +873,7 @@ fr = "Les numéros de téléphone peuvent être ajoutés 72 heures après l'acti
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_intro_numbers_locked`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_subscription_pending]
@@ -882,7 +882,7 @@ fr = "L'achat Microsoft Marketplace de cet espace de travail est encore en cours
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_subscription_pending`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_subscription_suspended]
@@ -891,7 +891,7 @@ fr = "Microsoft a suspendu l'abonnement de cet espace de travail, car un paiemen
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_subscription_suspended`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_subscription_unsubscribed]
@@ -900,7 +900,7 @@ fr = "L'abonnement Microsoft Marketplace de cet espace de travail a été annul�
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `marketplace_subscription_unsubscribed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.media_not_found]
@@ -1080,7 +1080,7 @@ fr = "Cet espace de travail est facturé par Stripe; un forfait Microsoft Market
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_attach_stripe_billed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_attach_unavailable]
@@ -1089,7 +1089,7 @@ fr = "Cet espace de travail ne peut pas recevoir cet achat. Choisissez un espace
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_attach_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_busy]
@@ -1098,7 +1098,7 @@ fr = "Cet achat est en cours de mise à jour, peut-être dans un autre onglet. R
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_busy`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_consent_blocked]
@@ -1107,7 +1107,7 @@ fr = "Votre administrateur Microsoft 365 doit autoriser Distronode avant que vou
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_consent_blocked`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_held_elsewhere]
@@ -1116,7 +1116,7 @@ fr = "Cet achat est configuré dans une autre région; il se gère donc sur le s
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_held_elsewhere`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_identity_mismatch]
@@ -1125,7 +1125,7 @@ fr = "Connectez-vous avec le compte Microsoft qui a acheté District AI, ou celu
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_identity_mismatch`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_refused]
@@ -1134,7 +1134,7 @@ fr = "Cet achat a été annulé chez Microsoft, ou ce n'est pas un forfait Distr
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_refused`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_region_check_unavailable]
@@ -1143,7 +1143,7 @@ fr = "Nous n'avons pas pu vérifier la région de votre compte pour le moment, a
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_region_check_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_token_invalid]
@@ -1152,7 +1152,7 @@ fr = "Nous n'avons pas pu reconnaître cet achat. Rouvrez-le depuis le Centre d'
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_token_invalid`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_too_many_tries]
@@ -1161,7 +1161,7 @@ fr = "Trop de tentatives pour cet achat. Rouvrez-le depuis Microsoft pour recomm
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_too_many_tries`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_unavailable]
@@ -1170,7 +1170,7 @@ fr = "Nous n'avons pas pu joindre Microsoft pour le moment, alors rien n'a été
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_us_regional_account]
@@ -1179,7 +1179,7 @@ fr = "Un compte Distronode d'une autre région ne peut pas détenir un achat des
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `microsoft_landing_us_regional_account`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.model_unavailable_in_region]
@@ -1386,7 +1386,7 @@ fr = "Nous n'avons pas pu confirmer qu'il s'agit bien de vous. Veuillez réessay
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `reauth_failed`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.reauth_required]
@@ -1395,7 +1395,7 @@ fr = "Confirmez de nouveau qu'il s'agit bien de vous, puis réessayez."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "draft"
+state = "reviewed"
 note = "The sentence for the server's error code `reauth_required`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.region_elsewhere]

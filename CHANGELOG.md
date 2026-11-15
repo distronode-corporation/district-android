@@ -48,8 +48,8 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
 
 - A PDF or other file sent in a conversation shows as a tile with its name and opens in your
   browser, instead of "Image unavailable".
-- Live calls lists every call in progress, not only the newest 100, and listening to or taking
-  over a call no longer stops when newer calls arrive.
+- The Live calls screen lists every call in progress, not only the newest 100, and listening to
+  or taking over a call no longer stops when newer calls arrive.
 - TalkBack reads and announces more in the Inbox, Live calls and the dialler, and the
   dialler's country rows are easier to tap.
 

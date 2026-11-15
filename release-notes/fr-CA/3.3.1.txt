@@ -1,4 +1,4 @@
 • Un PDF ou un autre fichier envoyé dans une conversation s'affiche avec son nom et s'ouvre dans le navigateur, au lieu de « Image indisponible ».
-• Appels en cours montre tous les appels, pas seulement les 100 derniers, et l'écoute ou la prise d'un appel ne s'arrête plus quand d'autres arrivent.
-• TalkBack lit et annonce davantage dans la boîte de réception, Appels en cours et le composeur, et les pays du composeur sont plus faciles à toucher.
+• L'écran Appels en cours montre tous les appels, pas seulement les 100 derniers, et l'écoute ou la prise d'un appel ne s'arrête plus quand d'autres arrivent.
+• TalkBack lit et annonce davantage dans la boîte de réception, Appels en cours et le composeur, dont les pays sont plus faciles à toucher.
 • Les composants de l'application sont à jour.

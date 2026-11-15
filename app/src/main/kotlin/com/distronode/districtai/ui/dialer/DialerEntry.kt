@@ -206,7 +206,7 @@ internal fun destinationLine(reading: DialPlan.Reading): Pair<String?, String>? 
  * Whether the line under the field is `dialer_rings_no_country` rather than "Rings Canada".
  *
  * ⛔ A +1 TOLL-FREE NUMBER (800, 833 … 888) RINGS NO ONE COUNTRY, AND THE LINE SAYS SO, as the web
- * dialler does (`ringsNoCountry`; Sean, 2026-11-04, GitLab #2). [DialPlan] keeps the +1 country on
+ * dialler does (`ringsNoCountry`, decided 2026-11-04). [DialPlan] keeps the +1 country on
  * the button, because the flag is where the next digits are read, but naming it under a 1-800
  * number would claim a country the number does not have. So do the web's other no-country codes, 500,
  * 600, 700, 710 and 900.

@@ -40,8 +40,8 @@ English is unchanged), and FR_OVERRIDES, a deliberate local wording held only wh
 still exactly the one it replaced. An entry whose French and English are both unchanged keeps the
 translation fields the committed catalog has (`state`, `fr_variant` and the rest of KEPT).
 
-    python3 scripts/l10n-contracts.py --sync ~/distronode            re-sync from the monorepo's origin/main
-    python3 scripts/l10n-contracts.py --sync ~/distronode --ref X    from another ref (fetch first)
+    python3 scripts/l10n-contracts.py --sync <checkout>              re-sync from the monorepo's origin/main
+    python3 scripts/l10n-contracts.py --sync <checkout> --ref X      from another ref (fetch first)
 
 `--sync` copies the three contract files byte for byte from `distronode-website/contracts/i18n/` at the ref
 (`git show`, so the monorepo's checkout is never touched), regenerates, and runs `l10n.py gen` for both

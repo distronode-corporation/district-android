@@ -50,7 +50,7 @@ data class ThreadOwnerState(
  * ⛔ ONLY `agency` AND `client` MAY ASSIGN, and only they read the members: a viewer sees the owner
  * and nothing else, matching the route, which refuses their write.
  *
- * ⛔ NOBODY CAN BE GIVEN A THREAD WHILE A VIEWER (Sean, 2026-11-04): the picker leaves viewers out,
+ * ⛔ NOBODY CAN BE GIVEN A THREAD WHILE A VIEWER (decided 2026-11-04): the picker leaves viewers out,
  * as the web picker does, and the route answers `assignee_is_viewer` if one is sent anyway.
  *
  * ⚠️ A REFUSAL KEEPS THE OLD OWNER and shows the server's sentence: nothing changed server-side.

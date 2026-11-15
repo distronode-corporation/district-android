@@ -63,7 +63,7 @@ class LanguageSignalRequestTest {
 
     @Test
     fun `the account language is posted as profile locale, fr or en, and the answer decodes`() = runTest {
-        // The body of contracts/district-settings-save.json (monorepo 49019be).
+        // The body of contracts/district-settings-save.json (the server's fixture).
         server.enqueue(MockResponse(code = 200, body = """{"success":true,"message":"Settings saved successfully"}"""))
         val result = HttpAccountApi(testApiClient(server)).saveLocale(SETTINGS_LOCALE_FR)
 

@@ -32,7 +32,7 @@ import org.junit.Test
 /**
  * Which exits of a ringing call tell the server `calls/{id}/decline`, and which do not.
  *
- * ⛔ A PERSON'S DECLINE WHILE RINGING SENDS EXACTLY ONCE (Sean, 2026-10-24: when every member the
+ * ⛔ A PERSON'S DECLINE WHILE RINGING SENDS EXACTLY ONCE (decided 2026-10-24: when every member the
  * ring reached has declined, the server ends the ring and the agent takes a message). A timeout, a
  * withdrawn ring and a hang-up after the answer send NOTHING: reported as declines, they would let
  * the server end a ring another member was about to answer.

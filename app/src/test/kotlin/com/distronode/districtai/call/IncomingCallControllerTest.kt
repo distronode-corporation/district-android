@@ -791,7 +791,7 @@ class IncomingCallControllerTest {
 
     @Test
     fun `a ring answered on another device stops ringing here and ends as answered elsewhere`() = callTest { h ->
-        // ⛔ SEAN'S 3.0.1 ADDITION: every app stops ringing when the call is answered elsewhere.
+        // ⛔ THE 3.0.1 ADDITION: every app stops ringing when the call is answered elsewhere.
         h.controller.onIncomingCall("ws-1", "CA1")
 
         h.controller.onRingCancelled("CA1", RingCancelReason.ANSWERED)

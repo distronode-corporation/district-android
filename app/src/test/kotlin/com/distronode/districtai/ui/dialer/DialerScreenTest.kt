@@ -181,7 +181,7 @@ class DialerScreenTest {
     }
 
     /**
-     * ⛔ A +1 TOLL-FREE NUMBER NAMES NO COUNTRY (Sean, 2026-11-04, GitLab #2): the web's
+     * ⛔ A +1 TOLL-FREE NUMBER NAMES NO COUNTRY (decided 2026-11-04): the web's
      * `ringsNoCountry` for every one of the seven codes, typed locally or with `+1`, and it stays
      * callable. The button keeps its +1 country.
      */

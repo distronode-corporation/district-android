@@ -43,7 +43,7 @@ data class CallMonitorTokenResponse(
 
 /**
  * `POST /api/district/calls/{callId}/takeover`: the microphone-only credential that takes a live
- * call over from the AI ("Whisperers; AI steps back", Sean 2026-10-18).
+ * call over from the AI ("Whisperers; AI steps back", decided 2026-10-18).
  *
  * ⛔ [url] IS THE DEPLOYMENT THAT HOLDS THE ROOM, found by asking (`locateSipRoom`), used verbatim.
  * [roomName] is informational: nothing on this client builds or joins a room by name.
@@ -96,7 +96,7 @@ const val TELEMETRY_EVENT_WHISPER_APPLIED: String = "whisper_applied"
 const val WHISPER_NOT_APPLIED_TAKEN_OVER: String = "taken_over"
 
 /**
- * The voice agent's receipt for a whisper (`whisper_applied`, Sean 2026-11-03).
+ * The voice agent's receipt for a whisper (`whisper_applied`, decided 2026-11-03).
  *
  * ⚠️ TWO SHAPES IN ONE TYPE, AS THE AGENT WRITES THEM: `{applied: true, firstWords}` when the
  * receptionist acted on it, `{applied: false, reason}` when it held it back (`transfer`,

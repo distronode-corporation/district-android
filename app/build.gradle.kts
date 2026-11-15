@@ -156,7 +156,7 @@ android {
         applicationId = "com.distronode.districtai"
 
         versionCode = districtVersionCode.get()
-        versionName = "3.3.0"
+        versionName = "3.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

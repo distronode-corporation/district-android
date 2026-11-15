@@ -223,7 +223,7 @@ allprojects {
 //
 // ⛔ RAISE THESE AS COVERAGE IMPROVES. NEVER LOWER ONE TO MAKE A BUILD PASS.
 //
-// ⛔ THE ONE EXCEPTION, AND ITS EXIT. The branch floor went from 98 to 97 on 2026-10-31, by Sean's
+// ⛔ THE ONE EXCEPTION, AND ITS EXIT. The branch floor went from 98 to 97 on 2026-10-31, by an
 // explicit decision on PR #106 (Kotlin and the Compose compiler 2.2.10 to 2.4.21), and for that
 // cause only. The bump added 218 branches and 115 missed ones, every one of them on a Compose
 // lambda memoization check: `($dirty & mask) == K || (($dirty & bit) != 0 &&

@@ -67,8 +67,8 @@ data class IncomingCallUiState(
  * The inbound call state machine: ring, answer, decline, time out.
  *
  * ⛔ **A PERSON'S DECLINE IS TOLD TO THE SERVER, ONCE; A TIMEOUT AND A WITHDRAWN RING ARE NOT.**
- * (Sean, 2026-10-24, decisions log GitLab #2 note 4083623386, reversing the rule that neither was
- * sent.) `POST /api/district/actions/ring-app` blocks on a Redis rendezvous for ~25 seconds; when
+ * (The maintainers' decision of 2026-10-24, reversing the rule that neither was sent.)
+ * `POST /api/district/actions/ring-app` blocks on a Redis rendezvous for ~25 seconds; when
  * every member it rang has declined, the server now ends the ring at once and the agent takes a
  * message instead of holding the caller in silence for the rest of the window. So the two exits are
  * kept apart on purpose:

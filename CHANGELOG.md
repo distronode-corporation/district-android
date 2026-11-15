@@ -8,7 +8,17 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 
 ## [Unreleased]
 
+The `[3.3.1]` section below is the text Google Play shows (`scripts/release-notes.sh`), so the
+3.3.1 detail stays here and moves under it once 3.3.1 is on sale.
+
 ### Changed
+
+- Components: LiveKit 2.29.1 to 2.30.0 and Sentry 8.61.1 to 8.63.0 (its Gradle plugin 6.24.0 to
+  6.26.0), and the Gradle wrapper 9.8.2 to 9.9.0.
+- Contracts: the error catalog's Microsoft Marketplace codes and `marketplace_cancel_refused`,
+  in English and French, as the server sends them.
+- Contracts: `district-calls-outbound.json` carries the dialer's three real skip reasons, and
+  `district-campaign-settings.json` is new (in `NOT_ON_ANDROID`: neither route is called here).
 
 - Contracts: the server's 20 new fixtures (for features this app does not have, recorded in
   `NOT_ON_ANDROID`), and the error and wire catalogs regenerated: three error codes for
@@ -31,6 +41,21 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 - TalkBack: the unread count, the assign picker, the reply channel and template choices, the
   Messenger and Instagram reply window, the live call cards and the dialler's country list read
   what they show and announce what changes; country rows are a full 48dp touch target.
+
+## [3.3.1] - 2026-11-15
+
+### Fixed
+
+- A PDF or other file sent in a conversation shows as a tile with its name and opens in your
+  browser, instead of "Image unavailable".
+- The Live calls screen lists every call in progress, not only the newest 100, and listening to
+  or taking over a call no longer stops when newer calls arrive.
+- TalkBack reads and announces more in the Inbox, Live calls and the dialler, and the
+  dialler's country rows are easier to tap.
+
+### Changed
+
+- The app's components are updated.
 
 ## [3.3.0] - 2026-11-06
 
@@ -199,7 +224,8 @@ It covers sign-in through the service's own login page (PKCE), calls and transcr
 shared inbox, contacts and their intelligence dossiers, multi-party rooms, the self-managed
 softphone for outbound and inbound calls, push notifications, and workspace settings.
 
-[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/distronode-corporation/district-android/compare/v3.3.1...HEAD
+[3.3.1]: https://github.com/distronode-corporation/district-android/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/distronode-corporation/district-android/compare/v3.1.0...v3.3.0
 [3.1.0]: https://github.com/distronode-corporation/district-android/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/distronode-corporation/district-android/compare/v3.0.2...v3.0.3

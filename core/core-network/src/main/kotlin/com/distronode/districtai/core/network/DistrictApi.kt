@@ -1708,7 +1708,7 @@ interface InboundCallApi {
      * A person refused [callId]'s ring on this device.
      *
      * ⛔ SENT ONLY FOR A PERSON'S DECLINE, NEVER FOR A RING THAT TIMED OUT OR THAT THE SERVER
-     * WITHDREW (Sean, 2026-10-24, decisions log GitLab #2). The server records the decliner, and
+     * WITHDREW (decided 2026-10-24). The server records the decliner, and
      * when every member it rang has declined it ends the ring at once and the agent takes a message
      * instead of holding the caller for the rest of the rendezvous. A timeout reported as a decline
      * would end a ring another member was about to answer.

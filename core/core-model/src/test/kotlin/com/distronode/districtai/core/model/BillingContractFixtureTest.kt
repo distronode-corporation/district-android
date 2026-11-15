@@ -250,7 +250,7 @@ class BillingContractFixtureTest {
 
     @Test
     fun `currency is read on a subscription and an invoice when sent, and is null when absent`() {
-        // The server sends `currency` since monorepo 43eed5fd6, so the fixture pins the present
+        // The server now sends `currency`, so the fixture pins the present
         // branch and the absent one (an older server) is a local literal.
         val today = json.decodeFromString<StripeBilling>(fixture("district-billing.json"))
         assertTrue(today.subscriptions.isNotEmpty() && today.invoices.isNotEmpty())

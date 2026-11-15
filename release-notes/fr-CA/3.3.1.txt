@@ -1,0 +1,4 @@
+• Un PDF ou un autre fichier joint à un message s'affiche avec son nom et s'ouvre dans le navigateur, au lieu de « Image indisponible ».
+• L'écran Appels en cours montre tous les appels, pas seulement les 100 derniers, et l'écoute ou la prise d'un appel ne s'arrête plus quand d'autres arrivent.
+• TalkBack lit et annonce davantage dans la boîte de réception, Appels en cours et le composeur, et les pays du composeur sont plus faciles à toucher.
+• Les composants de l'application sont à jour.

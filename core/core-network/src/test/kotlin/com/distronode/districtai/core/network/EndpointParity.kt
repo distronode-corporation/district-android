@@ -71,7 +71,7 @@ internal object EndpointParity {
      *
      * ⛔ NOT A SECOND [MISSING_ON_ANDROID], AND THE DIFFERENCE IS THE DIRECTION OF TRAVEL. Those are
      * endpoints this client has yet to gain; these are endpoints iOS has yet to LOSE. The server
-     * removed call recordings and the scheduler's recording download (monorepo d92b7894c,
+     * removed call recordings and the scheduler's recording download (on
      * 2026-10-03): `GET /api/district/calls/{id}/recording` and
      * `/api/district/scheduling/admin/download/{id}` no longer exist, so implementing them here
      * would call a 404.

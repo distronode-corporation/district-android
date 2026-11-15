@@ -42,7 +42,8 @@ class NativeReauthRepository(private val api: AccountSecurityApi) {
         when (val result = api.deleteAccount(confirmation)) {
             is ApiResult.Success -> {
                 val gone = result.value.success && result.value.accountDeleted
-                rejectedEnvelope("AccountDeleteResponse", gone) ?: ApiResult.Success(result.value.externalErasurePending)
+                rejectedEnvelope("AccountDeleteResponse", gone)
+                    ?: ApiResult.Success(result.value.externalErasurePending)
             }
             is ApiResult.Failure -> result
         }

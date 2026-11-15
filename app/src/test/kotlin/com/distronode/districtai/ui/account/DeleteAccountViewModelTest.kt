@@ -221,7 +221,8 @@ class DeleteAccountViewModelTest {
         runTest(dispatcher) {
             val cases = listOf(
                 offline to failure(R.string.delete_account_error_offline_outcome_unknown),
-                ApiResult.DecodeFailure(IllegalStateException(), "") to failure(R.string.delete_account_error_outcome_unknown),
+                ApiResult.DecodeFailure(IllegalStateException(), "") to
+                    failure(R.string.delete_account_error_outcome_unknown),
                 ApiResult.Unauthorized(null) to failure(R.string.failure_signed_out),
                 ApiResult.HttpFailure(400, "Type it", "confirmation_mismatch") to
                     failure(R.string.delete_account_error_email_mismatch),

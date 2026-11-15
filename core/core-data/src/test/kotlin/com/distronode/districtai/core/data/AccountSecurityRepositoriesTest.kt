@@ -81,10 +81,10 @@ class AccountSecurityRepositoriesTest {
 
     @Test
     fun `a 200 that does not say the account is gone is never a deletion`() = runTest {
-        api.deleteResult = ApiResult.Success(AccountDeleteResponse(true, accountDeleted = false, externalErasurePending = false))
+        api.deleteResult = ApiResult.Success(AccountDeleteResponse(true, false, externalErasurePending = false))
         assertTrue(reauth.deleteAccount("x") is ApiResult.DecodeFailure)
 
-        api.deleteResult = ApiResult.Success(AccountDeleteResponse(false, accountDeleted = true, externalErasurePending = false))
+        api.deleteResult = ApiResult.Success(AccountDeleteResponse(false, true, externalErasurePending = false))
         assertTrue(reauth.deleteAccount("x") is ApiResult.DecodeFailure)
 
         val refusal = ApiResult.HttpFailure(400, "Type it", "confirmation_mismatch")

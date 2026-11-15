@@ -118,7 +118,10 @@ class DeleteAccountViewModel(
         flight {
             when (val outcome = sso(provider)) {
                 is SsoReauthOutcome.Proved -> _state.update { it.copy(step = DeleteAccountStep.Confirm) }
-                else -> _state.update { state -> state.copy(failure = ssoFailure(outcome)?.let { DeleteAccountFailure(null, it) }) }
+                else -> {
+                    val failure = ssoFailure(outcome)?.let { DeleteAccountFailure(null, it) }
+                    _state.update { it.copy(failure = failure) }
+                }
             }
         }
     }
@@ -153,7 +156,10 @@ class DeleteAccountViewModel(
                         // ⛔ THE PROOF IS GONE (expired, or spent): back to the start, said plainly.
                         it.copy(
                             step = DeleteAccountStep.Explain,
-                            failure = DeleteAccountFailure(null, UiText.Resource(R.string.delete_account_error_proof_expired)),
+                            failure = DeleteAccountFailure(
+                                null,
+                                UiText.Resource(R.string.delete_account_error_proof_expired),
+                            ),
                         )
                     } else {
                         it.copy(failure = deleteFailure(result))

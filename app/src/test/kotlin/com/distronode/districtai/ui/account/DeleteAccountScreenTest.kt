@@ -116,7 +116,8 @@ class DeleteAccountScreenTest {
         composeRule.onNodeWithTag(DELETE_ACCOUNT_EMAIL_TAG).performTextInput("x")
         composeRule.onNodeWithTag(DELETE_ACCOUNT_SUBMIT_TAG).assertIsEnabled().performClick()
 
-        assertEquals(listOf("field:EMAIL=xowner@example.test", "delete"), actions.calls.filter { it != "field:EMAIL=owner@example.test" })
+        assertEquals("field:EMAIL=xowner@example.test", actions.calls.first())
+        assertEquals("delete", actions.calls.last())
     }
 
     @Test

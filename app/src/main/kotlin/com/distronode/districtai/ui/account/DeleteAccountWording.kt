@@ -44,6 +44,9 @@ internal fun deleteFailure(failure: ApiResult.Failure): DeleteAccountFailure {
         // ⚠️ The service's own words here are "Internal server error", which tells nobody what to do.
         failure.isServerError && (failure.code == null || failure.code == "server_error") ->
             DeleteAccountFailure(notDeleted, UiText.Resource(R.string.delete_account_error_try_again_shortly))
-        else -> DeleteAccountFailure(notDeleted, serviceSentence(failure, R.string.delete_account_error_try_again_shortly))
+        else -> DeleteAccountFailure(
+            notDeleted,
+            serviceSentence(failure, R.string.delete_account_error_try_again_shortly),
+        )
     }
 }

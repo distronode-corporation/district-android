@@ -17,6 +17,9 @@ import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.SchedulingAdminApi
 import com.distronode.districtai.core.network.SupportApi
+import com.distronode.districtai.core.network.HqVoiceApi
+import com.distronode.districtai.core.media.HqVoiceEngineFactory
+import com.distronode.districtai.ui.hq.voice.HqVoiceAudio
 import com.distronode.districtai.core.network.SuperviseApi
 import com.distronode.districtai.core.network.WhatsAppApi
 import com.distronode.districtai.core.network.live.LiveDependencies
@@ -74,6 +77,10 @@ data class AppContainerSeams(
     val districtApi: DistrictApi? = null,
     val deskApi: DeskApi? = null,
     val supportApi: SupportApi? = null,
+    /** District HQ by voice: the voice routes, the room and the device's audio. */
+    val hqVoiceApi: HqVoiceApi? = null,
+    val hqVoiceEngineFactory: HqVoiceEngineFactory? = null,
+    val hqVoiceAudio: HqVoiceAudio? = null,
     val personaApi: PersonaApi? = null,
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,

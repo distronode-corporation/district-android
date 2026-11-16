@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -174,17 +171,15 @@ private fun Live(state: HqVoiceUiState, canConfirm: Boolean, actions: HqVoiceAct
             .testTag(HQ_VOICE_STATE_DESCRIPTION),
     )
     // ⛔ ONE TREATMENT AND ONE HEIGHT FOR THE TWO CONTROLS (visual QA): equal halves of their own
-    // row, below the state, each filling the row's height, so a label that wraps in French or at a
-    // large font size grows both buttons together instead of one pill beside bare text.
+    // row, below the state, both drawn as small buttons (32 dp inside a 48 dp touch target), instead
+    // of one pill beside bare text. ⚠️ NOT STRETCHED to the row's height: that would draw the fill
+    // over the whole touch target and make these two the only 48 dp small buttons in the app.
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
-        val half = Modifier
-            .weight(1f)
-            .fillMaxHeight()
+        val half = Modifier.weight(1f)
         when (state.micMode) {
             HqMicMode.PUSH -> HoldToTalk(state.isMicrophoneOn, actions.onHold, half)
             HqMicMode.OPEN -> DistrictButton(

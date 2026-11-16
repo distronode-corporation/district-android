@@ -152,6 +152,22 @@ class AccountSecurityRequestTest {
     }
 
     @Test
+    fun `a blank code in the body falls back to the header`() = runTest {
+        server.enqueue(
+            MockResponse.Builder()
+                .code(401)
+                .body("""{"error":"Enter the code","code":""}""")
+                .addHeader(ApiErrorEnvelope.CODE_HEADER, "MFA_REQUIRED")
+                .build(),
+        )
+
+        val result = api().nativeReauthPassword(NativeReauthAction.TWO_FACTOR_CHANGE, "pw", null)
+
+        assertTrue(result is ApiResult.HttpFailure && result.code == "MFA_REQUIRED")
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
     fun `any other 401 on the password route is still the session's`() = runTest {
         server.enqueue(MockResponse(code = 401, body = """{"error":"Unauthorized","code":"unauthorized"}"""))
         server.enqueue(MockResponse(code = 401, body = """{"error":"Unauthorized","code":"unauthorized"}"""))

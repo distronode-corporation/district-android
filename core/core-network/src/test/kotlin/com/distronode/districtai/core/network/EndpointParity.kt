@@ -136,10 +136,19 @@ internal object EndpointParity {
         // beside the send POST. It leaves this set when the district-core-swift snapshot that adds
         // it is vendored.
         "metaWindow",
+        // ⚠️ DISTRICT HQ BY VOICE, ported from iOS. The names are iOS's own `EndpointID` cases
+        // (district-core-swift declares them); they leave this set when a snapshot that declares
+        // them is vendored, which the snapshot here predates.
+        "hqProposalCancel",
+        "hqVoiceContext",
+        "hqVoiceDiscard",
+        "hqVoiceEnd",
+        "hqVoiceSettings",
+        "hqVoiceToken",
+        "saveHqVoiceSettings",
         // ⚠️ TWO-STEP VERIFICATION SETTINGS, ACCOUNT DELETION AND THE FRESH RE-AUTHENTICATION BEFORE
-        // THEM: the names
-        // district-core-swift's `EndpointID` declares after 8.0.0. They leave this set when the
-        // snapshot that declares them is vendored.
+        // THEM: the names district-core-swift's `EndpointID` declares after 8.0.0. They leave this
+        // set when the snapshot that declares them is vendored.
         "deleteAccount",
         "mfaConfirm",
         "mfaDisable",

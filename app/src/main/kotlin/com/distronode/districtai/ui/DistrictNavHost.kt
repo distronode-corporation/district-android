@@ -78,6 +78,11 @@ import com.distronode.districtai.ui.support.SupportSubmitOutcome
 import com.distronode.districtai.ui.support.SupportViewModel
 import com.distronode.districtai.ui.hq.HqScreen
 import com.distronode.districtai.ui.hq.HqViewModel
+import com.distronode.districtai.ui.hq.voice.HqVoiceHost
+import com.distronode.districtai.ui.hq.voice.HqVoiceSettingsScreen
+import com.distronode.districtai.ui.hq.voice.HqVoiceSettingsViewModel
+import com.distronode.districtai.ui.hq.voice.HqVoiceViewModel
+import com.distronode.districtai.ui.hq.voiceHistory
 import com.distronode.districtai.ui.inbox.AssignedToMeFilter
 import com.distronode.districtai.ui.inbox.ComposeViewModel
 import com.distronode.districtai.ui.inbox.ComposerHandlers
@@ -814,6 +819,14 @@ fun DistrictNavHost(
                     // taken effect.
                     OnSessionChanged(sessionEpoch, viewModel::retryOrNoop)
 
+                    // ⚠️ Keyed on the workspace too: a session belongs to ONE tenant's HQ.
+                    val voice: HqVoiceViewModel = viewModel(
+                        key = "hq-voice-$workspaceId",
+                        factory = HqVoiceViewModel.factory {
+                            container.hqVoiceSession(workspaceId, role.allowsMutation())
+                        },
+                    )
+
                     HqScreen(
                         state = state,
                         messages = messages,
@@ -829,6 +842,35 @@ fun DistrictNavHost(
                             workspaceId = workspaceId,
                             support = container.supportRepository,
                         ),
+                        voice = {
+                            HqVoiceHost(
+                                session = voice.session,
+                                // ⚠️ The overview's active workspace, when it is this one; the
+                                // notice then names the region the data lives in.
+                                workspaceRegion = content?.active?.takeIf { it.id == workspaceId }?.region,
+                                history = { messages.voiceHistory() },
+                                onOpenSettings = { navController.navigate(Routes.hqVoiceSettings(workspaceId)) },
+                            )
+                        },
+                    )
+                }
+
+                composable(Routes.HQ_VOICE_SETTINGS) { entry ->
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val viewModel: HqVoiceSettingsViewModel = viewModel(
+                        key = "hq-voice-settings-$workspaceId",
+                        factory = HqVoiceSettingsViewModel.factory(container.hqVoiceRepository, workspaceId),
+                    )
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    // ⚠️ A read, so a session change re-reads it.
+                    OnSessionChanged(sessionEpoch, viewModel::load)
+                    HqVoiceSettingsScreen(
+                        state = state,
+                        onEdit = viewModel::edit,
+                        onSave = viewModel::save,
+                        onRetry = viewModel::load,
+                        onSignIn = onSignIn,
+                        onBack = { navController.popBackStack() },
                     )
                 }
 
@@ -2305,6 +2347,12 @@ object Routes {
     const val HQ = "workspace/{workspaceId}/hq/{role}"
 
     /**
+     * The member's own HQ voice settings. ⚠️ NO ROLE: the settings are the member's, not the
+     * workspace's, so every role may change them.
+     */
+    const val HQ_VOICE_SETTINGS = "workspace/{workspaceId}/hq-voice-settings"
+
+    /**
      * Analytics.
      *
      * ⚠️ CARRIES NO ROLE, WHICH IS THE ONLY WORKSPACE-SCOPED DRILL-DOWN THAT DOES NOT. Contacts,
@@ -2682,6 +2730,8 @@ object Routes {
     /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
     fun hq(workspaceId: String, role: WorkspaceRole?) =
         "workspace/${Uri.encode(workspaceId)}/hq/${Uri.encode(role?.name?.lowercase() ?: "none")}"
+
+    fun hqVoiceSettings(workspaceId: String) = "workspace/${Uri.encode(workspaceId)}/hq-voice-settings"
 
     fun callDetail(workspaceId: String, callId: String, role: WorkspaceRole? = null) =
         "workspace/${Uri.encode(workspaceId)}/calls/${Uri.encode(callId)}" + roleQuery(role)

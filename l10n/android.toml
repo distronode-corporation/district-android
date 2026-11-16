@@ -3332,6 +3332,440 @@ state = "reviewed"
 same_ok = true
 note = "── Devices ───────────────────────────────────────────────────────────── The read half of device management. Until it existed an account holding live refresh tokens on three phones had no way to SEE them, which made the two revoke routes unusable: a deviceId is client-generated and opaque, so this list is the only place a user learns which ids exist. ── District HQ (Task A7) ───────────────────────────────────────────── The agentic console. One route, two turns: a prompt runs the model, and a confirm applies a change the operator explicitly approved."
 
+[hq.voice_applied]
+en = "Done."
+fr = "C'est fait."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "A proposal HQ made by voice was applied. The iOS wording."
+
+[hq.voice_busy]
+en = "Voice can't start during a call or a meeting."
+fr = "Le mode vocal ne peut pas démarrer pendant un appel ou une réunion."
+ctx = "error"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice refused before anything started: a call or a meeting holds the audio. The iOS wording."
+
+[hq.voice_cancel]
+en = "Cancel"
+fr = "Annuler"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Declines one change HQ proposed by voice."
+
+[hq.voice_cancelled]
+en = "Cancelled."
+fr = "Annulé."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "A voice proposal the member cancelled. The iOS wording."
+
+[hq.voice_confirm]
+en = "Confirm"
+fr = "Confirmer"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Applies one change HQ proposed by voice."
+
+[hq.voice_connecting]
+en = "Connecting…"
+fr = "Connexion…"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "While the voice session is being set up. The iOS wording."
+
+[hq.voice_ended]
+en = "Voice ended."
+fr = "Le mode vocal est terminé."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The voice session ended (the member's Stop, the room closing, HQ leaving). The iOS wording."
+
+[hq.voice_ended_interrupted]
+en = "Voice ended because a call or another app took the audio."
+fr = "Le mode vocal s'est arrêté, car un appel ou une autre application a pris la sortie audio."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "draft"
+note = "Android only: the system took the audio focus (a phone call, a District call ringing, another app's audio), so the session ended. iOS says \"Voice ended for a call.\"; Android cannot always tell a call from another app."
+
+[hq.voice_ended_timeout]
+en = "The 30-minute voice session has ended."
+fr = "La session vocale de 30 minutes est terminée."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "A session lasts at most 30 minutes. The iOS wording."
+
+[hq.voice_failed]
+en = "The change could not be made."
+fr = "La modification n'a pas pu être faite."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "A voice proposal that failed. The iOS wording."
+
+[hq.voice_hold_to_talk]
+en = "Hold to talk"
+fr = "Maintenir pour parler"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Push-to-talk: the microphone is open only while this is held. With TalkBack a double tap turns it on and off. The iOS wording."
+
+[hq.voice_join_failed]
+en = "Voice couldn't connect. Try again."
+fr = "Le mode vocal n'a pas pu se connecter. Réessayez."
+ctx = "error"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The join failed. The iOS wording."
+
+[hq.voice_language_en]
+en = "English"
+fr = "Anglais"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: HQ speaks English."
+
+[hq.voice_language_fr]
+en = "French"
+fr = "Français"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: HQ speaks French."
+
+[hq.voice_language_portal]
+en = "Same as the app"
+fr = "Comme l'application"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: HQ speaks the app's language. The iOS wording."
+
+[hq.voice_length_brief]
+en = "Brief answers"
+fr = "Réponses brèves"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: answer length."
+
+[hq.voice_length_detailed]
+en = "Detailed answers"
+fr = "Réponses détaillées"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: answer length."
+
+[hq.voice_length_normal]
+en = "Normal answers"
+fr = "Réponses normales"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: answer length."
+
+[hq.voice_listening]
+en = "Listening"
+fr = "À l'écoute"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The voice agent's state. The iOS wording."
+
+[hq.voice_mic_denied]
+en = "Allow the microphone in Settings to talk to HQ."
+fr = "Autorisez le microphone dans les paramètres pour parler à HQ."
+ctx = "error"
+screen = "district hq"
+tier = "T3"
+state = "draft"
+note = "The microphone permission was refused. Android's French says « paramètres », where iOS's says « Réglages »."
+
+[hq.voice_mic_explainer]
+en = "HQ listens through your microphone while voice is on."
+fr = "HQ vous écoute par le microphone tant que le mode vocal est actif."
+ctx = "body"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Under Talk to HQ, before a session. The iOS wording."
+
+[hq.voice_mic_open]
+en = "Open mic"
+fr = "Micro ouvert"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: the microphone is open for the whole session."
+
+[hq.voice_mic_push]
+en = "Hold to talk"
+fr = "Maintenir pour parler"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: push-to-talk."
+
+[hq.voice_mute]
+en = "Mute"
+fr = "Couper le micro"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Mutes the open microphone in a voice session."
+
+[hq.voice_no_agent]
+en = "District HQ voice mode is busy right now. Please try again in a few minutes; the text console still works."
+fr = "Le mode vocal de District HQ est occupé en ce moment. Réessayez dans quelques minutes; la console texte fonctionne toujours."
+ctx = "error"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "No voice agent joined within 20 seconds. The service's own busy sentence, as iOS shows it."
+
+[hq.voice_notice_body]
+en = "Your voice is processed in the United States, and so is what District HQ reads for you during a voice session (calls, contacts, messages and knowledge). Voice mode runs on Gemini Live in Google Cloud's us-east4 region for every workspace, whatever your workspace's region. District HQ's scripted lines, such as reading back a change before you confirm it, are voiced by Deepgram, also in the United States. Nothing is recorded."
+fr = "Votre voix est traitée aux États-Unis, tout comme ce que District HQ lit pour vous pendant une session vocale (appels, contacts, messages et base de connaissances). Le mode vocal utilise Gemini Live dans la région us-east4 de Google Cloud pour tous les espaces de travail, quelle que soit la région du vôtre. Les phrases préétablies de District HQ, comme la relecture d'un changement avant que vous le confirmiez, sont prononcées par Deepgram, également aux États-Unis. Rien n'est enregistré."
+ctx = "body"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The consent notice, shown before the microphone is ever opened or asked for. The iOS wording, word for word."
+
+[hq.voice_notice_cancel]
+en = "Not now"
+fr = "Pas maintenant"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Declines the notice: nothing is joined and the session is discarded."
+
+[hq.voice_notice_region]
+en = "This workspace's data lives in {region}, but District HQ voice conversations are processed in the United States."
+fr = "Les données de cet espace de travail se trouvent dans la région {region}, mais les conversations vocales avec District HQ sont traitées aux États-Unis."
+ctx = "body"
+screen = "district hq"
+tier = "T3"
+args = { region = "str" }
+state = "reviewed"
+note = "Above the notice when the workspace is not in the processing region. {region} is the region's label. The iOS wording."
+
+[hq.voice_notice_start]
+en = "Start talking"
+fr = "Commencer à parler"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Accepts the notice. Only then is the microphone permission asked for and the room joined."
+
+[hq.voice_notice_title]
+en = "Where your voice is processed"
+fr = "Où votre voix est traitée"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The consent notice's title. The iOS wording."
+
+[hq.voice_pace_faster]
+en = "Faster"
+fr = "Plus rapide"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: pace."
+
+[hq.voice_pace_normal]
+en = "Normal pace"
+fr = "Rythme normal"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: pace."
+
+[hq.voice_pace_slower]
+en = "Slower"
+fr = "Plus lent"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings: pace."
+
+[hq.voice_proposal_fallback]
+en = "HQ proposes a change."
+fr = "HQ propose une modification."
+ctx = "body"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "A voice proposal that came with no summary."
+
+[hq.voice_setting_language]
+en = "Language"
+fr = "Langue"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings group."
+
+[hq.voice_setting_length]
+en = "Answer length"
+fr = "Longueur des réponses"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings group."
+
+[hq.voice_setting_mic]
+en = "Microphone"
+fr = "Microphone"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+same_ok = true
+note = "Voice settings group."
+
+[hq.voice_setting_pace]
+en = "Pace"
+fr = "Débit"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings group."
+
+[hq.voice_setting_voice]
+en = "Voice"
+fr = "Voix"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Voice settings group: Gemini's voice names, the same in both languages."
+
+[hq.voice_settings]
+en = "Voice settings"
+fr = "Paramètres vocaux"
+ctx = "title"
+screen = "district hq"
+tier = "T3"
+state = "draft"
+note = "The member's own HQ voice settings, opened from the voice bar. Android's French says « Paramètres », where iOS's says « Réglages vocaux »."
+
+[hq.voice_settings_save]
+en = "Save"
+fr = "Enregistrer"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Saves the voice settings."
+
+[hq.voice_settings_saved]
+en = "Saved."
+fr = "Enregistré."
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The voice settings were saved."
+
+[hq.voice_speaking]
+en = "Speaking"
+fr = "HQ parle"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The voice agent's state. The iOS wording."
+
+[hq.voice_start]
+en = "Talk to HQ"
+fr = "Parler à HQ"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Starts a voice session. Each one is billed, so it is minted only on this tap."
+
+[hq.voice_stop]
+en = "End voice"
+fr = "Terminer le mode vocal"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Ends the voice session."
+
+[hq.voice_thinking]
+en = "Thinking"
+fr = "Réflexion en cours"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "The voice agent's state. The iOS wording."
+
+[hq.voice_unmute]
+en = "Unmute"
+fr = "Rétablir le micro"
+ctx = "button"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Unmutes the open microphone in a voice session."
+
+[hq.voice_you]
+en = "You"
+fr = "Vous"
+ctx = "label"
+screen = "district hq"
+tier = "T3"
+state = "reviewed"
+note = "Marks the member's own words in the voice transcript."
+
 [inbox.assigned_to]
 en = "Assigned to {email}"
 fr = "Assignée à {email}"

@@ -75,17 +75,17 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
     var summary: SetupGoLiveSummary? by mutableStateOf(null)
         private set
 
+    // ⚠️ DECLARED BEFORE [loadJob]: on an unconfined dispatcher the opening read can start the poll
+    // while this object is still being built, and a later `= null` initializer would drop that job.
     private var pollJob: Job? = null
 
-    init {
-        load()
-    }
+    private val loadJob: Job = load()
 
     val hasNumber: Boolean get() = (wizard.data?.numbersHeld ?: 0) > 0
 
     val checkIsPending: Boolean get() = forwarding?.forwardingCheck?.isPending == true
 
-    private fun load() {
+    private fun load(): Job =
         wizard.scope.launch {
             val forwardingResult = wizard.deps.setup.forwardingCheck(wizard.workspaceId)
             val config = wizard.deps.config.load(wizard.workspaceId)
@@ -100,7 +100,6 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
             }
             if (checkIsPending) poll()
         }
-    }
 
     // ── The test call ───────────────────────────────────────────────────────────
 
@@ -203,7 +202,9 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
         wizard.completeStep(SetupStep.GOLIVE, SETUP_STEP_DONE)
     }
 
+    /** ⚠️ THE OPENING READS TOO: a step left mid-read must not start polling once they land. */
     override fun close() {
+        loadJob.cancel()
         pollJob?.cancel()
     }
 }

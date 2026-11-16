@@ -475,6 +475,22 @@ class SetupLiveStepsTest {
     }
 
     @Test
+    fun `leaving the step while it is still reading starts no poll afterwards`() = runTest {
+        // A draft on the device, so opening the wizard reads no config and only step 6's read waits.
+        harness.store.save(SetupBusinessDraft("Bloom", "CA", "ON", "Ottawa", "en"), SetupHarness.WORKSPACE)
+        harness.district.gate = CompletableDeferred()
+        harness.setup.forwardingResult = ApiResult.Success(ForwardingCheckResponse(true, check("pending"), 2))
+        val (wizard, model) = golive()
+
+        wizard.back()
+        harness.district.gate!!.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(model.isPolling)
+        assertEquals("the open read only", 1, harness.setup.forwardingReads.size)
+    }
+
+    @Test
     fun `leaving the step stops the poll`() = runTest {
         harness.setup.forwardingResult = ApiResult.Success(ForwardingCheckResponse(true, check("pending"), 2))
         harness.reads(throughCalls)

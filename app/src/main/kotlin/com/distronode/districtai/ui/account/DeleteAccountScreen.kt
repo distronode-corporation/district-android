@@ -41,9 +41,10 @@ import com.distronode.districtai.ui.resolve
  */
 @Composable
 fun DeleteAccountScreen(state: DeleteAccountUiState, actions: DeleteAccountActions, onBack: () -> Unit) {
-    BackHandler(enabled = state.busy || state.step is DeleteAccountStep.Password) {
-        if (!state.busy) actions.back()
-    }
+    BackHandler(
+        enabled = state.busy || state.step is DeleteAccountStep.Password,
+        onBack = @DontMemoize { if (!state.busy) actions.back() },
+    )
     DistrictScaffold(
         modifier = Modifier.testTag(DELETE_ACCOUNT_ROOT_TAG),
         topBar = {

@@ -270,6 +270,47 @@ class DeleteAccountViewModelTest {
     }
 
     @Test
+    fun `what the state allows follows from its fields`() {
+        val password = DeleteAccountStep.Password(needsCode = false)
+        assertFalse("not on the password step", DeleteAccountUiState(password = "pw").canSubmitPassword)
+        assertFalse("busy", DeleteAccountUiState(step = password, password = "pw", busy = true).canSubmitPassword)
+        assertTrue(DeleteAccountUiState(step = password, password = "pw").canSubmitPassword)
+
+        val confirm = DeleteAccountStep.Confirm
+        assertFalse("busy", DeleteAccountUiState(step = confirm, confirmation = "x", busy = true).canDelete)
+        assertFalse("not confirming", DeleteAccountUiState(confirmation = "x").canDelete)
+        assertFalse("blank", DeleteAccountUiState(step = DeleteAccountStep.Confirm, confirmation = " ").canDelete)
+    }
+
+    @Test
+    fun `nothing is sent before it can be`() = runTest(dispatcher) {
+        val vm = model()
+        vm.submitPassword()
+        vm.delete()
+        advanceUntilIdle()
+        assertTrue(api.calls.isEmpty())
+    }
+
+    @Test
+    fun `a throttle without a code, and an outage with its own code, still say nothing was deleted`() {
+        assertEquals(
+            failure(R.string.reauth_error_too_many_attempts, R.string.delete_account_not_deleted),
+            deleteFailure(ApiResult.RateLimited("slow")),
+        )
+        assertEquals(
+            DeleteAccountFailure(
+                res(R.string.delete_account_not_deleted),
+                UiText.Server(
+                    "Try again",
+                    "service_unavailable",
+                    fallback = R.string.delete_account_error_try_again_shortly,
+                ),
+            ),
+            deleteFailure(ApiResult.HttpFailure(503, "Try again", "service_unavailable")),
+        )
+    }
+
+    @Test
     fun `nothing typed prints or outlives the screen`() = runTest(dispatcher) {
         val store = ViewModelStore()
         val vm = ViewModelProvider(

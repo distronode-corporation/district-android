@@ -10,7 +10,7 @@ import io.livekit.android.events.collect
 import io.livekit.android.room.Room
 import io.livekit.android.room.participant.Participant
 import io.livekit.android.room.track.Track
-import io.livekit.android.room.track.TrackException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -119,12 +119,20 @@ class LiveKitHqVoiceEngine(
     private fun microphoneTrackSid(): String? =
         room.localParticipant.getTrackPublication(Track.Source.MICROPHONE)?.sid
 
+    /**
+     * ⛔ NO SDK FAILURE ESCAPES: the change runs on the application's scope, where an uncaught
+     * exception ends the process. Whatever the SDK throws leaves the microphone where it was, and
+     * that is what is answered; only a cancellation goes on up.
+     */
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun setMicrophone(enabled: Boolean): Boolean =
         try {
             // ⚠️ THE SDK ANSWERS FALSE FOR A CHANGE IT COULD NOT MAKE, which leaves the microphone
             // where it was: a failed mute must not read as muted.
             if (room.localParticipant.setMicrophoneEnabled(enabled)) enabled else !enabled
-        } catch (_: TrackException) {
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
             // ⚠️ A REFUSED CHANGE LEAVES THE MICROPHONE WHERE IT WAS, which is what is answered.
             !enabled
         }

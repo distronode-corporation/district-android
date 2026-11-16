@@ -231,6 +231,11 @@ class LiveKitHqVoiceEngineTest {
         assertFalse("a refused open leaves it closed", engine.setMicrophone(true))
         coEvery { local.setMicrophoneEnabled(false) } throws TrackException.PublishException("refused")
         assertTrue("a refused close leaves it open", engine.setMicrophone(false))
+        coEvery { local.setMicrophoneEnabled(true) } throws IllegalStateException("audio device lost")
+        assertFalse("any SDK failure is answered, never thrown", engine.setMicrophone(true))
+        coEvery { local.setMicrophoneEnabled(true) } throws kotlinx.coroutines.CancellationException("left")
+        val cancelled = runCatching { engine.setMicrophone(true) }.exceptionOrNull()
+        assertTrue("a cancellation still goes on up", cancelled is kotlinx.coroutines.CancellationException)
     }
 
     @Test

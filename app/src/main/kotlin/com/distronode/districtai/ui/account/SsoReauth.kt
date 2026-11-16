@@ -135,9 +135,13 @@ class SsoReauthenticator(
             callbacks.end(attempt)
             return SsoReauthOutcome.CouldNotOpen
         }
-        val answer = attempt.callback.await()
-        // Spent whatever happens: a second callback must not reuse the verifier.
-        callbacks.end(attempt)
+        // ⛔ SPENT WHATEVER HAPPENS, A CANCELLATION INCLUDED: a second callback must not reuse the
+        // verifier, and a pending attempt left behind would take the next sign-in's callback.
+        val answer = try {
+            attempt.callback.await()
+        } finally {
+            callbacks.end(attempt)
+        }
         val (state, code) = answer ?: return SsoReauthOutcome.Cancelled
         return when {
             state != attempt.challenge.state -> SsoReauthOutcome.StateMismatch

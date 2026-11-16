@@ -511,12 +511,16 @@ class TwoStepViewModelTest {
     fun `a disable whose answer is lost reads the status again`() = runTest(dispatcher) {
         val vm = overview(on = true)
         api.disableResult = offline
+        // It did go through: the second read is what the screen now shows.
+        api.statusResult = ApiResult.Success(FakeAccountSecurityApi.STATUS_OFF)
         vm.begin(TwoStepIntent.TURN_OFF)
         vm.reauthenticate(ReauthProvider.GOOGLE)
         advanceUntilIdle()
 
         assertEquals(TwoStepStep.Overview, vm.state.value.step)
         assertEquals(res(R.string.two_step_error_outcome_unknown_off), vm.state.value.failure)
+        assertEquals(listOf("status", "disable", "status"), api.calls)
+        assertEquals(FakeAccountSecurityApi.STATUS_OFF, vm.state.value.status)
     }
 
     @Test
@@ -537,10 +541,19 @@ class TwoStepViewModelTest {
         advanceUntilIdle()
 
         assertTrue(vm.state.value.signsInWithoutPassword)
+        api.gate = CompletableDeferred()
         vm.begin(TwoStepIntent.TURN_OFF)
         vm.reauthenticate(ReauthProvider.APPLE)
+        runCurrent()
+        // Held at the re-read: off already, and the flag carried over.
+        api.gate!!.complete(Unit)
+        api.statusResult = ApiResult.Success(FakeAccountSecurityApi.STATUS_OFF.copy(canDisable = false))
         advanceUntilIdle()
-        assertEquals("off now, and the flag carried over", false, vm.state.value.status!!.canDisable)
+
+        assertEquals(listOf("status", "disable", "status"), api.calls)
+        assertEquals(res(R.string.two_step_turned_off), vm.state.value.notice)
+        assertEquals(false, vm.state.value.status!!.enrolled)
+        assertEquals(false, vm.state.value.status!!.canDisable)
     }
 
     // ── Secrets ─────────────────────────────────────────────────────────────
@@ -554,18 +567,34 @@ class TwoStepViewModelTest {
         )[TwoStepViewModel::class.java]
         advanceUntilIdle()
         vm.begin(TwoStepIntent.TURN_ON)
+        vm.usePassword()
+        vm.onField(TwoStepField.PASSWORD, "hunter2-password")
+        vm.onField(TwoStepField.CODE, "777888")
+        assertFalse(vm.state.value.toString().contains("hunter2-password"))
+        assertFalse(vm.state.value.toString().contains("777888"))
+        vm.back()
         vm.reauthenticate(ReauthProvider.GOOGLE)
         advanceUntilIdle()
         vm.onField(TwoStepField.TOTP, "123456")
 
-        val printed = vm.state.value.toString() + vm.state.value.enrollment.toString()
-        assertFalse(printed.contains(FakeAccountSecurityApi.ENROLLMENT.secret))
-        assertFalse(printed.contains("otpauth://"))
-        assertFalse(printed.contains("123456"))
+        val scanning = vm.state.value.toString() + vm.state.value.enrollment.toString()
+        assertFalse(scanning.contains(FakeAccountSecurityApi.ENROLLMENT.secret))
+        assertFalse(scanning.contains("otpauth://"))
+        assertFalse(scanning.contains("iVBORw0KGgo"))
+        assertFalse(scanning.contains("123456"))
 
+        vm.confirm()
+        advanceUntilIdle()
+        assertEquals(TwoStepStep.RecoveryCodes, vm.state.value.step)
+        assertFalse(vm.state.value.toString().contains("aaaa-bbbb"))
+
+        vm.onField(TwoStepField.PASSWORD, "typed-later")
+        vm.onField(TwoStepField.CODE, "999000")
         store.clear()
         assertNull(vm.state.value.enrollment)
         assertEquals("", vm.state.value.totp)
+        assertEquals("", vm.state.value.password)
+        assertEquals("", vm.state.value.code)
         assertTrue(vm.state.value.recoveryCodes.isEmpty())
     }
 

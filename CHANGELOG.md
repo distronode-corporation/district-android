@@ -14,21 +14,12 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
 ### Added
 
 - Two-step verification settings, as in the iOS app. Account, Security, Two-step verification
-  says whether it is on, since when and how many recovery codes are left. Turning it on or off
-  starts with a fresh re-authentication for the `2fa-change` action: a fresh sign-in at Google,
-  Microsoft or Apple in the browser (PKCE and `state` as at sign-in, the installation id sent
-  only as its SHA-256), or the password with the authenticator code when it is on. Turning it on
-  then shows the new secret as a QR code and a copyable key (with a button that hands the
-  `otpauth://` link to an authenticator app on this device), asks for the app's code, and shows
-  the recovery codes once, with Copy all and a warning that they are not shown again; new codes
-  come from turning it off and on again. An account with no password turns it off after a
-  provider sign-in. Every refusal has a sentence in both languages; a confirm or a disable
-  whose answer is lost says it cannot tell and reads the status again. Each call is
-  single-flight. The secret and the codes are never logged, are copied to this device only,
-  marked sensitive and for two minutes, are kept off screenshots, screen recordings and the
-  app switcher (`FLAG_SECURE`) while on screen, and are dropped when the screen closes. A
-  password re-authentication's 401 `MFA_REQUIRED` is read as the request's answer, not the
-  session's, so the password is sent once.
+  says whether it is on, since when and how many recovery codes are left, and turns it on and
+  off after you confirm it is you again (a fresh sign-in with Google, Microsoft or Apple, or your
+  password and authenticator code). Turning it on shows a QR code and a key to copy, asks for
+  the authenticator's code, and shows the recovery codes once; new codes come from turning it
+  off and on again. The key and the codes are kept off screenshots and the app switcher, and a
+  copy of them is cleared from the clipboard after two minutes.
 
 ### Changed
 

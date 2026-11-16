@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.distronode.districtai.AppContainer
 import com.distronode.districtai.auth.CustomTabsLauncher
 import com.distronode.districtai.core.model.NativeReauthAction
+import com.distronode.districtai.ui.OnSessionChanged
 
 /**
  * The two-step verification destination: its model, built from the container, and its screen.
@@ -20,7 +21,7 @@ import com.distronode.districtai.core.model.NativeReauthAction
  *   which is what makes launching from it legal.
  */
 @Composable
-fun TwoStepDestination(container: AppContainer, context: Context, onBack: () -> Unit) {
+fun TwoStepDestination(container: AppContainer, context: Context, sessionEpoch: Int, onBack: () -> Unit) {
     val viewModel: TwoStepViewModel = viewModel(
         // ⚠️ UNKEYED, like Devices: two-step verification belongs to the ACCOUNT, not a workspace.
         factory = TwoStepViewModel.factory(
@@ -35,5 +36,7 @@ fun TwoStepDestination(container: AppContainer, context: Context, onBack: () -> 
         ),
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // ⚠️ After a re-login the status is read again, as on the other load-on-entry screens.
+    OnSessionChanged(sessionEpoch) { viewModel.load() }
     TwoStepScreen(state = state, actions = viewModel, onBack = onBack)
 }

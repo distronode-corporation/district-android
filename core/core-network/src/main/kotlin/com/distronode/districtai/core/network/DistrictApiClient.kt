@@ -512,7 +512,9 @@ class DistrictApiClient(
         } catch (_: IOException) {
             return false
         }
-        return parseError(peeked).code in challenges
+        // ⚠️ THE BODY'S CODE, THEN THE HEADER'S, as in `mapFailure`.
+        val code = parseError(peeked).code?.takeIf { it.isNotBlank() } ?: response.header(ApiErrorEnvelope.CODE_HEADER)
+        return code in challenges
     }
 
     /**

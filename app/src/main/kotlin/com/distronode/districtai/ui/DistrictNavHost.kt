@@ -391,7 +391,12 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.TWO_STEP) {
-                    TwoStepDestination(container, context, onBack = @DontMemoize { navController.popBackStack() })
+                    TwoStepDestination(
+                        container = container,
+                        context = context,
+                        sessionEpoch = sessionEpoch,
+                        onBack = @DontMemoize { navController.popBackStack() },
+                    )
                 }
 
                 composable(Routes.DEVICES) {

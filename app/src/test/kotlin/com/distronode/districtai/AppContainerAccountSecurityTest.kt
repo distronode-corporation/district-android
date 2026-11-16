@@ -11,10 +11,11 @@ import com.distronode.districtai.core.network.testing.FakeAccountSecurityApi
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
@@ -53,7 +54,31 @@ class AppContainerAccountSecurityTest {
         }
 
         assertEquals(listOf("status", "reauthPassword"), api.calls)
-        assertSame(subject.ssoReauthenticator, subject.ssoReauthenticator)
-        assertSame(subject.reauthCallbacks, subject.reauthCallbacks)
+
+        // The SSO leg opens the page on this installation's hash and hands the container's pending
+        // re-authentication the callback MainActivity delivers.
+        var opened = ""
+        val outcome = runBlocking {
+            val attempt = async {
+                subject.ssoReauthenticator.reauthenticate(
+                    com.distronode.districtai.ui.account.ReauthProvider.GOOGLE,
+                    com.distronode.districtai.core.model.NativeReauthAction.TWO_FACTOR_CHANGE,
+                ) {
+                    opened = it
+                    true
+                }
+            }
+            while (opened.isEmpty()) yield()
+            val state = android.net.Uri.parse(opened).getQueryParameter("state")
+            assertEquals(true, subject.reauthCallbacks.deliver(state, "code-1"))
+            attempt.await()
+        }
+
+        assertEquals(com.distronode.districtai.ui.account.SsoReauthOutcome.Proved(300), outcome)
+        assertEquals(
+            com.distronode.districtai.ui.account.SsoReauthenticator.sha256Hex(subject.deviceId),
+            android.net.Uri.parse(opened).getQueryParameter("device"),
+        )
+        assertEquals("code-1", api.ssoExchanges.single()[1])
     }
 }

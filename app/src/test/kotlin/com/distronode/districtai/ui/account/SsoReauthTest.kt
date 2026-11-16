@@ -180,6 +180,19 @@ class SsoReauthTest {
     }
 
     @Test
+    fun `an attempt cancelled while the browser is open leaves nothing pending`() = runTest {
+        val outcome = async {
+            reauthenticator.reauthenticate(ReauthProvider.GOOGLE, NativeReauthAction.TWO_FACTOR_CHANGE) { true }
+        }
+        runCurrent()
+
+        outcome.cancel()
+        runCurrent()
+
+        assertFalse("the next callback is a sign-in's", callbacks.deliver("s", "c"))
+    }
+
+    @Test
     fun `with nothing pending the host's lifecycle is ignored and a callback is a sign-in's`() {
         callbacks.onHostPaused()
         callbacks.onHostResumed()

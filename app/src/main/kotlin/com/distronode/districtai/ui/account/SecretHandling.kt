@@ -62,18 +62,31 @@ internal object SensitiveClipboard {
         Handler(Looper.getMainLooper()).postDelayed(task, delay)
     }
 
+    /** Which copy is the latest: only its wipe may run, so copying twice is not cut short by the first. */
+    private var generation = 0
+
     fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         val clip = ClipData.newPlainText("", text)
         clip.description.extras = PersistableBundle().apply { putBoolean(EXTRA_IS_SENSITIVE, true) }
         clipboard.setPrimaryClip(clip)
-        schedule({ clearIfStill(clipboard, text) }, EXPIRY_MILLIS)
+        val copy = ++generation
+        schedule({ if (copy == generation) clearIfStill(clipboard, text) }, EXPIRY_MILLIS)
     }
 
+    /**
+     * Wipes the clipboard unless it visibly holds something else.
+     *
+     * ⛔ AN UNREADABLE CLIPBOARD IS WIPED TOO. From Android 10 an app in the background reads null,
+     * and two minutes after a copy the person is usually in their authenticator or password manager:
+     * skipping the wipe then would leave the secret there for good. Clearing a clip this app cannot
+     * see is the lesser harm.
+     */
+    /** Whether a clipboard holding [held] (null when unreadable) is wiped of [secret]. */
+    internal fun shouldWipe(held: String?, secret: String): Boolean = held == null || held == secret
+
     internal fun clearIfStill(clipboard: ClipboardManager, text: String) {
-        // ⚠️ An empty clipboard, or one holding something that is not text, is not the secret.
-        val held = runCatching { clipboard.primaryClip!!.getItemAt(0).text.toString() }.getOrNull()
-        if (held != text) return
+        if (!shouldWipe(held = clipboard.primaryClip?.getItemAt(0)?.text?.toString(), secret = text)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             clipboard.clearPrimaryClip()
         } else {

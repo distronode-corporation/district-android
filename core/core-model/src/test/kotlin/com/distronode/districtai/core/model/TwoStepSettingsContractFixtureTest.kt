@@ -77,6 +77,12 @@ class TwoStepSettingsContractFixtureTest {
         assertTrue(proof.success)
         assertEquals(NativeReauthAction.DELETE_ACCOUNT.wire, proof.action)
         assertEquals(300, proof.expiresInSeconds)
+
+        // ⚠️ The service's one fixture is for deletion; the two-step action is the same shape.
+        val twoStep = json.decodeFromString<NativeReauthResponse>(
+            """{"success":true,"action":"2fa-change","expiresInSeconds":120}""",
+        )
+        assertEquals(NativeReauthAction.TWO_FACTOR_CHANGE.wire, twoStep.action)
     }
 
     @Test

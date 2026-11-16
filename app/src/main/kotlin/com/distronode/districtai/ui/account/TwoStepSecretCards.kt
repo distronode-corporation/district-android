@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -175,22 +174,25 @@ private fun TwoStepQrCode(pngBase64: String?) {
     }
 }
 
-/** A secret in a monospaced, selectable box. */
+/**
+ * A secret in a monospaced box.
+ *
+ * ⛔ NOT SELECTABLE: the system's selection copy would put the secret on the clipboard unmarked and
+ * for good, around [SensitiveClipboard]. The Copy buttons are the way to copy it.
+ */
 @Composable
 private fun TwoStepSecretText(text: String, tag: String) {
-    SelectionContainer {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            fontFamily = FontFamily.Monospace,
-            color = DistrictTheme.colors.foreground,
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(DistrictTheme.colors.muted, RoundedCornerShape(DistrictTheme.spacing.tight))
-                .padding(DistrictTheme.spacing.tight)
-                .testTag(tag),
-        )
-    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontFamily = FontFamily.Monospace,
+        color = DistrictTheme.colors.foreground,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DistrictTheme.colors.muted, RoundedCornerShape(DistrictTheme.spacing.tight))
+            .padding(DistrictTheme.spacing.tight)
+            .testTag(tag),
+    )
 }
 
 /** The PNG as a bitmap, or null when it is not one. */

@@ -41,6 +41,7 @@ class SettingsScreenTest {
         onSignOut: () -> Unit = {},
         onDeleteAccount: () -> Unit = {},
         onOpenDevices: () -> Unit = {},
+        onOpenTwoStep: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -49,6 +50,7 @@ class SettingsScreenTest {
                     onSignOut = onSignOut,
                     onDeleteAccount = onDeleteAccount,
                     onOpenDevices = onOpenDevices,
+                    onOpenTwoStep = onOpenTwoStep,
                 )
             }
         }
@@ -93,6 +95,16 @@ class SettingsScreenTest {
 
         composeRule.onNodeWithTag(SETTINGS_DEVICES_DESCRIPTION).assertIsDisplayed()
         composeRule.onNodeWithTag(SETTINGS_DEVICES_DESCRIPTION).performClick()
+
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun `offers two-step verification, reported once per tap`() {
+        var opened = 0
+        render(onOpenTwoStep = { opened += 1 })
+
+        composeRule.onNodeWithTag(SETTINGS_TWO_STEP_DESCRIPTION).performScrollTo().assertIsDisplayed().performClick()
 
         assertEquals(1, opened)
     }
@@ -163,6 +175,7 @@ class SettingsScreenTest {
                     onSignOut = { signOuts += current },
                     onDeleteAccount = {},
                     onOpenDevices = { devices += current },
+                    onOpenTwoStep = {},
                 )
             }
         }

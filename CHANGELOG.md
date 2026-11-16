@@ -13,6 +13,13 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
 
 ### Added
 
+- Two-step verification settings, as in the iOS app. Account, Security, Two-step verification
+  says whether it is on, since when and how many recovery codes are left, and turns it on and
+  off after you confirm it is you again (a fresh sign-in with Google, Microsoft or Apple, or your
+  password and authenticator code). Turning it on shows a QR code and a key to copy, asks for
+  the authenticator's code, and shows the recovery codes once; new codes come from turning it
+  off and on again. The key and the codes are kept off screenshots and the app switcher, and a
+  copy of them is cleared from the clipboard after two minutes.
 - District HQ by voice, as on iPhone: Talk to HQ above the console, a notice that says where the
   voice is processed before the microphone is asked for or opened, an open microphone with Mute or
   Hold to talk (held with a finger, or with Space or Enter), the transcript, HQ's proposals with

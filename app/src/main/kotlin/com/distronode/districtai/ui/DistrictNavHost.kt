@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -116,6 +117,7 @@ import com.distronode.districtai.ui.rooms.RoomsLobbyViewModel
 import com.distronode.districtai.ui.scheduling.schedulingDestination
 import com.distronode.districtai.ui.settings.ACCOUNT_DELETION_URL
 import com.distronode.districtai.ui.settings.SettingsScreen
+import com.distronode.districtai.ui.account.TwoStepDestination
 import com.distronode.districtai.ui.settings.workspace.CallHandlingScreen
 import com.distronode.districtai.ui.settings.workspace.CallHandlingViewModel
 import com.distronode.districtai.ui.settings.workspace.CapabilitiesScreen
@@ -383,12 +385,22 @@ fun DistrictNavHost(
                         // with the sign-in screen. Popping first would briefly show the overview mid-teardown.
                         onSignOut = container::signOut,
                         onOpenDevices = { navController.navigate(Routes.DEVICES) },
+                        onOpenTwoStep = @DontMemoize { navController.navigate(Routes.TWO_STEP) },
                         onDeleteAccount = {
                             // ⚠️ The SAME hand-off as sign-in, so deletion opens in the system browser
                             // with the user's real session — a WebView could neither authenticate them
                             // nor be trusted to.
                             openInBrowser(context, ACCOUNT_DELETION_URL, browserMissing, onShowMessage)
                         },
+                    )
+                }
+
+                composable(Routes.TWO_STEP) {
+                    TwoStepDestination(
+                        container = container,
+                        context = context,
+                        sessionEpoch = sessionEpoch,
+                        onBack = @DontMemoize { navController.popBackStack() },
                     )
                 }
 
@@ -2313,6 +2325,9 @@ object Routes {
      * state someone needs it most — an account whose workspaces have not resolved.
      */
     const val DEVICES = "devices"
+
+    /** Two-step verification. ⚠️ Not workspace-scoped, for the reason [DEVICES] is not. */
+    const val TWO_STEP = "account/two-step"
 
     /**
      * ⚠️ THE ROLE IS AN OPTIONAL QUERY ARGUMENT HERE, NOT A PATH SEGMENT, because a call is opened

@@ -24,7 +24,7 @@ import com.distronode.districtai.core.designsystem.DistrictTopBar
 import com.distronode.districtai.core.designsystem.Eyebrow
 
 /**
- * The account surface: sign out, and start account deletion.
+ * The account surface: sign out, the devices, two-step verification, and start account deletion.
  *
  * ⛔ THIS SCREEN EXISTS BECAUSE PLAY REQUIRES IT, NOT BECAUSE THE PRODUCT ASKED FOR IT. Google's
  * User Data policy requires an app with accounts to offer an in-app route to initiate account
@@ -32,11 +32,11 @@ import com.distronode.districtai.core.designsystem.Eyebrow
  * sign-out (`TokenRefreshCoordinator.forget()`), so without it a signed-in user has no way to stop
  * being signed in. An upload without both is a rejection, not a nit.
  *
- * ⚠️ THREE ROWS, AND DELIBERATELY NOT A SETTINGS TASK. There is nothing here the app can
- * CONFIGURE (no notification channels, no theme choice), so anything more would be placeholders.
- * The device list earned its row by being real: it is the only place an account's live sessions
- * are visible, and without it the two revoke routes are unreachable because a `deviceId` is
- * client-generated and opaque.
+ * ⚠️ FOUR ROWS, EACH ONE REAL. No notification channels or theme choice: anything like that would be
+ * a placeholder. The device list earned its row by being the only place an account's live sessions
+ * are visible (a `deviceId` is client-generated and opaque, so the two revoke routes are otherwise
+ * unreachable), and two-step verification by being the account's own security setting, which the
+ * iOS app also offers.
  *
  * ⚠️ DEVICES SITS IN THE SESSION CARD, NOT THE ACCOUNT ONE. Signing another device out ends a
  * session; the account card's only row starts an irreversible deletion, and grouping a routine
@@ -58,6 +58,7 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onOpenDevices: () -> Unit,
+    onOpenTwoStep: () -> Unit,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(SETTINGS_ROOT_DESCRIPTION),
@@ -102,6 +103,17 @@ fun SettingsScreen(
                         onClick = onDeleteAccount,
                     )
                 }
+
+                // ⚠️ AFTER THE ACCOUNT CARD, so the Play-mandated deletion row keeps its place.
+                DistrictCard {
+                    Eyebrow(text = stringResource(R.string.settings_section_security))
+                    ActionRow(
+                        label = stringResource(R.string.settings_two_step),
+                        caption = stringResource(R.string.settings_two_step_caption),
+                        description = SETTINGS_TWO_STEP_DESCRIPTION,
+                        onClick = onOpenTwoStep,
+                    )
+                }
             }
         }
     }
@@ -144,6 +156,7 @@ const val SETTINGS_ROOT_DESCRIPTION: String = "district-settings-root"
 const val SETTINGS_SIGN_OUT_DESCRIPTION: String = "district-settings-sign-out"
 const val SETTINGS_DEVICES_DESCRIPTION: String = "district-settings-devices"
 const val SETTINGS_DELETE_ACCOUNT_DESCRIPTION: String = "district-settings-delete-account"
+const val SETTINGS_TWO_STEP_DESCRIPTION: String = "district-settings-two-step"
 
 /**
  * The live, public deletion page.
@@ -160,6 +173,6 @@ const val ACCOUNT_DELETION_URL: String = "https://www.distronode.com/privacy/acc
 @Composable
 internal fun SettingsScreenPreview() {
     DistrictTheme {
-        SettingsScreen(onBack = {}, onSignOut = {}, onDeleteAccount = {}, onOpenDevices = {})
+        SettingsScreen(onBack = {}, onSignOut = {}, onDeleteAccount = {}, onOpenDevices = {}, onOpenTwoStep = {})
     }
 }

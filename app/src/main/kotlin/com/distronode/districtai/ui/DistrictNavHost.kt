@@ -115,8 +115,8 @@ import com.distronode.districtai.ui.rooms.RoomControls
 import com.distronode.districtai.ui.rooms.RoomsLobbyScreen
 import com.distronode.districtai.ui.rooms.RoomsLobbyViewModel
 import com.distronode.districtai.ui.scheduling.schedulingDestination
-import com.distronode.districtai.ui.settings.ACCOUNT_DELETION_URL
 import com.distronode.districtai.ui.settings.SettingsScreen
+import com.distronode.districtai.ui.account.DeleteAccountDestination
 import com.distronode.districtai.ui.account.TwoStepDestination
 import com.distronode.districtai.ui.settings.workspace.CallHandlingScreen
 import com.distronode.districtai.ui.settings.workspace.CallHandlingViewModel
@@ -370,14 +370,6 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.SETTINGS) {
-                    // ⛔ RESOLVED HERE, NOT INSIDE THE CALLBACK (lint's
-                    // `LocalContextGetResourceValueCall`). `context.getString(...)` from a
-                    // composable reads the resource through a Context captured at composition time,
-                    // so it does NOT participate in Compose's own configuration tracking: a locale
-                    // or font-scale change recomposes the screen but this string stays as it was
-                    // resolved under the previous configuration. `stringResource` is a
-                    // composition-local read and updates with it.
-                    val browserMissing = stringResource(R.string.settings_browser_missing)
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
                         // ⚠️ No popBackStack: signing out advances the session epoch, the hoisted overview
@@ -386,13 +378,13 @@ fun DistrictNavHost(
                         onSignOut = container::signOut,
                         onOpenDevices = { navController.navigate(Routes.DEVICES) },
                         onOpenTwoStep = @DontMemoize { navController.navigate(Routes.TWO_STEP) },
-                        onDeleteAccount = {
-                            // ⚠️ The SAME hand-off as sign-in, so deletion opens in the system browser
-                            // with the user's real session — a WebView could neither authenticate them
-                            // nor be trusted to.
-                            openInBrowser(context, ACCOUNT_DELETION_URL, browserMissing, onShowMessage)
-                        },
+                        // ⚠️ IN THE APP, as on iOS: a fresh re-authentication, then the typed email.
+                        onDeleteAccount = @DontMemoize { navController.navigate(Routes.DELETE_ACCOUNT) },
                     )
+                }
+
+                composable(Routes.DELETE_ACCOUNT) {
+                    DeleteAccountDestination(container, context, onBack = @DontMemoize { navController.popBackStack() })
                 }
 
                 composable(Routes.TWO_STEP) {
@@ -2328,6 +2320,9 @@ object Routes {
 
     /** Two-step verification. ⚠️ Not workspace-scoped, for the reason [DEVICES] is not. */
     const val TWO_STEP = "account/two-step"
+
+    /** Deleting the account. ⚠️ Not workspace-scoped, for the reason [DEVICES] is not. */
+    const val DELETE_ACCOUNT = "account/delete"
 
     /**
      * ⚠️ THE ROLE IS AN OPTIONAL QUERY ARGUMENT HERE, NOT A PATH SEGMENT, because a call is opened

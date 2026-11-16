@@ -27,6 +27,14 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
   discarded and one that did is ended, so only the minutes used are counted; a phone call, a
   District call ringing, another app taking the audio, leaving HQ or the app going to the
   background ends it.
+- Account deletion in the app, as in the iOS app. Account, Delete account says what is deleted
+  (your profile, your settings and the workspaces you own, whose subscriptions are cancelled at
+  once) and what is kept (workspaces you belong to but do not own). You confirm it is you again,
+  type your account's email address, and tap Delete my account; nothing is deleted before that
+  last tap. If the account could not be deleted the screen says so and why, and if the app
+  cannot tell, it says that too. Afterwards the sign-in screen says the account was deleted,
+  and whether support data held by a provider is still being erased. The row no longer opens
+  the deletion page in the browser.
 
 ### Changed
 

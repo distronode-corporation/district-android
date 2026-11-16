@@ -283,6 +283,33 @@ class DeleteAccountViewModelTest {
     }
 
     @Test
+    fun `an account the service no longer finds was deleted by an earlier attempt, so the device finishes`() =
+        runTest(dispatcher) {
+            api.deleteResult = ApiResult.NotFound("User not found", "account_not_found")
+            val vm = confirming()
+            vm.onField(DeleteAccountField.EMAIL, "owner@example.test")
+
+            vm.delete()
+            advanceUntilIdle()
+
+            assertEquals(listOf(false), deletions)
+            assertNull(vm.state.value.failure)
+        }
+
+    @Test
+    fun `a 404 without that code is not a deletion`() = runTest(dispatcher) {
+        api.deleteResult = ApiResult.NotFound("Not found")
+        val vm = confirming()
+        vm.onField(DeleteAccountField.EMAIL, "owner@example.test")
+
+        vm.delete()
+        advanceUntilIdle()
+
+        assertTrue(deletions.isEmpty())
+        assertEquals(res(R.string.delete_account_not_deleted), vm.state.value.failure?.title)
+    }
+
+    @Test
     fun `use my password does not throw away a proof already earned`() = runTest(dispatcher) {
         val vm = confirming()
         vm.usePassword()

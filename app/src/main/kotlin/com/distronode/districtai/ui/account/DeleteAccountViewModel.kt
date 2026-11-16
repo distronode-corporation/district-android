@@ -152,6 +152,13 @@ class DeleteAccountViewModel(
                     _state.update { it.copy(confirmation = "") }
                     deleted(result.value)
                 }
+                // ⛔ `account_not_found` WITH A LIVE SESSION MEANS THE ACCOUNT IS ALREADY GONE: an earlier
+                // delete went through and its answer was lost. Saying "not deleted" would be false, so
+                // the device finishes the deletion as for a 200.
+                is ApiResult.Failure if result.code == "account_not_found" -> {
+                    _state.update { it.copy(confirmation = "") }
+                    deleted(false)
+                }
                 is ApiResult.Failure -> _state.update {
                     if (result.code == "reauth_required") {
                         // ⛔ THE PROOF IS GONE (expired, or spent): back to the start, said plainly.

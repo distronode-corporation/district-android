@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.hq.voice
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -10,7 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +22,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -25,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -157,33 +163,45 @@ private fun Connecting(onStop: () -> Unit) {
 
 @Composable
 private fun Live(state: HqVoiceUiState, canConfirm: Boolean, actions: HqVoiceActions) {
+    Text(
+        text = stringResource(state.agentState.label()),
+        style = MaterialTheme.typography.titleSmall,
+        color = DistrictTheme.colors.foreground,
+        // ⚠️ A POLITE LIVE REGION: TalkBack reads a change of state once, without a second
+        // announcement of the same words.
+        modifier = Modifier
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .testTag(HQ_VOICE_STATE_DESCRIPTION),
+    )
+    // ⛔ ONE TREATMENT AND ONE HEIGHT FOR THE TWO CONTROLS (visual QA): equal halves of their own
+    // row, below the state, each filling the row's height, so a label that wraps in French or at a
+    // large font size grows both buttons together instead of one pill beside bare text.
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
-        val stateText = stringResource(state.agentState.label())
-        Text(
-            text = stateText,
-            style = MaterialTheme.typography.titleSmall,
-            color = DistrictTheme.colors.foreground,
-            // ⚠️ A POLITE LIVE REGION: TalkBack reads a change of state once, without a second
-            // announcement of the same words.
-            modifier = Modifier
-                .weight(1f)
-                .semantics { liveRegion = LiveRegionMode.Polite }
-                .testTag(HQ_VOICE_STATE_DESCRIPTION),
-        )
+        val half = Modifier
+            .weight(1f)
+            .fillMaxHeight()
         when (state.micMode) {
-            HqMicMode.PUSH -> HoldToTalk(state.isMicrophoneOn, actions.onHold)
+            HqMicMode.PUSH -> HoldToTalk(state.isMicrophoneOn, actions.onHold, half)
             HqMicMode.OPEN -> DistrictButton(
                 text = stringResource(if (state.isMicrophoneOn) R.string.hq_voice_mute else R.string.hq_voice_unmute),
                 onClick = actions.onToggleMute,
-                variant = ButtonVariant.Ghost,
+                variant = ButtonVariant.Secondary,
                 size = ButtonSize.Sm,
-                modifier = Modifier.testTag(HQ_VOICE_MUTE_DESCRIPTION),
+                modifier = half.testTag(HQ_VOICE_MUTE_DESCRIPTION),
             )
         }
-        StopButton(actions.onStop)
+        DistrictButton(
+            text = stringResource(R.string.hq_voice_stop),
+            onClick = actions.onStop,
+            variant = ButtonVariant.Secondary,
+            size = ButtonSize.Sm,
+            modifier = half.testTag(HQ_VOICE_STOP_DESCRIPTION),
+        )
     }
     Transcript(state.segments)
     state.proposals.forEach { card -> ProposalCard(card, canConfirm, actions) }
@@ -210,24 +228,23 @@ private fun StopButton(onStop: () -> Unit) {
  * cannot hold a control under a finger that is also exploring the screen.
  */
 @Composable
-private fun HoldToTalk(isOn: Boolean, onHold: (Boolean) -> Unit) {
+private fun HoldToTalk(isOn: Boolean, onHold: (Boolean) -> Unit, modifier: Modifier) {
     val hold by rememberUpdatedState(onHold)
     val on by rememberUpdatedState(isOn)
     DisposableEffect(Unit) { onDispose { hold(false) } }
+    // ⚠️ DRAWN AS A SECONDARY SMALL BUTTON (the card fill, the border, the 8 dp corner, the 32 dp
+    // drawn height inside Material's 48 dp touch target), because it cannot be one: a Button's own
+    // click would fire on release and turn the microphone back on. Held, it takes the accent fill.
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .heightIn(min = HOLD_MIN_HEIGHT)
+        modifier = modifier
+            .minimumInteractiveComponentSize()
+            .defaultMinSize(minHeight = HOLD_MIN_HEIGHT)
+            .clip(HOLD_SHAPE)
             .background(
-                color = if (isOn) {
-                    DistrictTheme.colors.district.copy(
-                        alpha = HOLD_ON_ALPHA
-                    )
-                } else {
-                    DistrictTheme.colors.muted
-                },
-                shape = RoundedCornerShape(percent = 50),
+                if (isOn) DistrictTheme.colors.district.copy(alpha = HOLD_ON_ALPHA) else DistrictTheme.colors.card,
             )
+            .border(1.dp, DistrictTheme.colors.border, HOLD_SHAPE)
             .pointerInput(Unit) {
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false)
@@ -263,13 +280,14 @@ private fun HoldToTalk(isOn: Boolean, onHold: (Boolean) -> Unit) {
                     true
                 }
             }
-            .padding(horizontal = DistrictTheme.spacing.row, vertical = DistrictTheme.spacing.tight)
+            .padding(horizontal = DistrictTheme.spacing.row, vertical = HOLD_VERTICAL_PADDING)
             .testTag(HQ_VOICE_HOLD_DESCRIPTION),
     ) {
         Text(
             text = stringResource(R.string.hq_voice_hold_to_talk),
             style = MaterialTheme.typography.labelMedium,
             color = DistrictTheme.colors.foreground,
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -323,7 +341,9 @@ internal fun HqVoiceEndReason.sentence(): UiText = when (this) {
 
 private const val TRANSCRIPT_LINES = 4
 private const val HOLD_ON_ALPHA = 0.24f
-private val HOLD_MIN_HEIGHT = 40.dp
+private val HOLD_MIN_HEIGHT = 32.dp
+private val HOLD_VERTICAL_PADDING = 6.dp
+private val HOLD_SHAPE = RoundedCornerShape(8.dp)
 private val PROGRESS_SIZE = 16.dp
 private val PROGRESS_STROKE = 2.dp
 

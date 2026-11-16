@@ -120,9 +120,10 @@ class LiveKitHqVoiceEngine(
         room.localParticipant.getTrackPublication(Track.Source.MICROPHONE)?.sid
 
     /**
-     * ⛔ NO SDK FAILURE ESCAPES: the change runs on the application's scope, where an uncaught
-     * exception ends the process. Whatever the SDK throws leaves the microphone where it was, and
-     * that is what is answered; only a cancellation goes on up.
+     * ⛔ NO SDK EXCEPTION ESCAPES: the change runs on the application's scope, where an uncaught
+     * exception ends the process. An exception leaves the microphone where it was, and that is what
+     * is answered; a cancellation goes on up. ⚠️ An `Error` (a broken native library) is not caught
+     * on purpose: the room is unusable then, and hiding it would only move the crash.
      */
     @Suppress("TooGenericExceptionCaught")
     override suspend fun setMicrophone(enabled: Boolean): Boolean =

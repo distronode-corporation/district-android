@@ -234,12 +234,15 @@ class HqVoiceSession(
             throw cancelled
         } catch (_: Exception) {
             // ⚠️ Whatever the SDK throws: the member reads one sentence, the session is discarded.
-            finish(HqVoiceEndReason.JoinFailed)
+            // A join that was already ended (and maybe replaced) finishes nothing.
+            if (this.engine === engine) finish(HqVoiceEndReason.JoinFailed)
             return
         }
         // ⛔ ENDED WHILE THE JOIN WAS IN FLIGHT (a Stop, the audio taken, the screen gone): `finish`
         // has run already, and a connect that completes after it would leave the room joined.
-        if (phase != HqVoicePhase.Connecting) {
+        // ⛔ BY THE ENGINE, NOT THE PHASE: after a Stop and a quick new Talk, the NEW session's
+        // join is `Connecting` too, and this stale one must not take it over.
+        if (this.engine !== engine) {
             engine.disconnect()
             return
         }
@@ -248,7 +251,7 @@ class HqVoiceSession(
         // ⛔ THE FIRST OPEN GOES THROUGH [setMicrophone] like every other change, so a mute tapped
         // while it publishes is applied after it, not overwritten by it.
         if (_state.value.micMode == HqMicMode.OPEN) setMicrophone(true)
-        if (phase != HqVoicePhase.Live) return
+        if (this.engine !== engine) return
         startTimer()
         // ⚠️ TALK IS ONLY ON THE HQ SCREEN, AND ON ANDROID THE SESSION ENDS WHEN HQ IS LEFT, so the
         // screen is reported once, as HQ.

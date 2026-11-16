@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -12,11 +11,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.onClick
 import com.distronode.districtai.R
 import com.distronode.districtai.core.designsystem.ButtonSize
 import com.distronode.districtai.core.designsystem.ButtonVariant
@@ -57,7 +54,7 @@ internal fun ProposalCard(card: HqVoiceProposalCard, canConfirm: Boolean, action
                         onClick = { actions.onConfirm(card.id) },
                         size = ButtonSize.Sm,
                         enabled = !card.isWorking,
-                        modifier = Modifier.testTag(HQ_VOICE_CONFIRM_DESCRIPTION),
+                        modifier = Modifier.testTag(hqVoiceConfirmTag(card.id)),
                     )
                 }
                 DistrictButton(
@@ -66,7 +63,7 @@ internal fun ProposalCard(card: HqVoiceProposalCard, canConfirm: Boolean, action
                     variant = ButtonVariant.Ghost,
                     size = ButtonSize.Sm,
                     enabled = !card.isWorking,
-                    modifier = Modifier.testTag(HQ_VOICE_CANCEL_DESCRIPTION),
+                    modifier = Modifier.testTag(hqVoiceCancelTag(card.id)),
                 )
             }
         }
@@ -120,3 +117,8 @@ private fun HqResolutionStatus.label(): Int = when (this) {
     HqResolutionStatus.FAILED -> R.string.hq_voice_failed
     HqResolutionStatus.CANCELLED -> R.string.hq_voice_cancelled
 }
+
+/** Per card, so two pending proposals never share a handle. */
+fun hqVoiceConfirmTag(id: String): String = "district-hq-voice-confirm-$id"
+
+fun hqVoiceCancelTag(id: String): String = "district-hq-voice-cancel-$id"

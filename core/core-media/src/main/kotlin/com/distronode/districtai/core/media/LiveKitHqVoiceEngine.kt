@@ -121,8 +121,9 @@ class LiveKitHqVoiceEngine(
 
     override suspend fun setMicrophone(enabled: Boolean): Boolean =
         try {
-            room.localParticipant.setMicrophoneEnabled(enabled)
-            enabled
+            // ⚠️ THE SDK ANSWERS FALSE FOR A CHANGE IT COULD NOT MAKE, which leaves the microphone
+            // where it was: a failed mute must not read as muted.
+            if (room.localParticipant.setMicrophoneEnabled(enabled)) enabled else !enabled
         } catch (_: TrackException) {
             // ⚠️ A REFUSED CHANGE LEAVES THE MICROPHONE WHERE IT WAS, which is what is answered.
             !enabled

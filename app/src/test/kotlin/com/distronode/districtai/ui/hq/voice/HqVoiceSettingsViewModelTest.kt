@@ -1,7 +1,5 @@
 package com.distronode.districtai.ui.hq.voice
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.distronode.districtai.core.data.HqVoiceRepository
 import com.distronode.districtai.core.model.HqVoiceSettings
 import com.distronode.districtai.core.model.HqVoiceSettingsResponse
@@ -90,6 +88,8 @@ class HqVoiceSettingsViewModelTest {
         advanceUntilIdle()
         assertEquals("Fenrir", model.state.value.draft?.voice)
         assertEquals("Kore", model.state.value.loaded?.voice)
+        assertFalse("the screen shows an unsaved edit, so not Saved", model.state.value.isSaved)
+        assertTrue(model.state.value.isDirty)
 
         api.saveGate = null
         api.saveResult = ApiResult.NetworkFailure(IOException("offline"))

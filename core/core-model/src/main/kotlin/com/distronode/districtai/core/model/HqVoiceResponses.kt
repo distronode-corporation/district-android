@@ -54,8 +54,14 @@ object HqVoice {
     fun boundedHistory(turns: List<HqTurn>): List<HqTurn> =
         turns.mapNotNull { turn ->
             val text = turn.text.trim()
-            if (text.isEmpty()) null else HqTurn(turn.role, text.take(HISTORY_MAX_CHARACTERS))
+            if (text.isEmpty()) null else HqTurn(turn.role, text.cut(HISTORY_MAX_CHARACTERS))
         }.takeLast(HISTORY_MAX_TURNS)
+
+    /** ⚠️ Never splits a surrogate pair: a lone half would reach the wire as a replacement character. */
+    private fun String.cut(max: Int): String {
+        val cut = take(max)
+        return if (cut.length == max && cut.last().isHighSurrogate()) cut.dropLast(1) else cut
+    }
 }
 
 /**
@@ -82,9 +88,13 @@ data class HqVoiceTokenResponse(
     val sessionId: String = "",
     val e2ee: HqVoiceE2ee? = null,
 ) {
-    /** Whether the room may be joined: an HQ room AND a non-blank key. A room without a key is never joined. */
+    /**
+     * Whether the room may be joined: an HQ room, a non-blank key, and the token, server and session
+     * id to join and end it with. A room without a key is never joined.
+     */
     val isJoinable: Boolean
-        get() = roomName.startsWith(HqVoice.ROOM_PREFIX) && !e2ee?.key.isNullOrBlank()
+        get() = roomName.startsWith(HqVoice.ROOM_PREFIX) && !e2ee?.key.isNullOrBlank() &&
+            listOf(token, url, sessionId).none { it.isBlank() }
 
     val micModeValue: HqMicMode get() = HqMicMode.fromWire(micMode)
 

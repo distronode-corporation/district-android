@@ -39,7 +39,8 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.distronode.districtai.R
@@ -165,10 +166,11 @@ private fun Live(state: HqVoiceUiState, canConfirm: Boolean, actions: HqVoiceAct
             text = stateText,
             style = MaterialTheme.typography.titleSmall,
             color = DistrictTheme.colors.foreground,
-            // ⚠️ THE STATE IS THE ELEMENT'S STATE, so TalkBack reads a change once, as iOS does.
+            // ⚠️ A POLITE LIVE REGION: TalkBack reads a change of state once, without a second
+            // announcement of the same words.
             modifier = Modifier
                 .weight(1f)
-                .semantics { stateDescription = stateText }
+                .semantics { liveRegion = LiveRegionMode.Polite }
                 .testTag(HQ_VOICE_STATE_DESCRIPTION),
         )
         when (state.micMode) {
@@ -252,7 +254,8 @@ private fun HoldToTalk(isOn: Boolean, onHold: (Boolean) -> Unit) {
             }
             .onFocusChanged { if (!it.isFocused && on) hold(false) }
             .focusable()
-            .semantics {
+            // ⚠️ MERGED, so the button's name is its "Hold to talk" text.
+            .semantics(mergeDescendants = true) {
                 role = Role.Button
                 selected = isOn
                 onClick {
@@ -335,8 +338,6 @@ const val HQ_VOICE_STOP_DESCRIPTION: String = "district-hq-voice-stop"
 const val HQ_VOICE_MUTE_DESCRIPTION: String = "district-hq-voice-mute"
 const val HQ_VOICE_HOLD_DESCRIPTION: String = "district-hq-voice-hold-to-talk"
 const val HQ_VOICE_TRANSCRIPT_DESCRIPTION: String = "district-hq-voice-transcript"
-const val HQ_VOICE_CONFIRM_DESCRIPTION: String = "district-hq-voice-confirm"
-const val HQ_VOICE_CANCEL_DESCRIPTION: String = "district-hq-voice-cancel"
 const val HQ_VOICE_NOTICE_DESCRIPTION: String = "district-hq-voice-notice"
 const val HQ_VOICE_NOTICE_REGION_DESCRIPTION: String = "district-hq-voice-notice-region"
 const val HQ_VOICE_NOTICE_START_DESCRIPTION: String = "district-hq-voice-notice-start"

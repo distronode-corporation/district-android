@@ -113,7 +113,9 @@ class HqVoiceRequestTest {
         val failure = result as ApiResult.HttpFailure
         assertEquals(409, failure.status)
         assertEquals(HqVoice.ALLOWANCE_REACHED_CODE, failure.code)
-        assertTrue(failure.message.contains("120"))
+        val sentence = (Json.parseToJsonElement(fixture("district-hq-voice-token-allowance.json")) as JsonObject)
+            .getValue("error").let { (it as JsonPrimitive).content }
+        assertEquals(sentence, failure.message)
     }
 
     @Test

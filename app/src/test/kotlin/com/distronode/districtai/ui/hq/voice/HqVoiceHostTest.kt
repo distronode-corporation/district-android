@@ -145,11 +145,11 @@ class HqVoiceHostTest {
         composeRule.waitForIdle()
         engines.single().propose("p1")
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag(HQ_VOICE_CONFIRM_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(hqVoiceConfirmTag("p1")).performClick()
         composeRule.waitForIdle()
         engines.single().propose("p2")
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag(HQ_VOICE_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(hqVoiceCancelTag("p2")).performClick()
         composeRule.waitForIdle()
 
         shown = false

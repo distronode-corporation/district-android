@@ -18,8 +18,8 @@ data class HqVoiceActions(
 /**
  * The bar's controls, each one a call on [this] session.
  *
- * ⚠️ BUILT OUTSIDE COMPOSITION, so the nine lambdas are plain closures over the session rather than
- * composable-memoized ones.
+ * ⚠️ A PLAIN FUNCTION, so the nine lambdas are ordinary closures over the session; called from the
+ * host on each recomposition, where building them is cheap and the bar only reads them on a tap.
  */
 fun HqVoiceSession.actions(
     history: () -> List<HqTurn>,

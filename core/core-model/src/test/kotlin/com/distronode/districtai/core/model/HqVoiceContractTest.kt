@@ -58,6 +58,9 @@ class HqVoiceContractTest {
         assertFalse(token.copy(e2ee = HqVoiceE2ee("  ")).isJoinable)
         assertEquals(token.e2ee!!.key, token.joinKey)
         assertEquals("", token.copy(e2ee = null).joinKey)
+        assertFalse("no token to join with", token.copy(token = "").isJoinable)
+        assertFalse("no server to join", token.copy(url = " ").isJoinable)
+        assertFalse("no session to end", token.copy(sessionId = "").isJoinable)
     }
 
     @Test
@@ -124,6 +127,11 @@ class HqVoiceContractTest {
         assertEquals(HqVoice.HISTORY_MAX_CHARACTERS, bounded.last().text.length)
         assertEquals("model", bounded.last().role)
         assertTrue(HqVoice.boundedHistory(emptyList()).isEmpty())
+        // ⚠️ A cut that would split an emoji drops the whole character instead.
+        val emoji = "a".repeat(HqVoice.HISTORY_MAX_CHARACTERS - 1) + "\uD83D\uDE00"
+        val cut = HqVoice.boundedHistory(listOf(HqTurn("user", emoji))).single().text
+        assertEquals(HqVoice.HISTORY_MAX_CHARACTERS - 1, cut.length)
+        assertFalse(cut.last().isHighSurrogate())
     }
 
     @Test

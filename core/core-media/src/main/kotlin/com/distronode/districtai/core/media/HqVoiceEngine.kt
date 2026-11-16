@@ -15,7 +15,11 @@ import kotlinx.coroutines.flow.Flow
  * the agent's state as its raw attribute, so the parsing stays in plain, tested code.
  */
 interface HqVoiceEngine {
-    /** What the room says, in order. Ends when [disconnect] is called. */
+    /**
+     * What the room says. Ends when [disconnect] is called. ⚠️ Room events arrive in the room's
+     * order; a transcript segment arrives when its stream closes, so segments are ordered by when
+     * they finished, not by when they started.
+     */
     val events: Flow<HqVoiceEngineEvent>
 
     /** Joins the room; throws when the join fails. The microphone is OFF after it. */

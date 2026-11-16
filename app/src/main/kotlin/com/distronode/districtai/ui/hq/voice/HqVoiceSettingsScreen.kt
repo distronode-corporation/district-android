@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -163,7 +164,8 @@ private fun Group(
     enabled: Boolean,
     onEdit: (HqVoiceSetting, String) -> Unit,
 ) {
-    DistrictCard(modifier = Modifier.testTag(hqVoiceSettingTag(setting))) {
+    // ⚠️ ONE SELECTABLE GROUP PER SETTING, so TalkBack reads its choices as one exclusive set.
+    DistrictCard(modifier = Modifier.selectableGroup().testTag(hqVoiceSettingTag(setting))) {
         Eyebrow(stringResource(setting.title()))
         HqVoiceOptions.including(value, HqVoiceOptions.of(setting)).forEach { option ->
             DistrictRadioRow(

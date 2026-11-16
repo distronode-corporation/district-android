@@ -272,8 +272,8 @@ class HqVoiceBarTest {
 
         composeRule.onNodeWithTag(hqVoiceProposalTag("p1")).assertIsDisplayed()
         composeRule.onNodeWithText("Change the greeting.").assertIsDisplayed()
-        composeRule.onNodeWithTag(HQ_VOICE_CONFIRM_DESCRIPTION).performClick()
-        composeRule.onNodeWithTag(HQ_VOICE_CANCEL_DESCRIPTION).performClick()
+        composeRule.onNodeWithTag(hqVoiceConfirmTag("p1")).performClick()
+        composeRule.onNodeWithTag(hqVoiceCancelTag("p1")).performClick()
 
         assertEquals(listOf("confirm:p1", "cancel:p1"), calls)
     }
@@ -284,14 +284,14 @@ class HqVoiceBarTest {
         var canConfirm by mutableStateOf(false)
         theme.setContent { HqVoiceBar(state, canConfirm, null, actions) }
         composeRule.onNodeWithText(str(R.string.hq_voice_proposal_fallback)).assertIsDisplayed()
-        composeRule.onNodeWithTag(HQ_VOICE_CONFIRM_DESCRIPTION).assertDoesNotExist()
-        composeRule.onNodeWithTag(HQ_VOICE_CANCEL_DESCRIPTION).assertIsEnabled()
+        composeRule.onNodeWithTag(hqVoiceConfirmTag("p1")).assertDoesNotExist()
+        composeRule.onNodeWithTag(hqVoiceCancelTag("p1")).assertIsEnabled()
 
         canConfirm = true
         state = live().copy(proposals = listOf(card("p1").copy(isWorking = true)))
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag(HQ_VOICE_CONFIRM_DESCRIPTION).assertIsNotEnabled()
-        composeRule.onNodeWithTag(HQ_VOICE_CANCEL_DESCRIPTION).assertIsNotEnabled()
+        composeRule.onNodeWithTag(hqVoiceConfirmTag("p1")).assertIsNotEnabled()
+        composeRule.onNodeWithTag(hqVoiceCancelTag("p1")).assertIsNotEnabled()
 
         mapOf(
             HqResolutionStatus.APPLIED to R.string.hq_voice_applied,
@@ -301,7 +301,7 @@ class HqVoiceBarTest {
             state = live().copy(proposals = listOf(card("p1", outcome = outcome)))
             composeRule.waitForIdle()
             composeRule.onNodeWithText(str(sentence)).assertIsDisplayed()
-            composeRule.onNodeWithTag(HQ_VOICE_CONFIRM_DESCRIPTION).assertDoesNotExist()
+            composeRule.onNodeWithTag(hqVoiceConfirmTag("p1")).assertDoesNotExist()
         }
         theme.flip()
     }

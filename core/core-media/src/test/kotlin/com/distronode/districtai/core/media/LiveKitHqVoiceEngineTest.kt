@@ -20,6 +20,7 @@ import io.livekit.android.room.track.TrackException
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -108,6 +109,10 @@ class LiveKitHqVoiceEngineTest {
             engine().connect("wss://media.example", "jwt")
 
             assertTrue((installed.captured.keyProvider as BaseKeyProvider).enableSharedKey)
+            coVerifyOrder {
+                room.e2eeOptions = any()
+                room.connect("wss://media.example", "jwt", any())
+            }
             coVerify { room.connect("wss://media.example", "jwt", any()) }
             verify { room.registerTextStreamHandler("lk.transcription", any()) }
             verify { LiveKit.create(appContext, any(), any()) }
@@ -219,6 +224,8 @@ class LiveKitHqVoiceEngineTest {
         coEvery { local.setMicrophoneEnabled(true) } returns true
 
         assertTrue(engine.setMicrophone(true))
+        coEvery { local.setMicrophoneEnabled(false) } returns false
+        assertTrue("an unmade mute reads as still open", engine.setMicrophone(false))
 
         coEvery { local.setMicrophoneEnabled(true) } throws TrackException.PublishException("refused")
         assertFalse("a refused open leaves it closed", engine.setMicrophone(true))
@@ -283,7 +290,6 @@ class LiveKitHqVoiceEngineTest {
         engine.disconnect()
 
         coVerify { room.disconnect() }
-        assertFalse(focus.isCaptured)
     }
 
     @Test

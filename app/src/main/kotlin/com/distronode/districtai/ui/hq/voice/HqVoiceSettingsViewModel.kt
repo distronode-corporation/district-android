@@ -90,7 +90,8 @@ class HqVoiceSettingsViewModel(
                         loaded = result.value,
                         // ⚠️ AN EDIT MADE WHILE SAVING IS KEPT; otherwise the screen shows what was stored.
                         draft = if (it.draft == settings) result.value else it.draft,
-                        isSaved = true,
+                        // ⚠️ "Saved" only when what is on screen is what was saved.
+                        isSaved = it.draft == settings,
                     )
                 }
                 is ApiResult.Failure -> _state.update {

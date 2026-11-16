@@ -39,7 +39,8 @@ class FakeHqVoiceEngine(val key: String) : HqVoiceEngine {
         channel.close()
     }
 
+    /** ⚠️ Fails loudly after [disconnect]: an event no session can hear proves nothing. */
     fun emit(event: HqVoiceEngineEvent) {
-        channel.trySend(event)
+        check(channel.trySend(event).isSuccess) { "emit after disconnect" }
     }
 }

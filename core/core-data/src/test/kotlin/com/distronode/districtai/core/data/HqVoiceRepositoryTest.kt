@@ -15,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -85,7 +84,9 @@ class HqVoiceRepositoryTest {
     @Test
     fun `the screen report, the cancel and the settings are held to their envelopes`() = runTest {
         assertEquals(ApiResult.Success(Unit), repository.reportScreen("ws-1", "hq_r", 1, "hq"))
+        assertEquals(listOf(1 to "hq"), voice.contextReports)
         assertEquals(ApiResult.Success(Unit), repository.cancel("ws-1", "p-1"))
+        assertEquals("cancel:p-1", voice.calls.last())
         assertEquals(ApiResult.Success(FakeHqVoiceApi.SETTINGS), repository.settings("ws-1"))
         assertEquals(
             ApiResult.Success(FakeHqVoiceApi.SETTINGS),
@@ -135,6 +136,6 @@ class HqVoiceRepositoryTest {
 
         hq.hqConfirmResult = offline
         assertEquals(offline, repository.confirm("ws-1", proposal))
-        assertFalse(hq.hqConfirms.isEmpty())
+        assertEquals("each confirm is sent once", 3, hq.hqConfirms.size)
     }
 }

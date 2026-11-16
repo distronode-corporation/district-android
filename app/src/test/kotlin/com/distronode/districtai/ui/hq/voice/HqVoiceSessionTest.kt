@@ -252,15 +252,59 @@ class HqVoiceSessionTest : HqVoiceSessionCase() {
 
     @Test
     fun `a refused microphone change shows the state the SDK was left in`() = runTest {
-        push()
         val session = session()
         toLive(session)
+        assertTrue("open at the join", session.state.value.isMicrophoneOn)
         engine.microphoneAnswer = { !it }
 
-        session.holdToTalk(true)
+        session.toggleMute()
         runCurrent()
 
-        assertFalse(session.state.value.isMicrophoneOn)
+        assertTrue("a refused mute leaves it open, and says so", session.state.value.isMicrophoneOn)
+        session.toggleMute()
+        runCurrent()
+        assertEquals("the next tap retries the mute the screen offers", listOf(true, false, false), engine.microphone)
+    }
+
+    @Test
+    fun `a join overtaken by a Stop and a new Talk never takes over the new session`() = runTest {
+        val stale = CompletableDeferred<Unit>()
+        prepare = { if (engines.isEmpty()) it.connectGate = stale }
+        val session = session()
+        toLive(session)
+        session.stop()
+        runCurrent()
+        toLive(session)
+        assertEquals(HqVoicePhase.Live, session.phase)
+
+        stale.complete(Unit)
+        runCurrent()
+
+        assertEquals(HqVoicePhase.Live, session.phase)
+        assertEquals("the stale room is left again when its join lands", 2, engines[0].disconnects)
+        assertEquals("the live room is untouched", 0, engines[1].disconnects)
+        assertEquals("one report, for the live session", 1, api.contextReports.size)
+    }
+
+    @Test
+    fun `a stale join that fails afterwards ends nothing`() = runTest {
+        val stale = CompletableDeferred<Unit>()
+        prepare = {
+            if (engines.isEmpty()) {
+                it.connectGate = stale
+                it.connectError = IOException("late")
+            }
+        }
+        val session = session()
+        toLive(session)
+        session.stop()
+        runCurrent()
+        toLive(session)
+
+        stale.complete(Unit)
+        runCurrent()
+
+        assertEquals(HqVoicePhase.Live, session.phase)
     }
 
     @Test

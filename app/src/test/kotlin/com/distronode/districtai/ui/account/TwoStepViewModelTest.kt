@@ -479,6 +479,26 @@ class TwoStepViewModelTest {
     }
 
     @Test
+    fun `a confirm or a disable answered with a 5xx may have happened, so the status is read again`() =
+        runTest(dispatcher) {
+            val vm = scanning()
+            api.confirmResult = ApiResult.HttpFailure(500, "Internal server error", "server_error")
+            api.statusResult = ApiResult.Success(FakeAccountSecurityApi.STATUS_ON)
+            vm.onField(TwoStepField.TOTP, "123456")
+            vm.confirm()
+            advanceUntilIdle()
+            assertEquals(res(R.string.two_step_error_outcome_unknown_on), vm.state.value.failure)
+            assertEquals(FakeAccountSecurityApi.STATUS_ON, vm.state.value.status)
+
+            val off = overview(on = true)
+            api.disableResult = ApiResult.HttpFailure(502, "Bad gateway")
+            off.begin(TwoStepIntent.TURN_OFF)
+            off.reauthenticate(ReauthProvider.GOOGLE)
+            advanceUntilIdle()
+            assertEquals(res(R.string.two_step_error_outcome_unknown_off), off.state.value.failure)
+        }
+
+    @Test
     fun `an expired proof at confirm goes back to confirming it is you, without the old secret`() = runTest(
         dispatcher
     ) {

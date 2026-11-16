@@ -443,6 +443,24 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `draft_nothing_to_undo`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.email_changed]
+en = "This contact's email address changed since you opened it. Check the new address before confirming it."
+fr = "L'adresse courriel de ce contact a changé depuis l'ouverture de sa fiche. Vérifiez la nouvelle adresse avant de la confirmer."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `email_changed`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.email_unconfirmed]
+en = "This contact's email address is unconfirmed. Confirm it in the contact panel before emailing it."
+fr = "L'adresse courriel de ce contact n'est pas confirmée. Confirmez-la dans la fiche du contact avant de lui écrire."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `email_unconfirmed`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.emergency_acknowledgement_required]
 en = "Confirm that you understand this number cannot be used to call 911 or other emergency services, then try again."
 fr = "Confirmez que vous comprenez que ce numéro ne peut pas servir à appeler le 9-1-1 ni aucun autre service d'urgence, puis réessayez."
@@ -851,11 +869,11 @@ note = "The sentence for the server's error code `marketplace_billed_workspace`,
 
 [api_error.marketplace_cancel_refused]
 en = "Microsoft would not cancel a Microsoft Marketplace subscription on your workspace, so nothing was deleted. Cancel it in the Microsoft 365 admin center, then try again."
-fr = "Microsoft n'a pas voulu annuler un abonnement Microsoft Marketplace de votre espace de travail; rien n'a donc été supprimé. Annulez-le dans le Centre d'administration Microsoft 365, puis réessayez."
+fr = "Microsoft a refusé d'annuler un abonnement Microsoft Marketplace de votre espace de travail; rien n'a donc été supprimé. Annulez-le dans le Centre d'administration Microsoft 365, puis réessayez."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "reviewed"
+state = "draft"
 note = "The sentence for the server's error code `marketplace_cancel_refused`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.marketplace_intro_minutes_reached]
@@ -1121,11 +1139,11 @@ note = "The sentence for the server's error code `microsoft_landing_held_elsewhe
 
 [api_error.microsoft_landing_identity_mismatch]
 en = "Sign in with the Microsoft account that bought District AI, or the one it was bought for."
-fr = "Connectez-vous avec le compte Microsoft qui a acheté District AI, ou celui pour qui il a été acheté."
+fr = "Connectez-vous avec le compte Microsoft qui a acheté District AI, ou celui pour lequel il a été acheté."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "reviewed"
+state = "draft"
 note = "The sentence for the server's error code `microsoft_landing_identity_mismatch`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.microsoft_landing_refused]
@@ -1175,11 +1193,11 @@ note = "The sentence for the server's error code `microsoft_landing_unavailable`
 
 [api_error.microsoft_landing_us_regional_account]
 en = "A Distronode account in another region can't hold a US purchase. Buy in that region to keep one account, or use a different email address to create a separate US account."
-fr = "Un compte Distronode d'une autre région ne peut pas détenir un achat des États-Unis. Achetez dans cette région pour garder un seul compte, ou utilisez une autre adresse courriel pour créer un compte distinct aux États-Unis."
+fr = "Un compte Distronode d'une autre région ne peut pas détenir un achat fait aux États-Unis. Achetez dans cette région pour garder un seul compte, ou utilisez une autre adresse courriel pour créer un compte distinct aux États-Unis."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "reviewed"
+state = "draft"
 note = "The sentence for the server's error code `microsoft_landing_us_regional_account`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.model_unavailable_in_region]
@@ -1190,6 +1208,15 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `model_unavailable_in_region`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.no_email]
+en = "This contact has no email address to confirm."
+fr = "Ce contact n'a aucune adresse courriel à confirmer."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `no_email`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.no_password]
 en = "This account signs in with Google or Microsoft and has no password to re-enter. Set a password on the web first."

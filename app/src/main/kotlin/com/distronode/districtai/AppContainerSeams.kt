@@ -17,6 +17,7 @@ import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.SchedulingAdminApi
+import com.distronode.districtai.core.network.SetupWizardApi
 import com.distronode.districtai.core.network.SupportApi
 import com.distronode.districtai.core.network.HqVoiceApi
 import com.distronode.districtai.core.media.HqVoiceEngineFactory
@@ -82,6 +83,8 @@ data class AppContainerSeams(
     val hqVoiceApi: HqVoiceApi? = null,
     val hqVoiceEngineFactory: HqVoiceEngineFactory? = null,
     val hqVoiceAudio: HqVoiceAudio? = null,
+    /** The setup wizard's read and writes. */
+    val setupWizardApi: SetupWizardApi? = null,
     val personaApi: PersonaApi? = null,
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,

@@ -68,6 +68,7 @@ import com.distronode.districtai.core.network.testing.FakeWhatsAppApi
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
 import com.distronode.districtai.core.network.testing.FakeHqVoiceApi
 import com.distronode.districtai.core.network.testing.FakeDeskApi
+import com.distronode.districtai.core.network.testing.FakeSetupWizardApi
 import com.distronode.districtai.core.network.testing.FakeSupportApi
 import androidx.compose.ui.test.hasContentDescription
 
@@ -101,6 +102,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
     val supervise = FakeSuperviseApi()
     val hqVoice = FakeHqVoiceApi()
     val callHandling = CountingCallHandlingApi()
+    val setup = FakeSetupWizardApi()
     val telecom = FakeTelecomBridge()
     val registry = ScriptedResultRegistry()
 
@@ -127,6 +129,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
             deskApi = desk,
             supportApi = support,
             hqVoiceApi = hqVoice,
+            setupWizardApi = setup,
             personaApi = persona,
             inboxExtrasApi = search,
             conversationAssignmentApi = assignments,

@@ -14,13 +14,12 @@ import com.distronode.districtai.core.designsystem.DistrictCard
 import com.distronode.districtai.core.designsystem.DistrictTheme
 
 /**
- * "Finish setting up on the web", for a workspace OWNER who is still in the setup wizard (setup
- * wizard plan 2.5).
+ * "Finish setting up", for a workspace OWNER who is still in the setup wizard.
  *
- * ⛔ A POINTER, NOT THE WIZARD. Setup decides what the business's receptionist says and which
- * number it answers, and it runs on the web only. The card says so and opens the dashboard; it
- * carries no step list, because a list here would be a second copy of the wizard's state that
- * could disagree with the first.
+ * ⛔ THE BUTTON OPENS THE WIZARD IN THE APP (`SetupWizardScreen`), whose six steps run here and whose
+ * hand-offs (buying a number, a calendar sign-in, the email identity, the transfer number) open the
+ * web's page in a Custom Tab from inside it. The card carries no step list: the wizard reads the
+ * steps from the service, and a second copy here could disagree with it.
  */
 @Composable
 internal fun FinishSetupCard(onFinishSetup: () -> Unit) {
@@ -57,7 +56,8 @@ const val OVERVIEW_FINISH_SETUP_DESCRIPTION: String = "district-overview-finish-
 const val OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION: String = "district-overview-finish-setup-open"
 
 /**
- * The web dashboard's District home, where the setup wizard runs.
+ * The web dashboard's District home, where the web's own setup wizard runs. The app's wizard opens it
+ * for buying a number, and the Studio pages under it for the rest of its hand-offs.
  *
  * ⚠️ BUILT FROM THE APP'S OWN API BASE, like `marketplaceWebUrl`, so a staging build opens staging.
  * One host for every region on purpose: the edge routes by session, and this app deliberately

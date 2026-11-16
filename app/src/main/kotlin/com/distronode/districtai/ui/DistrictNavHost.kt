@@ -108,7 +108,8 @@ import com.distronode.districtai.ui.workflows.WorkflowsViewModel
 import com.distronode.districtai.ui.overview.OverviewScreen
 import com.distronode.districtai.ui.overview.OverviewUiState
 import com.distronode.districtai.ui.overview.OverviewViewModel
-import com.distronode.districtai.ui.overview.setupWebUrl
+import com.distronode.districtai.ui.setup.setupWizardDestination
+import com.distronode.districtai.ui.setup.setupWizardRoute
 import com.distronode.districtai.ui.rooms.ActiveRoomScreen
 import com.distronode.districtai.ui.rooms.ActiveRoomViewModel
 import com.distronode.districtai.ui.rooms.RoomControls
@@ -263,7 +264,6 @@ fun DistrictNavHost(
                     // is asked for — the graph is composed only once a session exists. See
                     // NotificationsPermissionEffect for why not at launch.
                     NotificationsPermissionEffect()
-                    val setupBrowserMissing = stringResource(R.string.settings_browser_missing)
                     OverviewScreen(
                         state = overviewState,
                         onRetry = {
@@ -354,17 +354,10 @@ fun DistrictNavHost(
                         onOpenSupport = { workspaceId, role ->
                             navController.navigate(Routes.support(workspaceId, role))
                         },
-                        // ⛔ `openInBrowser`, i.e. `launchExternally`, AND NEVER AN IMPLICIT
-                        // INTENT: this app is a verified App Link handler for
-                        // /dashboard/district, so a plain ACTION_VIEW would land back on this
-                        // very screen. Setup runs on the web; see FinishSetupCard.
+                        // ⚠️ THE WIZARD RUNS IN THE APP; the pages it still hands to the web open
+                        // from inside it. See SetupWizardDestination.
                         onFinishSetup = {
-                            openInBrowser(
-                                context,
-                                setupWebUrl(ApiEnvironment.baseUrl),
-                                setupBrowserMissing,
-                                onShowMessage,
-                            )
+                            workspaceId?.let { navController.navigate(setupWizardRoute(it)) }
                         },
                     )
                 }
@@ -1068,6 +1061,14 @@ fun DistrictNavHost(
                 // this graph that owns a live media session, so it is a real seam rather than an
                 // arbitrary cut.
                 roomsLobbyDestination(container, navController, sessionEpoch)
+                setupWizardDestination(
+                    container = container,
+                    navController = navController,
+                    sessionEpoch = sessionEpoch,
+                    workspaceName = { id -> content?.workspaces?.firstOrNull { it.id == id }?.name },
+                    onShowMessage = onShowMessage,
+                    onClosed = { overviewViewModel.load(refreshing = true) },
+                )
                 activeRoomDestination(container, navController, context)
                 dialerDestination(container, navController, sessionEpoch)
                 liveCallsDestination(container, navController, sessionEpoch, onSignIn)

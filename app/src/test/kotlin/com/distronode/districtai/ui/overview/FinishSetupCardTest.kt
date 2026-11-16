@@ -22,8 +22,8 @@ import org.robolectric.annotation.Config
 /**
  * The card itself: present only when the state says so, and its button calls back.
  *
- * ⚠️ The URL it opens is asserted by [setupWebUrl]'s own test below rather than by launching a
- * browser here; the launch path is `openInBrowser`, shared with the marketplace hand-off.
+ * ⚠️ Where it goes is asserted by `NavHostHandOffTest` (the wizard in the app); the web setup URL
+ * the wizard's number step hands off to is asserted by [setupWebUrl]'s own test below.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [ROBOLECTRIC_SDK])
@@ -48,7 +48,7 @@ class FinishSetupCardTest {
     )
 
     @Test
-    fun `the card shows for an owner mid-setup and opens the web`() {
+    fun `the card shows for an owner mid-setup and opens setup`() {
         var opened = 0
         composeRule.setContent {
             DistrictTheme {

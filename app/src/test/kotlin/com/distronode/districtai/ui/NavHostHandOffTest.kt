@@ -10,6 +10,7 @@ import com.distronode.districtai.core.model.Contact
 import com.distronode.districtai.core.model.ContactListResponse
 import com.distronode.districtai.core.model.DeviceListResponse
 import com.distronode.districtai.core.model.NativeDevice
+import com.distronode.districtai.core.model.SETUP_STEP_DONE
 import com.distronode.districtai.core.model.StripeBilling
 import com.distronode.districtai.core.model.WorkspaceRole
 import com.distronode.districtai.core.network.ApiResult
@@ -22,7 +23,12 @@ import com.distronode.districtai.ui.marketplace.MARKETPLACE_BUY_WEB_DESCRIPTION
 import com.distronode.districtai.ui.marketplace.marketplaceWebUrl
 import com.distronode.districtai.ui.overview.OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION
 import com.distronode.districtai.ui.overview.OverviewUiState
-import com.distronode.districtai.ui.overview.setupWebUrl
+import com.distronode.districtai.ui.setup.NumberTags
+import com.distronode.districtai.ui.setup.SETUP_WIZARD_ROUTE
+import com.distronode.districtai.ui.setup.SetupHandOff
+import com.distronode.districtai.ui.setup.SetupTags
+import com.distronode.districtai.ui.setup.setupState
+import com.distronode.districtai.ui.setup.setupWizardRoute
 import com.distronode.districtai.ui.settings.SETTINGS_DELETE_ACCOUNT_DESCRIPTION
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -65,17 +71,56 @@ class NavHostHandOffTest {
     // ── The browser hand-offs ──────────────────────────────────────────────────────────────
 
     @Test
-    fun `finishing setup opens the web dashboard in the browser, never through this app`() {
+    fun `finishing setup opens the wizard in the app, and closing it reads the overview again`() {
         harness.installBrowser()
         harness.overviewState = NavHostHarness.content(showFinishSetup = true)
+        harness.setup.setupResult = ApiResult.Forbidden("Only the workspace owner can set up this workspace.")
         harness.render()
 
         harness.tap(OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION)
 
-        assertEquals(listOf(setupWebUrl(ApiEnvironment.baseUrl)), opened())
-        // ⛔ Pinned to the browser package, so this app's own App Link cannot intercept it.
-        assertEquals(NavHostHarness.BROWSER_PACKAGE, harness.started.single().`package`)
-        assertTrue(harness.messages.isEmpty())
+        assertEquals(SETUP_WIZARD_ROUTE, harness.route())
+        assertEquals("ws-1", harness.argument(ARG_WORKSPACE_ID))
+        assertTrue("the wizard runs here, not in a browser", opened().isEmpty())
+        harness.awaitDescription(SetupTags.REFUSED)
+        assertEquals(listOf("ws-1"), harness.setup.reads)
+
+        val listReads = harness.api.workspaceListReads
+        harness.tap(SetupTags.DONE)
+        assertEquals(Routes.OVERVIEW, harness.route())
+        harness.awaitMain { harness.api.workspaceListReads > listReads }
+    }
+
+    @Test
+    fun `the wizard opens for a workspace the list does not name, its id intact whatever it holds`() {
+        harness.setup.setupResult = ApiResult.Forbidden("Only the workspace owner can set up this workspace.")
+        harness.render()
+        // ⚠️ Reserved characters: the route encodes the id, so it neither misses the destination nor
+        // reaches it as another workspace.
+        val id = "ws elsewhere/2?x=1"
+        harness.navigate(setupWizardRoute(id))
+
+        harness.awaitDescription(SetupTags.REFUSED)
+        assertEquals(id, harness.argument(ARG_WORKSPACE_ID))
+        assertEquals(listOf(id), harness.setup.reads)
+    }
+
+    @Test
+    fun `a wizard page with no browser is reported, and with one opens in it`() {
+        harness.overviewState = NavHostHarness.content(showFinishSetup = true)
+        harness.setup.setupResult = ApiResult.Success(setupState(business = SETUP_STEP_DONE, numbersHeld = 0))
+        harness.render()
+        harness.tap(OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION)
+        harness.awaitDescription(NumberTags.OPEN_PAGE)
+
+        harness.tap(NumberTags.OPEN_PAGE)
+        assertEquals(listOf(browserMissing), harness.messages)
+        assertTrue(opened().isEmpty())
+
+        harness.installBrowser()
+        harness.tap(NumberTags.OPEN_PAGE)
+        assertEquals(listOf(SetupHandOff.SETUP.destination(ApiEnvironment.baseUrl)), opened())
+        assertEquals("the second tap opened, so nothing more was said", listOf(browserMissing), harness.messages)
     }
 
     @Test

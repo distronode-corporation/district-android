@@ -127,6 +127,15 @@ internal object EndpointParity {
         "conversationAssignments",
         "whatsAppTemplates",
         "whatsAppWindow",
+        // ⚠️ THE SETUP WIZARD IN THE APP: its writes, the website lookup, the test call, the
+        // forwarding check and the integrations read. district-core-swift declares all six from
+        // 8.5.0; they leave this set when that snapshot (or a later one) is vendored.
+        "districtSetupPatch",
+        "forwardingCheck",
+        "forwardingCheckStart",
+        "setupLookup",
+        "setupTestCall",
+        "workspaceConnections",
         // ⚠️ LIVE SUPERVISE (3.3.0): listening and taking over. The names are the ones decided for
         // district-core-swift's `EndpointID`; they leave this set when the snapshot that declares
         // them is vendored. (`whisper` is already on both sides.)

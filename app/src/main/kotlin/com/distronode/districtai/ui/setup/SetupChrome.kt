@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -240,8 +241,12 @@ internal fun SetupSwitchRow(
     onChange: (Boolean) -> Unit,
     enabled: Boolean = true
 ) {
+    // ⚠️ THE ROW IS THE TOGGLE, and the switch only draws it: one target, one TalkBack node.
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+            .testTag(tag),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
@@ -253,10 +258,9 @@ internal fun SetupSwitchRow(
         )
         Switch(
             checked = checked,
-            onCheckedChange = onChange,
+            onCheckedChange = null,
             enabled = enabled,
             colors = districtSwitchColors(),
-            modifier = Modifier.testTag(tag),
         )
     }
 }

@@ -38,8 +38,8 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
 - The setup wizard in the app, as in the iOS app. "Finish setting up" on the overview opens the
   six setup steps here, not in the browser, at the first one still to do: your business (with a
   draft read from its website), your number, your receptionist, what callers should know, how
-  calls are answered, and a test call with a forwarding check. Pages only the web has open in a
-  Custom Tab, and the wizard reads its state again on return. Only the workspace's owner can do
+  calls are answered, and a test call with a forwarding check. Steps only the web can finish open
+  in a Custom Tab, and the wizard reads its state on return. Only the workspace's owner can do
   setup. English and French.
 - Contracts: the setup wizard's fixtures (the facts PATCH, the website lookup and its refusal,
   the test call, the forwarding check and its start, and the integrations read) are decoded and

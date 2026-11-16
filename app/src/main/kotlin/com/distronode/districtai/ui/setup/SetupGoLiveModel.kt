@@ -78,6 +78,7 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
     // ⚠️ DECLARED BEFORE [loadJob]: on an unconfined dispatcher the opening read can start the poll
     // while this object is still being built, and a later `= null` initializer would drop that job.
     private var pollJob: Job? = null
+    private var startJob: Job? = null
 
     private val loadJob: Job = load()
 
@@ -149,7 +150,7 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
         isStartingCheck = true
         lineError = false
         checkError = null
-        wizard.scope.launch {
+        startJob = wizard.scope.launch {
             val result = try {
                 wizard.deps.setup.startForwardingCheck(wizard.workspaceId, line, mode)
             } finally {
@@ -205,9 +206,10 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
         wizard.completeStep(SetupStep.GOLIVE, SETUP_STEP_DONE)
     }
 
-    /** ⚠️ THE OPENING READS TOO: a step left mid-read must not start polling once they land. */
+    /** ⚠️ THE OPENING READS AND A START IN FLIGHT TOO: a step left mid-request must not poll once it lands. */
     override fun close() {
         loadJob.cancel()
+        startJob?.cancel()
         pollJob?.cancel()
     }
 }

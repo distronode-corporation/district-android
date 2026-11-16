@@ -2,6 +2,7 @@ package com.distronode.districtai.ui.setup
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -307,10 +308,8 @@ class SetupWizardScreenTest {
         tap(BusinessTags.SAVE)
 
         composeRule.onNodeWithTag(BusinessTags.CITY).assertIsNotEnabled()
-        composeRule.onNodeWithTag(BusinessTags.COUNTRY).performScrollTo().performClick()
-        composeRule.onNodeWithTag("${BusinessTags.COUNTRY}-option-US").assertDoesNotExist()
-        composeRule.onNodeWithTag(BusinessTags.SUBDIVISION).performScrollTo().performClick()
-        composeRule.onNodeWithTag("${BusinessTags.SUBDIVISION}-option-QC").assertDoesNotExist()
+        composeRule.onNodeWithTag(BusinessTags.COUNTRY).assertHasNoClickAction()
+        composeRule.onNodeWithTag(BusinessTags.SUBDIVISION).assertHasNoClickAction()
         composeRule.onNodeWithTag(SetupTags.choice("language", "fr")).assertIsNotEnabled()
         harness.setup.gate!!.complete(Unit)
         composeRule.waitForIdle()

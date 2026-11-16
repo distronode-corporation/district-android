@@ -22,7 +22,8 @@ import com.distronode.districtai.ui.marketplace.MARKETPLACE_BUY_WEB_DESCRIPTION
 import com.distronode.districtai.ui.marketplace.marketplaceWebUrl
 import com.distronode.districtai.ui.overview.OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION
 import com.distronode.districtai.ui.overview.OverviewUiState
-import com.distronode.districtai.ui.overview.setupWebUrl
+import com.distronode.districtai.ui.setup.SETUP_WIZARD_ROUTE
+import com.distronode.districtai.ui.setup.SetupTags
 import com.distronode.districtai.ui.settings.ACCOUNT_DELETION_URL
 import com.distronode.districtai.ui.settings.SETTINGS_DELETE_ACCOUNT_DESCRIPTION
 import org.junit.After
@@ -66,17 +67,24 @@ class NavHostHandOffTest {
     // ── The browser hand-offs ──────────────────────────────────────────────────────────────
 
     @Test
-    fun `finishing setup opens the web dashboard in the browser, never through this app`() {
+    fun `finishing setup opens the wizard in the app, and closing it reads the overview again`() {
         harness.installBrowser()
         harness.overviewState = NavHostHarness.content(showFinishSetup = true)
+        harness.setup.setupResult = ApiResult.Forbidden("Only the workspace owner can set up this workspace.")
         harness.render()
 
         harness.tap(OVERVIEW_FINISH_SETUP_ACTION_DESCRIPTION)
 
-        assertEquals(listOf(setupWebUrl(ApiEnvironment.baseUrl)), opened())
-        // ⛔ Pinned to the browser package, so this app's own App Link cannot intercept it.
-        assertEquals(NavHostHarness.BROWSER_PACKAGE, harness.started.single().`package`)
-        assertTrue(harness.messages.isEmpty())
+        assertEquals(SETUP_WIZARD_ROUTE, harness.route())
+        assertEquals("ws-1", harness.argument(ARG_WORKSPACE_ID))
+        assertTrue("the wizard runs here, not in a browser", opened().isEmpty())
+        harness.awaitDescription(SetupTags.REFUSED)
+        assertEquals(listOf("ws-1"), harness.setup.reads)
+
+        val listReads = harness.api.workspaceListReads
+        harness.tap(SetupTags.DONE)
+        assertEquals(Routes.OVERVIEW, harness.route())
+        harness.awaitMain { harness.api.workspaceListReads > listReads }
     }
 
     @Test

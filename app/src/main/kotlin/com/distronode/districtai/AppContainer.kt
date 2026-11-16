@@ -37,6 +37,7 @@ import com.distronode.districtai.core.data.SchedulingAdminRepository
 import com.distronode.districtai.core.data.SchedulingRepository
 import com.distronode.districtai.ui.scheduling.admin.reportUnknownSchedulingOp
 import com.distronode.districtai.core.data.SetupRepository
+import com.distronode.districtai.core.data.SetupWizardRepository
 import com.distronode.districtai.core.data.SupportRepository
 import com.distronode.districtai.core.data.SuperviseRepository
 import com.distronode.districtai.handoff.DashboardHandOff
@@ -81,6 +82,7 @@ import com.distronode.districtai.core.network.HttpSchedulingAdminApi
 import com.distronode.districtai.core.network.HttpInboxExtrasApi
 import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSetupApi
+import com.distronode.districtai.core.network.HttpSetupWizardApi
 import com.distronode.districtai.core.network.HttpSupportApi
 import com.distronode.districtai.core.network.HttpSuperviseApi
 import com.distronode.districtai.core.network.HttpContactBlockingApi
@@ -325,10 +327,17 @@ class AppContainer(
     val supportRepository: SupportRepository = SupportRepository(seams.supportApi ?: HttpSupportApi(apiClient))
 
     /**
-     * Whether the active workspace's owner still has web setup to finish, for the overview's
-     * "Finish setting up on the web" card. Read-only; the wizard itself runs on the web.
+     * Whether the active workspace's owner still has setup to finish, for the overview's
+     * "Finish setting up" card. Read-only; the wizard runs on [setupWizardRepository].
      */
     val setupRepository: SetupRepository = SetupRepository(HttpSetupApi(apiClient))
+
+    /**
+     * The setup wizard in the app: its state, the step saves, the website lookup, the test call and
+     * the forwarding check. Owner only; buying a number and a calendar sign-in stay on the web.
+     */
+    val setupWizardRepository: SetupWizardRepository =
+        SetupWizardRepository(seams.setupWizardApi ?: HttpSetupWizardApi(apiClient))
 
     /**
      * District HQ, the agentic console.

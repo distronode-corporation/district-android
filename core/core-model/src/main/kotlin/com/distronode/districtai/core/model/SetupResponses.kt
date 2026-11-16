@@ -6,10 +6,9 @@ import kotlinx.serialization.json.JsonObject
 /**
  * `GET /api/district/setup`: the new-customer setup wizard's state (setup wizard plan 2.5).
  *
- * ⛔ THE APP READS ONE FACT FROM THIS AND DOES NOT RUN THE WIZARD. The wizard lives on the web; the
- * app only decides whether to show "Finish setting up on the web", via [needsWebSetup]. Everything
- * else is modelled because the contract gate decodes with unknown keys refused, not because a
- * screen reads it.
+ * ⚠️ TWO READERS. The overview decides from it whether to offer "Finish setting up" (via
+ * [needsWebSetup]), and the setup wizard runs its six steps from it: the step states, the business
+ * facts, the region and the numbers held. `PATCH /api/district/setup` answers the same body.
  *
  * ⛔ EVERY FIELD HAS A DEFAULT. Removing a key server-side must not break an installed build (a
  * property with no default throws on a MISSING key whatever the unknown-key setting), and the
@@ -26,9 +25,10 @@ data class DistrictSetupResponse(
      */
     val setupProgress: SetupProgress? = null,
     /**
-     * ⚠️ OPAQUE ON PURPOSE. The business step's answers (hours, services, and so on) are free-form
-     * and edited only on the web, and nothing in the app reads them. Typed as an object so a
-     * reshaped facts payload cannot fail this decode, which is the one read the card depends on.
+     * ⚠️ OPAQUE ON PURPOSE. The business facts (address, hours, services, questions) are read and
+     * written section by section by the wizard's steps, and the service owns their validation.
+     * Typed as an object so a reshaped facts payload cannot fail this decode, which is the one read
+     * the overview's card depends on.
      */
     val businessFacts: JsonObject? = null,
     /** The workspace's data region, e.g. "ca". */
@@ -41,7 +41,7 @@ data class DistrictSetupResponse(
     val numbersHeld: Int = 0,
 ) {
     /**
-     * Whether to show "Finish setting up on the web": a workspace that IS in the wizard (non-null
+     * Whether to offer "Finish setting up": a workspace that IS in the wizard (non-null
      * progress) and has not finished it. A null progress (pre-wizard workspace) and a completed one
      * both answer false.
      */
@@ -64,8 +64,7 @@ data class SetupProgress(
 )
 
 /**
- * The six wizard steps, each [SETUP_STEP_TODO], [SETUP_STEP_DONE] or `skipped` (which nothing here
- * branches on).
+ * The six wizard steps, each [SETUP_STEP_TODO], [SETUP_STEP_DONE] or [SETUP_STEP_SKIPPED].
  *
  * ⚠️ STRINGS, NOT AN ENUM. A seventh state added server-side must not make the whole response
  * undecodable, which an enum would.
@@ -82,3 +81,4 @@ data class SetupSteps(
 
 const val SETUP_STEP_TODO: String = "todo"
 const val SETUP_STEP_DONE: String = "done"
+const val SETUP_STEP_SKIPPED: String = "skipped"

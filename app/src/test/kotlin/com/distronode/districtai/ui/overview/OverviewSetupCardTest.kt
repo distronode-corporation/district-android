@@ -27,7 +27,7 @@ import org.junit.Rule
 import com.distronode.districtai.core.network.testing.MainDispatcherRule
 
 /**
- * The overview's "Finish setting up on the web" card, from the ViewModel's side.
+ * The overview's "Finish setting up" card, from the ViewModel's side.
  *
  * ⛔ THE SETUP READ MUST NEVER COST THE SCREEN ANYTHING. It is owner-only, so for most users it is
  * a 403; the screen has to reach Content without waiting for it, and no failure of it may turn the

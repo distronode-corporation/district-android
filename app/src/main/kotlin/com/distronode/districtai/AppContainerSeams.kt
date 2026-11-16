@@ -16,6 +16,7 @@ import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.SchedulingAdminApi
+import com.distronode.districtai.core.network.SetupWizardApi
 import com.distronode.districtai.core.network.SupportApi
 import com.distronode.districtai.core.network.SuperviseApi
 import com.distronode.districtai.core.network.WhatsAppApi
@@ -74,6 +75,8 @@ data class AppContainerSeams(
     val districtApi: DistrictApi? = null,
     val deskApi: DeskApi? = null,
     val supportApi: SupportApi? = null,
+    /** The setup wizard's read and writes. */
+    val setupWizardApi: SetupWizardApi? = null,
     val personaApi: PersonaApi? = null,
     val callHandlingApi: CallHandlingApi? = null,
     val inboxExtrasApi: InboxExtrasApi? = null,

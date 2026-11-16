@@ -75,7 +75,7 @@ internal object ContractManifest {
      *
      * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
      * calls because the feature is not on Android today: the iOS Live Activity routes, the iOS
-     * parity routes (the native setup wizard, the integrations read, the campaign dialer, District HQ
+     * parity routes (the campaign dialer, District HQ
      * by voice, and native re-authentication, two-factor and account deletion), the web
      * settings routes Android has no screen for (the email identity, the sending domain, the
      * calendar disconnect and the agent's picture library), and the destructive campaign-settings
@@ -89,7 +89,7 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 34
+    const val NOT_ON_ANDROID_COUNT: Int = 26
 
     val NOT_ON_ANDROID: Set<String> = setOf(
         // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
@@ -105,17 +105,11 @@ internal object ContractManifest {
         "district-calls-outbound.json",
         // The destructive campaign-settings write: Android pauses through `campaign-status` only.
         "district-campaign-settings.json",
-        // The integrations read: Android has no integrations screen.
-        "district-connections-viewer.json",
-        "district-connections.json",
         // The sending domain and the email identity: Android has no email settings screen.
         "district-email-domain-delete.json",
         "district-email-domain-post.json",
         "district-email-identity-patch.json",
         "district-email-identity.json",
-        // The setup wizard's forwarding check: Android's setup reads progress and finishes on the web.
-        "district-forwarding-check-start.json",
-        "district-forwarding-check.json",
         // District HQ by voice: Android's HQ is the text console, which declines a proposal locally.
         "district-hq-proposal-cancel.json",
         "district-hq-voice-context.json",
@@ -132,10 +126,5 @@ internal object ContractManifest {
         "district-mfa-enroll.json",
         "district-mfa-status.json",
         "district-native-reauth.json",
-        // The rest of the native setup wizard (business lookup, the facts patch, the test call).
-        "district-setup-lookup-unreadable.json",
-        "district-setup-lookup.json",
-        "district-setup-patch.json",
-        "district-setup-test-call.json",
     )
 }

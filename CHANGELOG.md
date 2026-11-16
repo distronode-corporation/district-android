@@ -11,6 +11,24 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 The `[3.3.1]` section below is the text Google Play shows (`scripts/release-notes.sh`), so the
 3.3.1 detail stays here and moves under it once 3.3.1 is on sale.
 
+### Added
+
+- The setup wizard in the app, matching iOS 3.4.0. "Finish setting up" on the overview opens
+  the web's six steps in the app, in its order and with its words, and resumes on the first
+  step still to do: find your business (a draft from the business's website, saved switched
+  off, then the name, the place, the language and what the business does), your number (keep
+  the one held), your receptionist (name, greeting and a voice from the service's own list),
+  what callers should know (time zone, address, opening hours with up to four periods a day,
+  services and common questions, each with "Use on calls"), how calls are answered, and the
+  test call and forwarding check. Buying a number, a calendar's sign-in, the email sender name
+  and reply-to, and the transfer number open the web's page in a Custom Tab, and the wizard
+  reads its state again when the person comes back. A person who is not the workspace's owner
+  is told only the owner can do setup. Every write is a single flight, and step 1's choices
+  are kept on the device until step 3 stores the language. English and French.
+- Contracts: the setup wizard's fixtures (the facts PATCH, the website lookup and its refusal,
+  the test call, the forwarding check and its start, and the integrations read) are decoded and
+  leave `NOT_ON_ANDROID`.
+
 ### Changed
 
 - Components: LiveKit 2.29.1 to 2.30.0 and Sentry 8.61.1 to 8.63.0 (its Gradle plugin 6.24.0 to

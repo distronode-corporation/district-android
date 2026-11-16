@@ -20,6 +20,13 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
   the authenticator's code, and shows the recovery codes once; new codes come from turning it
   off and on again. The key and the codes are kept off screenshots and the app switcher, and a
   copy of them is cleared from the clipboard after two minutes.
+- District HQ by voice, as on iPhone: Talk to HQ above the console, a notice that says where the
+  voice is processed before the microphone is asked for or opened, an open microphone with Mute or
+  Hold to talk (held with a finger, or with Space or Enter), the transcript, HQ's proposals with
+  Confirm and Cancel, and the member's own voice settings. A session that never went live is
+  discarded and one that did is ended, so only the minutes used are counted; a phone call, a
+  District call ringing, another app taking the audio, leaving HQ or the app going to the
+  background ends it.
 
 ### Changed
 
@@ -34,8 +41,8 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
   `NOT_ON_ANDROID`), and the error and wire catalogs regenerated: three error codes for
   re-authentication and account deletion, four number registration categories.
 - Contracts: the server's two HQ voice session endings (`district-hq-voice-end.json`, the
-  member's Stop, and `district-hq-voice-discard.json`, a session that never started), also in
-  `NOT_ON_ANDROID`: HQ by voice is not on Android.
+  member's Stop, and `district-hq-voice-discard.json`, a session that never started), decoded by
+  HQ by voice (above) with the other HQ voice fixtures, which leave `NOT_ON_ANDROID`.
 - Contracts: the server's call handling, email identity, two-factor status, sending domain,
   settings calendar disconnect and agent picture library fixtures. Call handling is decoded;
   the other nine are in `NOT_ON_ANDROID`. The timeline fixtures now carry each attachment's

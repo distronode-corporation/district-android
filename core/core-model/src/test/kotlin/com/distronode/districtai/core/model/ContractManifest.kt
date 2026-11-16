@@ -75,8 +75,8 @@ internal object ContractManifest {
      *
      * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
      * calls because the feature is not on Android today: the iOS Live Activity routes, the iOS
-     * parity routes (the native setup wizard, the integrations read, the campaign dialer, District HQ
-     * by voice, and account deletion), the web
+     * parity routes (the native setup wizard, the integrations read, the campaign dialer, and
+     * account deletion), the web
      * settings routes Android has no screen for (the email identity, the sending domain, the
      * calendar disconnect and the agent's picture library), and the destructive campaign-settings
      * write Android refuses to call (it pauses through `campaign-status`). A DTO and a decode
@@ -89,7 +89,7 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 29
+    const val NOT_ON_ANDROID_COUNT: Int = 21
 
     val NOT_ON_ANDROID: Set<String> = setOf(
         // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
@@ -116,15 +116,6 @@ internal object ContractManifest {
         // The setup wizard's forwarding check: Android's setup reads progress and finishes on the web.
         "district-forwarding-check-start.json",
         "district-forwarding-check.json",
-        // District HQ by voice: Android's HQ is the text console, which declines a proposal locally.
-        "district-hq-proposal-cancel.json",
-        "district-hq-voice-context.json",
-        "district-hq-voice-discard.json",
-        "district-hq-voice-end.json",
-        "district-hq-voice-settings-put.json",
-        "district-hq-voice-settings.json",
-        "district-hq-voice-token-allowance.json",
-        "district-hq-voice-token.json",
         "district-live-activity-start-token.json", // iOS Live Activity: push-to-start token
         // The rest of the native setup wizard (business lookup, the facts patch, the test call).
         "district-setup-lookup-unreadable.json",

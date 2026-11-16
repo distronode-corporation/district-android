@@ -83,6 +83,11 @@ data class HqConfirmAction(
     val tool: String,
     /** ⛔ Opaque. See the ⛔ on [HqConfirmRequest] and on [HqPendingWrite.args]. */
     val args: JsonObject = JsonObject(emptyMap()),
+    /**
+     * ⚠️ ONLY FOR A VOICE PROPOSAL CONFIRMED BY A TAP, so the service records that proposal as
+     * resolved. Null, and so absent from the body, for the text console's writes.
+     */
+    val proposalId: String? = null,
 )
 
 /**

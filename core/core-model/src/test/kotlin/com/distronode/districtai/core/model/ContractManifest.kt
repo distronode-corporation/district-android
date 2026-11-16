@@ -76,7 +76,7 @@ internal object ContractManifest {
      * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
      * calls because the feature is not on Android today: the iOS Live Activity routes, the iOS
      * parity routes (the native setup wizard, the integrations read, the campaign dialer, and
-     * native re-authentication, two-factor and account deletion), the web
+     * account deletion), the web
      * settings routes Android has no screen for (the email identity, the sending domain, the
      * calendar disconnect and the agent's picture library), and the destructive campaign-settings
      * write Android refuses to call (it pauses through `campaign-status`). A DTO and a decode
@@ -89,7 +89,7 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 26
+    const val NOT_ON_ANDROID_COUNT: Int = 21
 
     val NOT_ON_ANDROID: Set<String> = setOf(
         // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
@@ -117,12 +117,6 @@ internal object ContractManifest {
         "district-forwarding-check-start.json",
         "district-forwarding-check.json",
         "district-live-activity-start-token.json", // iOS Live Activity: push-to-start token
-        // Two-factor and native re-authentication: Android signs in through the browser.
-        "district-mfa-confirm.json",
-        "district-mfa-disable.json",
-        "district-mfa-enroll.json",
-        "district-mfa-status.json",
-        "district-native-reauth.json",
         // The rest of the native setup wizard (business lookup, the facts patch, the test call).
         "district-setup-lookup-unreadable.json",
         "district-setup-lookup.json",

@@ -146,5 +146,14 @@ internal object EndpointParity {
         "hqVoiceSettings",
         "hqVoiceToken",
         "saveHqVoiceSettings",
+        // ⚠️ TWO-STEP VERIFICATION SETTINGS AND THE FRESH RE-AUTHENTICATION BEFORE THEM: the names
+        // district-core-swift's `EndpointID` declares after 8.0.0. They leave this set when the
+        // snapshot that declares them is vendored.
+        "mfaConfirm",
+        "mfaDisable",
+        "mfaEnroll",
+        "mfaStatus",
+        "nativeReauthPassword",
+        "nativeReauthSso",
     )
 }

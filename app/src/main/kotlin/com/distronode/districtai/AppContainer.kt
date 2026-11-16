@@ -73,6 +73,8 @@ import com.distronode.districtai.l10n.acceptLanguage
 import com.distronode.districtai.l10n.resolvedLanguage
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.media.LiveKitCallEngine
+import com.distronode.districtai.core.media.HqVoiceEngineFactory
+import com.distronode.districtai.core.media.LiveKitHqVoiceEngine
 import com.distronode.districtai.core.network.HttpCallControlApi
 import com.distronode.districtai.core.network.HttpCallHandlingApi
 import com.distronode.districtai.core.network.HttpDeskApi
@@ -82,6 +84,11 @@ import com.distronode.districtai.core.network.HttpInboxExtrasApi
 import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSupportApi
+import com.distronode.districtai.core.network.HttpHqVoiceApi
+import com.distronode.districtai.core.data.HqVoiceRepository
+import com.distronode.districtai.ui.hq.voice.AndroidHqVoiceAudio
+import com.distronode.districtai.ui.hq.voice.HqVoiceAudio
+import com.distronode.districtai.ui.hq.voice.HqVoiceSession
 import com.distronode.districtai.core.network.HttpSuperviseApi
 import com.distronode.districtai.core.network.HttpContactBlockingApi
 import com.distronode.districtai.core.data.ContactBlockingRepository
@@ -338,6 +345,35 @@ class AppContainer(
      * ViewModel that is displaying it.
      */
     val hqRepository: HqRepository = HqRepository(districtApi)
+
+    /**
+     * District HQ by voice: the credential, the settings and the session's two ends.
+     *
+     * ⚠️ ITS OWN API SLICE ([HqVoiceApi]) beside [hqRepository]'s; a voice proposal's tap confirm is
+     * the console's route with a `proposalId`, so the composed API is handed in for it.
+     */
+    val hqVoiceRepository: HqVoiceRepository =
+        HqVoiceRepository(seams.hqVoiceApi ?: HttpHqVoiceApi(apiClient), districtApi)
+
+    /**
+     * One HQ voice session for one workspace's HQ screen.
+     *
+     * ⛔ ON [appScope], NOT THE SCREEN'S: the end or the discard of a session must reach the service
+     * after the screen and its ViewModel are gone, or the row holds a voice slot for 30 minutes.
+     */
+    fun hqVoiceSession(workspaceId: String, canConfirm: Boolean): HqVoiceSession = HqVoiceSession(
+        workspaceId = workspaceId,
+        canConfirm = canConfirm,
+        repository = hqVoiceRepository,
+        engineFactory = hqVoiceEngineFactory,
+        audio = hqVoiceAudio,
+        scope = appScope,
+    )
+
+    private val hqVoiceEngineFactory: HqVoiceEngineFactory = seams.hqVoiceEngineFactory
+        ?: HqVoiceEngineFactory { scope, key -> LiveKitHqVoiceEngine(appContext, scope, key) }
+
+    private val hqVoiceAudio: HqVoiceAudio = seams.hqVoiceAudio ?: AndroidHqVoiceAudio(appContext)
 
     /**
      * Telephony analytics and metered usage.

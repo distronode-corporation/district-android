@@ -66,6 +66,8 @@ fun HqScreen(
     onBack: () -> Unit,
     /** Report one AI answer; null for a role that may not (the support routes exclude `viewer`). */
     onReportAnswer: (() -> Unit)? = null,
+    /** District HQ by voice, drawn above the composer; null where voice is not offered. */
+    voice: (@Composable () -> Unit)? = null,
 ) {
     DistrictScaffold(
         modifier = Modifier.testTag(HQ_ROOT_DESCRIPTION),
@@ -121,6 +123,9 @@ fun HqScreen(
                     )
                 }
             }
+
+            // ⚠️ ABOVE THE COMPOSER, WHICH STAYS USABLE IN EVERY VOICE STATE (see HqVoiceBar).
+            voice?.invoke()
 
             Composer(enabled = state !is HqUiState.Thinking && state !is HqUiState.Applying, onSend = onSend)
         }

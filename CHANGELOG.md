@@ -11,6 +11,16 @@ the app's `versionName`; the `versionCode` Google Play sees is derived from the 
 The `[3.3.1]` section below is the text Google Play shows (`scripts/release-notes.sh`), so the
 3.3.1 detail stays here and moves under it once 3.3.1 is on sale.
 
+### Added
+
+- District HQ by voice, as on iPhone: Talk to HQ above the console, a notice that says where the
+  voice is processed before the microphone is asked for or opened, an open microphone with Mute or
+  Hold to talk (held with a finger, or with Space or Enter), the transcript, HQ's proposals with
+  Confirm and Cancel, and the member's own voice settings. A session that never went live is
+  discarded and one that did is ended, so only the minutes used are counted; a phone call, a
+  District call ringing, another app taking the audio, leaving HQ or the app going to the
+  background ends it.
+
 ### Changed
 
 - Components: LiveKit 2.29.1 to 2.30.0 and Sentry 8.61.1 to 8.63.0 (its Gradle plugin 6.24.0 to
@@ -24,8 +34,8 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
   `NOT_ON_ANDROID`), and the error and wire catalogs regenerated: three error codes for
   re-authentication and account deletion, four number registration categories.
 - Contracts: the server's two HQ voice session endings (`district-hq-voice-end.json`, the
-  member's Stop, and `district-hq-voice-discard.json`, a session that never started), also in
-  `NOT_ON_ANDROID`: HQ by voice is not on Android.
+  member's Stop, and `district-hq-voice-discard.json`, a session that never started), decoded by
+  HQ by voice (above) with the other HQ voice fixtures, which leave `NOT_ON_ANDROID`.
 - Contracts: the server's call handling, email identity, two-factor status, sending domain,
   settings calendar disconnect and agent picture library fixtures. Call handling is decoded;
   the other nine are in `NOT_ON_ANDROID`. The timeline fixtures now carry each attachment's

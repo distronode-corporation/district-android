@@ -188,6 +188,27 @@ class TwoStepViewModelTest {
     }
 
     @Test
+    fun `nothing else starts while a change is in flight, and confirm needs the scan step`() = runTest(dispatcher) {
+        val on = overview(on = true)
+        on.begin(TwoStepIntent.TURN_ON)
+        assertEquals("on already: turning on is not offered", TwoStepStep.Overview, on.state.value.step)
+        on.confirm()
+        assertEquals(listOf("status"), api.calls)
+
+        val vm = overview()
+        vm.begin(TwoStepIntent.TURN_ON)
+        api.gate = CompletableDeferred()
+        vm.reauthenticate(ReauthProvider.GOOGLE)
+        runCurrent()
+        assertTrue(vm.state.value.busy)
+        vm.usePassword()
+        assertEquals(TwoStepStep.Reauth(TwoStepIntent.TURN_ON), vm.state.value.step)
+        api.gate!!.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(TwoStepStep.Scan, vm.state.value.step)
+    }
+
+    @Test
     fun `use my password works from the ways to confirm only`() = runTest(dispatcher) {
         val vm = overview()
         vm.usePassword()

@@ -452,6 +452,18 @@ class TwoStepScreenTest {
     }
 
     @Test
+    fun `the ways to confirm can be drawn without a back button`() {
+        composeRule.setContent {
+            DistrictTheme {
+                ReauthMethodsCard(intro = "intro", busy = false, onProvider = {}, onUsePassword = {}, onBack = null)
+            }
+        }
+
+        composeRule.onNodeWithTag(REAUTH_BACK_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(REAUTH_USE_PASSWORD_TAG).assertIsDisplayed()
+    }
+
+    @Test
     fun `with no activity to secure, the secret steps still draw`() {
         composeRule.setContent {
             androidx.compose.runtime.CompositionLocalProvider(LocalActivity provides null) {

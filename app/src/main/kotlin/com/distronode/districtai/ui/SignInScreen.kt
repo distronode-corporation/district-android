@@ -117,6 +117,7 @@ private fun StatusPanel(status: LoginStatus, modifier: Modifier) {
         Tone.Danger -> DistrictTheme.colors.destructive
         Tone.Warning -> DistrictTheme.colors.warning
         Tone.District -> DistrictTheme.colors.district
+        Tone.Success -> DistrictTheme.colors.success
         else -> DistrictTheme.colors.mutedForeground
     }
     Text(
@@ -149,6 +150,13 @@ private fun LoginStatus.text(): String = when (this) {
     LoginStatus.Unreachable -> stringResource(R.string.login_status_unreachable)
     // ⚠️ The reason is the server's own text and is not translatable; the frame around it is.
     is LoginStatus.Denied -> stringResource(R.string.login_status_denied, reason)
+    is LoginStatus.AccountDeleted -> stringResource(
+        if (externalErasurePending) {
+            R.string.delete_account_deleted_erasure_pending
+        } else {
+            R.string.delete_account_deleted
+        },
+    )
 }
 
 /**

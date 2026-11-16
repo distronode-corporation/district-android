@@ -97,6 +97,24 @@ class AccountSecurityRequestTest {
     }
 
     @Test
+    fun `deleting the account is a DELETE carrying the typed email, and a 202 is a deletion`() = runTest {
+        server.enqueue(
+            MockResponse(
+                code = 202,
+                body = """{"success":true,"accountDeleted":true,"externalErasurePending":true,"message":"m"}""",
+            ),
+        )
+
+        val result = api().deleteAccount("Owner@Example.test")
+
+        assertTrue(result is ApiResult.Success && result.value.externalErasurePending)
+        val recorded = server.takeRequest()
+        assertEquals("DELETE", recorded.method)
+        assertEquals("/api/auth/delete-account", recorded.url.encodedPath)
+        assertEquals(JsonObject(mapOf("confirmation" to JsonPrimitive("Owner@Example.test"))), bodyOf(recorded))
+    }
+
+    @Test
     fun `MFA_REQUIRED is the request's answer, not the session's, and the password goes once`() = runTest {
         server.enqueue(
             MockResponse(

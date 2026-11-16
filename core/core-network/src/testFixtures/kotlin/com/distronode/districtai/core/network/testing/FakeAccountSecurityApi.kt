@@ -1,5 +1,6 @@
 package com.distronode.districtai.core.network.testing
 
+import com.distronode.districtai.core.model.AccountDeleteResponse
 import com.distronode.districtai.core.model.MfaConfirmResponse
 import com.distronode.districtai.core.model.MfaDisableResponse
 import com.distronode.districtai.core.model.MfaEnrollResponse
@@ -23,6 +24,9 @@ class FakeAccountSecurityApi : AccountSecurityApi {
     var confirmResult: ApiResult<MfaConfirmResponse> =
         ApiResult.Success(MfaConfirmResponse(enrolled = true, backupCodes = listOf("aaaa-bbbb", "cccc-dddd")))
     var disableResult: ApiResult<MfaDisableResponse> = ApiResult.Success(MfaDisableResponse(enrolled = false))
+    var deleteResult: ApiResult<AccountDeleteResponse> = ApiResult.Success(
+        AccountDeleteResponse(success = true, accountDeleted = true, externalErasurePending = false),
+    )
 
     /** Answered to every password attempt in turn; the last one repeats. */
     val passwordResults: MutableList<ApiResult<NativeReauthResponse>> = mutableListOf()
@@ -34,6 +38,7 @@ class FakeAccountSecurityApi : AccountSecurityApi {
     val passwordAttempts = mutableListOf<Triple<NativeReauthAction, String, String?>>()
     val ssoExchanges = mutableListOf<List<String>>()
     val confirmCodes = mutableListOf<String>()
+    val deleteConfirmations = mutableListOf<String>()
 
     private suspend fun <T> answer(name: String, result: ApiResult<T>): ApiResult<T> {
         calls += name
@@ -75,6 +80,11 @@ class FakeAccountSecurityApi : AccountSecurityApi {
     }
 
     override suspend fun mfaDisable() = answer("disable", disableResult)
+
+    override suspend fun deleteAccount(confirmation: String): ApiResult<AccountDeleteResponse> {
+        deleteConfirmations += confirmation
+        return answer("delete", deleteResult)
+    }
 
     companion object {
         val STATUS_OFF =

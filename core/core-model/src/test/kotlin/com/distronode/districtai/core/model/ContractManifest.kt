@@ -75,8 +75,7 @@ internal object ContractManifest {
      *
      * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
      * calls because the feature is not on Android today: the iOS Live Activity routes, the iOS
-     * parity routes (the native setup wizard, the integrations read, the campaign dialer, and
-     * account deletion), the web
+     * parity routes (the native setup wizard, the integrations read, the campaign dialer), the web
      * settings routes Android has no screen for (the email identity, the sending domain, the
      * calendar disconnect and the agent's picture library), and the destructive campaign-settings
      * write Android refuses to call (it pauses through `campaign-status`). A DTO and a decode
@@ -89,11 +88,9 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 21
+    const val NOT_ON_ANDROID_COUNT: Int = 20
 
     val NOT_ON_ANDROID: Set<String> = setOf(
-        // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
-        "district-account-delete.json",
         // The agent's picture library: Android has no agent media screen.
         "district-agent-media-delete.json",
         "district-agent-media-post.json",

@@ -988,6 +988,26 @@ class AppContainer(
     }
 
     /**
+     * The account was just deleted: forget this device's session, locally only.
+     *
+     * ⛔ NO REVOKE AND NO PUSH UNREGISTER, UNLIKE [signOut]: the account is gone, its sessions and its
+     * device rows with it, so both calls could only fail, and a failed revoke would put a dead token
+     * in the outbox for every later launch to chase. The rest is [signOut]'s local half, in its order,
+     * and the sign-in screen then says the account was deleted (the iOS app's
+     * `finishDeletedAccount`).
+     */
+    fun finishDeletedAccount(externalErasurePending: Boolean) {
+        appScope.launch {
+            tokenCoordinator.forget()
+            workspaceRepository.clearSelection()
+            accountLanguage.onSignedOut()
+            loginController.onAccountDeleted(externalErasurePending)
+            // ⛔ LAST, AND AFTER `forget()` HAS RETURNED, for the reason given in [signOut].
+            sessionSignal.onSessionChanged()
+        }
+    }
+
+    /**
      * Ask the server to end this device's session, deferring the token on failure.
      *
      * ⚠️ A DEVICE WITH NO STORED SESSION IS A NO-OP, NOT AN ERROR. `signOut` is reachable from a

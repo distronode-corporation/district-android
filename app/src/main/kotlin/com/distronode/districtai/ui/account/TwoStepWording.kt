@@ -32,10 +32,11 @@ internal fun twoStepSentence(failure: ApiResult.Failure): UiText =
     serviceSentence(failure, R.string.two_step_error_try_again)
 
 /**
- * What a refused change says and where it leaves the screen, the iOS app's rules.
+ * What a refused change says and where it leaves the screen: the iOS app's rules, except that a 5xx
+ * on a confirm or a disable reads the status again (iOS says nothing changed).
  *
- * ⛔ BRANCHED ON THE CODE, NEVER ON THE MESSAGE. ⛔ A CONFIRM OR A DISABLE WHOSE ANSWER IS LOST MAY HAVE
- * HAPPENED, so it never claims either way and the status is read again.
+ * ⛔ BRANCHED ON THE CODE, NEVER ON THE MESSAGE. ⛔ A CONFIRM OR A DISABLE WHOSE ANSWER IS LOST OR
+ * FAILED ON THE SERVICE MAY HAVE HAPPENED, so it never claims either way and the status is read again.
  */
 internal fun twoStepRefusal(failure: ApiResult.Failure, change: TwoStepChange): Pair<UiText, TwoStepNext> {
     val unknown = when (change) {

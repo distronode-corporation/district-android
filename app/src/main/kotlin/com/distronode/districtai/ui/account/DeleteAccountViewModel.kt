@@ -102,7 +102,8 @@ class DeleteAccountViewModel(
     }
 
     override fun usePassword() {
-        if (_state.value.busy) return
+        // ⚠️ From the first step only: a stale tap must not throw away a proof already earned.
+        if (_state.value.busy || _state.value.step != DeleteAccountStep.Explain) return
         _state.update {
             it.copy(failure = null, password = "", code = "", step = DeleteAccountStep.Password(needsCode = false))
         }

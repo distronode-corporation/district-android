@@ -14,33 +14,20 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
 ### Added
 
 - Two-step verification settings, as in the iOS app. Account, Security, Two-step verification
-  says whether it is on, since when and how many recovery codes are left. Turning it on or off
-  starts with a fresh re-authentication for the `2fa-change` action: a fresh sign-in at Google,
-  Microsoft or Apple in the browser (PKCE and `state` as at sign-in, the installation id sent
-  only as its SHA-256), or the password with the authenticator code when it is on. Turning it on
-  then shows the new secret as a QR code and a copyable key (with a button that hands the
-  `otpauth://` link to an authenticator app on this device), asks for the app's code, and shows
-  the recovery codes once, with Copy all and a warning that they are not shown again; new codes
-  come from turning it off and on again. An account with no password turns it off after a
-  provider sign-in. Every refusal has a sentence in both languages; a confirm or a disable
-  whose answer is lost says it cannot tell and reads the status again. Each call is
-  single-flight. The secret and the codes are never logged, are copied to this device only,
-  marked sensitive and for two minutes, are kept off screenshots, screen recordings and the
-  app switcher (`FLAG_SECURE`) while on screen, and are dropped when the screen closes. A
-  password re-authentication's 401 `MFA_REQUIRED` is read as the request's answer, not the
-  session's, so the password is sent once.
-- Account deletion in the app, as in the iOS app (Google Play's account deletion requirement).
-  Account, Delete account opens a screen that says what is deleted (the profile, the settings
-  and every workspace the person owns, whose subscriptions are cancelled at once) and what is
-  kept (workspaces they belong to but do not own). A fresh re-authentication for the
-  `delete-account` action comes first, the same two ways as for two-step verification, then the
-  typed email address deletes. Every refusal has a sentence saying what to do; a block the
-  service answers is shown under "Your account was not deleted.", and a deletion whose answer
-  is lost says it cannot tell. The final button is single-flight. After the deletion the app
-  forgets the session and the workspace choice, with no revoke or unregister call (the account
-  is gone), and the sign-in screen says the account was deleted, and when vendor-held support
-  data is still being erased. The row no longer opens the deletion page in the browser; its
-  address stays as the store listing's data-deletion URL.
+  says whether it is on, since when and how many recovery codes are left, and turns it on and
+  off after you confirm it is you again (a fresh sign-in with Google, Microsoft or Apple, or your
+  password and authenticator code). Turning it on shows a QR code and a key to copy, asks for
+  the authenticator's code, and shows the recovery codes once; new codes come from turning it
+  off and on again. The key and the codes are kept off screenshots and the app switcher, and a
+  copy of them is cleared from the clipboard after two minutes.
+- Account deletion in the app, as in the iOS app. Account, Delete account says what is deleted
+  (your profile, your settings and the workspaces you own, whose subscriptions are cancelled at
+  once) and what is kept (workspaces you belong to but do not own). You confirm it is you again,
+  type your account's email address, and tap Delete my account; nothing is deleted before that
+  last tap. If the account could not be deleted the screen says so and why, and if the app
+  cannot tell, it says that too. Afterwards the sign-in screen says the account was deleted,
+  and whether support data held by a provider is still being erased. The row no longer opens
+  the deletion page in the browser.
 
 ### Changed
 

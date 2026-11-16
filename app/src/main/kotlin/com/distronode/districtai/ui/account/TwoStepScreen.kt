@@ -121,7 +121,9 @@ private fun TwoStepContent(state: TwoStepUiState, actions: TwoStepActions) {
         }
         // ⚠️ NO MESSAGE LINE ABOVE THE CARD HERE: the card is taller than a phone, so a refusal drawn
         // above it is off screen when Turn on is tapped. The card draws it by the field.
-        TwoStepStep.Scan -> state.enrollment?.let { TwoStepScanCard(state, it, actions) }
+        // ⚠️ Between a refused confirm and its re-read the secret is gone but the step is not: the
+        // progress shows rather than a blank screen.
+        TwoStepStep.Scan -> state.enrollment?.let { TwoStepScanCard(state, it, actions) } ?: AccountBusy(state.busy)
         TwoStepStep.RecoveryCodes -> TwoStepCodesCard(state, actions)
     }
 }

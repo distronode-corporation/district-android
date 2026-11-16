@@ -117,6 +117,7 @@ private fun StatusPanel(status: LoginStatus, modifier: Modifier) {
         Tone.Danger -> DistrictTheme.colors.destructive
         Tone.Warning -> DistrictTheme.colors.warning
         Tone.District -> DistrictTheme.colors.district
+        Tone.Success -> DistrictTheme.colors.success
         else -> DistrictTheme.colors.mutedForeground
     }
     Text(

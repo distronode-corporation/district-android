@@ -398,7 +398,10 @@ class AppContainer(
      */
     val reauthCallbacks: ReauthCallbacks = ReauthCallbacks()
 
-    /** The SSO leg of a fresh re-authentication. ⚠️ `by lazy`: [deviceId]'s first read can write. */
+    /**
+     * The SSO leg of a fresh re-authentication. ⚠️ [deviceId] is passed as a function, so its first
+     * read (which can write) happens only when a re-authentication starts.
+     */
     val ssoReauthenticator: SsoReauthenticator by lazy {
         SsoReauthenticator(
             baseUrl = ApiEnvironment.baseUrl,

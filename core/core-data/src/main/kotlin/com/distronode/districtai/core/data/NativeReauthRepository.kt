@@ -40,11 +40,9 @@ class NativeReauthRepository(private val api: AccountSecurityApi) {
      */
     suspend fun deleteAccount(confirmation: String): ApiResult<Boolean> =
         when (val result = api.deleteAccount(confirmation)) {
-            is ApiResult.Success -> {
-                val gone = result.value.success && result.value.accountDeleted
-                rejectedEnvelope("AccountDeleteResponse", gone)
-                    ?: ApiResult.Success(result.value.externalErasurePending)
-            }
+            is ApiResult.Success -> rejectedEnvelope(DELETE_ENVELOPE, result.value.success)
+                ?: notDeleted(result.value.accountDeleted)
+                ?: ApiResult.Success(result.value.externalErasurePending)
             is ApiResult.Failure -> result
         }
 
@@ -63,7 +61,19 @@ class NativeReauthRepository(private val api: AccountSecurityApi) {
             is ApiResult.Failure -> result
         }
 
+    /** A 200 that says the account is still there is not a deletion: its own diagnostic. */
+    private fun notDeleted(accountDeleted: Boolean): ApiResult.DecodeFailure? =
+        if (accountDeleted) {
+            null
+        } else {
+            ApiResult.DecodeFailure(
+                cause = IllegalStateException("$DELETE_ENVELOPE did not affirm accountDeleted=true"),
+                bodyPreview = "$DELETE_ENVELOPE{accountDeleted=false}",
+            )
+        }
+
     private companion object {
+        const val DELETE_ENVELOPE = "AccountDeleteResponse"
         const val ENVELOPE = "NativeReauthResponse"
     }
 }

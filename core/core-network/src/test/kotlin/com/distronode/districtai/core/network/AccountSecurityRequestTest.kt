@@ -133,6 +133,25 @@ class AccountSecurityRequestTest {
     }
 
     @Test
+    fun `a challenge named only in the error-code header is the request's answer too`() = runTest {
+        server.enqueue(
+            MockResponse.Builder()
+                .code(401)
+                .body("""{"error":"Enter the code from your authenticator app."}""")
+                .addHeader(ApiErrorEnvelope.CODE_HEADER, "MFA_REQUIRED")
+                .build(),
+        )
+
+        val result = api().nativeReauthPassword(NativeReauthAction.TWO_FACTOR_CHANGE, "pw", null)
+
+        assertEquals(
+            ApiResult.HttpFailure(401, "Enter the code from your authenticator app.", "MFA_REQUIRED"),
+            result,
+        )
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
     fun `any other 401 on the password route is still the session's`() = runTest {
         server.enqueue(MockResponse(code = 401, body = """{"error":"Unauthorized","code":"unauthorized"}"""))
         server.enqueue(MockResponse(code = 401, body = """{"error":"Unauthorized","code":"unauthorized"}"""))
@@ -203,10 +222,12 @@ class AccountSecurityRequestTest {
         assertTrue("no body: the route reads none", enroll.body?.utf8().isNullOrEmpty())
 
         val confirm = server.takeRequest()
+        assertEquals("POST", confirm.method)
         assertEquals("/api/auth/mfa/confirm", confirm.url.encodedPath)
         assertEquals(JsonObject(mapOf("totp" to JsonPrimitive("654321"))), bodyOf(confirm))
 
         val disable = server.takeRequest()
+        assertEquals("POST", disable.method)
         assertEquals("/api/auth/mfa/disable", disable.url.encodedPath)
         assertTrue("no body and no password: the proof stands in for it", disable.body?.utf8().isNullOrEmpty())
     }

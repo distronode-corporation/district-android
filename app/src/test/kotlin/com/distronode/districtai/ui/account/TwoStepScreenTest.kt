@@ -374,6 +374,14 @@ class TwoStepScreenTest {
         clipboard.setPrimaryClip(ClipData.newPlainText("", "something else"))
         scheduled.removeAt(0).first.run()
         assertEquals("something else", clipboard.primaryClip!!.getItemAt(0).text.toString())
+
+        // Copied twice: the first copy's wipe does not cut the second one short.
+        SensitiveClipboard.copy(ApplicationProvider.getApplicationContext(), "secret-3")
+        SensitiveClipboard.copy(ApplicationProvider.getApplicationContext(), "secret-3")
+        scheduled.removeAt(0).first.run()
+        assertEquals("secret-3", clipboard.primaryClip!!.getItemAt(0).text.toString())
+        scheduled.removeAt(0).first.run()
+        assertFalse(clipboard.hasPrimaryClip() && clipboard.primaryClip!!.getItemAt(0).text == "secret-3")
     }
 
     @Test
@@ -464,6 +472,10 @@ class TwoStepScreenTest {
         SensitiveClipboard.copy(noClipboard, "secret")
         assertTrue(scheduled.isEmpty())
 
+        // ⛔ An unreadable clipboard (the app in the background) is wiped: it may well hold the secret.
+        assertTrue(SensitiveClipboard.shouldWipe(held = null, secret = "secret"))
+        assertTrue(SensitiveClipboard.shouldWipe(held = "secret", secret = "secret"))
+        assertFalse(SensitiveClipboard.shouldWipe(held = "something else", secret = "secret"))
         val clipboard = clipboard()
         clipboard.clearPrimaryClip()
         SensitiveClipboard.clearIfStill(clipboard, "secret")

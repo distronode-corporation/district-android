@@ -2133,6 +2133,15 @@ tier = "T0"
 state = "reviewed"
 note = "Account deletion in the app. The wording is the iOS app's, in both languages. ⛔ Nothing is deleted until the final button, after a fresh re-authentication and the typed email address."
 
+[delete_account.error_server_outcome_unknown]
+en = "Something went wrong on our side, so we cannot tell whether your account was deleted. Close this and sign in again to check."
+fr = "Un problème est survenu de notre côté, et nous ne savons pas si votre compte a été supprimé. Fermez cette fenêtre et reconnectez-vous pour vérifier."
+ctx = "error"
+screen = "account"
+tier = "T0"
+state = "reviewed"
+note = "Account deletion in the app. A 5xx can come after the account was deleted (the route does more after the delete), so it never claims either way."
+
 [delete_account.error_try_again_shortly]
 en = "Something went wrong on our side. Try again in a moment."
 fr = "Un problème est survenu de notre côté. Réessayez dans un instant."

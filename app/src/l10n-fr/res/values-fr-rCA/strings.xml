@@ -239,6 +239,7 @@
     <string name="delete_account_error_offline_outcome_unknown">La connexion a échoué avant que nous recevions une réponse, et nous ne savons pas si votre compte a été supprimé. Vérifiez votre connexion, puis fermez cette fenêtre et reconnectez-vous pour vérifier.</string>
     <string name="delete_account_error_outcome_unknown">Nous n\'avons pas pu lire la réponse, et nous ne savons pas si votre compte a été supprimé. Fermez cette fenêtre et reconnectez-vous pour vérifier.</string>
     <string name="delete_account_error_proof_expired">Votre confirmation a expiré avant la suppression du compte. Confirmez de nouveau qu\'il s\'agit bien de vous.</string>
+    <string name="delete_account_error_server_outcome_unknown">Un problème est survenu de notre côté, et nous ne savons pas si votre compte a été supprimé. Fermez cette fenêtre et reconnectez-vous pour vérifier.</string>
     <string name="delete_account_error_try_again_shortly">Un problème est survenu de notre côté. Réessayez dans un instant.</string>
     <string name="delete_account_last_step">Dernière étape</string>
     <string name="delete_account_not_deleted">Votre compte n\'a pas été supprimé.</string>

@@ -41,9 +41,12 @@ internal fun deleteFailure(failure: ApiResult.Failure): DeleteAccountFailure {
             DeleteAccountFailure(null, UiText.Resource(R.string.delete_account_error_email_mismatch))
         failure.code == "rate_limited" || failure is ApiResult.RateLimited ->
             DeleteAccountFailure(notDeleted, UiText.Resource(R.string.reauth_error_too_many_attempts))
-        // ⚠️ The service's own words here are "Internal server error", which tells nobody what to do.
-        failure.isServerError && (failure.code == null || failure.code == "server_error") ->
-            DeleteAccountFailure(notDeleted, UiText.Resource(R.string.delete_account_error_try_again_shortly))
+        // ⛔ A 5xx CAN COME AFTER THE ACCOUNT WAS DELETED: the route goes on after the delete
+        // (revoking provider grants, erasing support data), and a gateway can time out after it
+        // committed. So it never claims either way, unlike the iOS app. The one 5xx the service
+        // sends before deleting anything is `service_unavailable`, with its own sentence (below).
+        failure.isServerError && failure.code != "service_unavailable" ->
+            DeleteAccountFailure(null, UiText.Resource(R.string.delete_account_error_server_outcome_unknown))
         else -> DeleteAccountFailure(
             notDeleted,
             serviceSentence(failure, R.string.delete_account_error_try_again_shortly),

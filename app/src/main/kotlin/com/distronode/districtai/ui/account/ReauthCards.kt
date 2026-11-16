@@ -30,7 +30,8 @@ import com.distronode.districtai.core.designsystem.districtFieldColors
 /**
  * The ways to confirm it is you: a fresh sign-in at each provider, or the password.
  *
- * ⚠️ SHARED BY TWO-STEP VERIFICATION AND ACCOUNT DELETION, with the same words, as on iOS.
+ * ⚠️ MEANT FOR EVERY FRESH RE-AUTHENTICATION (two-step verification here, account deletion next),
+ * with the same words, as on iOS.
  */
 @Composable
 internal fun ReauthMethodsCard(

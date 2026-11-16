@@ -229,9 +229,9 @@ class DeleteAccountViewModelTest {
                 ApiResult.RateLimited("slow", code = "rate_limited") to
                     failure(R.string.reauth_error_too_many_attempts, R.string.delete_account_not_deleted),
                 ApiResult.HttpFailure(500, "Internal server error", "server_error") to
-                    failure(R.string.delete_account_error_try_again_shortly, R.string.delete_account_not_deleted),
+                    failure(R.string.delete_account_error_server_outcome_unknown),
                 ApiResult.HttpFailure(502, "Bad gateway") to
-                    failure(R.string.delete_account_error_try_again_shortly, R.string.delete_account_not_deleted),
+                    failure(R.string.delete_account_error_server_outcome_unknown),
                 ApiResult.HttpFailure(409, "The subscription could not be cancelled.", "subscription_cancel_failed") to
                     DeleteAccountFailure(
                         res(R.string.delete_account_not_deleted),
@@ -280,6 +280,13 @@ class DeleteAccountViewModelTest {
         assertFalse("busy", DeleteAccountUiState(step = confirm, confirmation = "x", busy = true).canDelete)
         assertFalse("not confirming", DeleteAccountUiState(confirmation = "x").canDelete)
         assertFalse("blank", DeleteAccountUiState(step = DeleteAccountStep.Confirm, confirmation = " ").canDelete)
+    }
+
+    @Test
+    fun `use my password does not throw away a proof already earned`() = runTest(dispatcher) {
+        val vm = confirming()
+        vm.usePassword()
+        assertEquals(DeleteAccountStep.Confirm, vm.state.value.step)
     }
 
     @Test

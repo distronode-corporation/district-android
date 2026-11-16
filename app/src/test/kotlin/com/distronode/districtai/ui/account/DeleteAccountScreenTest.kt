@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -135,6 +134,7 @@ class DeleteAccountScreenTest {
         render(
             DeleteAccountUiState(
                 step = DeleteAccountStep.Confirm,
+                confirmation = "owner@example.test",
                 failure = DeleteAccountFailure(
                     UiText.Resource(R.string.delete_account_not_deleted),
                     UiText.Resource(R.string.delete_account_error_try_again_shortly),
@@ -144,7 +144,8 @@ class DeleteAccountScreenTest {
 
         composeRule.onNodeWithText(str(R.string.delete_account_not_deleted)).assertIsDisplayed()
         composeRule.onNodeWithText(str(R.string.delete_account_error_try_again_shortly)).assertIsDisplayed()
-        composeRule.onNodeWithTag(DELETE_ACCOUNT_SUBMIT_TAG).assertIsNotEnabled()
+        // The typed email is kept after a refusal, so trying again needs no retyping.
+        composeRule.onNodeWithTag(DELETE_ACCOUNT_SUBMIT_TAG).assertIsEnabled()
     }
 
     @Test

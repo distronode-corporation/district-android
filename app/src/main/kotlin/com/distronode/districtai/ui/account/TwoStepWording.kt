@@ -52,7 +52,11 @@ internal fun twoStepRefusal(failure: ApiResult.Failure, change: TwoStepChange): 
         failure.code == "reauth_required" ->
             UiText.Resource(R.string.two_step_error_proof_expired) to TwoStepNext.REAUTH
         failure.code in RE_READ_CODES -> twoStepSentence(failure) to TwoStepNext.REREAD
-        failure.isServerError -> UiText.Resource(R.string.two_step_error_try_again) to TwoStepNext.STAY
+        // ⛔ A 5xx IS NOT "NOTHING CHANGED" FOR A CONFIRM OR A DISABLE: confirm writes the factor and
+        // then does more before it answers, so it can fail after the write. Unlike the iOS app, which
+        // treats it as unchanged, it reads the status again.
+        failure.isServerError ->
+            unknown ?: (UiText.Resource(R.string.two_step_error_try_again) to TwoStepNext.STAY)
         failure is ApiResult.Unauthorized -> UiText.Resource(R.string.failure_signed_out) to TwoStepNext.STAY
         else -> twoStepSentence(failure) to TwoStepNext.STAY
     }

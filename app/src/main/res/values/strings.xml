@@ -239,6 +239,7 @@
     <string name="delete_account_error_offline_outcome_unknown">The connection failed before we heard back, so we cannot tell whether your account was deleted. Check your connection, then close this and sign in again to check.</string>
     <string name="delete_account_error_outcome_unknown">We could not read the answer, so we cannot tell whether your account was deleted. Close this and sign in again to check.</string>
     <string name="delete_account_error_proof_expired">Your confirmation ran out before the account was deleted. Confirm it is you again.</string>
+    <string name="delete_account_error_server_outcome_unknown">Something went wrong on our side, so we cannot tell whether your account was deleted. Close this and sign in again to check.</string>
     <string name="delete_account_error_try_again_shortly">Something went wrong on our side. Try again in a moment.</string>
     <string name="delete_account_last_step">Last step</string>
     <string name="delete_account_not_deleted">Your account was not deleted.</string>

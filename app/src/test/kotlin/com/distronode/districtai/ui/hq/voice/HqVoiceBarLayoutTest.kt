@@ -70,6 +70,12 @@ class HqVoiceBarLayoutTest {
     }
 
     @Test
+    fun `at twice the font size, a label that wraps grows both controls together`() {
+        render(HqMicMode.PUSH, fontScale = 2f)
+        assertEquals(height(HQ_VOICE_STOP_DESCRIPTION), height(HQ_VOICE_HOLD_DESCRIPTION), 0.5f)
+    }
+
+    @Test
     fun `Mute is the same height as End voice`() {
         render(HqMicMode.OPEN)
 

@@ -1,46 +1,23 @@
 package com.distronode.districtai.ui.hq.voice
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -54,7 +31,6 @@ import com.distronode.districtai.core.designsystem.DistrictButton
 import com.distronode.districtai.core.designsystem.DistrictIcons
 import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.model.HqAgentState
-import com.distronode.districtai.core.model.HqMicMode
 import com.distronode.districtai.l10n.WireCategory
 import com.distronode.districtai.l10n.wireLabel
 import com.distronode.districtai.ui.UiText
@@ -170,34 +146,7 @@ private fun Live(state: HqVoiceUiState, canConfirm: Boolean, actions: HqVoiceAct
             .semantics { liveRegion = LiveRegionMode.Polite }
             .testTag(HQ_VOICE_STATE_DESCRIPTION),
     )
-    // ⛔ ONE TREATMENT AND ONE HEIGHT FOR THE TWO CONTROLS (visual QA): equal halves of their own
-    // row, below the state, both drawn as small buttons (32 dp inside a 48 dp touch target), instead
-    // of one pill beside bare text. ⚠️ NOT STRETCHED to the row's height: that would draw the fill
-    // over the whole touch target and make these two the only 48 dp small buttons in the app.
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
-    ) {
-        val half = Modifier.weight(1f)
-        when (state.micMode) {
-            HqMicMode.PUSH -> HoldToTalk(state.isMicrophoneOn, actions.onHold, half)
-            HqMicMode.OPEN -> DistrictButton(
-                text = stringResource(if (state.isMicrophoneOn) R.string.hq_voice_mute else R.string.hq_voice_unmute),
-                onClick = actions.onToggleMute,
-                variant = ButtonVariant.Secondary,
-                size = ButtonSize.Sm,
-                modifier = half.testTag(HQ_VOICE_MUTE_DESCRIPTION),
-            )
-        }
-        DistrictButton(
-            text = stringResource(R.string.hq_voice_stop),
-            onClick = actions.onStop,
-            variant = ButtonVariant.Secondary,
-            size = ButtonSize.Sm,
-            modifier = half.testTag(HQ_VOICE_STOP_DESCRIPTION),
-        )
-    }
+    LiveControls(state, actions)
     Transcript(state.segments)
     state.proposals.forEach { card -> ProposalCard(card, canConfirm, actions) }
 }
@@ -211,80 +160,6 @@ private fun StopButton(onStop: () -> Unit) {
         size = ButtonSize.Sm,
         modifier = Modifier.testTag(HQ_VOICE_STOP_DESCRIPTION),
     )
-}
-
-/**
- * Hold to talk: the microphone is on while this is held down, with a finger or with Space or Enter
- * on a keyboard, and off when it is let go, when the press is cancelled (the finger slides off),
- * when the control loses focus and when it leaves the screen. One `true` per press, one `false`
- * after it, as the Windows app does.
- *
- * ⛔ TALKBACK'S DOUBLE TAP TOGGLES IT INSTEAD, as VoiceOver's does on iOS: a screen-reader user
- * cannot hold a control under a finger that is also exploring the screen.
- */
-@Composable
-private fun HoldToTalk(isOn: Boolean, onHold: (Boolean) -> Unit, modifier: Modifier) {
-    val hold by rememberUpdatedState(onHold)
-    val on by rememberUpdatedState(isOn)
-    DisposableEffect(Unit) { onDispose { hold(false) } }
-    // ⚠️ DRAWN AS A SECONDARY SMALL BUTTON (the card fill, the border, the 8 dp corner, the 32 dp
-    // drawn height inside Material's 48 dp touch target), because it cannot be one: a Button's own
-    // click would fire on release and turn the microphone back on. Held, it takes the accent fill.
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .minimumInteractiveComponentSize()
-            .defaultMinSize(minHeight = HOLD_MIN_HEIGHT)
-            .clip(HOLD_SHAPE)
-            .background(
-                if (isOn) DistrictTheme.colors.district.copy(alpha = HOLD_ON_ALPHA) else DistrictTheme.colors.card,
-            )
-            .border(1.dp, DistrictTheme.colors.border, HOLD_SHAPE)
-            .pointerInput(Unit) {
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false)
-                    hold(true)
-                    waitForUpOrCancellation()
-                    hold(false)
-                }
-            }
-            .onPreviewKeyEvent { event ->
-                val talkKey = event.key == Key.Spacebar || event.key == Key.Enter || event.key == Key.NumPadEnter
-                when {
-                    !talkKey -> false
-                    event.type == KeyEventType.KeyDown -> {
-                        // ⚠️ A HELD KEY REPEATS; the press opens the microphone once.
-                        if (!on) hold(true)
-                        true
-                    }
-                    event.type == KeyEventType.KeyUp -> {
-                        hold(false)
-                        true
-                    }
-                    else -> false
-                }
-            }
-            .onFocusChanged { if (!it.isFocused && on) hold(false) }
-            .focusable()
-            // ⚠️ MERGED, so the button's name is its "Hold to talk" text.
-            .semantics(mergeDescendants = true) {
-                role = Role.Button
-                selected = isOn
-                onClick {
-                    hold(!on)
-                    true
-                }
-            }
-            .padding(horizontal = DistrictTheme.spacing.row, vertical = HOLD_VERTICAL_PADDING)
-            .testTag(HQ_VOICE_HOLD_DESCRIPTION),
-    ) {
-        Text(
-            text = stringResource(R.string.hq_voice_hold_to_talk),
-            style = MaterialTheme.typography.labelMedium,
-            color = DistrictTheme.colors.foreground,
-            textAlign = TextAlign.Center,
-        )
-    }
 }
 
 /** The last four final segments; the member's own lines sit right and are marked "You". */
@@ -335,10 +210,6 @@ internal fun HqVoiceEndReason.sentence(): UiText = when (this) {
 }
 
 private const val TRANSCRIPT_LINES = 4
-private const val HOLD_ON_ALPHA = 0.24f
-private val HOLD_MIN_HEIGHT = 32.dp
-private val HOLD_VERTICAL_PADDING = 6.dp
-private val HOLD_SHAPE = RoundedCornerShape(8.dp)
 private val PROGRESS_SIZE = 16.dp
 private val PROGRESS_STROKE = 2.dp
 

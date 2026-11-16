@@ -21,6 +21,10 @@ import com.distronode.districtai.core.data.MessageSearchRepository
 import com.distronode.districtai.core.data.PersonaOptionsRepository
 import com.distronode.districtai.core.data.VoiceStudioRepository
 import com.distronode.districtai.core.data.DevicesRepository
+import com.distronode.districtai.core.data.NativeReauthRepository
+import com.distronode.districtai.core.data.TwoStepSettingsRepository
+import com.distronode.districtai.ui.account.ReauthCallbacks
+import com.distronode.districtai.ui.account.SsoReauthenticator
 import com.distronode.districtai.core.data.DialRepository
 import com.distronode.districtai.core.data.CallsRepository
 import com.distronode.districtai.core.data.ContactsRepository
@@ -68,12 +72,15 @@ import com.distronode.districtai.core.network.InboxExtrasApi
 import com.distronode.districtai.core.network.PersonaApi
 import com.distronode.districtai.core.network.DistrictHttp
 import com.distronode.districtai.core.network.HttpAccountApi
+import com.distronode.districtai.core.network.HttpAccountSecurityApi
 import com.distronode.districtai.l10n.AccountLanguageReporter
 import com.distronode.districtai.l10n.PreferencesSavedLanguage
 import com.distronode.districtai.l10n.acceptLanguage
 import com.distronode.districtai.l10n.resolvedLanguage
 import com.distronode.districtai.core.media.CallEngineFactory
 import com.distronode.districtai.core.media.LiveKitCallEngine
+import com.distronode.districtai.core.media.HqVoiceEngineFactory
+import com.distronode.districtai.core.media.LiveKitHqVoiceEngine
 import com.distronode.districtai.core.network.HttpCallControlApi
 import com.distronode.districtai.core.network.HttpCallHandlingApi
 import com.distronode.districtai.core.network.HttpDeskApi
@@ -84,6 +91,11 @@ import com.distronode.districtai.core.network.HttpPersonaApi
 import com.distronode.districtai.core.network.HttpSetupApi
 import com.distronode.districtai.core.network.HttpSetupWizardApi
 import com.distronode.districtai.core.network.HttpSupportApi
+import com.distronode.districtai.core.network.HttpHqVoiceApi
+import com.distronode.districtai.core.data.HqVoiceRepository
+import com.distronode.districtai.ui.hq.voice.AndroidHqVoiceAudio
+import com.distronode.districtai.ui.hq.voice.HqVoiceAudio
+import com.distronode.districtai.ui.hq.voice.HqVoiceSession
 import com.distronode.districtai.core.network.HttpSuperviseApi
 import com.distronode.districtai.core.network.HttpContactBlockingApi
 import com.distronode.districtai.core.data.ContactBlockingRepository
@@ -349,6 +361,35 @@ class AppContainer(
     val hqRepository: HqRepository = HqRepository(districtApi)
 
     /**
+     * District HQ by voice: the credential, the settings and the session's two ends.
+     *
+     * ⚠️ ITS OWN API SLICE ([HqVoiceApi]) beside [hqRepository]'s; a voice proposal's tap confirm is
+     * the console's route with a `proposalId`, so the composed API is handed in for it.
+     */
+    val hqVoiceRepository: HqVoiceRepository =
+        HqVoiceRepository(seams.hqVoiceApi ?: HttpHqVoiceApi(apiClient), districtApi)
+
+    /**
+     * One HQ voice session for one workspace's HQ screen.
+     *
+     * ⛔ ON [appScope], NOT THE SCREEN'S: the end or the discard of a session must reach the service
+     * after the screen and its ViewModel are gone, or the row holds a voice slot for 30 minutes.
+     */
+    fun hqVoiceSession(workspaceId: String, canConfirm: Boolean): HqVoiceSession = HqVoiceSession(
+        workspaceId = workspaceId,
+        canConfirm = canConfirm,
+        repository = hqVoiceRepository,
+        engineFactory = hqVoiceEngineFactory,
+        audio = hqVoiceAudio,
+        scope = appScope,
+    )
+
+    private val hqVoiceEngineFactory: HqVoiceEngineFactory = seams.hqVoiceEngineFactory
+        ?: HqVoiceEngineFactory { scope, key -> LiveKitHqVoiceEngine(appContext, scope, key) }
+
+    private val hqVoiceAudio: HqVoiceAudio = seams.hqVoiceAudio ?: AndroidHqVoiceAudio(appContext)
+
+    /**
      * Telephony analytics and metered usage.
      *
      * ⚠️ HOLDS NO STATE AND CACHES NOTHING, so like the others this is a plain construction. Worth
@@ -385,6 +426,36 @@ class AppContainer(
      * signed in".
      */
     val devicesRepository: DevicesRepository = DevicesRepository(districtApi)
+
+    private val accountSecurityApi = seams.accountSecurityApi ?: HttpAccountSecurityApi(apiClient)
+
+    /** A fresh re-authentication, before a two-step change. */
+    val nativeReauthRepository: NativeReauthRepository = NativeReauthRepository(accountSecurityApi)
+
+    /** Two-step verification: its status, and turning it on and off. */
+    val twoStepSettingsRepository: TwoStepSettingsRepository = TwoStepSettingsRepository(accountSecurityApi)
+
+    /**
+     * The one re-authentication in the browser that may be waiting for its callback.
+     *
+     * ⛔ PROCESS-SCOPED AND SINGLE, FOR THE SAME REASON AS [loginFlow]: it holds the pending PKCE
+     * verifier in memory, and `MainActivity` hands it the callback and the host's pause and resume.
+     */
+    val reauthCallbacks: ReauthCallbacks = ReauthCallbacks()
+
+    /**
+     * The SSO leg of a fresh re-authentication. ⚠️ [deviceId] is passed as a function, so its first
+     * read (which can write) happens only when a re-authentication starts.
+     */
+    val ssoReauthenticator: SsoReauthenticator by lazy {
+        SsoReauthenticator(
+            baseUrl = ApiEnvironment.baseUrl,
+            redirectUri = ApiEnvironment.PKCE_REDIRECT_URI,
+            deviceId = { deviceId },
+            repository = nativeReauthRepository,
+            callbacks = reauthCallbacks,
+        )
+    }
 
     /**
      * Billing, read-only.
@@ -921,6 +992,26 @@ class AppContainer(
             // ⛔ LAST, AND AFTER `forget()` HAS RETURNED. The gate reacts to this by rendering the
             // sign-in screen; firing it first would race the wipe against a fresh login attempt
             // writing new tokens, and `store.clear()` would then delete the NEW refresh token.
+            sessionSignal.onSessionChanged()
+        }
+    }
+
+    /**
+     * The account was just deleted: forget this device's session, locally only.
+     *
+     * ⛔ NO REVOKE AND NO PUSH UNREGISTER, UNLIKE [signOut]: the account is gone, its sessions and its
+     * device rows with it, so both calls could only fail, and a failed revoke would put a dead token
+     * in the outbox for every later launch to chase. The rest is [signOut]'s local half, in its order,
+     * and the sign-in screen then says the account was deleted (the iOS app's
+     * `finishDeletedAccount`).
+     */
+    fun finishDeletedAccount(externalErasurePending: Boolean) {
+        appScope.launch {
+            tokenCoordinator.forget()
+            workspaceRepository.clearSelection()
+            accountLanguage.onSignedOut()
+            loginController.onAccountDeleted(externalErasurePending)
+            // ⛔ LAST, AND AFTER `forget()` HAS RETURNED, for the reason given in [signOut].
             sessionSignal.onSessionChanged()
         }
     }

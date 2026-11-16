@@ -106,6 +106,8 @@ class SignInScreenTest {
             LoginStatus.Expired to context.getString(R.string.login_status_expired),
             LoginStatus.RateLimited to context.getString(R.string.login_status_rate_limited),
             LoginStatus.Unreachable to context.getString(R.string.login_status_unreachable),
+            LoginStatus.AccountDeleted(false) to context.getString(R.string.delete_account_deleted),
+            LoginStatus.AccountDeleted(true) to context.getString(R.string.delete_account_deleted_erasure_pending),
             LoginStatus.Denied("access_denied") to context.getString(R.string.login_status_denied, "access_denied"),
         )
         var status by mutableStateOf<LoginStatus?>(null)

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DontMemoize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,11 @@ import com.distronode.districtai.ui.support.SupportSubmitOutcome
 import com.distronode.districtai.ui.support.SupportViewModel
 import com.distronode.districtai.ui.hq.HqScreen
 import com.distronode.districtai.ui.hq.HqViewModel
+import com.distronode.districtai.ui.hq.voice.HqVoiceHost
+import com.distronode.districtai.ui.hq.voice.HqVoiceSettingsScreen
+import com.distronode.districtai.ui.hq.voice.HqVoiceSettingsViewModel
+import com.distronode.districtai.ui.hq.voice.HqVoiceViewModel
+import com.distronode.districtai.ui.hq.voiceHistory
 import com.distronode.districtai.ui.inbox.AssignedToMeFilter
 import com.distronode.districtai.ui.inbox.ComposeViewModel
 import com.distronode.districtai.ui.inbox.ComposerHandlers
@@ -110,8 +116,9 @@ import com.distronode.districtai.ui.rooms.RoomControls
 import com.distronode.districtai.ui.rooms.RoomsLobbyScreen
 import com.distronode.districtai.ui.rooms.RoomsLobbyViewModel
 import com.distronode.districtai.ui.scheduling.schedulingDestination
-import com.distronode.districtai.ui.settings.ACCOUNT_DELETION_URL
 import com.distronode.districtai.ui.settings.SettingsScreen
+import com.distronode.districtai.ui.account.DeleteAccountDestination
+import com.distronode.districtai.ui.account.TwoStepDestination
 import com.distronode.districtai.ui.settings.workspace.CallHandlingScreen
 import com.distronode.districtai.ui.settings.workspace.CallHandlingViewModel
 import com.distronode.districtai.ui.settings.workspace.CapabilitiesScreen
@@ -356,14 +363,6 @@ fun DistrictNavHost(
                 }
 
                 composable(Routes.SETTINGS) {
-                    // ⛔ RESOLVED HERE, NOT INSIDE THE CALLBACK (lint's
-                    // `LocalContextGetResourceValueCall`). `context.getString(...)` from a
-                    // composable reads the resource through a Context captured at composition time,
-                    // so it does NOT participate in Compose's own configuration tracking: a locale
-                    // or font-scale change recomposes the screen but this string stays as it was
-                    // resolved under the previous configuration. `stringResource` is a
-                    // composition-local read and updates with it.
-                    val browserMissing = stringResource(R.string.settings_browser_missing)
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
                         // ⚠️ No popBackStack: signing out advances the session epoch, the hoisted overview
@@ -371,12 +370,22 @@ fun DistrictNavHost(
                         // with the sign-in screen. Popping first would briefly show the overview mid-teardown.
                         onSignOut = container::signOut,
                         onOpenDevices = { navController.navigate(Routes.DEVICES) },
-                        onDeleteAccount = {
-                            // ⚠️ The SAME hand-off as sign-in, so deletion opens in the system browser
-                            // with the user's real session — a WebView could neither authenticate them
-                            // nor be trusted to.
-                            openInBrowser(context, ACCOUNT_DELETION_URL, browserMissing, onShowMessage)
-                        },
+                        onOpenTwoStep = @DontMemoize { navController.navigate(Routes.TWO_STEP) },
+                        // ⚠️ IN THE APP, as on iOS: a fresh re-authentication, then the typed email.
+                        onDeleteAccount = @DontMemoize { navController.navigate(Routes.DELETE_ACCOUNT) },
+                    )
+                }
+
+                composable(Routes.DELETE_ACCOUNT) {
+                    DeleteAccountDestination(container, context, onBack = @DontMemoize { navController.popBackStack() })
+                }
+
+                composable(Routes.TWO_STEP) {
+                    TwoStepDestination(
+                        container = container,
+                        context = context,
+                        sessionEpoch = sessionEpoch,
+                        onBack = @DontMemoize { navController.popBackStack() },
                     )
                 }
 
@@ -807,6 +816,14 @@ fun DistrictNavHost(
                     // taken effect.
                     OnSessionChanged(sessionEpoch, viewModel::retryOrNoop)
 
+                    // ⚠️ Keyed on the workspace too: a session belongs to ONE tenant's HQ.
+                    val voice: HqVoiceViewModel = viewModel(
+                        key = "hq-voice-$workspaceId",
+                        factory = HqVoiceViewModel.factory {
+                            container.hqVoiceSession(workspaceId, role.allowsMutation())
+                        },
+                    )
+
                     HqScreen(
                         state = state,
                         messages = messages,
@@ -822,6 +839,35 @@ fun DistrictNavHost(
                             workspaceId = workspaceId,
                             support = container.supportRepository,
                         ),
+                        voice = {
+                            HqVoiceHost(
+                                session = voice.session,
+                                // ⚠️ The overview's active workspace, when it is this one; the
+                                // notice then names the region the data lives in.
+                                workspaceRegion = content?.active?.takeIf { it.id == workspaceId }?.region,
+                                history = { messages.voiceHistory() },
+                                onOpenSettings = { navController.navigate(Routes.hqVoiceSettings(workspaceId)) },
+                            )
+                        },
+                    )
+                }
+
+                composable(Routes.HQ_VOICE_SETTINGS) { entry ->
+                    val workspaceId = entry.pathArgument(ARG_WORKSPACE_ID)
+                    val viewModel: HqVoiceSettingsViewModel = viewModel(
+                        key = "hq-voice-settings-$workspaceId",
+                        factory = HqVoiceSettingsViewModel.factory(container.hqVoiceRepository, workspaceId),
+                    )
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    // ⚠️ A read, so a session change re-reads it.
+                    OnSessionChanged(sessionEpoch, viewModel::load)
+                    HqVoiceSettingsScreen(
+                        state = state,
+                        onEdit = viewModel::edit,
+                        onSave = viewModel::save,
+                        onRetry = viewModel::load,
+                        onSignIn = onSignIn,
+                        onBack = { navController.popBackStack() },
                     )
                 }
 
@@ -2273,6 +2319,12 @@ object Routes {
      */
     const val DEVICES = "devices"
 
+    /** Two-step verification. ⚠️ Not workspace-scoped, for the reason [DEVICES] is not. */
+    const val TWO_STEP = "account/two-step"
+
+    /** Deleting the account. ⚠️ Not workspace-scoped, for the reason [DEVICES] is not. */
+    const val DELETE_ACCOUNT = "account/delete"
+
     /**
      * ⚠️ THE ROLE IS AN OPTIONAL QUERY ARGUMENT HERE, NOT A PATH SEGMENT, because a call is opened
      * from places that do not know it (a notification, an app link). Without one the screen fails
@@ -2304,6 +2356,12 @@ object Routes {
      * itself rather than inheriting whatever a shared holder happens to contain.
      */
     const val HQ = "workspace/{workspaceId}/hq/{role}"
+
+    /**
+     * The member's own HQ voice settings. ⚠️ NO ROLE: the settings are the member's, not the
+     * workspace's, so every role may change them.
+     */
+    const val HQ_VOICE_SETTINGS = "workspace/{workspaceId}/hq-voice-settings"
 
     /**
      * Analytics.
@@ -2683,6 +2741,8 @@ object Routes {
     /** ⚠️ A null role becomes the literal "none", which [WorkspaceRole.fromWire] rejects. */
     fun hq(workspaceId: String, role: WorkspaceRole?) =
         "workspace/${Uri.encode(workspaceId)}/hq/${Uri.encode(role?.name?.lowercase() ?: "none")}"
+
+    fun hqVoiceSettings(workspaceId: String) = "workspace/${Uri.encode(workspaceId)}/hq-voice-settings"
 
     fun callDetail(workspaceId: String, callId: String, role: WorkspaceRole? = null) =
         "workspace/${Uri.encode(workspaceId)}/calls/${Uri.encode(callId)}" + roleQuery(role)

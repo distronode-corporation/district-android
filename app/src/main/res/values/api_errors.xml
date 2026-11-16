@@ -50,6 +50,8 @@
     <string name="api_error_draft_lint_refused">That text can\'t be saved: it denies being an AI, claims to be a person, tells the receptionist not to disclose, or contains reserved markers. Callers are always told when they speak with an AI.</string>
     <string name="api_error_draft_not_found">There is no receptionist draft to work on. Draft a change first.</string>
     <string name="api_error_draft_nothing_to_undo">There is no earlier version of the draft to go back to.</string>
+    <string name="api_error_email_changed">This contact\'s email address changed since you opened it. Check the new address before confirming it.</string>
+    <string name="api_error_email_unconfirmed">This contact\'s email address is unconfirmed. Confirm it in the contact panel before emailing it.</string>
     <string name="api_error_emergency_acknowledgement_required">Confirm that you understand this number cannot be used to call 911 or other emergency services, then try again.</string>
     <string name="api_error_emergency_number">Emergency numbers cannot be dialled from this app. Use your phone\'s own dialer.</string>
     <string name="api_error_engine_unavailable">This voice engine is not available for this workspace yet. Choose another engine.</string>
@@ -133,6 +135,7 @@
     <string name="api_error_microsoft_landing_unavailable">We could not reach Microsoft just now, so nothing was set up. Try again in a moment.</string>
     <string name="api_error_microsoft_landing_us_regional_account">A Distronode account in another region can\'t hold a US purchase. Buy in that region to keep one account, or use a different email address to create a separate US account.</string>
     <string name="api_error_model_unavailable_in_region">This voice engine is not available for workspaces in this region. Choose another engine.</string>
+    <string name="api_error_no_email">This contact has no email address to confirm.</string>
     <string name="api_error_no_password">This account signs in with Google or Microsoft and has no password to re-enter. Set a password on the web first.</string>
     <string name="api_error_no_sending_number">This workspace has no texting number yet. Add or buy one in Messaging settings.</string>
     <string name="api_error_no_workspace">This account is not a member of any workspace yet.</string>

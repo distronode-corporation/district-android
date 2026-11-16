@@ -66,6 +66,7 @@ import com.distronode.districtai.core.network.testing.FakeInboxExtrasApi
 import com.distronode.districtai.core.network.testing.FakeConversationAssignmentApi
 import com.distronode.districtai.core.network.testing.FakeWhatsAppApi
 import com.distronode.districtai.core.network.testing.FakeSuperviseApi
+import com.distronode.districtai.core.network.testing.FakeHqVoiceApi
 import com.distronode.districtai.core.network.testing.FakeDeskApi
 import com.distronode.districtai.core.network.testing.FakeSetupWizardApi
 import com.distronode.districtai.core.network.testing.FakeSupportApi
@@ -99,6 +100,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
     val assignments = FakeConversationAssignmentApi()
     val whatsApp = FakeWhatsAppApi()
     val supervise = FakeSuperviseApi()
+    val hqVoice = FakeHqVoiceApi()
     val callHandling = CountingCallHandlingApi()
     val setup = FakeSetupWizardApi()
     val telecom = FakeTelecomBridge()
@@ -126,6 +128,7 @@ internal class NavHostHarness(private val composeRule: ComposeContentTestRule) {
             districtApi = api,
             deskApi = desk,
             supportApi = support,
+            hqVoiceApi = hqVoice,
             setupWizardApi = setup,
             personaApi = persona,
             inboxExtrasApi = search,

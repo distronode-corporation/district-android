@@ -24,7 +24,6 @@ import com.distronode.districtai.ui.overview.OVERVIEW_FINISH_SETUP_ACTION_DESCRI
 import com.distronode.districtai.ui.overview.OverviewUiState
 import com.distronode.districtai.ui.setup.SETUP_WIZARD_ROUTE
 import com.distronode.districtai.ui.setup.SetupTags
-import com.distronode.districtai.ui.settings.ACCOUNT_DELETION_URL
 import com.distronode.districtai.ui.settings.SETTINGS_DELETE_ACCOUNT_DESCRIPTION
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -88,25 +87,17 @@ class NavHostHandOffTest {
     }
 
     @Test
-    fun `with no browser installed the account-deletion hand-off says so rather than doing nothing`() {
-        harness.render()
-        harness.navigate(Routes.SETTINGS)
-
-        harness.tap(SETTINGS_DELETE_ACCOUNT_DESCRIPTION)
-
-        assertEquals(listOf(browserMissing), harness.messages)
-        assertTrue(harness.started.isEmpty())
-    }
-
-    @Test
-    fun `account deletion opens the deletion page in the browser`() {
+    fun `account deletion opens in the app, never the browser`() {
+        // ⛔ IN THE APP SINCE THE iOS PARITY PORT: the re-authentication and the typed email happen
+        // here, and the deletion page stays only as the store listing's data-deletion URL.
         harness.installBrowser()
         harness.render()
         harness.navigate(Routes.SETTINGS)
 
         harness.tap(SETTINGS_DELETE_ACCOUNT_DESCRIPTION)
 
-        assertEquals(listOf(ACCOUNT_DELETION_URL), opened())
+        assertEquals("account/delete", harness.route())
+        assertTrue("nothing opens in a browser", harness.started.isEmpty())
         assertTrue(harness.messages.isEmpty())
     }
 

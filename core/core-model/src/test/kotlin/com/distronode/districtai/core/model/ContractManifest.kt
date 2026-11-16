@@ -75,8 +75,7 @@ internal object ContractManifest {
      *
      * ⛔ NOT DEBT, AND NOT A WAY AROUND [NOT_YET_MODELLED]. Every entry is a route this client never
      * calls because the feature is not on Android today: the iOS Live Activity routes, the iOS
-     * parity routes (the campaign dialer, District HQ
-     * by voice, and native re-authentication, two-factor and account deletion), the web
+     * parity routes (the campaign dialer), the web
      * settings routes Android has no screen for (the email identity, the sending domain, the
      * calendar disconnect and the agent's picture library), and the destructive campaign-settings
      * write Android refuses to call (it pauses through `campaign-status`). A DTO and a decode
@@ -89,11 +88,9 @@ internal object ContractManifest {
      * IS decoded, and any change to [NOT_ON_ANDROID_COUNT]. Adding to this set needs the feature
      * to be absent from Android, written down in the entry's comment.
      */
-    const val NOT_ON_ANDROID_COUNT: Int = 26
+    const val NOT_ON_ANDROID_COUNT: Int = 12
 
     val NOT_ON_ANDROID: Set<String> = setOf(
-        // Android deletes an account in the browser (ACCOUNT_DELETION_URL), not natively.
-        "district-account-delete.json",
         // The agent's picture library: Android has no agent media screen.
         "district-agent-media-delete.json",
         "district-agent-media-post.json",
@@ -110,21 +107,6 @@ internal object ContractManifest {
         "district-email-domain-post.json",
         "district-email-identity-patch.json",
         "district-email-identity.json",
-        // District HQ by voice: Android's HQ is the text console, which declines a proposal locally.
-        "district-hq-proposal-cancel.json",
-        "district-hq-voice-context.json",
-        "district-hq-voice-discard.json",
-        "district-hq-voice-end.json",
-        "district-hq-voice-settings-put.json",
-        "district-hq-voice-settings.json",
-        "district-hq-voice-token-allowance.json",
-        "district-hq-voice-token.json",
         "district-live-activity-start-token.json", // iOS Live Activity: push-to-start token
-        // Two-factor and native re-authentication: Android signs in through the browser.
-        "district-mfa-confirm.json",
-        "district-mfa-disable.json",
-        "district-mfa-enroll.json",
-        "district-mfa-status.json",
-        "district-native-reauth.json",
     )
 }

@@ -152,6 +152,11 @@ class LoginController(
         _status.value = null
     }
 
+    /** The account was just deleted: the sign-in screen says so, and whether support data is still being erased. */
+    fun onAccountDeleted(externalErasurePending: Boolean) {
+        _status.value = LoginStatus.AccountDeleted(externalErasurePending)
+    }
+
     private fun LoginOutcome.toStatus(): LoginStatus? = when (this) {
         // Nothing to say: the app is about to render the signed-in UI.
         LoginOutcome.Success -> null
@@ -210,4 +215,10 @@ sealed interface LoginStatus {
 
     /** The server named a reason. ⚠️ Server-authored, so it is shown as-is. */
     data class Denied(val reason: String) : LoginStatus
+
+    /**
+     * The account was deleted from this app. ⚠️ [externalErasurePending]: support data held by a
+     * provider is still being erased; the account itself is gone either way.
+     */
+    data class AccountDeleted(val externalErasurePending: Boolean) : LoginStatus
 }

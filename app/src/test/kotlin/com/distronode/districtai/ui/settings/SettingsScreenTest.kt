@@ -41,6 +41,7 @@ class SettingsScreenTest {
         onSignOut: () -> Unit = {},
         onDeleteAccount: () -> Unit = {},
         onOpenDevices: () -> Unit = {},
+        onOpenTwoStep: () -> Unit = {},
     ) {
         composeRule.setContent {
             DistrictTheme {
@@ -49,6 +50,7 @@ class SettingsScreenTest {
                     onSignOut = onSignOut,
                     onDeleteAccount = onDeleteAccount,
                     onOpenDevices = onOpenDevices,
+                    onOpenTwoStep = onOpenTwoStep,
                 )
             }
         }
@@ -98,6 +100,16 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun `offers two-step verification, reported once per tap`() {
+        var opened = 0
+        render(onOpenTwoStep = { opened += 1 })
+
+        composeRule.onNodeWithTag(SETTINGS_TWO_STEP_DESCRIPTION).performScrollTo().assertIsDisplayed().performClick()
+
+        assertEquals(1, opened)
+    }
+
+    @Test
     fun `signing out is reported once per tap`() {
         var signOuts = 0
         render(onSignOut = { signOuts += 1 })
@@ -108,10 +120,10 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun `deletion hands off rather than deleting in place`() {
-        // ⚠️ A LINK, NOT A DESTRUCTIVE BUTTON. The flow is identity-verified and irreversible and the
-        // web owns it; the policy asks only that the app let the user START it. So the contract this
-        // asserts is "the tap is forwarded", and deliberately not "something was deleted".
+    fun `deletion opens its screen rather than deleting in place`() {
+        // ⚠️ A ROW THAT OPENS THE DELETION SCREEN, NOT A DESTRUCTIVE BUTTON. The re-authentication and
+        // the typed email come first, so the contract this asserts is "the tap is forwarded", and
+        // deliberately not "something was deleted".
         var deletions = 0
         render(onDeleteAccount = { deletions += 1 })
 
@@ -131,8 +143,7 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun `the caption tells the user deletion leaves the app`() {
-        // ⚠️ Tapping it opens a browser, so saying so up front stops that reading as a crash.
+    fun `the caption says deletion is for good and asks who you are first`() {
         render()
 
         composeRule
@@ -163,6 +174,7 @@ class SettingsScreenTest {
                     onSignOut = { signOuts += current },
                     onDeleteAccount = {},
                     onOpenDevices = { devices += current },
+                    onOpenTwoStep = {},
                 )
             }
         }

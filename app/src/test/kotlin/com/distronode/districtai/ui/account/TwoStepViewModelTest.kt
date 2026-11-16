@@ -416,7 +416,13 @@ class TwoStepViewModelTest {
         assertTrue(vm.state.value.holdsSecret)
 
         api.statusResult = ApiResult.Success(FakeAccountSecurityApi.STATUS_ON)
+        api.gate = CompletableDeferred()
         vm.finishRecoveryCodes()
+        runCurrent()
+        // While the status is read: the overview, never a codes step with no codes.
+        assertEquals(TwoStepStep.Overview, vm.state.value.step)
+        assertTrue(vm.state.value.recoveryCodes.isEmpty())
+        api.gate!!.complete(Unit)
         advanceUntilIdle()
         assertEquals(TwoStepStep.Overview, vm.state.value.step)
         assertTrue(vm.state.value.recoveryCodes.isEmpty())

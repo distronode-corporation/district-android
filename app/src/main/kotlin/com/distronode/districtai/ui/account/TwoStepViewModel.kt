@@ -265,9 +265,12 @@ class TwoStepViewModel(
         if (_state.value.step != TwoStepStep.RecoveryCodes) return
         flight {
             _state.update {
+                // ⚠️ To the overview at once: the codes step with no codes would show an empty box
+                // and a live Copy all while the status is read.
                 it.copy(
                     recoveryCodes = emptyList(),
-                    notice = UiText.Resource(R.string.two_step_turned_on)
+                    notice = UiText.Resource(R.string.two_step_turned_on),
+                    step = TwoStepStep.Overview,
                 )
             }
             read()

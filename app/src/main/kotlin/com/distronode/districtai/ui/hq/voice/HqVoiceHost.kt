@@ -36,7 +36,7 @@ fun HqVoiceHost(
     val activity = LocalActivity.current
     LifecycleStartEffect(session) {
         onStopOrDispose {
-            if (activity?.isChangingConfigurations != true) session.end()
+            if (endsOnStop(activity?.isChangingConfigurations)) session.end()
         }
     }
     val microphone = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -57,3 +57,9 @@ fun HqVoiceHost(
         actions = session.actions(history, locale, onOpenSettings),
     )
 }
+
+/**
+ * Whether a stop ends the session: always, except a configuration change (a rotation). ⚠️ No activity
+ * (a preview, a test host) is not a configuration change.
+ */
+internal fun endsOnStop(changingConfigurations: Boolean?): Boolean = changingConfigurations != true

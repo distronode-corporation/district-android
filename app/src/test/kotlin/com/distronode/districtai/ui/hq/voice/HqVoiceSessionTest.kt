@@ -486,6 +486,34 @@ class HqVoiceSessionTest {
         assertEquals(listOf("cancel:p1", "cancel:p2"), api.calls.filter { it.startsWith("cancel") })
     }
 
+    @Test
+    fun `a second tap while a cancel is in flight sends nothing`() = runTest {
+        val session = session()
+        toLive(session)
+        engine.propose()
+        runCurrent()
+        val gate = CompletableDeferred<Unit>()
+        api.cancelGate = gate
+
+        session.cancel("p1")
+        runCurrent()
+        assertTrue(session.state.value.proposals.single().isWorking)
+        session.cancel("p1")
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(listOf("cancel:p1"), api.calls.filter { it.startsWith("cancel") })
+        assertEquals(HqResolutionStatus.CANCELLED, session.state.value.proposals.single().outcome)
+    }
+
+    @Test
+    fun `a stop ends the session unless the activity is only being recreated`() {
+        assertTrue(endsOnStop(false))
+        assertTrue("no activity is not a rotation", endsOnStop(null))
+        assertFalse(endsOnStop(true))
+    }
+
     // ── How it stops ─────────────────────────────────────────────────────────────────────────────
 
     @Test

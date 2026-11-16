@@ -33,6 +33,7 @@ class FakeHqVoiceApi : HqVoiceApi {
     var saveGate: CompletableDeferred<Unit>? = null
     var cancelResult: ApiResult<HqProposalCancelResponse> =
         ApiResult.Success(HqProposalCancelResponse(success = true))
+    var cancelGate: CompletableDeferred<Unit>? = null
     var endResult: ApiResult<HqVoiceEndResponse> = ApiResult.Success(HqVoiceEndResponse(success = true, ended = true))
     var discardResult: ApiResult<HqVoiceDiscardResponse> =
         ApiResult.Success(HqVoiceDiscardResponse(success = true, discarded = true))
@@ -85,6 +86,7 @@ class FakeHqVoiceApi : HqVoiceApi {
         proposalId: String,
     ): ApiResult<HqProposalCancelResponse> {
         calls += "cancel:$proposalId"
+        cancelGate?.await()
         return cancelResult
     }
 

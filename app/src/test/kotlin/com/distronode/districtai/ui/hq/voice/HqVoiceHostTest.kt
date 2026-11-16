@@ -214,6 +214,17 @@ class HqVoiceHostTest {
         assertEquals(emptyList<HqTurn>(), api.tokenRequests.last().third)
     }
 
+    @Test
+    @Config(qualifiers = "fr-rCA")
+    fun `in French the token asks for French`() {
+        render()
+
+        composeRule.onNodeWithTag(HQ_VOICE_START_DESCRIPTION).performClick()
+        composeRule.waitForIdle()
+
+        assertEquals("fr", api.tokenRequests.single().second)
+    }
+
     private fun FakeHqVoiceEngine.propose(id: String) = emit(
         HqVoiceEngineEvent.Packet(
             """{"type":"HQ_PROPOSAL","proposalId":"$id","tool":"t","args":{},"summary":"S $id"}""".encodeToByteArray(),

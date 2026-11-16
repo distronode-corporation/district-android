@@ -44,9 +44,21 @@ class SetupWizardRepository(private val api: SetupWizardApi) {
     suspend fun placeTestCall(workspaceId: String, phone: String): ApiResult<String> =
         when (val result = api.setupTestCall(workspaceId, phone)) {
             is ApiResult.Success ->
-                rejectedEnvelope(TEST_CALL_ENVELOPE, result.value.success && result.value.callId.isNotEmpty())
+                rejectedEnvelope(TEST_CALL_ENVELOPE, result.value.success)
+                    ?: emptyCallId(result.value.callId)
                     ?: ApiResult.Success(result.value.callId)
             is ApiResult.Failure -> result
+        }
+
+    /** ⚠️ ITS OWN DIAGNOSTIC: a body that affirms success with no call id is not "success=false". */
+    private fun emptyCallId(callId: String): ApiResult.DecodeFailure? =
+        if (callId.isNotEmpty()) {
+            null
+        } else {
+            ApiResult.DecodeFailure(
+                cause = IllegalStateException("$TEST_CALL_ENVELOPE affirmed success with an empty callId"),
+                bodyPreview = "$TEST_CALL_ENVELOPE{success=true, callId=\"\"}",
+            )
         }
 
     suspend fun forwardingCheck(workspaceId: String): ApiResult<ForwardingCheckResponse> =

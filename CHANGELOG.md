@@ -35,18 +35,12 @@ The `[3.3.1]` section below is the text Google Play shows (`scripts/release-note
   cannot tell, it says that too. Afterwards the sign-in screen says the account was deleted,
   and whether support data held by a provider is still being erased. The row no longer opens
   the deletion page in the browser.
-- The setup wizard in the app, matching iOS 3.4.0. "Finish setting up" on the overview opens
-  the web's six steps in the app, in its order and with its words, and resumes on the first
-  step still to do: find your business (a draft from the business's website, saved switched
-  off, then the name, the place, the language and what the business does), your number (keep
-  the one held), your receptionist (name, greeting and a voice from the service's own list),
-  what callers should know (time zone, address, opening hours with up to four periods a day,
-  services and common questions, each with "Use on calls"), how calls are answered, and the
-  test call and forwarding check. Buying a number, a calendar's sign-in, the email sender name
-  and reply-to, and the transfer number open the web's page in a Custom Tab, and the wizard
-  reads its state again when the person comes back. A person who is not the workspace's owner
-  is told only the owner can do setup. Every write is a single flight, and step 1's choices
-  are kept on the device until step 3 stores the language. English and French.
+- The setup wizard in the app, as in the iOS app. "Finish setting up" on the overview opens the
+  six setup steps here, not in the browser, at the first one still to do: your business (with a
+  draft read from its website), your number, your receptionist, what callers should know, how
+  calls are answered, and a test call with a forwarding check. Pages only the web has open in a
+  Custom Tab, and the wizard reads its state again on return. Only the workspace's owner can do
+  setup. English and French.
 - Contracts: the setup wizard's fixtures (the facts PATCH, the website lookup and its refusal,
   the test call, the forwarding check and its start, and the integrations read) are decoded and
   leave `NOT_ON_ANDROID`.

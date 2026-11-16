@@ -91,6 +91,9 @@ class SetupGoLiveModel(private val wizard: SetupWizardViewModel) : SetupStepMode
             val config = wizard.deps.config.load(wizard.workspaceId)
             val handling = wizard.deps.callHandling.callHandling(wizard.workspaceId)
             forwarding = (forwardingResult as? ApiResult.Success)?.value
+            // ⚠️ A CHECK ALREADY HELD SHOWS THE MODE IT WAS STARTED WITH: the rows are locked while it
+            // is polled, so a default left on screen could not be corrected.
+            forwarding?.forwardingCheck?.mode?.takeIf { it in ForwardingCheckMode.MODES }?.let { mode = it }
             if (config is ApiResult.Success && handling is ApiResult.Success) {
                 summary = SetupGoLiveSummary(
                     greeting = config.value.aiPersona?.greeting?.trim().orEmpty(),

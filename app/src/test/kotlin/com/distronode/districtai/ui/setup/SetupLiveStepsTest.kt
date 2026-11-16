@@ -230,6 +230,29 @@ class SetupLiveStepsTest {
     }
 
     @Test
+    fun `the step's writes run one at a time`() = runTest {
+        harness.config(SetupHarness.withTransfer(SetupHarness.persona(), null, tier = "voicestudio"))
+        val (wizard, model) = calls()
+
+        model.selectMode(CallHandling.APP_FIRST)
+        model.saveAnswering()
+        model.setProfiles(true)
+        advanceUntilIdle()
+        assertEquals(1, harness.callHandling.handlingWrites.size)
+        assertTrue("no profile write while who answers is saving", harness.district.personaPatches.isEmpty())
+
+        model.setProfiles(true)
+        model.selectMode(if (model.mode == CallHandling.AI_FIRST) CallHandling.APP_FIRST else CallHandling.AI_FIRST)
+        assertTrue(model.answeringChanged)
+        model.saveAnswering()
+        model.saveAndContinue()
+        advanceUntilIdle()
+        assertEquals(1, harness.district.personaPatches.size)
+        assertEquals("nothing else while the profile write runs", 1, harness.callHandling.handlingWrites.size)
+        assertEquals(SetupStep.CALLS, wizard.active)
+    }
+
+    @Test
     fun `no profiles switch on a plan without them`() = runTest {
         val (_, model) = calls()
         model.setProfiles(true)
@@ -418,18 +441,15 @@ class SetupLiveStepsTest {
     }
 
     @Test
-    fun `an unreadable check on open shows no check, and a check can still be started`() = runTest {
+    fun `an unreadable check on open holds no check and polls nothing`() = runTest {
+        // The screen then draws no check section, as for a region with no verifier; opening the step
+        // again reads it again.
         harness.setup.forwardingResult = ApiResult.NetworkFailure(IOException("down"))
         val (_, model) = golive()
         assertNull(model.forwarding)
         assertNull(model.checkSentence)
         assertFalse(model.isPolling)
-
-        harness.setup.forwardingStartResult = started(check("passed"), 3)
-        model.businessLine = "+14165550123"
-        model.startCheck()
-        advanceUntilIdle()
-        assertEquals(SetupCheckSentence.PASSED, model.checkSentence)
+        assertEquals(1, harness.setup.forwardingReads.size)
     }
 
     @Test
@@ -472,6 +492,19 @@ class SetupLiveStepsTest {
         assertEquals(listOf("+14165550123" to "all"), harness.setup.forwardingStarts)
         assertEquals("the open read, then one poll to the limit", 1 + 3, harness.setup.forwardingReads.size)
         assertTrue(model.pollGaveUp)
+    }
+
+    @Test
+    fun `a check already held shows the mode it was started with, and an unknown one keeps the default`() = runTest {
+        harness.setup.forwardingResult =
+            ApiResult.Success(ForwardingCheckResponse(true, check("passed").copy(mode = "unanswered"), 3))
+        val (_, model) = golive()
+        assertEquals(ForwardingCheckMode.UNANSWERED, model.mode)
+
+        harness.setup.forwardingResult =
+            ApiResult.Success(ForwardingCheckResponse(true, check("passed").copy(mode = "sometimes"), 3))
+        val (_, other) = golive()
+        assertEquals(ForwardingCheckMode.ALL, other.mode)
     }
 
     @Test

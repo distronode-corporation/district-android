@@ -79,7 +79,7 @@ class SetupFlowTest {
         assertEquals("fr-FR", SetupLanguage.toSave("fr-FR", chosen = fr, appDefault = en))
         assertEquals("en-US", SetupLanguage.toSave("fr-FR", chosen = en, appDefault = en))
         // ⛔ A GERMAN RECEPTIONIST LEFT ON THE APP'S LANGUAGE STAYS GERMAN.
-        assertEquals("de-DE", SetupLanguage.toSave(" de-DE ".trim(), chosen = en, appDefault = en))
+        assertEquals("de-DE", SetupLanguage.toSave(" de-DE ", chosen = en, appDefault = en))
         assertEquals("fr-CA", SetupLanguage.toSave("de-DE", chosen = fr, appDefault = en))
         assertEquals("fr-CA", SetupLanguage.toSave(null, chosen = fr, appDefault = en))
         assertEquals("en-US", SetupLanguage.toSave("  ", chosen = en, appDefault = fr))

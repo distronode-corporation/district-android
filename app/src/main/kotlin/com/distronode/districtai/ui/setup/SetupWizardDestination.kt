@@ -1,5 +1,6 @@
 package com.distronode.districtai.ui.setup
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -25,7 +26,7 @@ import com.distronode.districtai.ui.pathArgument
  */
 const val SETUP_WIZARD_ROUTE: String = "workspace/{$ARG_WORKSPACE_ID}/setup"
 
-fun setupWizardRoute(workspaceId: String): String = "workspace/$workspaceId/setup"
+fun setupWizardRoute(workspaceId: String): String = "workspace/${Uri.encode(workspaceId)}/setup"
 
 /**
  * The wizard's destination, entered from the overview's "Finish setting up" card.

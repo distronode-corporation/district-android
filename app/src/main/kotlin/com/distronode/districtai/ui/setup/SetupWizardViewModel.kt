@@ -177,7 +177,7 @@ class SetupWizardViewModel(
             draft = SetupBusinessDraft.initial(response, personaLanguage(), workspaceName, appDefault)
         }
         if (progress.completedAt != null) {
-            phase = SetupPhase.Finished
+            finish()
             return
         }
         open(SetupFlow.firstOpen(progress))
@@ -297,7 +297,6 @@ class SetupWizardViewModel(
                 data = result.value
                 val progress = result.value.setupProgress
                 if (progress?.completedAt != null) {
-                    deps.store.clear(workspaceId)
                     finish()
                 } else {
                     // ⚠️ PAST THE LAST STEP WITH ONE STILL OPEN (reached by Back), the open one.
@@ -341,7 +340,9 @@ class SetupWizardViewModel(
         }
     }
 
+    /** ⚠️ EVERY WAY SETUP ENDS FORGETS STEP 1'S DRAFT: a write, the first read, or a hand-off's re-read. */
     private fun finish() {
+        deps.store.clear(workspaceId)
         stepModel?.close()
         stepModel = null
         phase = SetupPhase.Finished

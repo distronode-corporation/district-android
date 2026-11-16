@@ -113,12 +113,14 @@ class SetupWizardViewModelTest {
     }
 
     @Test
-    fun `a finished wizard says so`() = runTest {
+    fun `a finished wizard says so, and forgets a draft left on the device`() = runTest {
+        harness.store.save(SetupBusinessDraft("Bloom", "CA", "ON", "Ottawa", "en"), SetupHarness.WORKSPACE)
         harness.reads(setupState(completedAt = "2026-11-01T00:00:00Z"))
         val wizard = harness.wizard()
         advanceUntilIdle()
 
         assertEquals(SetupPhase.Finished, wizard.phase)
+        assertNull(harness.store.load(SetupHarness.WORKSPACE))
     }
 
     @Test
@@ -270,10 +272,11 @@ class SetupWizardViewModelTest {
     }
 
     @Test
-    fun `a hand-off that finished setup on the web finishes the wizard`() = runTest {
+    fun `a hand-off that finished setup on the web finishes the wizard and forgets the draft`() = runTest {
         harness.reads(setupState())
         val wizard = harness.wizard()
         advanceUntilIdle()
+        harness.store.save(SetupBusinessDraft("Bloom", "CA", "ON", "Ottawa", "en"), SetupHarness.WORKSPACE)
 
         harness.reads(setupState(completedAt = "2026-11-03T00:00:00Z"))
         wizard.handOffOpened()
@@ -281,6 +284,7 @@ class SetupWizardViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SetupPhase.Finished, wizard.phase)
+        assertNull(harness.store.load(SetupHarness.WORKSPACE))
     }
 
     @Test

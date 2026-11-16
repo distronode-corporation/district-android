@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -145,8 +146,12 @@ class SetupWizardRequestTest {
         val expected = decoded("district-setup-test-call.json", SetupTestCallResponse.serializer())
         assertEquals(ApiResult.Success(expected), result)
         val recorded = server.takeRequest()
+        assertEquals("POST", recorded.method)
         assertEquals("/api/district/setup/test-call", recorded.url.encodedPath)
-        assertEquals(setOf("workspaceId", "phone"), recorded.json().keys)
+        assertEquals(
+            mapOf("workspaceId" to JsonPrimitive("ws-1"), "phone" to JsonPrimitive("+14165550123")),
+            recorded.json(),
+        )
     }
 
     @Test

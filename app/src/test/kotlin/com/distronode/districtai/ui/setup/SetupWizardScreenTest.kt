@@ -300,6 +300,23 @@ class SetupWizardScreenTest {
     }
 
     @Test
+    fun `while step 1 saves, the place and the language cannot be changed`() {
+        harness.reads(setupState(facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"}}"""))
+        show(harness.wizard(name = "Bloom"))
+        harness.setup.gate = CompletableDeferred()
+        tap(BusinessTags.SAVE)
+
+        composeRule.onNodeWithTag(BusinessTags.CITY).assertIsNotEnabled()
+        composeRule.onNodeWithTag(BusinessTags.COUNTRY).performScrollTo().performClick()
+        composeRule.onNodeWithTag("${BusinessTags.COUNTRY}-option-US").assertDoesNotExist()
+        composeRule.onNodeWithTag(BusinessTags.SUBDIVISION).performScrollTo().performClick()
+        composeRule.onNodeWithTag("${BusinessTags.SUBDIVISION}-option-QC").assertDoesNotExist()
+        composeRule.onNodeWithTag(SetupTags.choice("language", "fr")).assertIsNotEnabled()
+        harness.setup.gate!!.complete(Unit)
+        composeRule.waitForIdle()
+    }
+
+    @Test
     fun `a refused step 1 save is said on the step`() {
         harness.reads(setupState(facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"}}"""))
         harness.setup.patchResult = ApiResult.HttpFailure(400, "The address was refused.")

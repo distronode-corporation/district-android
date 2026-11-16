@@ -88,6 +88,12 @@ class SetupBeforeFirstReadTest {
         val model = SetupGoLiveModel(unread())
         advanceUntilIdle()
         assertFalse(model.hasNumber)
+
+        model.mobile = "+14165550123"
+        model.callMe()
+        advanceUntilIdle()
+        assertTrue(harness.setup.testCalls.isEmpty())
+        assertNull(model.callStatus)
         model.close()
     }
 }

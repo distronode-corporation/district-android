@@ -153,6 +153,8 @@ private fun BusinessDetails(model: SetupBusinessModel) {
     }
 }
 
+// ⚠️ EVERY PLACE AND LANGUAGE CONTROL IS LOCKED WHILE THE STEP SAVES: an edit made then is not in the
+// write, yet the kept draft would carry it.
 @Composable
 private fun BusinessPlace(model: SetupBusinessModel) {
     val language = appLanguage()
@@ -162,6 +164,7 @@ private fun BusinessPlace(model: SetupBusinessModel) {
         selected = model.country,
         options = SetupPlaces.countries.map { SetupOption(it, SetupPlaces.countryName(it, language)) },
         tag = BusinessTags.COUNTRY,
+        enabled = !model.isSaving,
         onSelect = @DontMemoize { model.chooseCountry(it) },
         error = stringResource(
             R.string.setup_business_country_required
@@ -181,6 +184,7 @@ private fun BusinessPlace(model: SetupBusinessModel) {
             selected = model.subdivision,
             options = list.map { SetupOption(it.code, it.name(language)) },
             tag = BusinessTags.SUBDIVISION,
+            enabled = !model.isSaving,
             onSelect = @DontMemoize { model.subdivision = it },
             error = stringResource(R.string.setup_business_subdivision_required)
                 .takeIf { model.showErrors && model.subdivisionMissing },
@@ -191,6 +195,7 @@ private fun BusinessPlace(model: SetupBusinessModel) {
             value = model.subdivision,
             onValueChange = @DontMemoize { model.subdivision = it },
             tag = BusinessTags.SUBDIVISION,
+            enabled = !model.isSaving,
         )
     }
     SetupField(
@@ -198,6 +203,7 @@ private fun BusinessPlace(model: SetupBusinessModel) {
         value = model.city,
         onValueChange = @DontMemoize { model.city = it },
         tag = BusinessTags.CITY,
+        enabled = !model.isSaving,
         error = stringResource(R.string.setup_business_city_required).takeIf { model.showErrors && model.cityMissing },
     )
 }
@@ -217,6 +223,7 @@ private fun BusinessLanguage(model: SetupBusinessModel) {
                 ),
                 selected = model.language == language,
                 tag = SetupTags.choice("language", language.wire),
+                enabled = !model.isSaving,
                 onClick = @DontMemoize { model.language = language },
             )
         }

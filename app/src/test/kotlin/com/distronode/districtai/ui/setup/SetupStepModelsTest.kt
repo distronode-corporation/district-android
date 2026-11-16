@@ -361,16 +361,24 @@ class SetupStepModelsTest {
     fun `rows are added up to the cap, edited by identity and removed`() = runTest {
         val (_, model) = callers()
         model.addService()
+        model.addService()
         model.addFaq()
-        val service = model.services.single()
-        val faq = model.faqs.single()
+        model.addFaq()
+        val (service, otherService) = model.services
+        val (faq, otherFaq) = model.faqs
         assertTrue("a row typed by hand starts on", service.enabled && faq.enabled)
         model.updateService(service.id) { it.copy(name = "Cut") }
         model.updateFaq(faq.id) { it.copy(question = "Q", answer = "A") }
-        assertEquals("Cut", model.services.single().name)
-        assertEquals("Q", model.faqs.single().question)
+        assertEquals(listOf("Cut", ""), model.services.map { it.name })
+        assertEquals(listOf("Q", ""), model.faqs.map { it.question })
+        assertEquals("the other rows are untouched", listOf(otherService), model.services.drop(1))
+        assertEquals(listOf(otherFaq), model.faqs.drop(1))
         model.removeService(service.id)
         model.removeFaq(faq.id)
+        assertEquals(listOf(otherService), model.services)
+        assertEquals(listOf(otherFaq), model.faqs)
+        model.removeService(otherService.id)
+        model.removeFaq(otherFaq.id)
         assertTrue(model.services.isEmpty() && model.faqs.isEmpty())
 
         repeat(SetupFacts.SERVICES + 1) { model.addService() }

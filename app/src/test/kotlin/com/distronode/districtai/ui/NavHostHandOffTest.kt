@@ -25,6 +25,7 @@ import com.distronode.districtai.ui.overview.OVERVIEW_FINISH_SETUP_ACTION_DESCRI
 import com.distronode.districtai.ui.overview.OverviewUiState
 import com.distronode.districtai.ui.setup.NumberTags
 import com.distronode.districtai.ui.setup.SETUP_WIZARD_ROUTE
+import com.distronode.districtai.ui.setup.SetupHandOff
 import com.distronode.districtai.ui.setup.SetupTags
 import com.distronode.districtai.ui.setup.setupState
 import com.distronode.districtai.ui.setup.setupWizardRoute
@@ -91,14 +92,17 @@ class NavHostHandOffTest {
     }
 
     @Test
-    fun `the wizard opens for a workspace the list does not name, reading that workspace`() {
+    fun `the wizard opens for a workspace the list does not name, its id intact whatever it holds`() {
         harness.setup.setupResult = ApiResult.Forbidden("Only the workspace owner can set up this workspace.")
         harness.render()
-        harness.navigate(setupWizardRoute("ws-elsewhere"))
+        // ⚠️ Reserved characters: the route encodes the id, so it neither misses the destination nor
+        // reaches it as another workspace.
+        val id = "ws elsewhere/2?x=1"
+        harness.navigate(setupWizardRoute(id))
 
         harness.awaitDescription(SetupTags.REFUSED)
-        assertEquals("ws-elsewhere", harness.argument(ARG_WORKSPACE_ID))
-        assertEquals(listOf("ws-elsewhere"), harness.setup.reads)
+        assertEquals(id, harness.argument(ARG_WORKSPACE_ID))
+        assertEquals(listOf(id), harness.setup.reads)
     }
 
     @Test
@@ -115,8 +119,7 @@ class NavHostHandOffTest {
 
         harness.installBrowser()
         harness.tap(NumberTags.OPEN_PAGE)
-        assertEquals(1, opened().size)
-        assertTrue(opened().single().orEmpty().startsWith("https://"))
+        assertEquals(listOf(SetupHandOff.SETUP.destination(ApiEnvironment.baseUrl)), opened())
         assertEquals("the second tap opened, so nothing more was said", listOf(browserMissing), harness.messages)
     }
 

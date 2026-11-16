@@ -1079,6 +1079,7 @@
     <string name="setup_calls_ring_label">Durée de sonnerie dans l\'app</string>
     <string name="setup_calls_ring_more">Plus de secondes</string>
     <string name="setup_calls_ring_seconds">%1$d secondes</string>
+    <string name="setup_calls_ring_value">%1$s\u00A0: %2$s</string>
     <string name="setup_calls_save_answering">Enregistrer la façon de répondre</string>
     <string name="setup_calls_title">Appels, personnes et rendez-vous</string>
     <string name="setup_calls_transfer_current">Quand un appelant demande une personne, votre réceptionniste transfère l\'appel au %1$s.</string>
@@ -1148,6 +1149,8 @@
     <string name="setup_open_integrations">Ouvrir la page Intégrations</string>
     <string name="setup_open_skills">Ouvrir la page Compétences</string>
     <string name="setup_progress_label">Progression de la configuration</string>
+    <string name="setup_progress_sentence">%1$s. %2$s</string>
+    <string name="setup_progress_step_state">%1$s\u00A0: %2$s</string>
     <string name="setup_receptionist_description">Son nom, son message d\'accueil et sa voix.</string>
     <string name="setup_receptionist_disclosure_always">Votre réceptionniste indique aux appelants qu\'elle est une assistante IA au début de chaque appel.</string>
     <string name="setup_receptionist_disclosure_required">C\'est obligatoire en Europe.</string>

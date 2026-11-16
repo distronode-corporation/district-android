@@ -9493,6 +9493,16 @@ tier = "T2"
 args = { n = "int" }
 state = "reviewed"
 
+[setup.calls_ring_value]
+en = "{label}: {seconds}"
+fr = "{label}\u00A0: {seconds}"
+ctx = "label"
+screen = "setup.calls"
+tier = "T2"
+args = { label = "str", seconds = "str" }
+state = "draft"
+note = "The ring time's label and value, for example \"How long to ring the app: 20 seconds\". A format string so each language sets its own punctuation before the colon."
+
 [setup.calls_save_answering]
 en = "Save how calls are answered"
 fr = "Enregistrer la façon de répondre"
@@ -10055,6 +10065,26 @@ ctx = "label"
 screen = "setup.a11y"
 tier = "T2"
 state = "reviewed"
+
+[setup.progress_sentence]
+en = "{label}. {steps}"
+fr = "{label}. {steps}"
+ctx = "a11y"
+screen = "setup.a11y"
+tier = "T2"
+args = { label = "str", steps = "str" }
+state = "draft"
+note = "Read aloud by TalkBack for the progress bar: \"Setup progress\", then every step and its state."
+
+[setup.progress_step_state]
+en = "{step}: {state}"
+fr = "{step}\u00A0: {state}"
+ctx = "a11y"
+screen = "setup.a11y"
+tier = "T2"
+args = { step = "str", state = "str" }
+state = "draft"
+note = "One step and its state in the spoken progress sentence, for example \"Your number: done\"."
 
 [setup.receptionist_description]
 en = "A name, a greeting and a voice."

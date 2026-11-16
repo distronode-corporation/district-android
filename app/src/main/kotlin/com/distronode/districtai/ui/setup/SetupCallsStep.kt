@@ -128,8 +128,11 @@ private fun RingStepper(model: SetupCallsModel) {
         horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight),
     ) {
         Text(
-            text = stringResource(R.string.setup_calls_ring_label) + ": " +
+            text = stringResource(
+                R.string.setup_calls_ring_value,
+                stringResource(R.string.setup_calls_ring_label),
                 stringResource(R.string.setup_calls_ring_seconds, model.ringSeconds),
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = DistrictTheme.colors.foreground,
             modifier = Modifier

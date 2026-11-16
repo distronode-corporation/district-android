@@ -69,6 +69,10 @@ class SetupWizardRepositoryTest {
         assertEquals(listOf("example.com" to "fr"), api.lookups)
         assertEquals(listOf("+14165550123" to "all"), api.forwardingStarts)
         assertEquals(listOf("ws-1"), api.connectionReads)
+        assertEquals(
+            listOf("lookup", "forwardingCheck", "forwardingCheckStart", "connections").map { it to "ws-1" },
+            api.calls,
+        )
     }
 
     @Test
@@ -76,16 +80,21 @@ class SetupWizardRepositoryTest {
         api.testCallResult = ApiResult.Success(SetupTestCallResponse(success = true, callId = "CA9"))
 
         assertEquals(ApiResult.Success("CA9"), repository.placeTestCall("ws-1", "+14165550123"))
+        assertEquals(listOf("testCall" to "ws-1"), api.calls)
         assertEquals(listOf("+14165550123"), api.testCalls)
     }
 
     @Test
     fun `a test call the body does not affirm is drift, not a call`() = runTest {
         api.testCallResult = ApiResult.Success(SetupTestCallResponse(success = false, callId = "CA9"))
-        assertTrue(repository.placeTestCall("ws-1", "+1") is ApiResult.DecodeFailure)
+        val unaffirmed = repository.placeTestCall("ws-1", "+1") as ApiResult.DecodeFailure
+        assertTrue(unaffirmed.cause.message!!.contains("success=true"))
 
+        // ⚠️ The diagnostic names the empty id, not a success flag the body did set.
         api.testCallResult = ApiResult.Success(SetupTestCallResponse(success = true, callId = ""))
-        assertTrue(repository.placeTestCall("ws-1", "+1") is ApiResult.DecodeFailure)
+        val noId = repository.placeTestCall("ws-1", "+1") as ApiResult.DecodeFailure
+        assertTrue(noId.cause.message!!.contains("empty callId"))
+        assertTrue(noId.bodyPreview.contains("success=true"))
     }
 
     @Test

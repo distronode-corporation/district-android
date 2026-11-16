@@ -137,8 +137,12 @@ private fun GoLiveForwarding(model: SetupGoLiveModel, forwarding: ForwardingChec
         }
         SetupPrimaryButton(
             title = stringResource(R.string.setup_golive_start_check),
-            busy = model.isStartingCheck || model.isPolling,
-            enabled = model.businessLine.isNotBlank() && forwarding.attemptsLeft != 0,
+            // ⚠️ BUSY ONLY WHILE STARTING: a poll runs for minutes and saves nothing, so the button keeps
+            // its own title then. A pending check is read again on a tap, which needs no line and no
+            // check left today.
+            busy = model.isStartingCheck,
+            enabled = !model.isPolling &&
+                (model.checkIsPending || (model.businessLine.isNotBlank() && forwarding.attemptsLeft != 0)),
             tag = GoLiveTags.START_CHECK,
             onClick = @DontMemoize { model.startCheck() },
         )

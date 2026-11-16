@@ -201,15 +201,23 @@ private fun SetupProgressHeader(wizard: SetupWizardViewModel) {
     val total = SetupFlow.steps.size
     val words = mutableListOf<String>()
     for (step in SetupFlow.steps) {
-        words += stringResource(stepTitle(step)) + ": " + stringResource(stepWord(wizard, step))
+        words += stringResource(
+            R.string.setup_progress_step_state,
+            stringResource(stepTitle(step)),
+            stringResource(stepWord(wizard, step)),
+        )
     }
-    val spoken = words.joinToString(", ")
-    val label = stringResource(R.string.setup_progress_label)
+    // ⚠️ THE PUNCTUATION IS EACH LANGUAGE'S OWN (a space before the colon in French), from the catalog.
+    val spoken = stringResource(
+        R.string.setup_progress_sentence,
+        stringResource(R.string.setup_progress_label),
+        words.joinToString(", "),
+    )
     Column(verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.tight)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = "$label. $spoken" }
+                .semantics { contentDescription = spoken }
                 .testTag(SetupTags.PROGRESS),
             horizontalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
         ) {

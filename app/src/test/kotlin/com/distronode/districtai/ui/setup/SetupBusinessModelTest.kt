@@ -124,6 +124,7 @@ class SetupBusinessModelTest {
         val (_, model) = open(facts = facts)
         model.subdivision = "BC"
         assertEquals("America/Vancouver", model.timezone)
+        assertEquals("America/Vancouver", model.factsPatch()["timezone"]!!.jsonPrimitive.content)
     }
 
     @Test
@@ -131,9 +132,11 @@ class SetupBusinessModelTest {
         val facts = """{"timezone":"America/Winnipeg","address":{"city":"Ottawa","region":"ON","country":"CA"}}"""
         val (_, model) = open(facts = facts)
         assertEquals("America/Winnipeg", model.timezone)
+        assertEquals("America/Winnipeg", model.factsPatch()["timezone"]!!.jsonPrimitive.content)
 
         model.city = "Toronto"
         assertEquals("America/Toronto", model.timezone)
+        assertEquals("America/Toronto", model.factsPatch()["timezone"]!!.jsonPrimitive.content)
     }
 
     @Test

@@ -47,12 +47,16 @@ class FakeSetupWizardApi : SetupWizardApi {
     val forwardingStarts = mutableListOf<Pair<String, String>>()
     val connectionReads = mutableListOf<String>()
 
+    /** Every request as (route, workspace), in order, so a test can catch a call sent for the wrong workspace. */
+    val calls = mutableListOf<Pair<String, String>>()
+
     private suspend fun held() {
         gate?.await()
     }
 
     override suspend fun districtSetup(workspaceId: String): ApiResult<DistrictSetupResponse> {
         reads += workspaceId
+        calls += "setup" to workspaceId
         held()
         return setupQueue.removeFirstOrNull() ?: setupResult
     }
@@ -63,6 +67,7 @@ class FakeSetupWizardApi : SetupWizardApi {
         businessFacts: JsonObject?,
     ): ApiResult<DistrictSetupResponse> {
         patches += FakeSetupPatch(workspaceId, steps, businessFacts)
+        calls += "setupPatch" to workspaceId
         held()
         return patchQueue.removeFirstOrNull() ?: patchResult
     }
@@ -73,18 +78,21 @@ class FakeSetupWizardApi : SetupWizardApi {
         locale: String,
     ): ApiResult<SetupLookupResponse> {
         lookups += websiteUrl to locale
+        calls += "lookup" to workspaceId
         held()
         return lookupResult
     }
 
     override suspend fun setupTestCall(workspaceId: String, phone: String): ApiResult<SetupTestCallResponse> {
         testCalls += phone
+        calls += "testCall" to workspaceId
         held()
         return testCallResult
     }
 
     override suspend fun forwardingCheck(workspaceId: String): ApiResult<ForwardingCheckResponse> {
         forwardingReads += workspaceId
+        calls += "forwardingCheck" to workspaceId
         held()
         return forwardingQueue.removeFirstOrNull() ?: forwardingResult
     }
@@ -95,12 +103,14 @@ class FakeSetupWizardApi : SetupWizardApi {
         mode: String,
     ): ApiResult<ForwardingCheckResponse> {
         forwardingStarts += businessLine to mode
+        calls += "forwardingCheckStart" to workspaceId
         held()
         return forwardingStartResult
     }
 
     override suspend fun workspaceConnections(workspaceId: String): ApiResult<ConnectionsResponse> {
         connectionReads += workspaceId
+        calls += "connections" to workspaceId
         held()
         return connectionsQueue.removeFirstOrNull() ?: connectionsResult
     }

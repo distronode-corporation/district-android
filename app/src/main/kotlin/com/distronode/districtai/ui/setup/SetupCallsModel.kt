@@ -137,9 +137,17 @@ class SetupCallsModel(private val wizard: SetupWizardViewModel) : SetupStepModel
 
     // ── Writing ─────────────────────────────────────────────────────────────────
 
+    /**
+     * Any of the step's three writes in flight.
+     *
+     * ⛔ ONE WRITE AT A TIME, across all three: they share [error], so an overlap would let one answer
+     * hide the other's refusal.
+     */
+    private val isWriting: Boolean get() = isSavingAnswering || isSavingProfiles || isContinuing
+
     /** Saves who answers; only the fields that changed are sent. */
     fun saveAnswering() {
-        if (!answeringChanged || isSavingAnswering) return
+        if (!answeringChanged || isWriting) return
         isSavingAnswering = true
         wizard.beginStepWrite()
         wizard.scope.launch { writeAnswering() }
@@ -181,7 +189,7 @@ class SetupCallsModel(private val wizard: SetupWizardViewModel) : SetupStepModel
      * which is why the switch is only drawn on the plans that have it.
      */
     fun setProfiles(on: Boolean) {
-        if (!profilesOffered || on == profilesOn || isSavingProfiles) return
+        if (!profilesOffered || on == profilesOn || isWriting) return
         isSavingProfiles = true
         wizard.beginStepWrite()
         error = null
@@ -198,7 +206,7 @@ class SetupCallsModel(private val wizard: SetupWizardViewModel) : SetupStepModel
 
     /** Saves an unsaved answering choice first, so Continue never drops one. */
     fun saveAndContinue() {
-        if (isContinuing || isSavingAnswering) return
+        if (isWriting) return
         isContinuing = true
         wizard.beginStepWrite()
         wizard.scope.launch {

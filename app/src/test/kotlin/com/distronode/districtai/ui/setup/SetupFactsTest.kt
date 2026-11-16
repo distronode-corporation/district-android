@@ -178,7 +178,7 @@ class SetupFactsTest {
         assertNull(SetupInterval.minutes(null))
         assertEquals("09:05", SetupInterval.text(545))
         assertEquals("24:00", SetupInterval.text(1440))
-        assertEquals(SetupInterval(540, 1020).open, SetupInterval.standard().open)
+        assertEquals(540 to 1020, SetupInterval.standard().let { it.open to it.close })
         assertTrue(SetupAddressDraft(line1 = " ").isEmpty)
         assertNull(json("""{"a":1}""").str("a"))
         assertNull(json("""{"a":"x"}""").obj("a"))

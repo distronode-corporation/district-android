@@ -1085,6 +1085,7 @@
     <string name="setup_calls_ring_label">How long to ring the app</string>
     <string name="setup_calls_ring_more">More seconds</string>
     <string name="setup_calls_ring_seconds">%1$d seconds</string>
+    <string name="setup_calls_ring_value">%1$s: %2$s</string>
     <string name="setup_calls_save_answering">Save how calls are answered</string>
     <string name="setup_calls_title">Calls, people and bookings</string>
     <string name="setup_calls_transfer_current">When a caller asks for a person, your receptionist transfers the call to %1$s.</string>
@@ -1154,6 +1155,8 @@
     <string name="setup_open_integrations">Open the Integrations page</string>
     <string name="setup_open_skills">Open the Skills page</string>
     <string name="setup_progress_label">Setup progress</string>
+    <string name="setup_progress_sentence">%1$s. %2$s</string>
+    <string name="setup_progress_step_state">%1$s: %2$s</string>
     <string name="setup_receptionist_description">A name, a greeting and a voice.</string>
     <string name="setup_receptionist_disclosure_always">Your receptionist tells callers it is an AI assistant at the start of every call.</string>
     <string name="setup_receptionist_disclosure_required">This is required in Europe.</string>

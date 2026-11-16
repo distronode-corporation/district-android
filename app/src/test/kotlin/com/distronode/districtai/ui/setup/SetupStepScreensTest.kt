@@ -1,6 +1,7 @@
 package com.distronode.districtai.ui.setup
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -38,6 +39,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -456,8 +458,36 @@ class SetupStepScreensTest {
         composeRule.waitForIdle()
         text(R.string.setup_golive_expect_call, "+14165550142").assertExists()
         text(R.string.setup_golive_check_pending).assertExists()
+        // While it polls the button keeps its own title (nothing is being saved) and cannot be pressed.
+        composeRule.onNodeWithTag(GoLiveTags.START_CHECK).assertIsNotEnabled()
+        composeRule.onNodeWithText(str(R.string.setup_golive_start_check)).assertExists()
         (wizard.stepModel as SetupGoLiveModel).close()
         composeRule.waitForIdle()
         text(R.string.setup_golive_check_still_pending).assertExists()
+    }
+
+    @Test
+    fun `a check still pending can be read again with no line typed and no check left today`() {
+        harness.handling(CallHandling.AI_FIRST)
+        harness.setup.forwardingResult = ApiResult.Success(ForwardingCheckResponse(true, check("pending"), 0))
+        harness.reads(at(SetupStep.GOLIVE))
+        val wizard = SetupWizardViewModel(
+            harness.deps,
+            SetupHarness.WORKSPACE,
+            "Bloom",
+            com.distronode.districtai.l10n.AppLanguage.EN,
+            SetupTiming(60_000, 1),
+        )
+        composeRule.setContent { DistrictTheme { SetupWizardScreen(wizard, actions, onClose = {}) } }
+        composeRule.waitForIdle()
+        (wizard.stepModel as SetupGoLiveModel).close()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(GoLiveTags.START_CHECK).performScrollTo().assertIsEnabled()
+        tap(GoLiveTags.START_CHECK)
+        val model = wizard.stepModel as SetupGoLiveModel
+        assertTrue("the held check is polled again", model.isPolling)
+        assertTrue("no new check is placed", harness.setup.forwardingStarts.isEmpty())
+        model.close()
     }
 }

@@ -14,13 +14,16 @@ import com.distronode.districtai.core.designsystem.DistrictTheme
 import com.distronode.districtai.core.designsystem.Eyebrow
 import com.distronode.districtai.core.model.CallHandling
 import com.distronode.districtai.core.model.ForwardingCheckMode
+import com.distronode.districtai.core.model.ForwardingCheckResponse
 import com.distronode.districtai.ui.resolve
 
 /** Step 6, "Test and go live". See [SetupGoLiveModel]. */
 @Composable
 internal fun SetupGoLiveStep(model: SetupGoLiveModel, wizard: SetupWizardViewModel) {
     GoLiveTestCall(model)
-    if (model.forwarding?.available == true) GoLiveForwarding(model)
+    // The card is drawn from the response it was decided on, so nothing inside it re-reads a nullable.
+    val forwarding = model.forwarding
+    if (forwarding?.available == true) GoLiveForwarding(model, forwarding)
     SetupCard(heading = stringResource(R.string.setup_golive_live_header)) {
         model.summary?.let { summary ->
             Column(modifier = Modifier.testTag(GoLiveTags.SUMMARY)) {
@@ -98,7 +101,7 @@ private fun GoLiveTestCall(model: SetupGoLiveModel) {
 }
 
 @Composable
-private fun GoLiveForwarding(model: SetupGoLiveModel) {
+private fun GoLiveForwarding(model: SetupGoLiveModel, forwarding: ForwardingCheckResponse) {
     SetupCard(heading = stringResource(R.string.setup_golive_keeping_header)) {
         SetupNote(stringResource(R.string.setup_golive_keeping_description), small = true)
         Eyebrow(stringResource(R.string.setup_golive_check_header))
@@ -125,7 +128,7 @@ private fun GoLiveForwarding(model: SetupGoLiveModel) {
         if (model.mode == ForwardingCheckMode.UNANSWERED) {
             SetupNote(stringResource(R.string.setup_golive_unanswered_note), small = true)
         }
-        val verifier = model.forwarding?.forwardingCheck?.verifierNumber.orEmpty()
+        val verifier = forwarding.forwardingCheck?.verifierNumber.orEmpty()
         if (verifier.isNotEmpty() && model.isPolling) {
             SetupNote(
                 stringResource(R.string.setup_golive_expect_call, verifier),
@@ -135,16 +138,16 @@ private fun GoLiveForwarding(model: SetupGoLiveModel) {
         SetupPrimaryButton(
             title = stringResource(R.string.setup_golive_start_check),
             busy = model.isStartingCheck || model.isPolling,
-            enabled = model.businessLine.isNotBlank() && model.forwarding?.attemptsLeft != 0,
+            enabled = model.businessLine.isNotBlank() && forwarding.attemptsLeft != 0,
             tag = GoLiveTags.START_CHECK,
             onClick = @DontMemoize { model.startCheck() },
         )
-        CheckStatus(model)
+        CheckStatus(model, forwarding.attemptsLeft)
     }
 }
 
 @Composable
-private fun CheckStatus(model: SetupGoLiveModel) {
+private fun CheckStatus(model: SetupGoLiveModel, attemptsLeft: Int) {
     Column(
         modifier = Modifier.testTag(GoLiveTags.CHECK_STATUS),
         verticalArrangement = Arrangement.spacedBy(DistrictTheme.spacing.hairline),
@@ -156,16 +159,14 @@ private fun CheckStatus(model: SetupGoLiveModel) {
         } else if (sentence != null) {
             SetupNote(stringResource(checkSentence(sentence)))
         }
-        model.forwarding?.attemptsLeft?.let { left ->
-            SetupNote(
-                text = if (left == 1) {
-                    stringResource(R.string.setup_golive_attempts_left_one)
-                } else {
-                    stringResource(R.string.setup_golive_attempts_left, left)
-                },
-                small = true,
-            )
-        }
+        SetupNote(
+            text = if (attemptsLeft == 1) {
+                stringResource(R.string.setup_golive_attempts_left_one)
+            } else {
+                stringResource(R.string.setup_golive_attempts_left, attemptsLeft)
+            },
+            small = true,
+        )
     }
 }
 

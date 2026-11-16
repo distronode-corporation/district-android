@@ -276,6 +276,30 @@ class SetupWizardScreenTest {
     }
 
     @Test
+    fun `with no country step 1 asks for one, and offers no province field`() {
+        harness.store.save(SetupBusinessDraft("Bloom", "", "", "Lyon", "en"), SetupHarness.WORKSPACE)
+        harness.reads(setupState(region = null))
+        show(harness.wizard(name = "Bloom"))
+        composeRule.onNodeWithTag(BusinessTags.SUBDIVISION).assertDoesNotExist()
+        text(R.string.setup_business_timezone_unknown).assertExists()
+
+        tap(BusinessTags.SAVE)
+        text(R.string.setup_business_country_required).assertExists()
+        assertTrue("nothing is written without a country", harness.setup.patches.isEmpty())
+    }
+
+    @Test
+    fun `a zone chosen in step 4 is shown as it is, not as the place's`() {
+        harness.reads(
+            setupState(
+                facts = """{"timezone":"America/Winnipeg","address":{"city":"Ottawa","region":"ON","country":"CA"}}""",
+            ),
+        )
+        show(harness.wizard(name = "Bloom"))
+        text(R.string.setup_business_timezone_value, "America/Winnipeg").assertExists()
+    }
+
+    @Test
     fun `a refused step 1 save is said on the step`() {
         harness.reads(setupState(facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"}}"""))
         harness.setup.patchResult = ApiResult.HttpFailure(400, "The address was refused.")

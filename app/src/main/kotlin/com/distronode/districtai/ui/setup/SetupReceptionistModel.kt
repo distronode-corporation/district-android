@@ -114,8 +114,9 @@ class SetupReceptionistModel(private val wizard: SetupWizardViewModel) : SetupSt
         val engine = persona?.modelId
         val language = languageToSave
         voiceGroups = options?.voiceGroups(engine, language).orEmpty()
-        voice = if (options?.voiceExists(persona?.voice, engine, language) == true) {
-            persona?.voice
+        val storedVoice = persona?.voice
+        voice = if (options?.voiceExists(storedVoice, engine, language) == true) {
+            storedVoice
         } else {
             options?.defaultVoice(engine, language) ?: voiceGroups.firstOrNull()?.options?.firstOrNull()?.value
         }

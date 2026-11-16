@@ -54,6 +54,29 @@ class SetupFactsTest {
     }
 
     @Test
+    fun `a row missing a field reads it as empty, and a day or period of another shape is dropped`() {
+        val odd = json(
+            """
+            {"services":[{"price":"5"}],
+             "faqs":[{"enabled":true}],
+             "weeklyHours":{"thu":9,"fri":[{"open":"09:00","close":"late"}]}}
+            """,
+        )
+        assertEquals(listOf("" to "5"), SetupFacts.services(odd).map { it.name to it.price })
+        assertEquals(listOf("" to ""), SetupFacts.faqs(odd).map { it.question to it.answer })
+
+        val hours = SetupFacts.hours(odd["weeklyHours"] as JsonObject)
+        assertEquals(SetupDayState.NOT_SET, hours.getValue(SetupWeekday.THU).state)
+        // An open time with no readable close is no period at all, never one that runs to midnight.
+        assertEquals(SetupDayState.OPEN, hours.getValue(SetupWeekday.FRI).state)
+        assertTrue(hours.getValue(SetupWeekday.FRI).intervals.isEmpty())
+
+        // A row without the key counts as the blank key: the second keyless row is a duplicate.
+        val keyless = json("""{"price":"5"}""")
+        assertEquals(listOf(keyless), SetupFacts.appending(listOf(keyless, keyless), emptyList(), "name", 5))
+    }
+
+    @Test
     fun `an empty section is a clear and a blank optional part is left out`() {
         assertEquals(JsonNull, SetupFacts.json(emptyList<SetupServiceDraft>()))
         assertEquals(JsonNull, SetupFacts.jsonFaqs(emptyList()))

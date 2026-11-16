@@ -104,7 +104,8 @@ class SetupCallersModel(private val wizard: SetupWizardViewModel) : SetupStepMod
         editHours(hours + (day to draft.copy(state = state, intervals = intervals)))
     }
 
-    fun day(day: SetupWeekday): SetupDayDraft = hours[day] ?: SetupDayDraft(SetupDayState.NOT_SET)
+    // Every map [hours] holds comes from SetupFacts.hours, which keys all seven days, so no day is missing.
+    fun day(day: SetupWeekday): SetupDayDraft = hours.getValue(day)
 
     fun addPeriod(day: SetupWeekday) {
         val draft = day(day)

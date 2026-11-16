@@ -187,6 +187,18 @@ class SetupLiveStepsTest {
     }
 
     @Test
+    fun `Continue while Save is writing the answering choice is refused`() = runTest {
+        val (wizard, model) = calls()
+        model.selectMode(CallHandling.APP_FIRST)
+        model.saveAnswering()
+        assertTrue(model.isSavingAnswering)
+        model.saveAndContinue()
+        advanceUntilIdle()
+        assertEquals(1, harness.callHandling.handlingWrites.size)
+        assertEquals(SetupStep.CALLS, wizard.active)
+    }
+
+    @Test
     fun `Continue with nothing to save moves on`() = runTest {
         val (wizard, model) = calls()
         model.saveAndContinue()
@@ -403,6 +415,63 @@ class SetupLiveStepsTest {
         model.startCheck()
         advanceUntilIdle()
         assertEquals(SetupCheckSentence.FAILED, model.checkSentence)
+    }
+
+    @Test
+    fun `an unreadable check on open shows no check, and a check can still be started`() = runTest {
+        harness.setup.forwardingResult = ApiResult.NetworkFailure(IOException("down"))
+        val (_, model) = golive()
+        assertNull(model.forwarding)
+        assertNull(model.checkSentence)
+        assertFalse(model.isPolling)
+
+        harness.setup.forwardingStartResult = started(check("passed"), 3)
+        model.businessLine = "+14165550123"
+        model.startCheck()
+        advanceUntilIdle()
+        assertEquals(SetupCheckSentence.PASSED, model.checkSentence)
+    }
+
+    @Test
+    fun `the button does nothing while a pending check is being polled`() = runTest {
+        harness.setup.forwardingResult = ApiResult.Success(ForwardingCheckResponse(true, check("pending"), 2))
+        harness.reads(throughCalls)
+        val wizard = harness.wizard()
+        runCurrent()
+        val model = wizard.stepModel as SetupGoLiveModel
+        runCurrent()
+        assertTrue(model.isPolling)
+        val reads = harness.setup.forwardingReads.size
+
+        model.businessLine = "+14165550123"
+        model.startCheck()
+        runCurrent()
+
+        assertTrue(harness.setup.forwardingStarts.isEmpty())
+        assertEquals("no extra read either", reads, harness.setup.forwardingReads.size)
+        wizard.back()
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `a check started while the step is still opening is polled once, not twice`() = runTest {
+        // A draft on the device, so opening the wizard reads no config and only step 6's read waits.
+        harness.store.save(SetupBusinessDraft("Bloom", "CA", "ON", "Ottawa", "en"), SetupHarness.WORKSPACE)
+        harness.district.gate = CompletableDeferred()
+        harness.setup.forwardingResult = ApiResult.Success(ForwardingCheckResponse(true, check("pending"), 2))
+        harness.setup.forwardingStartResult = started(check("pending"), 2)
+        val (_, model) = golive()
+
+        model.businessLine = "+14165550123"
+        model.startCheck()
+        runCurrent()
+        assertTrue(model.isPolling)
+        harness.district.gate!!.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(listOf("+14165550123" to "all"), harness.setup.forwardingStarts)
+        assertEquals("the open read, then one poll to the limit", 1 + 3, harness.setup.forwardingReads.size)
+        assertTrue(model.pollGaveUp)
     }
 
     @Test

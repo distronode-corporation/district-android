@@ -102,6 +102,31 @@ class SetupBusinessModelTest {
     }
 
     @Test
+    fun `with a name, each other missing field alone still makes the form invalid`() = runTest {
+        val (_, model) = open(facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"}}""")
+        assertTrue(model.isValid)
+
+        model.city = " "
+        assertFalse(model.isValid)
+        model.city = "Ottawa"
+
+        model.subdivision = ""
+        assertFalse(model.isValid)
+        model.subdivision = "ON"
+
+        model.chooseCountry("")
+        assertFalse(model.isValid)
+    }
+
+    @Test
+    fun `a new province is a new place, so its own zone is saved`() = runTest {
+        val facts = """{"timezone":"America/Winnipeg","address":{"city":"Ottawa","region":"ON","country":"CA"}}"""
+        val (_, model) = open(facts = facts)
+        model.subdivision = "BC"
+        assertEquals("America/Vancouver", model.timezone)
+    }
+
+    @Test
     fun `step 4's time zone survives a save over an unchanged place`() = runTest {
         val facts = """{"timezone":"America/Winnipeg","address":{"city":"Ottawa","region":"ON","country":"CA"}}"""
         val (_, model) = open(facts = facts)
@@ -211,6 +236,71 @@ class SetupBusinessModelTest {
         model.readWebsite()
         advanceUntilIdle()
         assertTrue(model.notice is SetupBusinessNotice.Failed)
+    }
+
+    @Test
+    fun `hours alone are found and write nothing, and an empty hours object is nothing found`() = runTest {
+        val (_, model) = open()
+        model.websiteUrl = "example.com"
+        harness.setup.lookupResult = ApiResult.Success(
+            SetupLookupResponse(SetupLookupDraft(weeklyHours = json("""{"tue":[{"open":"09:00","close":"17:00"}]}"""))),
+        )
+        model.readWebsite()
+        advanceUntilIdle()
+        assertEquals(SetupBusinessNotice.Found(0, 0, hours = true, address = false), model.notice)
+        assertTrue("hours from a website are never saved from here", harness.setup.patches.isEmpty())
+
+        harness.setup.lookupResult = ApiResult.Success(SetupLookupResponse(SetupLookupDraft(weeklyHours = json("{}"))))
+        model.readWebsite()
+        advanceUntilIdle()
+        assertEquals(SetupBusinessNotice.Nothing, model.notice)
+    }
+
+    @Test
+    fun `an address with no country, or one outside the list, fills the city but no country`() = runTest {
+        val (_, model) = open(region = "us")
+        model.chooseCountry("")
+        model.websiteUrl = "example.com"
+        harness.setup.lookupResult = ApiResult.Success(
+            SetupLookupResponse(SetupLookupDraft(address = json("""{"city":"Springfield"}"""))),
+        )
+        model.readWebsite()
+        advanceUntilIdle()
+        assertEquals("Springfield", model.city)
+        assertEquals("", model.country)
+
+        harness.setup.lookupResult = ApiResult.Success(
+            SetupLookupResponse(SetupLookupDraft(address = json("""{"region":"XX","country":"ZZ"}"""))),
+        )
+        model.readWebsite()
+        advanceUntilIdle()
+        assertEquals("", model.country)
+        assertEquals("", model.subdivision)
+    }
+
+    @Test
+    fun `a province already chosen is not replaced by the website's`() = runTest {
+        val (_, model) = open(facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"}}""")
+        model.websiteUrl = "example.com"
+        harness.setup.lookupResult = ApiResult.Success(
+            SetupLookupResponse(SetupLookupDraft(address = json("""{"region":"QC","country":"CA"}"""))),
+        )
+        model.readWebsite()
+        advanceUntilIdle()
+        assertEquals("ON", model.subdivision)
+    }
+
+    @Test
+    fun `a read is refused while the save is in flight`() = runTest {
+        val (_, model) = open(facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"}}""")
+        harness.setup.gate = CompletableDeferred()
+        model.save()
+        assertTrue(model.isBusy)
+        model.websiteUrl = "example.com"
+        model.readWebsite()
+        harness.setup.gate!!.complete(Unit)
+        advanceUntilIdle()
+        assertTrue(harness.setup.lookups.isEmpty())
     }
 
     @Test
@@ -347,6 +437,17 @@ class SetupBusinessModelTest {
         assertTrue(harness.setup.patches.isEmpty())
 
         model.what = ""
+        assertFalse(model.faqsFull)
+    }
+
+    @Test
+    fun `a full list that already holds what you do has room, because that question is replaced`() = runTest {
+        val others = (2..SetupFacts.FAQS).joinToString(",") { """{"question":"Q$it","answer":"A","enabled":true}""" }
+        val what = """{"question":"What does the business do?","answer":"Old","enabled":true}"""
+        val (_, model) = open(
+            facts = """{"address":{"city":"Ottawa","region":"ON","country":"CA"},"faqs":[$what,$others]}""",
+        )
+        model.what = "Dentistry"
         assertFalse(model.faqsFull)
     }
 }

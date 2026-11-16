@@ -13,6 +13,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -280,6 +281,58 @@ class SetupWizardViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SetupPhase.Finished, wizard.phase)
+    }
+
+    @Test
+    fun `the web finishing setup from the number step, which has no form, finishes the wizard`() = runTest {
+        harness.reads(setupState(business = SETUP_STEP_DONE, numbersHeld = 0))
+        val wizard = harness.wizard()
+        advanceUntilIdle()
+        assertEquals(SetupStep.NUMBER, wizard.active)
+        assertNull(wizard.stepModel)
+
+        harness.reads(setupState(business = SETUP_STEP_DONE, completedAt = "2026-11-03T00:00:00Z"))
+        wizard.handOffOpened()
+        wizard.resumed()
+        advanceUntilIdle()
+
+        assertEquals(SetupPhase.Finished, wizard.phase)
+        assertNull(wizard.stepModel)
+    }
+
+    @Test
+    fun `Back during the re-read after a hand-off keeps the step the person went back to`() = runTest {
+        harness.reads(setupState(business = SETUP_STEP_DONE, numbersHeld = 0))
+        val wizard = harness.wizard()
+        advanceUntilIdle()
+        assertEquals(SetupStep.NUMBER, wizard.active)
+
+        harness.setup.gate = CompletableDeferred()
+        harness.reads(setupState(business = SETUP_STEP_DONE, number = SETUP_STEP_DONE))
+        wizard.handOffOpened()
+        wizard.resumed()
+        runCurrent()
+        wizard.back()
+        harness.setup.gate!!.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(SetupStep.BUSINESS, wizard.active)
+        assertEquals(SETUP_STEP_DONE, wizard.data?.setupProgress?.steps?.number)
+    }
+
+    @Test
+    fun `a re-read with no progress after a hand-off neither finishes nor moves the wizard`() = runTest {
+        harness.reads(setupState(business = SETUP_STEP_DONE, numbersHeld = 0))
+        val wizard = harness.wizard()
+        advanceUntilIdle()
+
+        harness.reads(DistrictSetupResponse())
+        wizard.handOffOpened()
+        wizard.resumed()
+        advanceUntilIdle()
+
+        assertEquals(SetupPhase.Ready, wizard.phase)
+        assertEquals(SetupStep.NUMBER, wizard.active)
     }
 
     @Test

@@ -119,6 +119,25 @@ class SetupStepModelsTest {
     }
 
     @Test
+    fun `a stored greeting that is this business's template is still the template, and follows a rename`() = runTest {
+        harness.store.save(SetupBusinessDraft(businessName = "Bloom", language = "en"), SetupHarness.WORKSPACE)
+        harness.config(
+            SetupHarness.persona(
+                name = "Max",
+                greeting = "Thanks for calling Bloom, this is Max. How can I help?",
+                modelId = "gemini-live",
+                language = "en-US",
+            ),
+        )
+        harness.persona.optionsResult = ApiResult.Success(options)
+        val (_, model) = receptionist()
+
+        assertFalse(model.greetingEdited)
+        model.editName("Lea")
+        assertEquals("Thanks for calling Bloom, this is Lea. How can I help?", model.greeting)
+    }
+
+    @Test
     fun `typing a greeting stops the name from rewriting it`() = runTest {
         harness.config(SetupHarness.persona(greeting = "Thanks for calling, this is Ava. How can I help?"))
         val (_, model) = receptionist()
@@ -306,6 +325,36 @@ class SetupStepModelsTest {
         val (_, model) = callers("""{"weeklyHours":{"fri":[{"open":"20:00","close":"23:30"}]}}""")
         model.addPeriod(SetupWeekday.FRI)
         assertEquals(1380 to 1440, model.day(SetupWeekday.FRI).intervals.last().let { it.open to it.close })
+    }
+
+    @Test
+    fun `a new period starts after the latest close, not the last period's`() = runTest {
+        val (_, model) = callers(
+            """{"weeklyHours":{"sat":[{"open":"18:00","close":"20:00"},{"open":"09:00","close":"12:00"}]}}""",
+        )
+        model.addPeriod(SetupWeekday.SAT)
+        assertEquals(1260 to 1320, model.day(SetupWeekday.SAT).intervals.last().let { it.open to it.close })
+    }
+
+    @Test
+    fun `a day whose period closes before it opens makes the step invalid`() = runTest {
+        val (_, model) = callers()
+        assertTrue(model.isValid)
+        model.setState(SetupDayState.OPEN, SetupWeekday.WED)
+        val period = model.day(SetupWeekday.WED).intervals.single()
+        model.setPeriod(SetupWeekday.WED, period.id, close = period.open - 60)
+        assertFalse(model.isValid)
+    }
+
+    @Test
+    fun `a website whose hours are an empty object found no hours`() = runTest {
+        val (_, model) = callers()
+        harness.setup.lookupResult = ApiResult.Success(SetupLookupResponse(SetupLookupDraft(weeklyHours = json("{}"))))
+        model.websiteUrl = "example.com"
+        model.fillHoursFromWebsite()
+        advanceUntilIdle()
+        assertEquals(UiText.Resource(R.string.setup_callers_no_hours_found), model.hoursNotice)
+        assertFalse(model.hoursDraftPending)
     }
 
     @Test

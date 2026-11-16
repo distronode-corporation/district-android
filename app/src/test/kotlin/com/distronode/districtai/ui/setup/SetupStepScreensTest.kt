@@ -414,6 +414,13 @@ class SetupStepScreensTest {
     }
 
     @Test
+    fun `step 6 hides a check it could not read`() {
+        harness.setup.forwardingResult = ApiResult.NetworkFailure(IOException("down"))
+        show(at(SetupStep.GOLIVE))
+        composeRule.onNodeWithTag(GoLiveTags.BUSINESS_LINE).assertDoesNotExist()
+    }
+
+    @Test
     fun `step 6 says each check's state and who answers`() {
         harness.handling(CallHandling.AI_THEN_APP)
         harness.setup.forwardingResult = ApiResult.Success(ForwardingCheckResponse(true, check("passed"), 3))

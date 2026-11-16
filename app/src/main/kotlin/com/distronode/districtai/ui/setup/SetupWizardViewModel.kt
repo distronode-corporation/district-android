@@ -217,10 +217,12 @@ class SetupWizardViewModel(
         val before = state(step)
         viewModelScope.launch {
             val result = deps.setup.load(workspaceId)
-            if (result is ApiResult.Success) {
-                data = result.value
-                val progress = result.value.setupProgress
-                if (progress?.completedAt != null) {
+            // ⚠️ AN ANSWER WITH NO PROGRESS CHANGES NOTHING, as a failed read does: the first read refuses
+            // one (setup not available), and adopting it here would send the wizard back to step 1.
+            val progress = (result as? ApiResult.Success)?.value?.setupProgress
+            if (progress != null) {
+                data = (result as ApiResult.Success).value
+                if (progress.completedAt != null) {
                     finish()
                 } else if (before == SETUP_STEP_TODO && state(step) != SETUP_STEP_TODO && active == step) {
                     open(SetupFlow.firstOpen(progress))

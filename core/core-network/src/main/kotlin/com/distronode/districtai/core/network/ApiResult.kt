@@ -173,4 +173,11 @@ class NonJsonResponseException(
     val status: Int,
 ) : IOException("Expected a JSON body but the response was $contentType (HTTP $status)")
 
+/**
+ * The access token had expired and its refresh could not leave the device: offline, with the
+ * session intact. Reported as an [ApiResult.NetworkFailure], which is what it is to the user, and
+ * what a saved read ([SavedReads]) answers.
+ */
+class RefreshNotSentException : IOException("The session refresh could not be sent: the device is offline")
+
 // No `valueOrNull()` shortcut: it had no caller, because every call site branches on the failure.

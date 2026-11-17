@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's card: the palette's card colour, rounded to the launcher's system radius. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/home_widget_background" />
+    <corners android:radius="16dp" />
+</shape>

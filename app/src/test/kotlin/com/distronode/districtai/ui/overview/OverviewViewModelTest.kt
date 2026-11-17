@@ -14,6 +14,7 @@ import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.DistrictApi
 import com.distronode.districtai.ui.SignedOutCause
 import com.distronode.districtai.ui.resourceIdOrNull
+import com.distronode.districtai.widget.PublisherHarness
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -426,6 +427,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `the factory builds a model that reads through the repositories it was given`() = runTest(dispatcher) {
+        val widget = PublisherHarness()
         val api = FakeDistrictApi().apply {
             workspaceListResult = ApiResult.Success(
                 WorkspaceListResponse(success = true, workspaces = listOf(entry("ws-a", "Alpha"))),
@@ -437,11 +439,13 @@ class OverviewViewModelTest {
             workspaceRepository = WorkspaceRepository(api, FakeStore()),
             overviewRepository = OverviewRepository(api),
             setupRepository = null,
+            widget = widget.publisher,
         ).create(OverviewViewModel::class.java, CreationExtras.Empty)
         advanceUntilIdle()
 
         assertEquals("Alpha", (vm.state.value as OverviewUiState.Content).active.name)
         assertEquals(listOf("ws-a"), api.overviewRequests)
+        assertEquals("and the widget it was given", "Alpha", widget.store.snapshot?.workspaceName)
     }
 
     @Test

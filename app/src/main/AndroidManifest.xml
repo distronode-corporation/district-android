@@ -412,6 +412,24 @@
             android:name=".call.IncomingCallActionReceiver"
             android:exported="false" />
         <!--
+          The home-screen widget (widget/HomeWidgetProvider.kt).
+
+          ⚠️ `exported="true"` IS REQUIRED: the launcher's AppWidgetHost delivers APPWIDGET_UPDATE
+             from outside this app. The provider reads only this app's stored snapshot and makes
+             no request, so an update from anyone else can only redraw what is already there.
+        -->
+        <receiver
+            android:name=".widget.HomeWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_display_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/home_widget_info" />
+        </receiver>
+        <!--
              ⛔ The LiveKit SDK's screen-capture service, removed for the reason on the
              FOREGROUND_SERVICE_MEDIA_PROJECTION rule above. Removing the permission
              alone would leave a declared service whose type the app has no grant for.

@@ -8,6 +8,7 @@ import com.distronode.districtai.core.auth.RevokeApi
 import com.distronode.districtai.core.auth.RevokeResult
 import com.distronode.districtai.core.auth.TokenStore
 import com.distronode.districtai.core.data.PreferencesWorkspaceSelectionStore
+import com.distronode.districtai.widget.PreferencesHomeWidgetStore
 import com.distronode.districtai.core.model.PushRegistrationResponse
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.core.network.PushApi
@@ -336,14 +337,18 @@ class AppContainerTest {
     }
 
     @Test
-    fun `sign-out clears the credential and the workspace selection`() {
+    fun `sign-out clears the credential, the workspace selection and the widget`() {
         // ⚠️ The selection is not a credential, but leaving it means the next user of a shared
         // device lands in the previous user's workspace by default.
         val subject = container(realScope())
         subject.workspaceRepository.select("ws-1")
+        subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
 
         subject.signOut()
         awaitEpoch(subject, 1)
+
+        // ⛔ AND THE HOME-SCREEN WIDGET'S SNAPSHOT: the next user must not see this workspace there.
+        assertEquals(null, PreferencesHomeWidgetStore(ApplicationProvider.getApplicationContext()).read())
 
         // Read through a FRESH store rather than the container's, so this asserts what landed on
         // disk instead of an in-memory field. Robolectric has no AndroidKeyStore, so the token

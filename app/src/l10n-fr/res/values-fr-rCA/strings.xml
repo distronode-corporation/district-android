@@ -1319,6 +1319,12 @@
     <string name="voice_studio_stage_latency">%1$s\u00A0: %2$s</string>
     <string name="voice_studio_title">Voice Studio</string>
     <string name="voice_studio_use_default">Par défaut</string>
+    <string name="widget_calls_7_days">Appels, 7 jours</string>
+    <string name="widget_count_unknown">Pas encore chargé</string>
+    <string name="widget_description">Messages non lus et appels des 7 derniers jours de votre espace de travail.</string>
+    <string name="widget_display_name">En un coup d\'œil</string>
+    <string name="widget_signed_out">Ouvrez District AI pour voir votre espace de travail.</string>
+    <string name="widget_unread">Non lus</string>
     <string name="workflow_trigger_call_ended">À la fin de chaque appel</string>
     <string name="workflow_trigger_call_ended_answered">Après un appel répondu</string>
     <string name="workflow_trigger_call_ended_unanswered">Après un appel manqué</string>

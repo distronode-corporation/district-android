@@ -101,6 +101,7 @@ class MainActivity : ComponentActivity() {
                         workspaceRepository = container.workspaceRepository,
                         overviewRepository = container.overviewRepository,
                         setupRepository = container.setupRepository,
+                        widget = container.homeWidget,
                     ),
                 )
                 // ⛔ collectAsStateWithLifecycle, NOT collectAsState. The plain version keeps

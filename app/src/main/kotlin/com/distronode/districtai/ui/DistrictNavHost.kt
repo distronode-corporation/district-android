@@ -470,6 +470,7 @@ fun DistrictNavHost(
                             search = container.messageSearchRepository,
                             workspaceId = workspaceId,
                             role = role,
+                            onUnread = container.homeWidget::recordUnread,
                         ),
                     )
                     val state by viewModel.state.collectAsStateWithLifecycle()

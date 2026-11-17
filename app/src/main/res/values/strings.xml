@@ -1323,6 +1323,12 @@
     <string name="voice_studio_stage_latency">%1$s: %2$s</string>
     <string name="voice_studio_title">Voice Studio</string>
     <string name="voice_studio_use_default">Use the default</string>
+    <string name="widget_calls_7_days">Calls, 7 days</string>
+    <string name="widget_count_unknown">Not loaded yet</string>
+    <string name="widget_description">Unread messages and the last 7 days of calls for your workspace.</string>
+    <string name="widget_display_name">At a glance</string>
+    <string name="widget_signed_out">Open District AI to see your workspace.</string>
+    <string name="widget_unread">Unread</string>
     <string name="workflow_trigger_call_ended">After any call ends</string>
     <string name="workflow_trigger_call_ended_answered">After an answered call</string>
     <string name="workflow_trigger_call_ended_unanswered">After a missed call</string>

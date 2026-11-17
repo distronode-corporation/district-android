@@ -29,7 +29,12 @@ import kotlinx.coroutines.launch
  * ⚠️ REFRESHES ON `load(refreshing = true)` RATHER THAN POLLING. The web sidebar polls the unread
  * count; this app does not, because a foreground poll on a phone spends battery to shorten a latency
  * the user resolves by pulling to refresh. A push channel is the right answer and is a separate task.
+ *
+ * ⚠️ `LongParameterList` IS SUPPRESSED: the eighth parameter is the widget's listener, and the
+ * alternatives (a holder object, or a setter called after construction) would hide a dependency the
+ * factory must always hand over, or leave a window in which the first list's total goes nowhere.
  */
+@Suppress("LongParameterList")
 class InboxViewModel(
     private val repository: InboxRepository,
     /**
@@ -59,6 +64,12 @@ class InboxViewModel(
     role: WorkspaceRole?,
     /** ⚠️ A test seam. See [onSearchQueryChanged]. */
     private val searchDebounceMillis: Long = SEARCH_DEBOUNCE_MILLIS,
+    /**
+     * Where the unread total goes besides [unread]: the home-screen widget
+     * (`HomeWidgetPublisher.recordUnread`). Called with every total this list learns, never with
+     * the 0 [unread] starts at before a read has answered.
+     */
+    private val onUnread: (workspaceId: String, unread: Int) -> Unit = { _, _ -> },
 ) : ViewModel() {
 
     /** ⛔ `messages/send` and `messages/mark-read` both exclude `viewer` server-side. */
@@ -122,7 +133,7 @@ class InboxViewModel(
                     // ⚠️ Derived from the list rather than fetched again. The list already carries a
                     // per-thread unreadCount, so a second round trip would cost a request to learn
                     // something already in hand — and could disagree with the list the user sees.
-                    _unread.value = result.value.conversations.sumOf { it.unreadCount }
+                    setUnread(result.value.conversations.sumOf { it.unreadCount })
                     loadDraftBadges()
                 }
                 is ApiResult.Failure -> {
@@ -160,12 +171,17 @@ class InboxViewModel(
                 if (matches) thread.copy(unreadCount = 0) else thread
             }
             _state.value = current.copy(conversations = updated)
-            _unread.value = updated.sumOf { it.unreadCount }
+            setUnread(updated.sumOf { it.unreadCount })
         }
 
         viewModelScope.launch {
             repository.markRead(workspaceId, contactId, counterpart)
         }
+    }
+
+    private fun setUnread(total: Int) {
+        _unread.value = total
+        onUnread(workspaceId, total)
     }
 
     /**
@@ -263,10 +279,12 @@ class InboxViewModel(
         private val search: MessageSearchRepository,
         private val workspaceId: String,
         private val role: WorkspaceRole?,
+        /** See [InboxViewModel.onUnread]. */
+        private val onUnread: (workspaceId: String, unread: Int) -> Unit,
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")
-            return InboxViewModel(repository, composer, search, workspaceId, role) as T
+            return InboxViewModel(repository, composer, search, workspaceId, role, onUnread = onUnread) as T
         }
     }
 

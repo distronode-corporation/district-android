@@ -13,6 +13,7 @@ import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.PushTokenRegisterRequest
 import com.distronode.districtai.core.network.testing.FakeAccountApi
 import com.distronode.districtai.core.data.PreferencesWorkspaceSelectionStore
+import com.distronode.districtai.widget.PreferencesHomeWidgetStore
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -94,6 +95,7 @@ class AppContainerDeletionTest {
             ),
         )
         subject.workspaceRepository.select("ws-1")
+        subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
         val before = subject.sessionSignal.epoch.value
 
         subject.finishDeletedAccount(externalErasurePending = true)
@@ -103,6 +105,10 @@ class AppContainerDeletionTest {
         assertNull(
             "the workspace choice is gone",
             PreferencesWorkspaceSelectionStore(ApplicationProvider.getApplicationContext()).selectedWorkspaceId(),
+        )
+        assertNull(
+            "the home-screen widget's snapshot is gone",
+            PreferencesHomeWidgetStore(ApplicationProvider.getApplicationContext()).read(),
         )
         assertTrue("nothing to revoke: the account and its sessions are gone", revoke.presented.isEmpty())
         assertNull("and nothing left in the outbox for later launches", store.pendingRevoke)

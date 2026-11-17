@@ -340,6 +340,25 @@ class AppContainerTest {
     }
 
     @Test
+    fun `the widget records no count while a saved copy is on screen`() {
+        // ⛔ Offline, the Overview is answered from its saved copy as if live: its count must not
+        // reach the widget stamped as fresh.
+        val subject = container(realScope())
+        val url = "https://example.test/api/district/overview".toHttpUrl()
+        val overview = listOf("api", "district", "overview")
+        subject.savedReads.asking(overview, url)!!.answered("{}")
+        subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
+        subject.homeWidget.recordCalls("ws-1", 12)
+
+        val offline = ApiResult.NetworkFailure(java.io.IOException("offline"))
+        subject.savedReads.answer(subject.savedReads.asking(overview, url), offline) { Unit }
+        subject.homeWidget.recordCalls("ws-1", 7)
+
+        val shown = PreferencesHomeWidgetStore(ApplicationProvider.getApplicationContext()).read()
+        assertEquals("the last live count stays", 12, shown?.callsLast7Days)
+    }
+
+    @Test
     fun `sign-out clears the credential, the workspace selection, the widget and the saved reads`() {
         // ⚠️ The selection is not a credential, but leaving it means the next user of a shared
         // device lands in the previous user's workspace by default.

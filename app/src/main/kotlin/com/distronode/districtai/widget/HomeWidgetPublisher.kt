@@ -19,13 +19,20 @@ package com.distronode.districtai.widget
  * ⚠️ MAIN-THREAD CONFINED, like every caller (the ViewModels and the container's app scope), so the
  * read-compare-write below is not raced.
  *
+ * ⛔ NO COUNT FROM A SAVED COPY. Offline, the Overview and the Inbox are answered from their last
+ * saved copy (works offline, read-only) as if live; recording that count would stamp an old number
+ * with now and keep it on the home screen as current. While [offline] says a saved copy is on
+ * screen, counts are dropped and the widget keeps what it last read live.
+ *
  * @param redraw ask the widget to draw the current snapshot. Called only when the snapshot changed.
  * @param clock now, in epoch milliseconds, for when a call count was read.
+ * @param offline whether the app is showing saved copies (`SavedReads.showingSince` is set).
  */
 class HomeWidgetPublisher(
     private val store: HomeWidgetStore,
     private val redraw: () -> Unit,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val offline: () -> Boolean = { false },
 ) {
 
     /** The sign-out count of this process; see the class note. */
@@ -57,6 +64,7 @@ class HomeWidgetPublisher(
 
     /** The Overview's 7-day call count for [workspaceId]. Dropped unless that workspace is shown. */
     fun recordCalls(workspaceId: String, callsLast7Days: Int) {
+        if (offline()) return
         val current = store.read()?.takeIf { it.workspaceId == workspaceId } ?: return
         save(
             current,
@@ -66,6 +74,7 @@ class HomeWidgetPublisher(
 
     /** The Inbox list's unread total for [workspaceId]. Dropped unless that workspace is shown. */
     fun recordUnread(workspaceId: String, unread: Int) {
+        if (offline()) return
         val current = store.read()?.takeIf { it.workspaceId == workspaceId } ?: return
         save(current, current.copy(unread = unread.coerceAtLeast(0)))
     }

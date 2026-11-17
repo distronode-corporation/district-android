@@ -64,6 +64,26 @@ class HomeWidgetPublisherTest {
     }
 
     @Test
+    fun `a count read from a saved copy is not recorded, and the live one stays`() {
+        publisher.workspaceRead().show("ws-a", "Alpha")
+        publisher.recordCalls("ws-a", 12)
+        publisher.recordUnread("ws-a", 3)
+        val live = store.snapshot
+
+        // Offline: the Overview and the Inbox answer from their saved copies.
+        harness.offline = true
+        harness.now = 90_000_000L
+        publisher.recordCalls("ws-a", 7)
+        publisher.recordUnread("ws-a", 9)
+
+        assertEquals("the last live counts, with their own read time", live, store.snapshot)
+
+        harness.offline = false
+        publisher.recordCalls("ws-a", 8)
+        assertEquals(8, store.snapshot?.callsLast7Days)
+    }
+
+    @Test
     fun `counts are clamped at zero`() {
         publisher.workspaceRead().show("ws-a", "Alpha")
         publisher.recordUnread("ws-a", -2)

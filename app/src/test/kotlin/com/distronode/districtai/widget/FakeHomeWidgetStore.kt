@@ -19,9 +19,14 @@ class FakeHomeWidgetStore(var snapshot: HomeWidgetSnapshot? = null) : HomeWidget
 }
 
 /** A publisher over [store] whose redraws are counted in [redraws] and whose clock is [now]. */
-class PublisherHarness(var now: Long = 1_000L) {
+class PublisherHarness(var now: Long = 1_000L, var offline: Boolean = false) {
     val store = FakeHomeWidgetStore()
     var redraws = 0
         private set
-    val publisher = HomeWidgetPublisher(store = store, redraw = { redraws += 1 }, clock = { now })
+    val publisher = HomeWidgetPublisher(
+        store = store,
+        redraw = { redraws += 1 },
+        clock = { now },
+        offline = { offline },
+    )
 }

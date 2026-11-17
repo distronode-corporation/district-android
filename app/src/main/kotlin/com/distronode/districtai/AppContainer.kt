@@ -267,6 +267,8 @@ class AppContainer(
     val homeWidget: HomeWidgetPublisher = HomeWidgetPublisher(
         store = PreferencesHomeWidgetStore(appContext),
         redraw = { HomeWidgetProvider.redraw(appContext) },
+        // ⛔ Not from a saved copy: see HomeWidgetPublisher.
+        offline = { savedReads.showingSince.value != null },
     )
 
     val overviewRepository: OverviewRepository = OverviewRepository(districtApi)

@@ -1,6 +1,9 @@
 package com.distronode.districtai
 
 import android.content.Context
+import com.distronode.districtai.core.network.FileReadCache
+import com.distronode.districtai.core.network.SavedReads
+import java.io.File
 import com.distronode.districtai.applinks.AppLinkDeepLinks
 import com.distronode.districtai.auth.DeviceIdentity
 import com.distronode.districtai.auth.LoginController
@@ -205,6 +208,16 @@ class AppContainer(
      * exists to prevent. Extracted to a val when desk, support, persona, call handling and the
      * inbox/call extras landed as their own interfaces beside [HttpDistrictApi].
      */
+    /**
+     * Works offline, read-only: the first screens' last answers, in this app's cache directory
+     * (never backed up), shown when the service cannot be reached. Every sign-out below clears it.
+     * See [SavedReads].
+     */
+    val savedReads: SavedReads = SavedReads(
+        cache = FileReadCache(File(appContext.cacheDir, "saved-reads")),
+        language = { appContext.resolvedLanguage().acceptLanguage },
+    )
+
     private val apiClient = DistrictApiClient(
         // ⚠️ ApiEnvironment.baseUrl has no trailing slash, and OkHttp needs one on a base
         // URL or the last path segment is treated as a file name and replaced rather than
@@ -214,6 +227,7 @@ class AppContainer(
         httpClient = httpClient,
         tokens = tokenCoordinator,
         decodeFailures = SentryDecodeFailureReporter(),
+        savedReads = savedReads,
     )
 
     private val districtApi: DistrictApi = seams.districtApi ?: HttpDistrictApi(apiClient)
@@ -984,6 +998,7 @@ class AppContainer(
             revokeCurrentSession()
             tokenCoordinator.forget()
             workspaceRepository.clearSelection()
+            savedReads.clear()
             accountLanguage.onSignedOut()
             loginController.clearStatus()
             // Advances the epoch, so the hoisted overview re-reads, resolves to NEVER_SIGNED_IN,
@@ -1009,6 +1024,7 @@ class AppContainer(
         appScope.launch {
             tokenCoordinator.forget()
             workspaceRepository.clearSelection()
+            savedReads.clear()
             accountLanguage.onSignedOut()
             loginController.onAccountDeleted(externalErasurePending)
             // ⛔ LAST, AND AFTER `forget()` HAS RETURNED, for the reason given in [signOut].

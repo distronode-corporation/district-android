@@ -443,7 +443,7 @@ class TokenRefreshCoordinatorTest {
         val result = coordinator.accessToken()
         advanceUntilIdle()
 
-        assertTrue("offline is retryable, not terminal", result is AccessToken.RetryLater)
+        assertEquals("offline is its own retryable outcome, not terminal", AccessToken.Offline, result)
         assertNotNull("the session survives being offline", store.read())
         assertEquals("r0", store.read()?.refreshToken)
         assertNull("the marker must be cleared, the token was never sent", store.pendingRefreshToken())
@@ -564,7 +564,7 @@ class TokenRefreshCoordinatorTest {
         val probe = secondCallerWhile(RefreshResult.NotSent, at = "clearPending")
 
         assertNull("the second caller waits for the lock", probe.second)
-        assertEquals(AccessToken.RetryLater, probe.first)
+        assertEquals(AccessToken.Offline, probe.first)
         assertEquals("being offline must never sign anyone out", "r0", probe.store.read()?.refreshToken)
         assertFalse("clear" in probe.store.operations)
     }

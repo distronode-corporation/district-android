@@ -50,6 +50,10 @@ import okhttp3.Response
  * this class used to switch dispatchers, so it all ran on the caller's — and the callers are
  * `viewModelScope` and Paging, both of which are `Dispatchers.Main.immediate`. See [io].
  */
+// ⚠️ `LongParameterList` IS SUPPRESSED: the seventh parameter is the saved reads (works offline,
+// read-only), which only the app's client takes, defaulted for every other caller. Grouping it with
+// another parameter would hide which client keeps customer data on disk.
+@Suppress("LongParameterList")
 class DistrictApiClient(
     private val baseUrl: HttpUrl,
     private val httpClient: OkHttpClient,
@@ -92,6 +96,11 @@ class DistrictApiClient(
      * reports nothing. The app injects the Sentry-backed one.
      */
     private val decodeFailures: DecodeFailureReporter = DecodeFailureReporter.NONE,
+    /**
+     * Works offline, read-only: see [SavedReads]. Null keeps nothing, which is what every client
+     * but the app's one wants.
+     */
+    val savedReads: SavedReads? = null,
 ) {
 
     /**
@@ -114,11 +123,21 @@ class DistrictApiClient(
         segments: List<String>,
         serializer: DeserializationStrategy<T>,
         query: Map<String, String?> = emptyMap(),
-    ): ApiResult<T> = authorizedCall(
-        builder = Request.Builder().url(buildUrl(baseUrl, segments, query)).get(),
-        client = httpClient,
-    ) { response ->
-        if (response.isSuccessful) decodeBody(response, serializer) else null
+    ): ApiResult<T> {
+        val url = buildUrl(baseUrl, segments, query)
+        val saved = savedReads
+        // ⚠️ Taken before the request is sent: a sign-out while it is in flight voids it.
+        val asked = saved?.asking(segments, url)
+        val result = authorizedCall(builder = Request.Builder().url(url).get(), client = httpClient) { response ->
+            if (response.isSuccessful) {
+                decodeBody(response, serializer) { text -> asked?.answered(text) }
+            } else {
+                null
+            }
+        }
+        if (saved == null) return result
+        // ⚠️ On the IO dispatcher: answering from the copy reads a file.
+        return withContext(io) { saved.answer(asked, result) { text -> json.decodeOrNull(serializer, text) } }
     }
 
     /**
@@ -348,6 +367,9 @@ class DistrictApiClient(
                     message = REFRESH_THROTTLED_MESSAGE,
                     refreshThrottled = true,
                 )
+                // Session intact, the refresh could not leave the device: this device is offline,
+                // which is what a saved read answers (see SavedReads).
+                AccessToken.Offline -> return ApiResult.NetworkFailure(RefreshNotSentException())
                 is AccessToken.ReauthRequired -> return ApiResult.Unauthorized(outcome.reason)
             }
 
@@ -395,6 +417,8 @@ class DistrictApiClient(
     private fun <T> decodeBody(
         response: Response,
         serializer: DeserializationStrategy<T>,
+        /** Hears the body once it has decoded; see [SavedReads.answered]. */
+        decoded: (String) -> Unit = {},
     ): ApiResult<T> {
         val body = response.body
 
@@ -422,7 +446,7 @@ class DistrictApiClient(
         var text = ""
         return try {
             text = body.string()
-            ApiResult.Success(json.decodeFromString(serializer, text))
+            ApiResult.Success(json.decodeFromString(serializer, text)).also { decoded(text) }
         } catch (e: IOException) {
             // ⚠️ Carries the cause: "socket died mid-body" and "TLS rejected" need different
             // diagnostics, and this is the only place that distinction survives.
@@ -665,6 +689,13 @@ private fun buildUrl(
  * and the class sits on detekt's function ceiling. Moving a pure helper out is the honest answer
  * to that; raising the threshold would be the other one.
  */
+/** A saved copy as [T], or null when this build no longer reads it. Never throws. */
+private fun <T> Json.decodeOrNull(serializer: DeserializationStrategy<T>, text: String): T? = try {
+    decodeFromString(serializer, text)
+} catch (_: IllegalArgumentException) {
+    null
+}
+
 private fun MediaType.isJsonLike(): Boolean =
     subtype.equals(JSON_SUBTYPE, ignoreCase = true) ||
         subtype.endsWith(JSON_SUFFIX, ignoreCase = true)

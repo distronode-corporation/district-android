@@ -141,8 +141,8 @@
     <string name="api_error_no_workspace">Ce compte n\'est encore membre d\'aucun espace de travail.</string>
     <string name="api_error_not_found">Nous n\'avons pas trouvé ce que vous demandez.</string>
     <string name="api_error_nothing_to_update">Cette requête ne contenait rien à modifier.</string>
-    <string name="api_error_number_bridge_ca_workspaces_only">Les numéros canadiens de notre service téléphonique géré sont traités à Montréal; pour l\'instant, ils sont donc offerts seulement aux espaces de travail canadiens.</string>
-    <string name="api_error_number_bridge_eu_workspaces_only">Les numéros de ce pays sont traités à Francfort; pour l\'instant, ils sont donc offerts seulement aux espaces de travail de l\'Union européenne.</string>
+    <string name="api_error_number_bridge_ca_workspaces_only">Les numéros canadiens de notre service téléphonique géré sont traités à Montréal; pour l\'instant, ils sont donc disponibles seulement pour les espaces de travail canadiens.</string>
+    <string name="api_error_number_bridge_eu_workspaces_only">Les numéros de ce pays sont traités à Francfort; pour l\'instant, ils sont donc disponibles seulement pour les espaces de travail de l\'Union européenne.</string>
     <string name="api_error_number_in_use">Ce numéro est déjà attribué à un autre espace de travail.</string>
     <string name="api_error_overage_cap_reached">Cet espace de travail a atteint la limite d\'utilisation de son forfait.</string>
     <string name="api_error_overage_spend_cap_reached">Cet espace de travail a atteint la limite de dépenses fixée sur son forfait.</string>

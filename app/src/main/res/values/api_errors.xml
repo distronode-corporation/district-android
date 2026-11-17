@@ -141,6 +141,8 @@
     <string name="api_error_no_workspace">This account is not a member of any workspace yet.</string>
     <string name="api_error_not_found">We could not find what you asked for.</string>
     <string name="api_error_nothing_to_update">There was nothing to change in that request.</string>
+    <string name="api_error_number_bridge_ca_workspaces_only">Canadian numbers on our managed phone service are answered in Montreal, so for now they are available to Canadian workspaces only.</string>
+    <string name="api_error_number_bridge_eu_workspaces_only">Numbers from this country are answered in Frankfurt, so for now they are available to EU workspaces only.</string>
     <string name="api_error_number_in_use">That number is already assigned to another workspace.</string>
     <string name="api_error_overage_cap_reached">This workspace has reached the usage limit on its plan.</string>
     <string name="api_error_overage_spend_cap_reached">This workspace has reached the spending limit set on its plan.</string>

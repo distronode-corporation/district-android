@@ -340,12 +340,33 @@ class AppContainerTest {
     }
 
     @Test
+    fun `a completed sign-in starts with nothing saved`() {
+        // ⛔ Whoever signs in next is never shown the last account's saved reads.
+        val subject = container(realScope())
+        subject.savedReads.own("user-a")
+        subject.savedReads.asking(
+            listOf("api", "district", "overview"),
+            "https://example.test/api/district/overview".toHttpUrl(),
+        )!!.answered("{}")
+        val saved = File(ApplicationProvider.getApplicationContext<Context>().cacheDir, "saved-reads")
+
+        subject.onSignedIn()
+
+        assertEquals(0, saved.listFiles()!!.size)
+        assertNull(
+            "and no owner, until the next request's token names one",
+            subject.savedReads.asking(listOf("api", "district", "overview"), "https://example.test/x".toHttpUrl()),
+        )
+    }
+
+    @Test
     fun `the widget records no count while a saved copy is on screen`() {
         // ⛔ Offline, the Overview is answered from its saved copy as if live: its count must not
         // reach the widget stamped as fresh.
         val subject = container(realScope())
         val url = "https://example.test/api/district/overview".toHttpUrl()
         val overview = listOf("api", "district", "overview")
+        subject.savedReads.own("user-a")
         subject.savedReads.asking(overview, url)!!.answered("{}")
         subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
         subject.homeWidget.recordCalls("ws-1", 12)
@@ -365,13 +386,14 @@ class AppContainerTest {
         val subject = container(realScope())
         subject.workspaceRepository.select("ws-1")
         subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
+        subject.savedReads.own("user-a")
         val read = subject.savedReads.asking(
             listOf("api", "district", "overview"),
             "https://example.test/api/district/overview".toHttpUrl(),
         )!!
         read.answered("{}")
         val saved = File(ApplicationProvider.getApplicationContext<Context>().cacheDir, "saved-reads")
-        assertEquals(1, saved.listFiles()!!.size)
+        assertEquals("the copy and the owner marker", 2, saved.listFiles()!!.size)
 
         subject.signOut()
         awaitEpoch(subject, 1)

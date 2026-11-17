@@ -925,11 +925,17 @@ class AppContainer(
             // [sessionSignal] instead would also fire on sign-OUT, registering a push token with no
             // bearer — a 401 against a 20/min ceiling, and a device row still pointed at the account
             // that just left.
-            onSignedIn = {
-                pushRegistrar.onSignedIn()
-                accountLanguage.onSignedIn()
-            },
+            onSignedIn = ::onSignedIn,
         )
+    }
+
+    /** A sign-in completed: see [loginController]'s `onSignedIn`. */
+    internal fun onSignedIn() {
+        pushRegistrar.onSignedIn()
+        accountLanguage.onSignedIn()
+        // ⛔ Every new sign-in starts with nothing saved, whoever it is; the first request's token
+        // names the new owner. See SavedReads.
+        savedReads.clear()
     }
 
     /**

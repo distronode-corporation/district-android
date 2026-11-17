@@ -28,6 +28,9 @@ class SavedReadsTest {
 
     private class MemoryCache : ReadCache {
         val reads = mutableMapOf<String, SavedRead>()
+
+        /** The saved copies, without the owner marker. */
+        fun copies(): Map<String, SavedRead> = reads.filterKeys { it != SavedReads.OWNER_KEY }
         override fun load(key: String): SavedRead? = reads[key]
         override fun save(key: String, read: SavedRead) {
             reads[key] = read
@@ -41,6 +44,10 @@ class SavedReadsTest {
     @get:Rule
     val folder = TemporaryFolder()
 
+    private companion object {
+        const val USER_A = "user-a"
+    }
+
     private lateinit var server: MockWebServer
     private val cache = MemoryCache()
     private var now = 1_000L
@@ -49,6 +56,8 @@ class SavedReadsTest {
 
     @Before
     fun setUp() {
+        // The tests' tokens are not JWTs, so they name no account: one is named here.
+        saved.own(USER_A)
         server = MockWebServer()
         server.start()
     }
@@ -130,7 +139,7 @@ class SavedReadsTest {
         val client = client()
         server.enqueue(ok("live"))
         client.get(listOf("api", "district", "thing"), Payload.serializer())
-        assertTrue(cache.reads.isEmpty())
+        assertTrue(cache.copies().isEmpty())
 
         server.close()
         val offline = client.get(listOf("api", "district", "thing"), Payload.serializer())
@@ -212,7 +221,7 @@ class SavedReadsTest {
     fun `a body over two megabytes is not kept`() = runTest {
         server.enqueue(ok("x".repeat(SavedReads.MAX_BYTES)))
         client().overview()
-        assertTrue(cache.reads.isEmpty())
+        assertTrue(cache.copies().isEmpty())
     }
 
     @Test
@@ -236,12 +245,13 @@ class SavedReadsTest {
 
         saved.clear()
         assertNull(saved.showingSince.value)
-        assertTrue(cache.reads.isEmpty())
+        assertTrue(cache.copies().isEmpty())
 
+        saved.own(USER_A) // the next session's token names its account
         val asked = saved.asking(DistrictPaths.OVERVIEW, "https://example.test/x".toHttpUrl())!!
         saved.clear()
         asked.answered("""{"value":"late"}""")
-        assertTrue("an answer to a read sent before the sign-out", cache.reads.isEmpty())
+        assertTrue("an answer to a read sent before the sign-out", cache.copies().isEmpty())
     }
 
     @Test
@@ -266,14 +276,18 @@ class SavedReadsTest {
             val inner = MemoryCache()
             override fun load(key: String): SavedRead? = inner.load(key)
             override fun save(key: String, read: SavedRead) {
-                writing.countDown()
-                goOn.await()
+                // Only a read's write is held; the owner marker goes straight in.
+                if (key != SavedReads.OWNER_KEY) {
+                    writing.countDown()
+                    goOn.await()
+                }
                 inner.save(key, read)
             }
             override fun remove(key: String) = inner.remove(key)
             override fun clear() = inner.clear()
         }
         val reads = SavedReads(held, language = { "en" }, clock = { now })
+        reads.own(USER_A)
         val asked = reads.asking(DistrictPaths.OVERVIEW, "https://example.test/x".toHttpUrl())!!
         val writer = Thread { asked.answered("{}") }.apply { start() }
 
@@ -311,6 +325,20 @@ class SavedReadsTest {
     }
 
     @Test
+    fun `a clock set back does not make a newer answer look older`() {
+        val url = "https://example.test/x".toHttpUrl()
+        now = 5_000L
+        val first = saved.asking(DistrictPaths.OVERVIEW, url)!!
+        first.answered("""{"value":"first"}""")
+
+        // The clock goes back, and the next read is answered.
+        now = 1_000L
+        saved.asking(DistrictPaths.OVERVIEW, url)!!.answered("""{"value":"later"}""")
+
+        assertEquals("""{"value":"later"}""", cache.reads[first.key]?.body)
+    }
+
+    @Test
     fun `the service ending the session forgets every copy`() = runTest {
         server.enqueue(ok("live"))
         client().overview()
@@ -323,7 +351,7 @@ class SavedReadsTest {
         )
         val refused = signedOut.get(listOf("api", "x"), Payload.serializer())
         assertEquals(ApiResult.Unauthorized(ReauthReason.NoSession), refused)
-        assertTrue(cache.reads.isEmpty())
+        assertTrue(cache.copies().isEmpty())
     }
 
     @Test
@@ -344,9 +372,10 @@ class SavedReadsTest {
     fun `without a clock, a copy is stamped with the system time`() {
         val memory = MemoryCache()
         val real = SavedReads(memory, language = { "en" })
+        real.own(USER_A)
         val before = System.currentTimeMillis()
         real.asking(DistrictPaths.OVERVIEW, "https://example.test/x".toHttpUrl())!!.answered("{}")
-        val stamped = memory.reads.values.single().savedAtMillis
+        val stamped = memory.copies().values.single().savedAtMillis
         assertTrue(stamped in before..System.currentTimeMillis())
     }
 
@@ -408,6 +437,42 @@ class SavedReadsTest {
 
         files.clear()
         assertEquals(0, dir.listFiles()!!.size)
+    }
+
+    @Test
+    fun `the owner marker outlives pruning by age and by count, and only a clear removes it`() {
+        val dir = folder.newFolder()
+        val files = FileReadCache(dir)
+        files.save(SavedReads.OWNER_KEY, SavedRead(USER_A, 0L))
+        val later = 10 * SavedReads.MAX_AGE_MILLIS
+        repeat(FileReadCache.MAX_FILES + 1) { index ->
+            files.save("k$index", SavedRead("{}", later + index))
+        }
+
+        assertEquals(USER_A, files.load(SavedReads.OWNER_KEY)?.body)
+        files.clear()
+        assertNull(files.load(SavedReads.OWNER_KEY))
+    }
+
+    @Test
+    fun `a save removes copies too old, dated far in the future, or damaged, and keeps a newer one`() {
+        val dir = folder.newFolder()
+        val files = FileReadCache(dir)
+        val now = 10 * SavedReads.MAX_AGE_MILLIS
+        files.save("too old", SavedRead("{}", now - SavedReads.MAX_AGE_MILLIS - 1))
+        files.save("damaged", SavedRead("{}", now))
+        files.save("far ahead", SavedRead("{}", now + SavedReads.MAX_AGE_MILLIS + 1))
+        files.save("a moment later", SavedRead("{}", now + 5))
+        File(dir, FileReadCache.fileName("damaged")).writeText("no stamp")
+        File(dir, FileReadCache.fileName("empty")).writeText("")
+
+        files.save("k", SavedRead("{}", now))
+
+        assertNull("the clock was set back", files.load("far ahead"))
+        assertNull(files.load("too old"))
+        assertTrue(!File(dir, FileReadCache.fileName("damaged")).exists())
+        assertTrue(!File(dir, FileReadCache.fileName("empty")).exists())
+        assertEquals("an overlapping save", SavedRead("{}", now + 5), files.load("a moment later"))
     }
 
     @Test

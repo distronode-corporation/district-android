@@ -126,9 +126,14 @@ class DistrictApiClient(
     ): ApiResult<T> {
         val url = buildUrl(baseUrl, segments, query)
         val saved = savedReads
-        // ⚠️ Taken before the request is sent: a sign-out while it is in flight voids it.
-        val asked = saved?.asking(segments, url)
-        val result = authorizedCall(builder = Request.Builder().url(url).get(), client = httpClient) { response ->
+        // ⚠️ Taken before the request is sent: a sign-out while it is in flight voids it. Taken again
+        // once the token is known if its account is not the saved reads' owner (see SavedReads).
+        var asked = saved?.asking(segments, url)
+        val result = authorizedCall(
+            builder = Request.Builder().url(url).get(),
+            client = httpClient,
+            onToken = { token -> if (saved?.ownToken(token) == true) asked = saved.asking(segments, url) },
+        ) { response ->
             if (response.isSuccessful) {
                 decodeBody(response, serializer) { text -> asked?.answered(text) }
             } else {
@@ -336,6 +341,8 @@ class DistrictApiClient(
         builder: Request.Builder,
         client: OkHttpClient,
         challenges: Set<String> = emptySet(),
+        /** Hears each access token just before a request is sent with it. */
+        onToken: (String) -> Unit = {},
         handle: (Response) -> ApiResult<T>?,
     ): ApiResult<T> = withContext(io) {
         // ⛔ THE ONE PLACE THE DISPATCHER IS SWITCHED, ON PURPOSE. Every request in this class
@@ -349,13 +356,14 @@ class DistrictApiClient(
         // once and was invisible — `withContext` stayed imported and unused, the crash it was
         // meant to fix was still live, and only a thread-name assertion caught it. If you are
         // reading this because a test is asserting on a thread name, that is why it exists.
-        performAuthorizedCall(builder, client, challenges, handle)
+        performAuthorizedCall(builder, client, challenges, onToken, handle)
     }
 
     private suspend fun <T> performAuthorizedCall(
         builder: Request.Builder,
         client: OkHttpClient,
         challenges: Set<String>,
+        onToken: (String) -> Unit,
         handle: (Response) -> ApiResult<T>?,
     ): ApiResult<T> {
         var refreshedOnce = false
@@ -372,6 +380,8 @@ class DistrictApiClient(
                 AccessToken.Offline -> return ApiResult.NetworkFailure(RefreshNotSentException())
                 is AccessToken.ReauthRequired -> return ApiResult.Unauthorized(outcome.reason)
             }
+
+            onToken(token)
 
             val response = try {
                 client.newCall(builder.header("Authorization", "Bearer $token").build()).await()

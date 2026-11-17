@@ -770,6 +770,14 @@
       "en": "This number was transferred here from your previous provider. Releasing it gives it up for good. To keep it, transfer it to another provider first.",
       "fr": "Ce numéro a été transféré ici depuis votre ancien fournisseur. Le libérer vous le fait perdre définitivement. Pour le conserver, transférez-le d'abord vers un autre fournisseur."
     },
+    "number_bridge_eu_workspaces_only": {
+      "en": "Numbers from this country are answered in Frankfurt, so for now they are available to EU workspaces only.",
+      "fr": "Les numéros de ce pays sont traités à Francfort; pour l'instant, ils sont donc disponibles seulement pour les espaces de travail de l'Union européenne."
+    },
+    "number_bridge_ca_workspaces_only": {
+      "en": "Canadian numbers on our managed phone service are answered in Montreal, so for now they are available to Canadian workspaces only.",
+      "fr": "Les numéros canadiens de notre service téléphonique géré sont traités à Montréal; pour l'instant, ils sont donc disponibles seulement pour les espaces de travail canadiens."
+    },
     "auto_dial_country_not_permitted": {
       "en": "Automated calls are not permitted to this contact's country.",
       "fr": "Les appels automatisés ne sont pas permis vers le pays de ce contact."

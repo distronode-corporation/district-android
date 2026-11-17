@@ -126,11 +126,16 @@ class SavedReadsTest {
     }
 
     @Test
-    fun `other reads keep nothing`() = runTest {
+    fun `other reads keep nothing, and offline are only the offline error`() = runTest {
         val client = client()
         server.enqueue(ok("live"))
         client.get(listOf("api", "district", "thing"), Payload.serializer())
         assertTrue(cache.reads.isEmpty())
+
+        server.close()
+        val offline = client.get(listOf("api", "district", "thing"), Payload.serializer())
+        assertTrue(offline is ApiResult.NetworkFailure)
+        assertNull(saved.showingSince.value)
     }
 
     @Test
@@ -185,6 +190,22 @@ class SavedReadsTest {
         server.enqueue(MockResponse(code = 503))
         assertTrue("never covered over", client.overview() !is ApiResult.Success)
         assertNull("the service answered: no copy is on screen", saved.showingSince.value)
+    }
+
+    @Test
+    fun `any answer from the service takes down the banner, whichever reads showed a copy`() = runTest {
+        val client = client()
+        server.enqueue(ok("live"))
+        client.overview()
+        val portal = okhttp3.Headers.headersOf("Content-Type", "text/html")
+        server.enqueue(MockResponse(code = 200, headers = portal, body = "<html>"))
+        client.overview()
+        assertEquals(1_000L, saved.showingSince.value)
+
+        // Online again, and the next read is another one entirely.
+        server.enqueue(ok("other"))
+        client.get(listOf("api", "district", "thing"), Payload.serializer())
+        assertNull(saved.showingSince.value)
     }
 
     @Test
@@ -393,7 +414,7 @@ class SavedReadsTest {
     fun `a file cache touches only its own files, and a sign-out takes its temporary ones too`() {
         val dir = folder.newFolder()
         val hex = "a".repeat(64)
-        val inProgress = ".$hex.tmp"
+        val inProgress = ".$hex.0b5f2c7e-1d3a-4c8e-9f60-2a7b8c9d0e1f.tmp"
         val others = listOf("C".repeat(64), "stray", ".$hex")
         (others + inProgress).forEach { File(dir, it).writeText("") }
         File(dir, "b".repeat(64)).mkdir()
@@ -409,7 +430,7 @@ class SavedReadsTest {
     @Test
     fun `a temporary file a crash left behind is removed by the next save`() {
         val dir = folder.newFolder()
-        val left = File(dir, ".${"c".repeat(64)}.tmp").apply {
+        val left = File(dir, ".${"c".repeat(64)}.0b5f2c7e-1d3a-4c8e-9f60-2a7b8c9d0e1f.tmp").apply {
             writeText("half a body")
             setLastModified(System.currentTimeMillis() - 60L * 60 * 1000)
         }

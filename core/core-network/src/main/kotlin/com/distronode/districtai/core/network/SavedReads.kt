@@ -95,16 +95,16 @@ class SavedReads(
      */
     fun <T> answer(asked: Asked?, result: ApiResult<T>, decode: (String) -> T?): ApiResult<T> {
         if (result is ApiResult.Unauthorized) clear()
-        if (asked == null) return result
         if (result !is ApiResult.NetworkFailure) {
-            // ⚠️ The service answered, even if with a refusal or a 5xx: this read is no longer a
-            // saved copy on screen, so it must not keep the banner up once the connection is back.
+            // ⚠️ The service answered (any read, even with a refusal or a 5xx): the device is online,
+            // so the banner goes, whichever reads its saved copies came from.
             synchronized(lock) {
-                shown.remove(asked.key)
+                shown.clear()
                 publish()
             }
             return result
         }
+        if (asked == null) return result
         // Read outside the lock, as a save is written. ⚠️ A copy dated in the future (the clock
         // was moved back) is not trusted either.
         val read = cache.load(asked.key)?.takeIf { clock() - it.savedAtMillis in 0..MAX_AGE_MILLIS }
@@ -193,7 +193,8 @@ class FileReadCache(private val dir: File) : ReadCache {
         try {
             dir.mkdirs()
             val file = File(dir, fileName(key))
-            val temporary = File(dir, ".${file.name}.tmp")
+            // ⚠️ Its own temporary file per write: two saves of one key at once must not share one.
+            val temporary = File(dir, ".${file.name}.${java.util.UUID.randomUUID()}.tmp")
             temporary.writeText("${read.savedAtMillis}\n${read.body}", Charsets.UTF_8)
             if (temporary.renameTo(file)) prune() else temporary.delete()
         } catch (_: IOException) {
@@ -234,8 +235,8 @@ class FileReadCache(private val dir: File) : ReadCache {
 
         private val SAVED_NAME = Regex("[0-9a-f]{64}")
 
-        /** A save's temporary file: `.`, a saved read's name, `.tmp`. */
-        private val TEMPORARY_NAME = Regex("\\.[0-9a-f]{64}\\.tmp")
+        /** A save's temporary file: `.`, a saved read's name, the write's own id, `.tmp`. */
+        private val TEMPORARY_NAME = Regex("\\.[0-9a-f]{64}\\.[0-9a-f-]{36}\\.tmp")
 
         /** How old a temporary file must be before a save removes it as left over. */
         private const val TEMPORARY_MAX_AGE_MILLIS: Long = 10L * 60 * 1000

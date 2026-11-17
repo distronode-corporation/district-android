@@ -6,6 +6,8 @@ import java.security.MessageDigest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.HttpUrl
 
 /**
@@ -23,6 +25,13 @@ import okhttp3.HttpUrl
  * never kept, the language is part of the key (a French answer never fills an English screen),
  * and every sign-out clears them ([clear]), as does the service ending the session.
  *
+ * ⛔ ONE ACCOUNT'S ONLY. Every key holds the owner, the `sub` of the access token the requests are
+ * sent with ([ownToken]); a request sent for another account forgets every copy first, and with no
+ * owner known nothing is kept or shown, so one account is never shown another's copies even if a
+ * clear that should have run did not. The owner is kept in the cache ([OWNER_KEY]), so a launch
+ * offline (whose token cannot be refreshed, and so cannot say whose it is) still shows that
+ * account's own copies. Every completed sign-in starts from nothing ([clear]).
+ *
  * @param language the language the request is sent in, as `Accept-Language` names it.
  * @param clock now, in epoch milliseconds.
  */
@@ -37,6 +46,8 @@ class SavedReads(
         internal val generation: Int,
         /** When the request was sent: the time its copy is stamped with. */
         internal val askedAtMillis: Long,
+        /** The order requests were sent in, which the wall clock is not (it can be set back). */
+        internal val sequence: Long,
     ) {
         /** The service answered it with [text], which decoded: keep it. */
         fun answered(text: String) = this@SavedReads.answered(this, text)
@@ -51,10 +62,19 @@ class SavedReads(
     private val shown = mutableMapOf<String, Long>()
 
     /**
-     * When the request whose answer was last kept, by key, was sent. An answer to an older request
+     * The sequence of the request whose answer was last kept, by key. An answer to an older request
      * (two in flight, answering out of order) is not kept over it.
      */
     private val kept = mutableMapOf<String, Long>()
+
+    /** The next request's sequence. */
+    private var nextSequence = 0L
+
+    /**
+     * Whose saved reads these are, or null before an account is known. Read once, at construction:
+     * the owner a session named on an earlier launch.
+     */
+    private var owner: String? = cache.load(OWNER_KEY)?.body
 
     private val _showingSince = MutableStateFlow<Long?>(null)
 
@@ -64,10 +84,47 @@ class SavedReads(
      */
     val showingSince: StateFlow<Long?> = _showingSince.asStateFlow()
 
-    /** Taken before the request to [url] is sent; null for anything but a saved read. */
+    /**
+     * Taken before the request to [url] is sent; null for anything but a saved read, and while no
+     * account is known (see the class note).
+     */
     fun asking(segments: List<String>, url: HttpUrl): Asked? {
         if (segments !in SAVED_PATHS) return null
-        return synchronized(lock) { Asked("${language()} $url", generation, clock()) }
+        return synchronized(lock) {
+            val current = owner ?: return null
+            nextSequence += 1
+            Asked("$current ${language()} $url", generation, clock(), nextSequence)
+        }
+    }
+
+    /**
+     * The request is about to be sent with [accessToken]: its account owns the saved reads. True
+     * when that changed the owner (another account's copies were forgotten, or none was known), so
+     * the caller asks again for the key. A token whose account cannot be read changes nothing.
+     */
+    fun ownToken(accessToken: String): Boolean {
+        val account = subjectOf(accessToken) ?: return false
+        return own(account)
+    }
+
+    /** [account] owns the saved reads from now on; another account's are forgotten first. */
+    fun own(account: String): Boolean {
+        val changed = synchronized(lock) {
+            (owner != account).also {
+                if (it) {
+                    generation += 1
+                    shown.clear()
+                    kept.clear()
+                    owner = account
+                    publish()
+                }
+            }
+        }
+        if (!changed) return false
+        // Outside the lock, like every other use of the cache; see [answered].
+        cache.clear()
+        cache.save(OWNER_KEY, SavedRead(account, clock()))
+        return true
     }
 
     private fun answered(asked: Asked, text: String) {
@@ -75,9 +132,9 @@ class SavedReads(
             shown.remove(asked.key)
             publish()
             // (A body that decoded is never empty.)
-            val newest = (kept[asked.key] ?: Long.MIN_VALUE) <= asked.askedAtMillis
+            val newest = (kept[asked.key] ?: Long.MIN_VALUE) <= asked.sequence
             (asked.generation == generation && newest && text.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
-                .also { if (it) kept[asked.key] = asked.askedAtMillis }
+                .also { if (it) kept[asked.key] = asked.sequence }
         }
         if (!keep) return
         // ⚠️ OUTSIDE THE LOCK: writing a file must not hold up every other request's bookkeeping.
@@ -125,12 +182,16 @@ class SavedReads(
         return decoded?.takeIf { showing }?.let { ApiResult.Success(it) } ?: result
     }
 
-    /** Forgets every saved read. Every sign-out calls it; a read in flight keeps nothing. */
+    /**
+     * Forgets every saved read, and whose they were. Every sign-out and every completed sign-in
+     * calls it; a read in flight keeps nothing.
+     */
     fun clear() {
         synchronized(lock) {
             generation += 1
             shown.clear()
             kept.clear()
+            owner = null
             publish()
         }
         // Outside the lock, like every other use of the cache; see [answered].
@@ -147,6 +208,26 @@ class SavedReads(
 
         /** Two megabytes: a body larger than this is not kept. */
         const val MAX_BYTES: Int = 2 * 1024 * 1024
+
+        /**
+         * The cache entry that names whose saved reads these are. Never a read's key (those always
+         * hold spaces). ⚠️ A cache that prunes leaves it alone; only [ReadCache.clear] removes it.
+         */
+        const val OWNER_KEY: String = "owner"
+
+        /**
+         * The account an access token is for: its `sub` claim, read without checking the signature
+         * (only the service trusts a token; this only tells accounts apart). Null for anything that
+         * is not a readable JWT with a `sub`.
+         */
+        internal fun subjectOf(accessToken: String): String? = try {
+            val payload = accessToken.split('.').getOrNull(1) ?: return null
+            val json = String(java.util.Base64.getUrlDecoder().decode(payload), Charsets.UTF_8)
+            val claims = kotlinx.serialization.json.Json.parseToJsonElement(json) as? JsonObject
+            (claims?.get("sub") as? JsonPrimitive)?.takeIf { it.isString }?.content?.takeIf { it.isNotEmpty() }
+        } catch (_: IllegalArgumentException) {
+            null
+        }
 
         /** The five reads whose last answer is kept, by path. */
         internal val SAVED_PATHS: Set<List<String>> = setOf(
@@ -196,7 +277,7 @@ class FileReadCache(private val dir: File) : ReadCache {
             // ⚠️ Its own temporary file per write: two saves of one key at once must not share one.
             val temporary = File(dir, ".${file.name}.${java.util.UUID.randomUUID()}.tmp")
             temporary.writeText("${read.savedAtMillis}\n${read.body}", Charsets.UTF_8)
-            if (temporary.renameTo(file)) prune() else temporary.delete()
+            if (temporary.renameTo(file)) prune(read.savedAtMillis) else temporary.delete()
         } catch (_: IOException) {
             // Best effort; see the class note.
         }
@@ -212,11 +293,25 @@ class FileReadCache(private val dir: File) : ReadCache {
     }
 
     /**
-     * Keeps the newest [MAX_FILES], by when each was last written, and removes a temporary file a
-     * crash left behind: one older than any write takes is not a write in progress.
+     * Removes the copies dated more than [SavedReads.MAX_AGE_MILLIS] before or after [nowMillis]
+     * (the stamp of the copy just saved), keeps the newest [MAX_FILES] by when each was last
+     * written, and removes a temporary file a crash left behind: one older than any write takes is
+     * not a write in progress.
+     *
+     * ⚠️ BOUNDED BOTH WAYS: a copy dated far in the future (the clock was set back) would never
+     * expire. Not any future date: a copy an overlapping request saved a moment later is newer, not
+     * wrong. ⛔ THE OWNER MARKER IS NOT A READ: it lasts as long as the session, and only a clear
+     * removes it.
      */
-    private fun prune() {
-        files().sortedByDescending { it.lastModified() }.drop(MAX_FILES).forEach { it.delete() }
+    private fun prune(nowMillis: Long) {
+        val marker = fileName(SavedReads.OWNER_KEY)
+        val reads = files().filter { it.name != marker }
+        val (fresh, expired) = reads.partition { file ->
+            val stamp = file.useLines { lines -> lines.firstOrNull()?.toLongOrNull() }
+            stamp != null && nowMillis - stamp in -SavedReads.MAX_AGE_MILLIS..SavedReads.MAX_AGE_MILLIS
+        }
+        expired.forEach { it.delete() }
+        fresh.sortedByDescending { it.lastModified() }.drop(MAX_FILES).forEach { it.delete() }
         val stale = System.currentTimeMillis() - TEMPORARY_MAX_AGE_MILLIS
         files(TEMPORARY_NAME).filter { it.lastModified() < stale }.forEach { it.delete() }
     }

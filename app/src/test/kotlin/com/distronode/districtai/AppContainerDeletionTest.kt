@@ -98,6 +98,7 @@ class AppContainerDeletionTest {
         )
         subject.workspaceRepository.select("ws-1")
         subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
+        subject.savedReads.own("user-a")
         subject.savedReads.asking(
             listOf("api", "district", "overview"),
             "https://example.test/api/district/overview".toHttpUrl(),

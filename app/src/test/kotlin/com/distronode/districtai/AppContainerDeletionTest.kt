@@ -13,6 +13,7 @@ import com.distronode.districtai.core.network.PushApi
 import com.distronode.districtai.core.network.PushTokenRegisterRequest
 import com.distronode.districtai.core.network.testing.FakeAccountApi
 import com.distronode.districtai.core.data.PreferencesWorkspaceSelectionStore
+import com.distronode.districtai.widget.PreferencesHomeWidgetStore
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.io.File
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
@@ -96,6 +97,7 @@ class AppContainerDeletionTest {
             ),
         )
         subject.workspaceRepository.select("ws-1")
+        subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
         subject.savedReads.asking(
             listOf("api", "district", "overview"),
             "https://example.test/api/district/overview".toHttpUrl(),
@@ -109,6 +111,10 @@ class AppContainerDeletionTest {
         assertNull(
             "the workspace choice is gone",
             PreferencesWorkspaceSelectionStore(ApplicationProvider.getApplicationContext()).selectedWorkspaceId(),
+        )
+        assertNull(
+            "the home-screen widget's snapshot is gone",
+            PreferencesHomeWidgetStore(ApplicationProvider.getApplicationContext()).read(),
         )
         assertEquals(
             "the saved reads are gone",

@@ -11559,6 +11559,60 @@ tier = "T3"
 state = "reviewed"
 note = "── Voice Studio ───────────────────────────────────────────────────── ⛔ THE STUDIO'S OWN LABELS ARRIVE FROM THE SERVER IN THE READER'S PORTAL LANGUAGE and are shown verbatim. Only this app's chrome is here: the title before the read lands, the hub row, the change count, and a meter for an unsaved edit the server has not described. The numbers in those are measured medians the server sent; nothing here estimates one."
 
+[widget.calls_7_days]
+en = "Calls, 7 days"
+fr = "Appels, 7 jours"
+ctx = "label"
+screen = "home screen widget"
+tier = "T3"
+state = "draft"
+note = "Under the count of calls in the last 7 days (a rolling window, not this calendar week) on the widget. The iOS widget's wording."
+
+[widget.count_unknown]
+en = "Not loaded yet"
+fr = "Pas encore chargé"
+ctx = "a11y"
+screen = "home screen widget"
+tier = "T3"
+state = "draft"
+note = "TalkBack label for a count the widget shows as a hyphen: the app has not read it yet for this workspace, or the calls count is more than a day old."
+
+[widget.description]
+en = "Unread messages and the last 7 days of calls for your workspace."
+fr = "Messages non lus et appels des 7 derniers jours de votre espace de travail."
+ctx = "body"
+screen = "home screen widget"
+tier = "T3"
+state = "draft"
+note = "The home-screen widget's description in the launcher's widget picker. The iOS widget's wording."
+
+[widget.display_name]
+en = "At a glance"
+fr = "En un coup d'œil"
+ctx = "title"
+screen = "home screen widget"
+tier = "T3"
+state = "draft"
+note = "The home-screen widget's name in the launcher's widget picker. The iOS widget's wording."
+
+[widget.signed_out]
+en = "Open District AI to see your workspace."
+fr = "Ouvrez District AI pour voir votre espace de travail."
+ctx = "body"
+screen = "home screen widget"
+tier = "T3"
+state = "draft"
+note = "The widget when nobody is signed in on this device. The iOS widget's wording."
+
+[widget.unread]
+en = "Unread"
+fr = "Non lus"
+ctx = "label"
+screen = "home screen widget"
+tier = "T3"
+state = "draft"
+note = "Under the workspace's unread-message count on the widget. Plural in French: the messages. The iOS widget's wording."
+
 [workflow.trigger_call_ended]
 en = "After any call ends"
 fr = "À la fin de chaque appel"

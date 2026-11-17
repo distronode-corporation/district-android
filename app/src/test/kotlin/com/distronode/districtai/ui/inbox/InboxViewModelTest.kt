@@ -101,6 +101,45 @@ class InboxViewModelTest {
     }
 
     @Test
+    fun `the home-screen widget hears every unread total, from the list and from a read`() = runTest(dispatcher) {
+        val heard = mutableListOf<Pair<String, Int>>()
+        val vm = InboxViewModel(
+            InboxRepository(apiWith(summary(unread = 4))),
+            ComposerRepository(FakeDistrictApi()),
+            MessageSearchRepository(searchApi),
+            "ws-1",
+            WorkspaceRole.CLIENT,
+            searchDebounceMillis = 0L,
+            onUnread = { workspaceId, unread -> heard += workspaceId to unread },
+        )
+        // ⚠️ Nothing before the list answers: the 0 the badge starts at is not a count.
+        assertEquals(emptyList<Pair<String, Int>>(), heard)
+        advanceUntilIdle()
+
+        vm.markThreadRead("c1", "+14165550142")
+
+        assertEquals(listOf("ws-1" to 4, "ws-1" to 0), heard)
+    }
+
+    @Test
+    fun `the factory hands the widget's listener to the ViewModel`() = runTest(dispatcher) {
+        val heard = mutableListOf<Int>()
+        val api = apiWith(summary(unread = 2))
+        val vm = InboxViewModel.Factory(
+            InboxRepository(api),
+            ComposerRepository(api),
+            MessageSearchRepository(searchApi),
+            "ws-1",
+            WorkspaceRole.CLIENT,
+            onUnread = { _, unread -> heard += unread },
+        ).create(InboxViewModel::class.java)
+        advanceUntilIdle()
+
+        assertEquals(listOf(2), heard)
+        assertEquals(2, vm.unread.value)
+    }
+
+    @Test
     fun `opening a thread clears its badge immediately`() = runTest(dispatcher) {
         val vm = viewModel(apiWith(summary(unread = 4)))
         advanceUntilIdle()

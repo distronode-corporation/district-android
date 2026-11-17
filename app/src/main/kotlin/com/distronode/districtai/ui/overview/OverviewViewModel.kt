@@ -13,6 +13,7 @@ import com.distronode.districtai.R
 import com.distronode.districtai.core.network.ApiResult
 import com.distronode.districtai.ui.UiText
 import com.distronode.districtai.ui.toFailureText
+import com.distronode.districtai.widget.HomeWidgetPublisher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +39,11 @@ class OverviewViewModel(
      * not be able to affect the rest of the screen, so a screen built without it is still whole.
      */
     private val setupRepository: SetupRepository? = null,
+    /**
+     * The home-screen widget's writer. ⚠️ NULL MEANS NO WIDGET, as for [setupRepository]: the
+     * screen is whole without it.
+     */
+    private val widget: HomeWidgetPublisher? = null,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<OverviewUiState>(OverviewUiState.Loading)
@@ -71,11 +77,15 @@ class OverviewViewModel(
             OverviewUiState.Loading
         }
 
+        // ⛔ CAPTURED BEFORE THE REQUEST: a sign-out while it is in flight advances it, and the
+        // widget then refuses this answer. See HomeWidgetPublisher.
+        val widgetRead = widget?.workspaceRead()
         loadJob = viewModelScope.launch {
             when (val workspaces = workspaceRepository.load()) {
-                is ApiResult.Success -> loadOverview(workspaces.value)
+                is ApiResult.Success -> loadOverview(workspaces.value, widgetRead)
                 is ApiResult.Failure -> _state.value = workspaces.toUiState()
             }
+            publishToWidget(_state.value)
         }
     }
 
@@ -85,7 +95,7 @@ class OverviewViewModel(
         load()
     }
 
-    private suspend fun loadOverview(workspaces: WorkspaceState) {
+    private suspend fun loadOverview(workspaces: WorkspaceState, widgetRead: HomeWidgetPublisher.WorkspaceRead?) {
         // The three "nothing to show" states, kept apart. See OverviewUiState.
         val active = workspaces.active
         if (active == null) {
@@ -101,6 +111,10 @@ class OverviewViewModel(
             }
             return
         }
+
+        // ⚠️ THE NAME FROM THE LIST, BEFORE THE OVERVIEW IS ASKED: a switch whose overview then fails
+        // must not leave the previous workspace's name and counts on the home screen.
+        widgetRead?.show(active.id, active.name)
 
         // ⚠️ A refresh of the SAME workspace keeps the card it already knew about, so a
         // pull-to-refresh does not blink it out while the setup read is in flight.
@@ -119,6 +133,24 @@ class OverviewViewModel(
         }
 
         if (_state.value is OverviewUiState.Content) refreshSetupCard(active.id)
+    }
+
+    /**
+     * What the widget learns from a finished load.
+     *
+     * ⚠️ A DEGRADED OR FAILED READ KEEPS WHAT IT SHOWS ([OverviewUiState.Unavailable], the only other
+     * state a finished load can leave); only an answer that there is nothing to show (signed out, no
+     * workspace, all unpaid) clears it.
+     */
+    private fun publishToWidget(state: OverviewUiState) {
+        val widget = widget ?: return
+        when (state) {
+            is OverviewUiState.Content ->
+                widget.recordCalls(state.active.id, state.overview.metrics.callsThisWeek)
+            is OverviewUiState.SignedOut, is OverviewUiState.BillingBlocked, OverviewUiState.NoWorkspaces ->
+                widget.clear()
+            else -> Unit
+        }
     }
 
     /**
@@ -179,8 +211,9 @@ class OverviewViewModel(
             overviewRepository: OverviewRepository,
             // ⚠️ No default: the activity, the one caller, always hands its container's repository.
             setupRepository: SetupRepository?,
+            widget: HomeWidgetPublisher?,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { OverviewViewModel(workspaceRepository, overviewRepository, setupRepository) }
+            initializer { OverviewViewModel(workspaceRepository, overviewRepository, setupRepository, widget) }
         }
     }
 }

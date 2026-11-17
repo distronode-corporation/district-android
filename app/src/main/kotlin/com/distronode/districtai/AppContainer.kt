@@ -57,6 +57,9 @@ import com.distronode.districtai.call.IncomingCallController
 import com.distronode.districtai.call.IncomingCallSurfaces
 import com.distronode.districtai.core.data.InboundCallRepository
 import com.distronode.districtai.core.data.PreferencesWorkspaceSelectionStore
+import com.distronode.districtai.widget.HomeWidgetProvider
+import com.distronode.districtai.widget.HomeWidgetPublisher
+import com.distronode.districtai.widget.PreferencesHomeWidgetStore
 import com.distronode.districtai.core.data.PushTokenRepository
 import com.distronode.districtai.push.AndroidPushNotifier
 import com.distronode.districtai.push.FirebasePushTokenSource
@@ -255,6 +258,17 @@ class AppContainer(
     val workspaceRepository: WorkspaceRepository = WorkspaceRepository(
         api = districtApi,
         selectionStore = PreferencesWorkspaceSelectionStore(appContext),
+    )
+
+    /**
+     * The home-screen widget's one writer: the Overview and the Inbox list hand it what they read,
+     * and every sign-out path below clears it. See [HomeWidgetPublisher].
+     */
+    val homeWidget: HomeWidgetPublisher = HomeWidgetPublisher(
+        store = PreferencesHomeWidgetStore(appContext),
+        redraw = { HomeWidgetProvider.redraw(appContext) },
+        // ⛔ Not from a saved copy: see HomeWidgetPublisher.
+        offline = { savedReads.showingSince.value != null },
     )
 
     val overviewRepository: OverviewRepository = OverviewRepository(districtApi)
@@ -998,6 +1012,7 @@ class AppContainer(
             revokeCurrentSession()
             tokenCoordinator.forget()
             workspaceRepository.clearSelection()
+            homeWidget.clear()
             savedReads.clear()
             accountLanguage.onSignedOut()
             loginController.clearStatus()
@@ -1024,6 +1039,7 @@ class AppContainer(
         appScope.launch {
             tokenCoordinator.forget()
             workspaceRepository.clearSelection()
+            homeWidget.clear()
             savedReads.clear()
             accountLanguage.onSignedOut()
             loginController.onAccountDeleted(externalErasurePending)

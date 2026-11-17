@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark: DistrictColors CARD, FOREGROUND, MUTED_FOREGROUND and DISTRICT. See values/. -->
+    <color name="home_widget_background">#16292D</color>
+    <color name="home_widget_foreground">#E9F0F1</color>
+    <color name="home_widget_muted">#93A8AB</color>
+    <color name="home_widget_accent">#67CDED</color>
+</resources>

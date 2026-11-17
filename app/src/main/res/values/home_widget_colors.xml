@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The home-screen widget's colours, light. A widget is drawn by the launcher, not by Compose,
+      so it cannot read DistrictColors; these are its LIGHT_CARD, LIGHT_FOREGROUND,
+      LIGHT_MUTED_FOREGROUND and LIGHT_DISTRICT tokens, kept in step by hand like
+      ic_launcher_background. values-night holds the dark ones.
+    -->
+    <color name="home_widget_background">#FFFFFF</color>
+    <color name="home_widget_foreground">#10282C</color>
+    <color name="home_widget_muted">#3F5A5E</color>
+    <color name="home_widget_accent">#01657D</color>
+</resources>

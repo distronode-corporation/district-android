@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis: an hour. The redraw reads the stored snapshot and makes no request; it is
+  what turns a call count read more than a day ago into a hyphen, since the 7-day window moves.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_description"
+    android:initialLayout="@layout/home_widget"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="80dp"
+    android:previewLayout="@layout/home_widget"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="3600000"
+    android:widgetCategory="home_screen" />

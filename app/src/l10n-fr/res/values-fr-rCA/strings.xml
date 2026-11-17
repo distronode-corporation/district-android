@@ -945,6 +945,8 @@
     <string name="scheduling_title">Rendez-vous</string>
     <string name="scheduling_too_many_attempts">La prise de rendez-vous a été activée plusieurs fois au cours de la dernière heure pour cet espace de travail. Réessayez sous peu.</string>
     <string name="scheduling_unrecognised">Cet espace de travail a une page de réservation, et cette version de l\'application ne reconnaît pas son état actuel. Mettre l\'application à jour devrait régler le problème.</string>
+    <string name="session_offline_saved_earlier">Hors ligne. Affichage des données enregistrées le\u00A0%1$s</string>
+    <string name="session_offline_saved_today">Hors ligne. Affichage des données enregistrées à\u00A0%1$s</string>
     <string name="settings_browser_missing">Aucun navigateur disponible pour ouvrir cette page.</string>
     <string name="settings_delete_account">Supprimer le compte</string>
     <string name="settings_delete_account_caption">Supprimez votre compte et ses données pour de bon. Vous confirmez d\'abord qu\'il s\'agit bien de vous.</string>

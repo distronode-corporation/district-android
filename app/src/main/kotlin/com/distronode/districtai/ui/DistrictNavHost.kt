@@ -256,7 +256,12 @@ fun DistrictNavHost(
         navController = navController,
     )
 
+    // ⚠️ ABOVE EVERY DESTINATION, LIKE THE NAV BAR BELOW: while any screen shows a saved copy, the
+    // whole app is offline and read-only, and says so with the time of the oldest copy.
+    val savedSince by container.savedReads.showingSince.collectAsStateWithLifecycle()
+
     Column(modifier = Modifier.fillMaxSize()) {
+        OfflineBanner(savedAtMillis = savedSince)
         Box(modifier = Modifier.weight(1f)) {
             NavHost(navController = navController, startDestination = Routes.OVERVIEW) {
                 composable(Routes.OVERVIEW) {

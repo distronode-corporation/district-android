@@ -14,6 +14,8 @@ import com.distronode.districtai.core.network.PushTokenRegisterRequest
 import com.distronode.districtai.core.network.testing.FakeAccountApi
 import com.distronode.districtai.core.data.PreferencesWorkspaceSelectionStore
 import com.distronode.districtai.widget.PreferencesHomeWidgetStore
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import java.io.File
 import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -96,6 +98,10 @@ class AppContainerDeletionTest {
         )
         subject.workspaceRepository.select("ws-1")
         subject.homeWidget.workspaceRead().show("ws-1", "Alpha")
+        subject.savedReads.asking(
+            listOf("api", "district", "overview"),
+            "https://example.test/api/district/overview".toHttpUrl(),
+        )!!.answered("{}")
         val before = subject.sessionSignal.epoch.value
 
         subject.finishDeletedAccount(externalErasurePending = true)
@@ -109,6 +115,12 @@ class AppContainerDeletionTest {
         assertNull(
             "the home-screen widget's snapshot is gone",
             PreferencesHomeWidgetStore(ApplicationProvider.getApplicationContext()).read(),
+        )
+        assertEquals(
+            "the saved reads are gone",
+            0,
+            File(ApplicationProvider.getApplicationContext<android.content.Context>().cacheDir, "saved-reads")
+                .listFiles()!!.size,
         )
         assertTrue("nothing to revoke: the account and its sessions are gone", revoke.presented.isEmpty())
         assertNull("and nothing left in the outbox for later launches", store.pendingRevoke)

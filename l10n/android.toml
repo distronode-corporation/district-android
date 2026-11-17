@@ -8387,6 +8387,26 @@ tier = "T3"
 state = "reviewed"
 note = "── Scheduling ───────────────────────────────────────────────────────── The workspace's booking page: one card, four tenancy states plus the two \"there is no row\" ones. ⛔ NOTHING HERE OFFERS TO BUY ANYTHING. A workspace the feature does not admit gets `scheduling_not_eligible` and no control at all, Google Play's Payments policy is the same shape as the App Store's 3.1.3(b), and a \"contact sales\" line out of a paid product's own settings is a purchase offer wearing a different hat. ⚠️ THE ENABLE BUTTON'S WORDING IS THE SERVER'S DECISION, NOT A ROLE'S. The status route sends `canManage`, and the client draws the button from it rather than re-deriving one from a role string. ⛔ FORWARD COMPATIBILITY, NOT A FAULT. The scheduling status column takes a new value without a migration, so an already-installed build can meet a state it does not model. The honest answer is that the booking page exists and this app cannot say what it is doing, never \"setup failed\" and never a blank card."
 
+[session.offline_saved_earlier]
+en = "Offline. Showing what was saved on {stamp}"
+fr = "Hors ligne. Affichage des données enregistrées le\u00A0{stamp}"
+ctx = "body"
+screen = "session"
+tier = "T2"
+args = { stamp = "str" }
+state = "draft"
+note = "As offline_saved_today, for a copy saved on an earlier day. {stamp} is a date and time already formatted. The iOS app's reviewed wording."
+
+[session.offline_saved_today]
+en = "Offline. Showing what was saved at {time}"
+fr = "Hors ligne. Affichage des données enregistrées à\u00A0{time}"
+ctx = "body"
+screen = "session"
+tier = "T2"
+args = { time = "str" }
+state = "draft"
+note = "Shown above every screen while the app is offline and shows the copy it saved earlier today. {time} is a time of day already formatted (« 15 h 04 », \"3:04 p.m.\"). No final period: the English time can end with one. The iOS app's reviewed wording."
+
 [settings.browser_missing]
 en = "No browser available to open that page."
 fr = "Aucun navigateur disponible pour ouvrir cette page."

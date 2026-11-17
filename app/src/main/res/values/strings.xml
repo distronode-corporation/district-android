@@ -951,6 +951,8 @@
     <string name="scheduling_title">Scheduling</string>
     <string name="scheduling_too_many_attempts">Scheduling has been enabled several times in the last hour for this workspace. Try again shortly.</string>
     <string name="scheduling_unrecognised">This workspace has a booking page, and this version of the app does not recognise its current state. Updating the app should fix it.</string>
+    <string name="session_offline_saved_earlier">Offline. Showing what was saved on %1$s</string>
+    <string name="session_offline_saved_today">Offline. Showing what was saved at %1$s</string>
     <string name="settings_browser_missing">No browser available to open that page.</string>
     <string name="settings_delete_account">Delete account</string>
     <string name="settings_delete_account_caption">Delete your account and its data for good. You confirm it is you first.</string>

@@ -276,11 +276,12 @@ class TokenRefreshCoordinator(
             }
             RefreshResult.NotSent -> {
                 // ⛔ THE REQUEST NEVER LEFT THE DEVICE, so the token is provably unspent and
-                // this is handled exactly like the 429 above: clear the marker, keep the
-                // session, let the caller retry. Leaving it set is what signed people out for
-                // opening the app offline. See RefreshResult.NotSent.
+                // this is handled like the 429 above: clear the marker, keep the session, let the
+                // caller retry. Leaving it set is what signed people out for opening the app
+                // offline. See RefreshResult.NotSent. ⚠️ Its own outcome rather than RetryLater:
+                // the device is offline, which is what a saved read answers.
                 store.clearRefreshPending()
-                return AccessToken.RetryLater
+                return AccessToken.Offline
             }
         }
 
@@ -331,6 +332,12 @@ sealed interface AccessToken {
      * rather than another [ReauthReason].
      */
     data object RetryLater : AccessToken
+
+    /**
+     * Transient, like [RetryLater]: the session is intact, but the refresh could not leave the
+     * device, so it is offline. Not a sign-out either.
+     */
+    data object Offline : AccessToken
 }
 
 enum class ReauthReason {

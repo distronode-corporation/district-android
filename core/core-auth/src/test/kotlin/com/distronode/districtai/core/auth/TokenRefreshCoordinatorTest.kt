@@ -533,6 +533,75 @@ class TokenRefreshCoordinatorTest {
         assertEquals(0, api.callCount)
     }
 
+    // ── A refresh never outlives its session ─────────────────────────────────
+
+    @Test
+    fun `a sign-out during an in-flight refresh is not undone when the refresh lands`() = runTest {
+        // ⛔ THE SUCCESSOR OF A SIGNED-OUT SESSION MUST GO NOWHERE. It used to be written to the
+        // freshly wiped store and its access token published, so the app was signed in again.
+        val store = FakeTokenStore(session("r0"))
+        val gate = CompletableDeferred<Unit>()
+        val api = CountingRefreshApi(gate) { RefreshResult.Success(tokens("r1")) }
+        val io = StandardTestDispatcher(testScheduler)
+        val coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = io)
+
+        val refreshing = async { coordinator.accessToken() }
+        advanceUntilIdle()
+        assertEquals("the refresh is in flight", 1, api.callCount)
+
+        coordinator.forget()
+        gate.complete(Unit)
+
+        assertEquals(AccessToken.ReauthRequired(ReauthReason.NoSession), refreshing.await())
+        assertNull("the store stays wiped", store.read())
+        assertNull("no marker is left behind", store.pendingRefreshToken())
+        assertEquals("clear", store.operations.last())
+        assertEquals(AccessToken.ReauthRequired(ReauthReason.NoSession), coordinator.accessToken())
+        assertEquals(1, api.callCount)
+    }
+
+    @Test
+    fun `a refresh rejected after a new login does not wipe the new session`() = runTest {
+        // ⚠️ THE OTHER DIRECTION: the old session's refresh fails after a new account signed in. Its
+        // clear would have deleted the session the login just wrote; its caller gets the new token.
+        val store = FakeTokenStore(session("r0"))
+        val gate = CompletableDeferred<Unit>()
+        val api = CountingRefreshApi(gate) { RefreshResult.Rejected }
+        val io = StandardTestDispatcher(testScheduler)
+        val coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = io)
+
+        val refreshing = async { coordinator.accessToken() }
+        advanceUntilIdle()
+        coordinator.forget()
+        coordinator.adopt(tokens("new"), deviceId)
+        gate.complete(Unit)
+
+        assertEquals(AccessToken.Available("access-new"), refreshing.await())
+        assertEquals("refresh-new", store.read()?.refreshToken)
+        assertEquals(AccessToken.Available("access-new"), coordinator.accessToken())
+    }
+
+    @Test
+    fun `a sign-out between reading the session and sending it sends nothing`() = runTest {
+        // ⚠️ THE EARLIEST WINDOW: the session was read, then signed out before the marker was set.
+        // The refresh token of a signed-out session must not be presented at all.
+        val backing = FakeTokenStore(session("r0"))
+        val api = CountingRefreshApi(null) { RefreshResult.Success(tokens("r1")) }
+        lateinit var coordinator: TokenRefreshCoordinator
+        val store = object : TokenStore by backing {
+            override fun pendingRefreshToken(): String? {
+                runBlocking { coordinator.forget() }
+                return backing.pendingRefreshToken()
+            }
+        }
+        coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = Dispatchers.Unconfined)
+
+        assertEquals(AccessToken.ReauthRequired(ReauthReason.NoSession), coordinator.accessToken())
+        assertEquals(0, api.callCount)
+        assertTrue(backing.markedTokens.isEmpty())
+        assertNull(backing.read())
+    }
+
     // ── The marker is read only under the lock ───────────────────────────────
 
     @Test

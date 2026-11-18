@@ -164,13 +164,48 @@ class SavedReadsAccountsTest {
     }
 
     @Test
+    fun `a request whose account is claimed away before its answer lands saves nothing under the new owner`() =
+        runTest {
+            // ⛔ THE CLAIM AND THE KEY ARE ONE STEP. A's request claimed ownership, and before it took
+            // its key B's request claimed it in turn; A's key then named B, A's overview was saved
+            // under it, and B was shown A's data offline. The hook below is B's claim landing in
+            // exactly that window: while A's claim is still writing the owner marker.
+            lateinit var saved: SavedReads
+            var claimedByB = false
+            val files = FileReadCache(dir)
+            val hooked = object : ReadCache by files {
+                override fun save(key: String, read: SavedRead) {
+                    files.save(key, read)
+                    if (key == SavedReads.OWNER_KEY && read.body == "user-a" && !claimedByB) {
+                        claimedByB = true
+                        saved.own("user-b")
+                    }
+                }
+            }
+            saved = SavedReads(hooked, language = { "en" })
+            server.enqueue(ok("A's overview"))
+
+            assertEquals(ApiResult.Success(Payload("A's overview")), client(saved, session("user-a")).overview())
+            assertTrue(claimedByB)
+            server.close()
+
+            val offline = client(saved, session("user-b", refresh = RefreshResult.NotSent)).overview()
+            assertTrue("B is shown nothing of A's", offline is ApiResult.NetworkFailure)
+            assertNull(saved.showingSince.value)
+        }
+
+    @Test
     fun `the same account again keeps its copies`() {
         val saved = launch()
         assertTrue(saved.own("user-a"))
         saved.asking(DistrictPaths.OVERVIEW, "https://example.test/x".toHttpUrl())!!.answered("{}")
 
         assertFalse(saved.own("user-a"))
-        assertFalse("a token that names no account changes nothing", saved.ownToken("not-a-jwt"))
+        val url = "https://example.test/x".toHttpUrl()
+        assertNull(
+            "a token that names no account changes nothing",
+            saved.askingAs("not-a-jwt", DistrictPaths.OVERVIEW, url, null),
+        )
         assertEquals(2, dir.list()!!.size)
     }
 

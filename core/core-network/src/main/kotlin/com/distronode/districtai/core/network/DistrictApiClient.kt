@@ -132,7 +132,7 @@ class DistrictApiClient(
         val result = authorizedCall(
             builder = Request.Builder().url(url).get(),
             client = httpClient,
-            onToken = { token -> if (saved?.ownToken(token) == true) asked = saved.asking(segments, url) },
+            onToken = { token -> if (saved != null) asked = saved.askingAs(token, segments, url, asked) },
         ) { response ->
             if (response.isSuccessful) {
                 decodeBody(response, serializer) { text -> asked?.answered(text) }

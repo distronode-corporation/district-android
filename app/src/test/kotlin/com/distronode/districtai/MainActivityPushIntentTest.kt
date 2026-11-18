@@ -1,11 +1,14 @@
 package com.distronode.districtai
 
 import android.Manifest
+import android.app.Notification
+import android.app.NotificationManager
 import android.content.Intent
 import android.os.Build
 import android.view.WindowManager
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.distronode.districtai.call.IncomingCallPhase
 import com.distronode.districtai.push.InboxDeepLink
 import com.distronode.districtai.push.PushIntents
 import com.distronode.districtai.ui.MainLooperDrain
@@ -13,7 +16,9 @@ import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -48,17 +53,29 @@ class MainActivityPushIntentTest {
         .putExtra(PushIntents.EXTRA_WORKSPACE_ID, "ws-1")
         .putExtra(PushIntents.EXTRA_MESSAGE_ID, "msg-9")
 
-    private fun callIntent(answer: Boolean): Intent = harness.launchIntent()
+    private fun callIntent(): Intent = harness.launchIntent()
         .putExtra(PushIntents.EXTRA_WORKSPACE_ID, "ws-1")
         .putExtra(PushIntents.EXTRA_CALL_ID, "call-7")
-        .putExtra(PushIntents.EXTRA_ANSWER, answer)
+
+    /** The intent the posted ring's Answer action would actually launch, token and all. */
+    private fun postedAnswerIntent(): Intent {
+        val manager = harness.app.getSystemService(NotificationManager::class.java)
+        val ring = shadowOf(manager).allNotifications.single { it.category == Notification.CATEGORY_CALL }
+        return shadowOf(ring.actions[0].actionIntent).savedIntent
+    }
+
+    private fun assertNotAnswered() {
+        assertNull(shadowOf(harness.activity).lastRequestedPermission)
+        assertFalse(harness.container.incomingCallController.answerRequested.value)
+        assertEquals(emptyList<Any>(), harness.app.api.pushApi.answerRequests)
+    }
 
     private fun assertPushExtrasGone(intent: Intent) {
         listOf(
             PushIntents.EXTRA_WORKSPACE_ID,
             PushIntents.EXTRA_MESSAGE_ID,
             PushIntents.EXTRA_CALL_ID,
-            PushIntents.EXTRA_ANSWER,
+            PushIntents.EXTRA_ANSWER_TOKEN,
         ).forEach { key -> assertFalse("$key must be consumed", intent.hasExtra(key)) }
     }
 
@@ -129,7 +146,7 @@ class MainActivityPushIntentTest {
         harness.container.incomingCallController.onIncomingCall("ws-1", "call-7")
         compose.waitForIdle()
 
-        harness.deliver(callIntent(answer = true))
+        harness.deliver(postedAnswerIntent())
 
         // ⛔ RECORDED, NOT ANSWERED: the answer needs the microphone first, and the request is made
         // by the ringing screen, which has the launcher. Nothing is sent to the server until then.
@@ -143,11 +160,56 @@ class MainActivityPushIntentTest {
     fun `Answer from a stale notification for a call that is not ringing does nothing`() {
         harness.signedOut()
         harness.launch()
+        harness.container.incomingCallController.onIncomingCall("ws-1", "call-7")
+        compose.waitForIdle()
+        val stale = postedAnswerIntent()
+        harness.container.incomingCallController.decline()
+        compose.waitForIdle()
 
-        harness.deliver(callIntent(answer = true))
+        harness.deliver(stale)
 
         assertNull(shadowOf(harness.activity).lastRequestedPermission)
         assertFalse(harness.container.incomingCallController.answerRequested.value)
+    }
+
+    @Test
+    fun `an intent from outside the app cannot answer the ringing call, whatever its extras say`() {
+        // ⛔ THE ACTIVITY IS EXPORTED, so any app can start it with the call id and an answer flag.
+        // With the microphone already granted, honouring that answered the call with nobody pressing
+        // anything. Only the posted Answer action's token may answer; this is the intent without it.
+        shadowOf(harness.app).grantPermissions(Manifest.permission.RECORD_AUDIO)
+        harness.signedOut()
+        harness.launch()
+        harness.container.incomingCallController.onIncomingCall("ws-1", "call-7")
+        compose.waitForIdle()
+
+        harness.deliver(
+            callIntent()
+                .putExtra("com.distronode.districtai.push.ANSWER", true)
+                .putExtra(PushIntents.EXTRA_ANSWER_TOKEN, "guessed"),
+        )
+
+        assertNotAnswered()
+        assertEquals(IncomingCallPhase.RINGING, harness.container.incomingCallController.state.value?.phase)
+    }
+
+    @Test
+    fun `a replayed Answer intent is refused after the first one was taken`() {
+        harness.signedOut()
+        harness.launch()
+        harness.container.incomingCallController.onIncomingCall("ws-1", "call-7")
+        compose.waitForIdle()
+        val answer = postedAnswerIntent()
+        val replay = Intent(answer)
+
+        harness.deliver(answer)
+        // ⚠️ THE HOST CLEARS `answerRequested` ITSELF, so that flag cannot show a replay. Each
+        // accepted Answer asks for the microphone again, and each ask is a new request object.
+        val asked = shadowOf(harness.activity).lastRequestedPermission
+        assertNotNull("the first Answer asks for the microphone", asked)
+        harness.deliver(replay)
+
+        assertSame("the replay asks for nothing", asked, shadowOf(harness.activity).lastRequestedPermission)
     }
 
     @Test
@@ -157,10 +219,9 @@ class MainActivityPushIntentTest {
         harness.container.incomingCallController.onIncomingCall("ws-1", "call-7")
         compose.waitForIdle()
 
-        harness.deliver(callIntent(answer = false))
+        harness.deliver(callIntent())
 
-        assertNull(shadowOf(harness.activity).lastRequestedPermission)
-        assertFalse(harness.container.incomingCallController.answerRequested.value)
+        assertNotAnswered()
         assertPushExtrasGone(harness.activity.intent)
     }
 

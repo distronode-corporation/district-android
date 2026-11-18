@@ -319,22 +319,29 @@ class MainActivity : ComponentActivity() {
      * reading four extras and dispatching, which `MainActivityPushIntentTest` drives through a
      * cold start and a re-delivery under Robolectric.
      *
+     * ⛔ AN ANSWER NEEDS THE NOTIFICATION'S TOKEN, NOT JUST ITS EXTRAS' SHAPE. Any app can start this
+     * activity with a call id and whatever else it likes; without the live [AnswerTokens] value the
+     * intent is read as a body tap and only shows the call.
+     *
      * ⚠️ `AnswerCall` IS DELEGATED AND NOT VALIDATED HERE. The controller drops an answer request
      * for anything that is not still RINGING, so a stale pending intent for a call that already
      * ended does nothing — which is the correct outcome and is asserted where that rule lives.
      */
     private fun consumePushIntent(intent: Intent) {
         val extras = intent.extras ?: return
+        val callId = extras.getString(PushIntents.EXTRA_CALL_ID)
         val action = pushIntentAction(
             workspaceId = extras.getString(PushIntents.EXTRA_WORKSPACE_ID),
             messageId = extras.getString(PushIntents.EXTRA_MESSAGE_ID),
-            callId = extras.getString(PushIntents.EXTRA_CALL_ID),
-            answer = extras.getBoolean(PushIntents.EXTRA_ANSWER, false),
+            callId = callId,
+            // ⛔ ONLY THE TOKEN THIS PROCESS MINTED FOR THIS RING ANSWERS. This activity is exported,
+            // so the extras are whatever the sender chose; see AnswerTokens.
+            answer = container.answerTokens.redeem(callId, extras.getString(PushIntents.EXTRA_ANSWER_TOKEN)),
         )
         intent.removeExtra(PushIntents.EXTRA_WORKSPACE_ID)
         intent.removeExtra(PushIntents.EXTRA_MESSAGE_ID)
         intent.removeExtra(PushIntents.EXTRA_CALL_ID)
-        intent.removeExtra(PushIntents.EXTRA_ANSWER)
+        intent.removeExtra(PushIntents.EXTRA_ANSWER_TOKEN)
         dispatchPushAction(action)
     }
 

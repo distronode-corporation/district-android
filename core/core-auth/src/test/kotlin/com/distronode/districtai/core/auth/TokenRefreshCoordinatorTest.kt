@@ -335,6 +335,9 @@ class TokenRefreshCoordinatorTest {
 
         /** How long the probing caller waits on the lock before the probe records that it waited. */
         const val SECOND_CALLER_WAIT_MS = 200L
+
+        /** The longest the sign-out probe waits for its caller to park on the lock (a ceiling, not a sleep). */
+        const val PARK_DEADLINE_NANOS = 10_000_000_000L
     }
 
     // ── 5. Failures that must not cost the session ───────────────────────────
@@ -580,6 +583,46 @@ class TokenRefreshCoordinatorTest {
         assertEquals("refresh-new", store.read()?.refreshToken)
         assertEquals(AccessToken.Available("access-new"), coordinator.accessToken())
     }
+
+    @Test
+    fun `a caller arriving while a sign-out is still wiping the store does not refresh the old session`() =
+        runTest {
+            // ⛔ THE GENERATION AND THE SESSION ARE ONE SNAPSHOT. The sign-out has advanced the
+            // generation but not yet cleared the store; a caller reading the two apart paired the
+            // new generation with the old session, passed every check and signed the user back in.
+            // The caller runs on its own thread and is let in while the wipe is held, until it is
+            // parked on the coordinator's lock.
+            val backing = FakeTokenStore(session("r0"))
+            val api = CountingRefreshApi(null) { RefreshResult.Success(tokens("r1")) }
+            lateinit var coordinator: TokenRefreshCoordinator
+            var result: AccessToken? = null
+            var caller: Thread? = null
+            val store = object : TokenStore by backing {
+                override fun clear() {
+                    if (caller == null) {
+                        val thread = Thread { result = runBlocking { coordinator.accessToken() } }
+                        caller = thread
+                        thread.start()
+                        val deadline = System.nanoTime() + PARK_DEADLINE_NANOS
+                        // ⚠️ runBlocking parks with parkNanos, so a suspended caller reads TIMED_WAITING.
+                        val parked = setOf(Thread.State.WAITING, Thread.State.TIMED_WAITING)
+                        while (thread.state !in parked && System.nanoTime() < deadline) {
+                            Thread.yield()
+                        }
+                        assertTrue("the caller is parked on the lock", thread.state in parked)
+                    }
+                    backing.clear()
+                }
+            }
+            coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = Dispatchers.Unconfined)
+
+            coordinator.forget()
+            checkNotNull(caller).join(PARK_DEADLINE_NANOS / 1_000_000)
+
+            assertEquals(AccessToken.ReauthRequired(ReauthReason.NoSession), result)
+            assertEquals(0, api.callCount)
+            assertNull("the store stays wiped", backing.read())
+        }
 
     @Test
     fun `a sign-out between reading the session and sending it sends nothing`() = runTest {

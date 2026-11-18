@@ -146,11 +146,13 @@ class TokenRefreshCoordinator(
             // the first caller already spent — which is precisely failure mode 1.
             cachedIfFresh()?.let { return@withLock AccessToken.Available(it) }
 
-            // ⚠️ CAPTURED BEFORE THE READ, so a sign-out or a new login after this point is seen as
-            // a change even if the read below already reflects it.
-            val generation = sessionGeneration
-            val current = store.read()
-                ?: return@withLock AccessToken.ReauthRequired(ReauthReason.NoSession)
+            // ⛔ THE GENERATION AND THE SESSION ARE READ TOGETHER, UNDER [sessionMutex]. Read apart,
+            // a [forget] that had bumped the generation but not yet wiped the store paired the new
+            // generation with the old session, and every later check passed. Under the lock they
+            // are one consistent snapshot. (A login that landed meanwhile is simply refreshed once,
+            // under this single flight: an ordinary rotation, not a replay.)
+            val (generation, current) = sessionMutex.withLock { sessionGeneration to store.read() }
+            val session = current ?: return@withLock AccessToken.ReauthRequired(ReauthReason.NoSession)
 
             // ── The interrupted-refresh check ────────────────────────────────
             // Checked BEFORE any network call. If the marker names the token still on disk, a
@@ -165,12 +167,12 @@ class TokenRefreshCoordinator(
             // after it finished and either take the fresh token above or, if it ended in
             // TransportFailure, stop here instead of re-sending a possibly spent token.
             val pending = store.pendingRefreshToken()
-            if (pending != null && pending == current.refreshToken) {
+            if (pending != null && pending == session.refreshToken) {
                 store.clear()
                 return@withLock AccessToken.ReauthRequired(ReauthReason.InterruptedRefresh)
             }
 
-            performRefresh(current, generation)
+            performRefresh(session, generation)
         }
     }
 

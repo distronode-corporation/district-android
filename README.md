@@ -229,9 +229,11 @@ Nothing here is a secret. If you find something that is, report it as described 
 
 ## Uninstall
 
-Sign out first (Account, Sign out) if you want the session ended on the service as well: the
-app revokes its refresh token when you sign out. Then uninstall it as any other app, from its
-App info screen, or with adb:
+Sign out first (Account, Sign out), with the device online, if you want the session ended on
+the service as well: the app revokes its refresh token when you sign out. If the service cannot
+be reached then, the app signs out on the device and keeps the token to revoke on a later
+launch, so uninstalling straight after an offline sign-out leaves that session open until it
+expires. Then uninstall it as any other app, from its App info screen, or with adb:
 
 ```sh
 adb uninstall com.distronode.districtai          # the Google Play build

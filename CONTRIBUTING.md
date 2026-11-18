@@ -167,7 +167,7 @@ decoder lenient to get past a failure.
 ## Style
 
 Kotlin follows detekt's default rules with the deviations in `config/detekt/detekt.yml`,
-including the ktlint formatting rules (`detekt -PdetektAutoCorrect` fixes most of them) and a
+including the ktlint formatting rules (`./gradlew detekt -PdetektAutoCorrect` fixes most of them) and a
 120-character line limit. detekt runs with `maxIssues: 0`, so one finding fails the build, and
 Android Lint runs with `abortOnError` and no baseline. `.editorconfig` sets indentation, line
 endings and the final newline. Every user-visible string comes from a catalog in `l10n/` (see

@@ -16,7 +16,9 @@ import com.distronode.districtai.ui.ROBOLECTRIC_SDK
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -201,10 +203,13 @@ class MainActivityPushIntentTest {
         val replay = Intent(answer)
 
         harness.deliver(answer)
-        harness.container.incomingCallController.consumeAnswerRequest()
+        // ⚠️ THE HOST CLEARS `answerRequested` ITSELF, so that flag cannot show a replay. Each
+        // accepted Answer asks for the microphone again, and each ask is a new request object.
+        val asked = shadowOf(harness.activity).lastRequestedPermission
+        assertNotNull("the first Answer asks for the microphone", asked)
         harness.deliver(replay)
 
-        assertFalse(harness.container.incomingCallController.answerRequested.value)
+        assertSame("the replay asks for nothing", asked, shadowOf(harness.activity).lastRequestedPermission)
     }
 
     @Test

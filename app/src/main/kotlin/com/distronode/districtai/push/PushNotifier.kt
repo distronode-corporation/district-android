@@ -197,9 +197,8 @@ internal class AndroidPushNotifier(
                 Notification.Action.Builder(
                     null,
                     appContext.getString(R.string.push_call_answer),
-                    PushIntents.activity(
+                    PushIntents.answerActivity(
                         appContext,
-                        PushIntents.REQUEST_ANSWER_CALL,
                         PushIntents.answerCall(appContext, workspaceId, callId, answerTokens.mint(callId)),
                     ),
                 ).build(),

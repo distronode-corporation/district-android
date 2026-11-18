@@ -129,6 +129,22 @@ internal object PushIntents {
     fun activity(context: Context, requestCode: Int, intent: Intent): PendingIntent =
         PendingIntent.getActivity(context, requestCode, intent, FLAGS)
 
+    /**
+     * The Answer button's pending intent.
+     *
+     * ⛔ `FLAG_CANCEL_CURRENT`, NOT `FLAG_UPDATE_CURRENT`. An updated pending intent is the same one,
+     * so anything still holding the previous ring's Answer action would fire it with this ring's call
+     * id and live token. Cancelling makes every earlier handle unusable, and the action posted now
+     * is the only one that can answer.
+     */
+    fun answerActivity(context: Context, intent: Intent): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            REQUEST_ANSWER_CALL,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT,
+        )
+
     fun broadcast(context: Context, requestCode: Int, intent: Intent): PendingIntent =
         PendingIntent.getBroadcast(context, requestCode, intent, FLAGS)
 }

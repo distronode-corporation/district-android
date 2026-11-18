@@ -210,6 +210,23 @@ class PushNotifierTest {
     }
 
     @Test
+    fun `a later ring cancels the earlier ring's Answer action rather than updating it`() {
+        // ⛔ AN UPDATED PENDING INTENT IS THE SAME ONE: anything still holding the earlier ring's
+        // Answer action would fire it with the next ring's call id and live token.
+        notifier.showIncomingCall("ws-1", "CA1")
+        val earlier = posted().single().actions[0].actionIntent
+
+        notifier.showIncomingCall("ws-1", "CA2")
+
+        val later = posted().single().actions[0].actionIntent
+        assertTrue("the earlier ring's Answer can no longer be sent", shadowOf(earlier).isCanceled)
+        assertFalse(shadowOf(later).isCanceled)
+        val answer = shadowOf(later).savedIntent
+        assertEquals("CA2", answer.getStringExtra(PushIntents.EXTRA_CALL_ID))
+        assertTrue(tokens.redeem("CA2", answer.getStringExtra(PushIntents.EXTRA_ANSWER_TOKEN)))
+    }
+
+    @Test
     fun `a ring carries a full-screen intent that shows the call, when the app may use one`() {
         // ⛔ ON A LOCKED PHONE THE FULL-SCREEN INTENT IS WHAT PUTS THE RINGING SCREEN UP. 3.0.0 had
         // none (fullScreenIntent=null in the 2026-10-15 ring test), so a locked phone showed only a

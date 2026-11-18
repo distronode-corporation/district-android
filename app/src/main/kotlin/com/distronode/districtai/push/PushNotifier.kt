@@ -89,6 +89,12 @@ internal class AndroidPushNotifier(
      * API 34, and on 34+ whatever Settings > Special app access says. Tests drive both answers.
      */
     private val canUseFullScreenIntent: (NotificationManagerCompat) -> Boolean = { it.canUseFullScreenIntent() },
+    /**
+     * ⛔ THE SAME INSTANCE `MainActivity` REDEEMS AGAINST, which is why it is passed in rather than
+     * built here: a token minted into a private copy would make every Answer press merely show the
+     * call. See [AnswerTokens].
+     */
+    private val answerTokens: AnswerTokens,
 ) : PushNotifier {
 
     private val appContext = context.applicationContext
@@ -194,7 +200,7 @@ internal class AndroidPushNotifier(
                     PushIntents.activity(
                         appContext,
                         PushIntents.REQUEST_ANSWER_CALL,
-                        PushIntents.answerCall(appContext, workspaceId, callId),
+                        PushIntents.answerCall(appContext, workspaceId, callId, answerTokens.mint(callId)),
                     ),
                 ).build(),
             )
@@ -210,7 +216,7 @@ internal class AndroidPushNotifier(
                 ).build(),
             )
         // ⛔ THE SAME PENDING INTENT AS THE BODY TAP, SO A FULL-SCREEN LAUNCH SHOWS THE RING AND
-        // NEVER ANSWERS IT (see `PushIntents.EXTRA_ANSWER`). `MainActivity` puts itself over the
+        // NEVER ANSWERS IT (see `PushIntents.EXTRA_ANSWER_TOKEN`). `MainActivity` puts itself over the
         // keyguard while the call is live. ⚠️ Omitted, not attached and left to be demoted, when the
         // grant is missing: what the platform does with a refused full-screen intent has changed
         // between releases, and the heads-up alone is a known shape.

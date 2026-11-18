@@ -46,13 +46,15 @@ class PushNotifierTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
+    private val tokens = AnswerTokens()
+
     private lateinit var manager: NotificationManager
     private lateinit var notifier: AndroidPushNotifier
 
     @Before
     fun setUp() {
         manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notifier = AndroidPushNotifier(context)
+        notifier = AndroidPushNotifier(context, answerTokens = tokens)
     }
 
     private fun posted() = shadowOf(manager).allNotifications
@@ -115,8 +117,8 @@ class PushNotifierTest {
         // overridden — and the one-shot alternative leaves an app upgraded across a channel addition
         // with no channel at all, so its notifications are dropped by the platform with nothing
         // logged.
-        AndroidPushNotifier(context)
-        AndroidPushNotifier(context)
+        AndroidPushNotifier(context, answerTokens = tokens)
+        AndroidPushNotifier(context, answerTokens = tokens)
 
         assertNotNull(manager.getNotificationChannel(AndroidPushNotifier.CHANNEL_INCOMING_CALLS))
         assertEquals(
@@ -191,11 +193,28 @@ class PushNotifierTest {
     }
 
     @Test
+    fun `only the Answer action carries the answer token, and it is the live one for this call`() {
+        // ⛔ THE TOKEN IS WHAT LETS THE ACTIVITY TELL ITS OWN ANSWER BUTTON FROM AN INTENT ANY APP
+        // COULD SEND. The body tap must not carry it, and the one the Answer action carries must
+        // redeem against the shared instance, once.
+        notifier.showIncomingCall("ws-1", "CA1")
+
+        val notification = posted().single()
+        val answer = shadowOf(notification.actions[0].actionIntent).savedIntent
+        val body = shadowOf(notification.contentIntent).savedIntent
+        assertFalse(body.hasExtra(PushIntents.EXTRA_ANSWER_TOKEN))
+        val token = answer.getStringExtra(PushIntents.EXTRA_ANSWER_TOKEN)
+        assertFalse("a different call's id does not redeem it", tokens.redeem("CA2", token))
+        assertTrue(tokens.redeem("CA1", token))
+        assertFalse("spent", tokens.redeem("CA1", token))
+    }
+
+    @Test
     fun `a ring carries a full-screen intent that shows the call, when the app may use one`() {
         // ⛔ ON A LOCKED PHONE THE FULL-SCREEN INTENT IS WHAT PUTS THE RINGING SCREEN UP. 3.0.0 had
         // none (fullScreenIntent=null in the 2026-10-15 ring test), so a locked phone showed only a
         // line on the lock screen.
-        val granted = AndroidPushNotifier(context, canUseFullScreenIntent = { true })
+        val granted = AndroidPushNotifier(context, canUseFullScreenIntent = { true }, answerTokens = tokens)
 
         granted.showIncomingCall("ws-1", "CA1")
 
@@ -205,7 +224,7 @@ class PushNotifierTest {
         assertEquals("CA1", launched.getStringExtra(PushIntents.EXTRA_CALL_ID))
         assertEquals("ws-1", launched.getStringExtra(PushIntents.EXTRA_WORKSPACE_ID))
         // ⛔ IT SHOWS THE RING AND NEVER ANSWERS IT: the same intent as the body tap.
-        assertFalse(launched.hasExtra(PushIntents.EXTRA_ANSWER))
+        assertFalse(launched.hasExtra(PushIntents.EXTRA_ANSWER_TOKEN))
         assertTrue(notification.fullScreenIntent == notification.contentIntent)
     }
 
@@ -213,7 +232,7 @@ class PushNotifierTest {
     fun `without the full-screen grant the ring is the heads-up alone`() {
         // ⚠️ ANDROID 14+ WITHOUT THE GRANT: the intent is left off rather than attached and demoted,
         // and everything else about the ring is unchanged.
-        val refused = AndroidPushNotifier(context, canUseFullScreenIntent = { false })
+        val refused = AndroidPushNotifier(context, canUseFullScreenIntent = { false }, answerTokens = tokens)
 
         refused.showIncomingCall("ws-1", "CA1")
 
@@ -296,7 +315,7 @@ class PushNotifierTest {
         // ⚠️ SOME BUILDS THROW `SecurityException` FROM `notify` rather than dropping a post the app
         // may not make. A throw here would escape into the FCM callback and lose the ring's Telecom
         // half along with the notification.
-        val refusing = AndroidPushNotifier(context)
+        val refusing = AndroidPushNotifier(context, answerTokens = tokens)
 
         refusing.showMessage("ws-1", "msg-1")
         refusing.showIncomingCall("ws-1", "CA1")

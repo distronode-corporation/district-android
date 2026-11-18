@@ -6,22 +6,46 @@
 
 # District AI for Android
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/distronode-corporation/district-android/badge)](https://scorecard.dev/viewer/?uri=github.com/distronode-corporation/district-android)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15873/badge)](https://www.bestpractices.dev/projects/15873)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/distronode-corporation/district-android/badge)](https://scorecard.dev/viewer/?uri=github.com/distronode-corporation/district-android)
 [![Latest release](https://img.shields.io/github/v/release/distronode-corporation/district-android?label=release)](https://github.com/distronode-corporation/district-android/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/github/license/distronode-corporation/district-android)](LICENSE)
+[![CI](https://github.com/distronode-corporation/district-android/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/distronode-corporation/district-android/actions/workflows/ci.yml)
 
-<a href="https://play.google.com/store/apps/details?id=com.distronode.districtai"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="66"></a>
-
-The native Android client for [District AI](https://www.distronode.com/district-ai), by
-Distronode. It is the app published on
-[Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai) as
-`com.distronode.districtai`: calls and transcripts, the shared inbox, contacts and their
-intelligence dossiers, multi-party rooms, a self-managed softphone that places and answers
-calls through Android's Telecom framework, push notifications, and workspace settings.
+The native Android app for District AI, the AI voice receptionist from
+[Distronode](https://distronode.com) that answers a business's phone calls.
 
 <img alt="The Overview on Android, in a fictional review workspace" src="docs/images/overview.png" width="270">
 
 *The Overview, in a fictional review workspace.*
+
+**Quick start:** install it from Google Play and sign in with your District AI account.
+
+<a href="https://play.google.com/store/apps/details?id=com.distronode.districtai"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="66"></a>
+
+Or build and install a debug build from source (JDK 21 and the Android SDK, see
+[Requirements](#requirements)):
+
+```sh
+./gradlew installDebug    # installs com.distronode.districtai.debug on the connected device
+```
+
+**Links:** [Distronode](https://distronode.com) ·
+[project page](https://www.distronode.com/open-source/district-android) ·
+[Distronode on GitHub](https://github.com/distronode-corporation) ·
+[CHANGELOG](CHANGELOG.md) · [ROADMAP](ROADMAP.md) ·
+[SECURITY-MODEL](SECURITY-MODEL.md) ·
+[GitLab mirror](https://gitlab.com/distronode-corporation/district-android) (read-only mirror;
+issues and pull requests live on GitHub)
+
+## What it is
+
+The native client for [District AI](https://www.distronode.com/district-ai), by Distronode. It
+is the app published on
+[Google Play](https://play.google.com/store/apps/details?id=com.distronode.districtai) as
+`com.distronode.districtai`: calls and transcripts, the shared inbox, contacts and their
+intelligence dossiers, multi-party rooms, a self-managed softphone that places and answers
+calls through Android's Telecom framework, push notifications, and workspace settings.
 
 Kotlin, Jetpack Compose and Material 3, on a small set of Gradle modules. Apache-2.0. It
 runs on Android 8.0 (API level 26) and later.
@@ -31,17 +55,15 @@ language or, on Android 13 and later, its own language setting; any French reads
 French, and every other language in English.
 
 The app is a client of the District AI API. Everything it shows comes from that service, and
-signing in needs a District AI account. There is no offline mode and no local server.
+signing in needs a District AI account. There is no local server. On `main`, not yet in a
+release, the first screens (the workspace list, the Overview, the Inbox, the call log and the
+contacts) show their last saved copy, read only, when the device cannot reach the service.
 
 **Without an account with us.** Today this app needs a District AI account to sign in. We
 want the District AI apps to work without an account with us too. We have not worked out
 what that looks like or whether it can work, and the answer depends on what people would
 use them with, so we are asking before we build anything:
 [tell us what you would connect them to](https://github.com/distronode-corporation/.github/discussions/1).
-
-**Links:** [project page](https://www.distronode.com/open-source/district-android) ·
-[GitLab mirror](https://gitlab.com/distronode-corporation/district-android) (read-only mirror;
-issues and pull requests live on GitHub) · [CHANGELOG](CHANGELOG.md)
 
 ## Requirements
 
@@ -205,11 +227,36 @@ crash reporting token (the release workflow borrows them per run; see Releases).
 Nothing here is a secret. If you find something that is, report it as described in
 [SECURITY.md](SECURITY.md) rather than in an issue.
 
+## Uninstall
+
+Sign out first (Account, Sign out), with the device online, if you want the session ended on
+the service as well: the app revokes its refresh token when you sign out. If the service cannot
+be reached then, the app signs out on the device and keeps the token to revoke on a later
+launch, so uninstalling straight after an offline sign-out leaves that session open until it
+expires. Then uninstall it as any other app, from its App info screen, or with adb:
+
+```sh
+adb uninstall com.distronode.districtai          # the Google Play build
+adb uninstall com.distronode.districtai.debug    # a debug build from this repository
+```
+
+Uninstalling removes everything the app keeps on the device: the encrypted tokens and their
+Keystore key, the settings, and the saved copies of screens. Your District AI account and
+workspace are on the service and are not touched. Deleting the account is a separate step:
+the "Delete account" row on the Account screen (the in-app flow is on `main` and listed under
+`[Unreleased]` in [CHANGELOG.md](CHANGELOG.md); in 3.3.1 the row opens the deletion page in the
+browser).
+
 ## Contributing, security and conduct
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): the local gate, the rules CI enforces, and how pull
   requests are reviewed.
 - [SECURITY.md](SECURITY.md): report vulnerabilities privately, not in an issue.
+- [SECURITY-MODEL.md](SECURITY-MODEL.md): what the app protects, from whom, and the tests that
+  hold each control.
+- [ROADMAP.md](ROADMAP.md): the near-term plan.
+- [GOVERNANCE.md](https://github.com/distronode-corporation/.github/blob/main/GOVERNANCE.md):
+  how the project is run, its roles, and how it continues, for every Distronode repository.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 - [SUPPORT](.github/SUPPORT.md): where questions, bugs and account help go.
 

@@ -10,7 +10,7 @@ package com.distronode.districtai.push
  * one method, which is the part no test could add value to.
  *
  * ⛔ THE ANSWER FLAG IS CHECKED AGAINST A CALL ID AND NOT ON ITS OWN. An intent carrying
- * `EXTRA_ANSWER` and no call id is not a request to answer "whatever is ringing" — it is a
+ * a redeemed answer token and no call id is not a request to answer "whatever is ringing": it is a
  * malformed intent, and treating it as an answer would let a stale `PendingIntent` from a previous
  * call join the current one.
  */
@@ -47,9 +47,9 @@ internal sealed interface PushIntentAction {
 }
 
 /**
- * @param answer the value of `PushIntents.EXTRA_ANSWER`. ⚠️ Absent defaults to false, which is the
- *   safe direction: an intent that somehow lost its extras shows the ringing screen rather than
- *   answering the call.
+ * @param answer whether the intent carried the live `PushIntents.EXTRA_ANSWER_TOKEN` for this call
+ *   (see `AnswerTokens`). ⚠️ False for a missing, wrong or spent token, which is the safe
+ *   direction: such an intent shows the ringing screen rather than answering the call.
  * @return null when there is nothing here from this app's notifications — the ordinary case, since
  *   every launcher tap and every PKCE callback also arrives as an intent.
  */

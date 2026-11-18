@@ -53,12 +53,16 @@ internal object PushIntents {
 
     /**
      * ⛔ THE DIFFERENCE BETWEEN "SHOW ME THE RINGING CALL" AND "ANSWER IT". Both open the activity
-     * with the same two ids, and without this flag the body tap and the Answer button would be
+     * with the same two ids, and without this extra the body tap and the Answer button would be
      * indistinguishable to the receiving side — so tapping to SEE who is calling would join the
      * conversation. Its absence is the safe default: an intent that somehow lost its extras opens
      * the ringing screen rather than answering.
+     *
+     * ⛔ A TOKEN, NOT A FLAG. The activity is exported, so a flag is something any app can set; the
+     * value here is minted per ring by [AnswerTokens] and only an intent carrying the live one
+     * answers. Anything else, including a forged or replayed Answer, only shows the call.
      */
-    const val EXTRA_ANSWER: String = "com.distronode.districtai.push.ANSWER"
+    const val EXTRA_ANSWER_TOKEN: String = "com.distronode.districtai.push.ANSWER_TOKEN"
 
     /** Broadcast action for the Decline button. ⚠️ Handled by [IncomingCallActionReceiver]. */
     const val ACTION_DECLINE: String = "com.distronode.districtai.push.DECLINE"
@@ -80,7 +84,7 @@ internal object PushIntents {
     /**
      * Bring the ringing call to the screen WITHOUT answering it.
      *
-     * ⚠️ This is the body tap. See [EXTRA_ANSWER] for why it is a different intent from the Answer
+     * ⚠️ This is the body tap. See [EXTRA_ANSWER_TOKEN] for why it is a different intent from the Answer
      * button rather than the same one.
      */
     fun showIncomingCall(context: Context, workspaceId: String, callId: String): Intent =
@@ -89,9 +93,12 @@ internal object PushIntents {
             .putExtra(EXTRA_WORKSPACE_ID, workspaceId)
             .putExtra(EXTRA_CALL_ID, callId)
 
-    /** The Answer button. ⛔ The only intent in this file that carries [EXTRA_ANSWER]. */
-    fun answerCall(context: Context, workspaceId: String, callId: String): Intent =
-        showIncomingCall(context, workspaceId, callId).putExtra(EXTRA_ANSWER, true)
+    /**
+     * The Answer button. ⛔ The only intent in this file that carries [EXTRA_ANSWER_TOKEN], and
+     * [token] must come from [AnswerTokens.mint] for this same [callId].
+     */
+    fun answerCall(context: Context, workspaceId: String, callId: String, token: String): Intent =
+        showIncomingCall(context, workspaceId, callId).putExtra(EXTRA_ANSWER_TOKEN, token)
 
     /**
      * The Decline button.
@@ -121,6 +128,22 @@ internal object PushIntents {
 
     fun activity(context: Context, requestCode: Int, intent: Intent): PendingIntent =
         PendingIntent.getActivity(context, requestCode, intent, FLAGS)
+
+    /**
+     * The Answer button's pending intent.
+     *
+     * ⛔ `FLAG_CANCEL_CURRENT`, NOT `FLAG_UPDATE_CURRENT`. An updated pending intent is the same one,
+     * so anything still holding the previous ring's Answer action would fire it with this ring's call
+     * id and live token. Cancelling makes every earlier handle unusable, and the action posted now
+     * is the only one that can answer.
+     */
+    fun answerActivity(context: Context, intent: Intent): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            REQUEST_ANSWER_CALL,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT,
+        )
 
     fun broadcast(context: Context, requestCode: Int, intent: Intent): PendingIntent =
         PendingIntent.getBroadcast(context, requestCode, intent, FLAGS)

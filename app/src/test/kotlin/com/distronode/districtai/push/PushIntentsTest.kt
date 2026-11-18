@@ -24,7 +24,7 @@ import org.robolectric.annotation.Config
  * reason `PushIntents` is a separate object from the notifications that use it.
  *
  * ⛔ AND THE ONE THAT MATTERS MOST IS THE ANSWER/SHOW DISTINCTION. Both open the same Activity with
- * the same two ids; without [PushIntents.EXTRA_ANSWER] they would be indistinguishable to the
+ * the same two ids; without [PushIntents.EXTRA_ANSWER_TOKEN] they would be indistinguishable to the
  * receiving side, and tapping a notification to SEE who is calling would join the conversation.
  */
 @RunWith(AndroidJUnit4::class)
@@ -56,23 +56,23 @@ class PushIntentsTest {
     }
 
     @Test
-    fun `tapping the body of a ringing notification does NOT carry the answer flag`() {
-        // ⛔ THE SAFE DEFAULT, AND THE REASON THE FLAG EXISTS. Its ABSENCE is what makes an intent
+    fun `tapping the body of a ringing notification does NOT carry the answer token`() {
+        // ⛔ THE SAFE DEFAULT, AND THE REASON THE TOKEN EXISTS. Its ABSENCE is what makes an intent
         // that somehow lost its extras open the ringing screen rather than answer the call.
         val intent = PushIntents.showIncomingCall(context, "ws-1", "CA1")
 
         assertEquals("CA1", intent.getStringExtra(PushIntents.EXTRA_CALL_ID))
-        assertFalse(intent.getBooleanExtra(PushIntents.EXTRA_ANSWER, false))
+        assertFalse(intent.hasExtra(PushIntents.EXTRA_ANSWER_TOKEN))
     }
 
     @Test
-    fun `the Answer action is the same intent plus the answer flag`() {
-        val intent = PushIntents.answerCall(context, "ws-1", "CA1")
+    fun `the Answer action is the same intent plus the answer token`() {
+        val intent = PushIntents.answerCall(context, "ws-1", "CA1", "tok")
 
         assertEquals(MainActivity::class.java.name, intent.component?.className)
         assertEquals("ws-1", intent.getStringExtra(PushIntents.EXTRA_WORKSPACE_ID))
         assertEquals("CA1", intent.getStringExtra(PushIntents.EXTRA_CALL_ID))
-        assertTrue(intent.getBooleanExtra(PushIntents.EXTRA_ANSWER, false))
+        assertEquals("tok", intent.getStringExtra(PushIntents.EXTRA_ANSWER_TOKEN))
     }
 
     @Test
@@ -127,7 +127,7 @@ class PushIntentsTest {
         val pending = PushIntents.activity(
             context,
             PushIntents.REQUEST_ANSWER_CALL,
-            PushIntents.answerCall(context, "ws-1", "CA1"),
+            PushIntents.answerCall(context, "ws-1", "CA1", "tok"),
         )
 
         assertTrue("the pending intent must exist", pending.creatorPackage != null)

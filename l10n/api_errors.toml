@@ -1488,6 +1488,15 @@ tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `region_unavailable`, verbatim from contracts/i18n/api-errors.json."
 
+[api_error.registration_on_own_account]
+en = "This number must be bought on Distronode's carrier account, but this workspace's regulatory registration is filed on its own Twilio account. Contact support to file the registration on Distronode's account, then buy this number."
+fr = "Ce numéro doit être acheté sur le compte de transporteur de Distronode, mais l'inscription réglementaire de cet espace de travail est déposée sur son propre compte Twilio. Communiquez avec notre équipe de soutien pour déposer l'inscription sur le compte de Distronode, puis achetez ce numéro."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `registration_on_own_account`, verbatim from contracts/i18n/api-errors.json."
+
 [api_error.reply_failed]
 en = "Your reply could not be posted. Please try again."
 fr = "Votre réponse n'a pas pu être publiée. Veuillez réessayer."
@@ -1694,6 +1703,15 @@ screen = "errors (server codes)"
 tier = "T2"
 state = "reviewed"
 note = "The sentence for the server's error code `test_call_needs_number`, verbatim from contracts/i18n/api-errors.json."
+
+[api_error.tfv_filed_by_distronode]
+en = "This toll-free number is held on Distronode's account, so its verification must be filed by Distronode. Contact support to file it."
+fr = "Ce numéro sans frais est détenu sur le compte de Distronode; sa vérification doit donc être déposée par Distronode. Communiquez avec notre équipe de soutien pour la déposer."
+ctx = "error"
+screen = "errors (server codes)"
+tier = "T2"
+state = "draft"
+note = "The sentence for the server's error code `tfv_filed_by_distronode`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.ticket_create_failed]
 en = "That request could not be created. Please try again."

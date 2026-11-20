@@ -196,6 +196,8 @@ internal val API_ERROR_SENTENCES: Map<String, Int> = mapOf(
     "transfer_release_confirmation_required" to R.string.api_error_transfer_release_confirmation_required,
     "number_bridge_eu_workspaces_only" to R.string.api_error_number_bridge_eu_workspaces_only,
     "number_bridge_ca_workspaces_only" to R.string.api_error_number_bridge_ca_workspaces_only,
+    "registration_on_own_account" to R.string.api_error_registration_on_own_account,
+    "tfv_filed_by_distronode" to R.string.api_error_tfv_filed_by_distronode,
     "auto_dial_country_not_permitted" to R.string.api_error_auto_dial_country_not_permitted,
     "auto_dial_outside_hours" to R.string.api_error_auto_dial_outside_hours,
     "auto_dial_contact_opted_out" to R.string.api_error_auto_dial_contact_opted_out,

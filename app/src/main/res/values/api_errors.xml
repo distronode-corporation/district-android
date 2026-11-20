@@ -166,6 +166,7 @@
     <string name="api_error_region_move_not_found">There is no open region move request for this workspace.</string>
     <string name="api_error_region_move_pending">A region move has already been requested for this workspace.</string>
     <string name="api_error_region_unavailable">That workspace\'s region cannot be reached right now. Please try again shortly.</string>
+    <string name="api_error_registration_on_own_account">This number must be bought on Distronode\'s carrier account, but this workspace\'s regulatory registration is filed on its own Twilio account. Contact support to file the registration on Distronode\'s account, then buy this number.</string>
     <string name="api_error_reply_failed">Your reply could not be posted. Please try again.</string>
     <string name="api_error_room_inactive">That meeting room is not active.</string>
     <string name="api_error_room_not_found">That call room could not be found.</string>
@@ -189,6 +190,7 @@
     <string name="api_error_test_call_in_progress">A test call is already under way. Wait for it to end before starting another.</string>
     <string name="api_error_test_call_limit_reached">You have used today\'s three test calls. You can place another one tomorrow, or call your number yourself.</string>
     <string name="api_error_test_call_needs_number">Choose a phone number for this workspace first, so the test call has a number to come from.</string>
+    <string name="api_error_tfv_filed_by_distronode">This toll-free number is held on Distronode\'s account, so its verification must be filed by Distronode. Contact support to file it.</string>
     <string name="api_error_ticket_create_failed">That request could not be created. Please try again.</string>
     <string name="api_error_ticket_not_closable">This request cannot be closed from here. Reply to let us know it is resolved and we will close it.</string>
     <string name="api_error_ticket_not_found">That support request could not be found.</string>

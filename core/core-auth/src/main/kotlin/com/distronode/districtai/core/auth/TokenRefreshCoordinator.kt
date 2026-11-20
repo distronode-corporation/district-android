@@ -70,6 +70,28 @@ class TokenRefreshCoordinator(
     private val refreshMutex = Mutex()
 
     /**
+     * Serialises every change to WHICH session is current: [adopt], [forget], and a refresh's
+     * store writes and publication.
+     *
+     * ⛔ SEPARATE FROM [refreshMutex] SO A SIGN-OUT NEVER WAITS ON THE NETWORK. A refresh holds
+     * [refreshMutex] across its request (up to OkHttp's 30s timeout); this one is held only for
+     * store writes, so [forget] stays prompt while still being ordered against them.
+     */
+    private val sessionMutex = Mutex()
+
+    /**
+     * Advanced by every [adopt] and [forget], under [sessionMutex].
+     *
+     * ⛔ A REFRESH STARTED UNDER ONE SESSION MUST NOT LAND IN THE NEXT. A refresh is in flight for
+     * up to 30 seconds; if the user signs out meanwhile, its successor used to be written to the
+     * freshly wiped store and its access token published, so the "signed out" app was holding a
+     * live session again. The refresh captures this before it reads the store and, if it has
+     * moved by the time the response is handled, writes, clears and publishes nothing.
+     */
+    @Volatile
+    private var sessionGeneration: Long = 0L
+
+    /**
      * The access token, in memory ONLY, deliberately never persisted (see [TokenStore]).
      * Null after a process restart, which simply means the next call refreshes.
      */
@@ -124,8 +146,13 @@ class TokenRefreshCoordinator(
             // the first caller already spent — which is precisely failure mode 1.
             cachedIfFresh()?.let { return@withLock AccessToken.Available(it) }
 
-            val current = store.read()
-                ?: return@withLock AccessToken.ReauthRequired(ReauthReason.NoSession)
+            // ⛔ THE GENERATION AND THE SESSION ARE READ TOGETHER, UNDER [sessionMutex]. Read apart,
+            // a [forget] that had bumped the generation but not yet wiped the store paired the new
+            // generation with the old session, and every later check passed. Under the lock they
+            // are one consistent snapshot. (A login that landed meanwhile is simply refreshed once,
+            // under this single flight: an ordinary rotation, not a replay.)
+            val (generation, current) = sessionMutex.withLock { sessionGeneration to store.read() }
+            val session = current ?: return@withLock AccessToken.ReauthRequired(ReauthReason.NoSession)
 
             // ── The interrupted-refresh check ────────────────────────────────
             // Checked BEFORE any network call. If the marker names the token still on disk, a
@@ -140,12 +167,12 @@ class TokenRefreshCoordinator(
             // after it finished and either take the fresh token above or, if it ended in
             // TransportFailure, stop here instead of re-sending a possibly spent token.
             val pending = store.pendingRefreshToken()
-            if (pending != null && pending == current.refreshToken) {
+            if (pending != null && pending == session.refreshToken) {
                 store.clear()
                 return@withLock AccessToken.ReauthRequired(ReauthReason.InterruptedRefresh)
             }
 
-            performRefresh(current)
+            performRefresh(session, generation)
         }
     }
 
@@ -160,18 +187,22 @@ class TokenRefreshCoordinator(
      * callback — the main thread, in the deep-link case.
      */
     suspend fun adopt(tokens: NativeTokens, deviceId: String) {
-        withContext(io) {
-            store.write(
-                PersistedSession(
-                    refreshToken = tokens.refreshToken,
-                    refreshTokenExpiresAt = tokens.refreshTokenExpiresAt,
-                    deviceId = deviceId,
-                ),
-            )
-            store.clearRefreshPending()
+        sessionMutex.withLock {
+            // ⛔ A NEW SESSION: a refresh still in flight for the previous one must not overwrite it.
+            sessionGeneration += 1
+            withContext(io) {
+                store.write(
+                    PersistedSession(
+                        refreshToken = tokens.refreshToken,
+                        refreshTokenExpiresAt = tokens.refreshTokenExpiresAt,
+                        deviceId = deviceId,
+                    ),
+                )
+                store.clearRefreshPending()
+            }
+            accessToken = tokens.accessToken
+            accessTokenExpiresAt = tokens.accessTokenExpiresAt
         }
-        accessToken = tokens.accessToken
-        accessTokenExpiresAt = tokens.accessTokenExpiresAt
     }
 
     /**
@@ -213,7 +244,16 @@ class TokenRefreshCoordinator(
     suspend fun forget() {
         accessToken = null
         accessTokenExpiresAt = 0L
-        withContext(io) { store.clear() }
+        // ⛔ ORDERED AGAINST A REFRESH'S WRITES, AND IT ENDS THE SESSION IT RAN UNDER. Without the
+        // generation bump, a refresh that was already in flight persisted its successor into the
+        // wiped store and republished an access token after this had returned. See
+        // [sessionGeneration].
+        sessionMutex.withLock {
+            sessionGeneration += 1
+            withContext(io) { store.clear() }
+            accessToken = null
+            accessTokenExpiresAt = 0L
+        }
     }
 
     private fun cachedIfFresh(): String? {
@@ -239,16 +279,35 @@ class TokenRefreshCoordinator(
      * a persisted conclusion. Bounded by OkHttp's 30s `callTimeout`, so this cannot hang a
      * cancelled scope indefinitely.
      */
-    private suspend fun performRefresh(current: PersistedSession): AccessToken =
-        withContext(NonCancellable) { performRefreshUninterruptible(current) }
+    private suspend fun performRefresh(current: PersistedSession, generation: Long): AccessToken =
+        withContext(NonCancellable) {
+            // ⛔ MARKER BEFORE NETWORK, AND IT MUST BE DURABLE. If this write is buffered, it
+            // is lost in exactly the crash it exists to detect.
+            sessionMutex.withLock {
+                if (generation != sessionGeneration) return@withContext sessionMovedOn()
+                store.markRefreshPending(current.refreshToken)
+            }
+            val outcome = refreshApi.refresh(current.refreshToken)
+            sessionMutex.withLock {
+                // ⛔ THE SESSION ENDED (OR WAS REPLACED) WHILE THE REQUEST WAS OUT: touch nothing.
+                // Persisting the successor would undo a sign-out; clearing on a rejection would
+                // wipe the session a new login just wrote.
+                if (generation != sessionGeneration) {
+                    sessionMovedOn()
+                } else {
+                    completeRefresh(current, outcome)
+                }
+            }
+        }
 
-    private suspend fun performRefreshUninterruptible(current: PersistedSession): AccessToken {
-        // ⛔ MARKER BEFORE NETWORK, AND IT MUST BE DURABLE. If this write is buffered, it
-        // is lost in exactly the crash it exists to detect.
-        store.markRefreshPending(current.refreshToken)
+    /**
+     * What a refresh that outlived its session answers: the session that replaced it, if it has a
+     * live access token (a login landed meanwhile), else no session at all (a sign-out did).
+     */
+    private fun sessionMovedOn(): AccessToken =
+        cachedIfFresh()?.let { AccessToken.Available(it) } ?: AccessToken.ReauthRequired(ReauthReason.NoSession)
 
-        val outcome = refreshApi.refresh(current.refreshToken)
-
+    private fun completeRefresh(current: PersistedSession, outcome: RefreshResult): AccessToken {
         val rotated = when (outcome) {
             is RefreshResult.Success -> outcome.tokens
             RefreshResult.Rejected -> {

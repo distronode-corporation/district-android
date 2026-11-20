@@ -26,7 +26,7 @@ import okhttp3.HttpUrl
  * and every sign-out clears them ([clear]), as does the service ending the session.
  *
  * ⛔ ONE ACCOUNT'S ONLY. Every key holds the owner, the `sub` of the access token the requests are
- * sent with ([ownToken]); a request sent for another account forgets every copy first, and with no
+ * sent with ([askingAs]); a request sent for another account forgets every copy first, and with no
  * owner known nothing is kept or shown, so one account is never shown another's copies even if a
  * clear that should have run did not. The owner is kept in the cache ([OWNER_KEY]), so a launch
  * offline (whose token cannot be refreshed, and so cannot say whose it is) still shows that
@@ -90,41 +90,63 @@ class SavedReads(
      */
     fun asking(segments: List<String>, url: HttpUrl): Asked? {
         if (segments !in SAVED_PATHS) return null
-        return synchronized(lock) {
-            val current = owner ?: return null
-            nextSequence += 1
-            Asked("$current ${language()} $url", generation, clock(), nextSequence)
-        }
+        return synchronized(lock) { askingLocked(url) }
+    }
+
+    /** Under [lock]: the key for [url] under the current owner and generation. */
+    private fun askingLocked(url: HttpUrl): Asked? {
+        val current = owner ?: return null
+        nextSequence += 1
+        return Asked("$current ${language()} $url", generation, clock(), nextSequence)
     }
 
     /**
-     * The request is about to be sent with [accessToken]: its account owns the saved reads. True
-     * when that changed the owner (another account's copies were forgotten, or none was known), so
-     * the caller asks again for the key. A token whose account cannot be read changes nothing.
+     * The request [asked] was taken for is about to be sent with [accessToken]: its account owns the
+     * saved reads, and the answer is the key the request saves under from now on.
+     *
+     * ⛔ THE OWNERSHIP CHANGE AND THE NEW KEY ARE TAKEN UNDER ONE LOCK. Taken separately, a request
+     * for another account could claim ownership between the two, and this request's answer was then
+     * saved under THAT account's key, to be shown to it offline. Taken together, a later claim
+     * advances the generation past this key's and the answer is simply not kept.
      */
-    fun ownToken(accessToken: String): Boolean {
-        val account = subjectOf(accessToken) ?: return false
-        return own(account)
+    fun askingAs(accessToken: String, segments: List<String>, url: HttpUrl, asked: Asked?): Asked? {
+        val account = subjectOf(accessToken) ?: return asked
+        val (changed, now) = synchronized(lock) {
+            val changed = claimLocked(account)
+            // ⚠️ Any request's token claims ownership; only a saved read has a key to take again.
+            changed to when {
+                !changed -> asked
+                segments in SAVED_PATHS -> askingLocked(url)
+                else -> null
+            }
+        }
+        if (changed) persistOwner(account)
+        return now
     }
 
     /** [account] owns the saved reads from now on; another account's are forgotten first. */
     fun own(account: String): Boolean {
-        val changed = synchronized(lock) {
-            (owner != account).also {
-                if (it) {
-                    generation += 1
-                    shown.clear()
-                    kept.clear()
-                    owner = account
-                    publish()
-                }
-            }
-        }
+        val changed = synchronized(lock) { claimLocked(account) }
         if (!changed) return false
-        // Outside the lock, like every other use of the cache; see [answered].
+        persistOwner(account)
+        return true
+    }
+
+    /** Under [lock]: make [account] the owner, forgetting another's; true when the owner changed. */
+    private fun claimLocked(account: String): Boolean = (owner != account).also {
+        if (it) {
+            generation += 1
+            shown.clear()
+            kept.clear()
+            owner = account
+            publish()
+        }
+    }
+
+    /** Outside the lock, like every other use of the cache; see [answered]. */
+    private fun persistOwner(account: String) {
         cache.clear()
         cache.save(OWNER_KEY, SavedRead(account, clock()))
-        return true
     }
 
     private fun answered(asked: Asked, text: String) {

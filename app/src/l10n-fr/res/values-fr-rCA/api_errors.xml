@@ -166,6 +166,7 @@
     <string name="api_error_region_move_not_found">Aucune demande de changement de région n\'est en cours pour cet espace de travail.</string>
     <string name="api_error_region_move_pending">Un changement de région est déjà demandé pour cet espace de travail.</string>
     <string name="api_error_region_unavailable">La région de cet espace de travail est injoignable en ce moment. Veuillez réessayer sous peu.</string>
+    <string name="api_error_registration_on_own_account">Ce numéro doit être acheté sur le compte de transporteur de Distronode, mais l\'inscription réglementaire de cet espace de travail est déposée sur son propre compte Twilio. Communiquez avec notre équipe de soutien pour déposer l\'inscription sur le compte de Distronode, puis achetez ce numéro.</string>
     <string name="api_error_reply_failed">Votre réponse n\'a pas pu être publiée. Veuillez réessayer.</string>
     <string name="api_error_room_inactive">Cette salle de réunion n\'est pas active.</string>
     <string name="api_error_room_not_found">Cette salle d\'appel est introuvable.</string>
@@ -189,6 +190,7 @@
     <string name="api_error_test_call_in_progress">Un appel d\'essai est déjà en cours. Attendez qu\'il se termine avant d\'en lancer un autre.</string>
     <string name="api_error_test_call_limit_reached">Vous avez utilisé les trois appels d\'essai d\'aujourd\'hui. Vous pourrez en faire un autre demain, ou appeler vous-même votre numéro.</string>
     <string name="api_error_test_call_needs_number">Choisissez d\'abord un numéro de téléphone pour cet espace de travail, afin que l\'appel d\'essai ait un numéro d\'origine.</string>
+    <string name="api_error_tfv_filed_by_distronode">Ce numéro sans frais est détenu sur le compte de Distronode; sa vérification doit donc être déposée par Distronode. Communiquez avec notre équipe de soutien pour la déposer.</string>
     <string name="api_error_ticket_create_failed">Cette demande n\'a pas pu être créée. Veuillez réessayer.</string>
     <string name="api_error_ticket_not_closable">Cette demande ne peut pas être fermée ici. Répondez pour nous dire qu\'elle est réglée et nous la fermerons.</string>
     <string name="api_error_ticket_not_found">Cette demande de soutien est introuvable.</string>

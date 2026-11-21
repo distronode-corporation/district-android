@@ -831,8 +831,8 @@
       "fr": "Ce numéro a choisi de ne plus recevoir de textos de cette entreprise, alors aucun code ne peut lui être envoyé."
     },
     "member_phone_business_number": {
-      "en": "This number belongs to a business on District, so it cannot receive alerts. Enter your own mobile number.",
-      "fr": "Ce numéro appartient à une entreprise sur District, alors il ne peut pas recevoir d'alertes. Entrez votre propre numéro de cellulaire."
+      "en": "This number belongs to a business on District, so it cannot be your verified mobile. Enter your own mobile number.",
+      "fr": "Ce numéro appartient à une entreprise sur District, alors il ne peut pas être votre cellulaire vérifié. Entrez votre propre numéro de cellulaire."
     },
     "caller_id_unavailable": {
       "en": "Using your own mobile as caller ID is not available yet.",

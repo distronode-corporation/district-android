@@ -1,10 +1,11 @@
 # Roadmap
 
 The near-term plan for District AI for Android. It is taken from this repository's one open
-issue, its open pull requests and its own unfinished items, each named with where it comes
-from. It has no dates: an item is done when the change that does it is merged and released, and
-it then leaves this list for [CHANGELOG.md](CHANGELOG.md). Anything here can change; open an
-issue to discuss an item or to propose a new one.
+issue, its one open pull request and its own unfinished items, each named with where it comes
+from. This roadmap covers the next twelve months, to November 2027. Items have no dates of their
+own: an item is done when the change that does it is merged and released, and it then leaves
+this list for [CHANGELOG.md](CHANGELOG.md). Anything here can change; open an issue to discuss
+an item or to propose a new one.
 
 ## Near term
 
@@ -12,12 +13,12 @@ issue to discuss an item or to propose a new one.
   the app and the setup wizard in the app are merged and listed under `[Unreleased]` in
   [CHANGELOG.md](CHANGELOG.md). The plan is to ship them in the next Google Play release. The
   read-only offline copies of the first screens are merged too
-  ([#159](https://github.com/distronode-corporation/district-android/pull/159)), though not yet
-  listed in that section.
-- **Hardening from the deep security scan.** Two open pull requests: answering a call only from
-  the ringing notification
-  ([#161](https://github.com/distronode-corporation/district-android/pull/161)), and keeping a
-  sign-out final while a token refresh is in flight, with saved copies bound to their account
+  ([#159](https://github.com/distronode-corporation/district-android/pull/159)), and so is the
+  first hardening from the deep security scan, answering a call only from the ringing
+  notification ([#161](https://github.com/distronode-corporation/district-android/pull/161));
+  neither is listed in that section yet.
+- **Hardening from the deep security scan.** One open pull request: keeping a sign-out final
+  while a token refresh is in flight, with saved copies bound to their account
   ([#162](https://github.com/distronode-corporation/district-android/pull/162)).
 - **The branch coverage floor back to 98.** It was lowered to 97 because JaCoCo does not yet
   filter a branch the Compose 2.4 compiler emits; it goes back up when a JaCoCo release filters

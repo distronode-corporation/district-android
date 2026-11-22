@@ -949,12 +949,12 @@ state = "reviewed"
 note = "The sentence for the server's error code `member_not_found`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_business_number]
-en = "This number belongs to a business on District, so it cannot receive alerts. Enter your own mobile number."
-fr = "Ce numéro appartient à une entreprise sur District, alors il ne peut pas recevoir d'alertes. Entrez votre propre numéro de cellulaire."
+en = "This number belongs to a business on District, so it cannot be your verified mobile. Enter your own mobile number."
+fr = "Ce numéro appartient à une entreprise sur District, alors il ne peut pas être votre cellulaire vérifié. Entrez votre propre numéro de cellulaire."
 ctx = "error"
 screen = "errors (server codes)"
 tier = "T2"
-state = "reviewed"
+state = "draft"
 note = "The sentence for the server's error code `member_phone_business_number`, verbatim from contracts/i18n/api-errors.json."
 
 [api_error.member_phone_cannot_text]

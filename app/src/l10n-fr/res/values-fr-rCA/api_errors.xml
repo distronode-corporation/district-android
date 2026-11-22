@@ -106,7 +106,7 @@
     <string name="api_error_media_not_found">Ce fichier est introuvable.</string>
     <string name="api_error_member_exists">Ce courriel est déjà membre de cet espace de travail.</string>
     <string name="api_error_member_not_found">Cette personne n\'est pas membre de cet espace de travail.</string>
-    <string name="api_error_member_phone_business_number">Ce numéro appartient à une entreprise sur District, alors il ne peut pas recevoir d\'alertes. Entrez votre propre numéro de cellulaire.</string>
+    <string name="api_error_member_phone_business_number">Ce numéro appartient à une entreprise sur District, alors il ne peut pas être votre cellulaire vérifié. Entrez votre propre numéro de cellulaire.</string>
     <string name="api_error_member_phone_cannot_text">Cette entreprise ne peut pas encore envoyer de textos. L\'envoi de textos commencera dès que la messagerie texte de son numéro sera approuvée. D\'ici là, les alertes vous parviendront par courriel et dans l\'application.</string>
     <string name="api_error_member_phone_code_expired">Ce code est expiré ou a déjà été utilisé. Demandez-en un nouveau.</string>
     <string name="api_error_member_phone_code_wrong">Ce code n\'est pas le bon. Vérifiez le texto, puis réessayez.</string>

@@ -106,7 +106,7 @@
     <string name="api_error_media_not_found">That file could not be found.</string>
     <string name="api_error_member_exists">That email address is already a member of this workspace.</string>
     <string name="api_error_member_not_found">That person is not a member of this workspace.</string>
-    <string name="api_error_member_phone_business_number">This number belongs to a business on District, so it cannot receive alerts. Enter your own mobile number.</string>
+    <string name="api_error_member_phone_business_number">This number belongs to a business on District, so it cannot be your verified mobile. Enter your own mobile number.</string>
     <string name="api_error_member_phone_cannot_text">This business cannot send texts yet. Texts start once its number\'s text messaging is approved. Until then, alerts come by email and in the app.</string>
     <string name="api_error_member_phone_code_expired">That code has expired or was already used. Send a new one.</string>
     <string name="api_error_member_phone_code_wrong">That code is not right. Check the text message and try again.</string>

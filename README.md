@@ -19,7 +19,9 @@ The native Android app for District AI, the AI voice receptionist from
 
 *The Overview, in a fictional review workspace.*
 
-**Quick start:** install it from Google Play and sign in with your District AI account.
+## Quick start
+
+Install it from Google Play and sign in with your District AI account.
 
 <a href="https://play.google.com/store/apps/details?id=com.distronode.districtai"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="66"></a>
 

@@ -124,6 +124,12 @@ class TokenRefreshCoordinator(
     }
 
     private suspend fun acquireToken(): AccessToken {
+        // ⛔ THE GENERATION IS READ BEFORE THE SESSION, NOT AFTER. The expired-session clear below
+        // may run only while the session this caller read is still the current one, and that proof
+        // holds only if no login can adopt between the two reads. Read after the session, a login
+        // that landed in that gap would pair its NEW session with the generation that preceded it,
+        // pass the check, and be wiped by the clear.
+        val generationAtRead = sessionGeneration
         val persisted = store.read() ?: return AccessToken.ReauthRequired(ReauthReason.NoSession)
 
         // ⛔ NO INTERRUPTED-REFRESH CHECK OUT HERE, ONLY THE ONE UNDER THE MUTEX BELOW. A copy of it
@@ -135,8 +141,20 @@ class TokenRefreshCoordinator(
         // re-authenticate, beside a refresh that was succeeding. Holding the mutex is the only
         // proof that no refresh is running, so the check lives only where that proof is held.
         if (nowMillis() >= persisted.refreshTokenExpiresAt) {
-            store.clear()
-            return AccessToken.ReauthRequired(ReauthReason.RefreshTokenExpired)
+            // ⛔ THE CLEAR IS UNDER [sessionMutex], GUARDED BY THE GENERATION READ ABOVE. A login
+            // that adopts between the read and the clear has a live session on disk; an unlocked
+            // clear wiped it, leaving the caller told RefreshTokenExpired beside a session that
+            // survived only in memory and was gone at the next cold start. The generation check
+            // is the proof the expired session is still the current one; when it has moved,
+            // [sessionMovedOn] answers whatever replaced it and nothing is cleared.
+            return sessionMutex.withLock {
+                if (generationAtRead != sessionGeneration) {
+                    sessionMovedOn()
+                } else {
+                    store.clear()
+                    AccessToken.ReauthRequired(ReauthReason.RefreshTokenExpired)
+                }
+            }
         }
 
         return refreshMutex.withLock {
@@ -168,8 +186,24 @@ class TokenRefreshCoordinator(
             // TransportFailure, stop here instead of re-sending a possibly spent token.
             val pending = store.pendingRefreshToken()
             if (pending != null && pending == session.refreshToken) {
-                store.clear()
-                return@withLock AccessToken.ReauthRequired(ReauthReason.InterruptedRefresh)
+                // ⛔ THE CLEAR IS UNDER [sessionMutex], GUARDED BY THE GENERATION CAPTURED WITH THE
+                // SESSION ABOVE. A login that adopts between this marker read and the clear has a
+                // live session on disk; an unlocked clear wiped it, leaving the new login
+                // surviving only in memory and gone at the next cold start. The generation check
+                // is the proof the interrupted session is still the current one; when it has
+                // moved, [sessionMovedOn] answers whatever replaced it and nothing is cleared.
+                //
+                // ⚠️ THE MARKER READ ITSELF STAYS OUTSIDE THE LOCK. A store may re-enter the
+                // coordinator from inside a read (the sign-out probe in the tests does exactly
+                // this), which a [sessionMutex] held across the read would deadlock.
+                return@withLock sessionMutex.withLock {
+                    if (generation != sessionGeneration) {
+                        sessionMovedOn()
+                    } else {
+                        store.clear()
+                        AccessToken.ReauthRequired(ReauthReason.InterruptedRefresh)
+                    }
+                }
             }
 
             performRefresh(session, generation)
@@ -301,8 +335,9 @@ class TokenRefreshCoordinator(
         }
 
     /**
-     * What a refresh that outlived its session answers: the session that replaced it, if it has a
-     * live access token (a login landed meanwhile), else no session at all (a sign-out did).
+     * What a caller acting on a session that is no longer current answers, whether a refresh whose
+     * request outlived it or a clear a login landed inside: the session that replaced it, if it
+     * has a live access token (a login landed meanwhile), else no session at all (a sign-out did).
      */
     private fun sessionMovedOn(): AccessToken =
         cachedIfFresh()?.let { AccessToken.Available(it) } ?: AccessToken.ReauthRequired(ReauthReason.NoSession)

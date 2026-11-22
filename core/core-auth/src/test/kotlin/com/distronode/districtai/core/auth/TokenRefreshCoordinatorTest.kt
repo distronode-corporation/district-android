@@ -645,6 +645,95 @@ class TokenRefreshCoordinatorTest {
         assertNull(backing.read())
     }
 
+    // ── A clear never wipes a session adopted after its read ─────────────────
+
+    @Test
+    fun `a login landing between the marker read and its clear keeps its session`() = runTest {
+        // ⛔ THE OPEN RACE ON THE INTERRUPTED-REFRESH BRANCH. The marker names the stored token,
+        // so the caller is about to clear a presumed-spent session — and the clear ran unlocked,
+        // so a login adopting in the gap after the marker was read had its just-persisted
+        // session wiped by that very clear. The login survived only in memory and was gone at
+        // the next cold start, while the caller was told InterruptedRefresh beside a live
+        // session. The clear now runs under the session lock, guarded by the generation
+        // captured with the session, so it lands only while the interrupted session is still
+        // the current one.
+        val backing = FakeTokenStore(session("r0"))
+        backing.markRefreshPending("r0")
+        val api = CountingRefreshApi(null) { RefreshResult.Success(tokens("r1")) }
+        lateinit var coordinator: TokenRefreshCoordinator
+        var adopted = false
+        val store = object : TokenStore by backing {
+            override fun pendingRefreshToken(): String? {
+                val pending = backing.pendingRefreshToken()
+                if (!adopted && pending != null) {
+                    adopted = true
+                    // The login lands AFTER the marker was read (its value is already in hand)
+                    // and BEFORE the clear: exactly the gap the guard has to close.
+                    runBlocking { coordinator.adopt(tokens("new"), deviceId) }
+                }
+                return pending
+            }
+        }
+        coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = Dispatchers.Unconfined)
+
+        val result = coordinator.accessToken()
+
+        assertEquals(
+            "the caller is handed the session that replaced the interrupted one",
+            AccessToken.Available("access-new"),
+            result,
+        )
+        assertEquals("the possibly-spent token is never presented either way", 0, api.callCount)
+        assertEquals(
+            "⛔ the login's session must survive the clear it raced",
+            "refresh-new",
+            backing.read()?.refreshToken,
+        )
+        assertNull(backing.pendingRefreshToken())
+    }
+
+    @Test
+    fun `a login landing between the expiry read and its clear keeps its session`() = runTest {
+        // ⛔ THE SAME RACE ON THE EXPIRY BRANCH, WHICH RUNS OUTSIDE [refreshMutex]. The stored
+        // session was read, found past its 60-day window, and the clear ran unlocked — so a
+        // login adopting in the gap had its just-persisted session wiped, and the caller was
+        // told RefreshTokenExpired beside a live session that survived only in memory. The
+        // generation is read BEFORE the session here, so a login landing anywhere in the gap
+        // moves it and the clear is refused.
+        val backing = FakeTokenStore(session("r0", expiresInMs = -1))
+        val api = CountingRefreshApi(null) { RefreshResult.Success(tokens("r1")) }
+        lateinit var coordinator: TokenRefreshCoordinator
+        var adopted = false
+        val store = object : TokenStore by backing {
+            override fun read(): PersistedSession? {
+                val current = backing.read()
+                if (!adopted && current != null) {
+                    adopted = true
+                    // The login lands AFTER the expired session was read (it is already in
+                    // hand) and BEFORE the clear that would have wiped it.
+                    runBlocking { coordinator.adopt(tokens("new"), deviceId) }
+                }
+                return current
+            }
+        }
+        coordinator = TokenRefreshCoordinator(store, api, nowMillis = { NOW }, io = Dispatchers.Unconfined)
+
+        val result = coordinator.accessToken()
+
+        assertEquals(
+            "the caller is handed the session that replaced the expired one",
+            AccessToken.Available("access-new"),
+            result,
+        )
+        assertEquals("an expired token never reaches the network either way", 0, api.callCount)
+        assertEquals(
+            "⛔ the login's session must survive the clear it raced",
+            "refresh-new",
+            backing.read()?.refreshToken,
+        )
+        assertNull(backing.pendingRefreshToken())
+    }
+
     // ── The marker is read only under the lock ───────────────────────────────
 
     @Test

@@ -152,7 +152,7 @@ androidxTestExtJunit = "1.3.0"
 # ⛔ MUST match kotlinxCoroutines above.
 coroutinesTest = "1.11.0"
 # Mocks the LiveKit SDK in :core:core-media only (its Room cannot be built off a device).
-mockk = "1.14.11"
+mockk = "1.14.12"
 
 # ── Serialization ────────────────────────────────────────────────────────────
 # ⛔ The serialization COMPILER PLUGIN is versioned with Kotlin (it is a Kotlin
@@ -213,7 +213,7 @@ livekit = "2.30.0"
 # firebase-common and the Play-services
 # dependencies arrive transitively; none of them is declared here, because a
 # transitive coordinate declared explicitly is a second place to forget to bump.
-firebaseMessaging = "26.0.1"
+firebaseMessaging = "26.0.2"
 
 # ── Crash reporting ──────────────────────────────────────────────────────────
 # ⚠️ 8.63.0 is the exact `io.sentry:sentry` version the 6.26.0 Gradle plugin below carries
@@ -246,7 +246,7 @@ firebaseMessaging = "26.0.1"
 # directly, so it cannot simply be excluded — a `NoClassDefFoundError` inside the crash
 # reporter is a worse outcome than the coordinate. With no native code here it parses
 # nothing.
-sentry = "8.63.0"
+sentry = "8.64.0"
 
 # ⛔ THE GRADLE PLUGIN EXISTS FOR THE PROGUARD MAPPING AND FOR NOTHING ELSE HERE. R8
 # renames every class in the release build, so a crash report without the mapping is a
@@ -261,7 +261,7 @@ sentry = "8.63.0"
 # source of truth and silently disagree with the lockfiles; `tracingInstrumentation`
 # rewrites bytecode to add performance spans, which is ingest this account is not
 # paying for. See the `sentry { }` block for the rest.
-sentryGradlePlugin = "6.26.0"
+sentryGradlePlugin = "6.27.0"
 
 # ── Forced transitive versions ───────────────────────────────────────────────
 # ⛔ NO LIBRARY ENTRY USES THIS, AND THAT IS DELIBERATE. bouncycastle is never declared

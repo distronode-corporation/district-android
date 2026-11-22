@@ -86,6 +86,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+          problem-matcher: true
 
       # Same SDK step as ci.yml, for the same reason: resolving the Android configurations runs
       # AGP's configuration phase, and a missing package should fail here, by name, rather than

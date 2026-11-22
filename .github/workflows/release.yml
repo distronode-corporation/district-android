@@ -120,6 +120,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+          problem-matcher: true
 
       # Wrapper validation only. No Gradle cache in a release build: a cache written by another
       # workflow run is input this build would trust without having made it.

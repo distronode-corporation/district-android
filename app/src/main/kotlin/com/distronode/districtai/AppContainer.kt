@@ -62,6 +62,7 @@ import com.distronode.districtai.widget.HomeWidgetPublisher
 import com.distronode.districtai.widget.PreferencesHomeWidgetStore
 import com.distronode.districtai.core.data.PushTokenRepository
 import com.distronode.districtai.push.AndroidPushNotifier
+import com.distronode.districtai.push.AnswerTokens
 import com.distronode.districtai.push.FirebasePushTokenSource
 import com.distronode.districtai.push.PushDeepLinks
 import com.distronode.districtai.push.MessageSenderLookup
@@ -757,7 +758,17 @@ class AppContainer(
      * Cheap, but it is work on the path [DistrictApplication] documents as latency-sensitive, and
      * nothing needs a channel until something is about to be posted.
      */
-    private val pushNotifier: PushNotifier by lazy { AndroidPushNotifier(appContext) }
+    private val pushNotifier: PushNotifier by lazy {
+        AndroidPushNotifier(appContext, answerTokens = answerTokens)
+    }
+
+    /**
+     * What makes the ringing notification's Answer action the only intent that answers.
+     *
+     * ⛔ ONE INSTANCE, SHARED BY THE NOTIFIER THAT MINTS AND THE ACTIVITY THAT REDEEMS. See
+     * [AnswerTokens] for why the activity's extras alone are not trusted.
+     */
+    internal val answerTokens: AnswerTokens = AnswerTokens()
 
     /**
      * Answering a call this device is ringing on.

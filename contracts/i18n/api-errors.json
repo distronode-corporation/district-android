@@ -778,6 +778,14 @@
       "en": "Canadian numbers on our managed phone service are answered in Montreal, so for now they are available to Canadian workspaces only.",
       "fr": "Les numéros canadiens de notre service téléphonique géré sont traités à Montréal; pour l'instant, ils sont donc disponibles seulement pour les espaces de travail canadiens."
     },
+    "registration_on_own_account": {
+      "en": "This number must be bought on Distronode's carrier account, but this workspace's regulatory registration is filed on its own Twilio account. Contact support to file the registration on Distronode's account, then buy this number.",
+      "fr": "Ce numéro doit être acheté sur le compte de transporteur de Distronode, mais l'inscription réglementaire de cet espace de travail est déposée sur son propre compte Twilio. Communiquez avec notre équipe de soutien pour déposer l'inscription sur le compte de Distronode, puis achetez ce numéro."
+    },
+    "tfv_filed_by_distronode": {
+      "en": "This toll-free number is held on Distronode's account, so its verification must be filed by Distronode. Contact support to file it.",
+      "fr": "Ce numéro sans frais est détenu sur le compte de Distronode; sa vérification doit donc être déposée par Distronode. Communiquez avec notre équipe de soutien pour la déposer."
+    },
     "auto_dial_country_not_permitted": {
       "en": "Automated calls are not permitted to this contact's country.",
       "fr": "Les appels automatisés ne sont pas permis vers le pays de ce contact."
@@ -823,8 +831,8 @@
       "fr": "Ce numéro a choisi de ne plus recevoir de textos de cette entreprise, alors aucun code ne peut lui être envoyé."
     },
     "member_phone_business_number": {
-      "en": "This number belongs to a business on District, so it cannot receive alerts. Enter your own mobile number.",
-      "fr": "Ce numéro appartient à une entreprise sur District, alors il ne peut pas recevoir d'alertes. Entrez votre propre numéro de cellulaire."
+      "en": "This number belongs to a business on District, so it cannot be your verified mobile. Enter your own mobile number.",
+      "fr": "Ce numéro appartient à une entreprise sur District, alors il ne peut pas être votre cellulaire vérifié. Entrez votre propre numéro de cellulaire."
     },
     "caller_id_unavailable": {
       "en": "Using your own mobile as caller ID is not available yet.",

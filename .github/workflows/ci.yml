@@ -1,8 +1,9 @@
 name: CI
 
-# Two Linux jobs. `verify` is the whole of what this repository's CI is for: prove that a commit
-# builds, lints, passes its unit tests, holds its coverage floors and survives R8. `zizmor` runs
-# static analysis on the workflows themselves. CI builds nothing that ships: releases are release.yml's job, in the `release` environment, which
+# Linux jobs. `verify` is most of what this repository's CI is for: prove that a commit
+# builds, lints, passes its unit tests, holds its coverage floors and survives R8. `repeatable` builds
+# the unsigned release APK twice and compares the two. `zizmor` runs static analysis on the
+# workflows themselves. CI builds nothing that ships: releases are release.yml's job, in the `release` environment, which
 # a pull request can never reach. This workflow holds no signing key, store credential or Sentry
 # token and references no secret at all, which is what lets a pull request from a fork run the
 # same job unchanged.
@@ -42,6 +43,12 @@ jobs:
           # every later step (and every Gradle plugin) to read.
           persist-credentials: false
 
+      # Checks every gradle/wrapper/gradle-wrapper.jar in the tree against Gradle's published
+      # checksums, as its own named step and before anything runs ./gradlew. setup-gradle below
+      # does the same check implicitly; this makes it explicit and visible in the run. Same
+      # repository and commit as the setup-gradle pin.
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
       # The release scripts, against a stub of the Google APIs: seconds, and no network. First,
       # so a broken release script fails before the Gradle build spends its time.
       - name: Release script tests
@@ -78,10 +85,11 @@ jobs:
 
       # JDK 21. The modules compile to Java 11 bytecode and build-logic to 17, and AGP 9 needs a
       # JDK of at least 17 to run at all; 21 is the JDK this build is developed and verified on.
-      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: "21"
+          problem-matcher: true
 
       # Caches the Gradle user home between runs and validates gradle/wrapper/gradle-wrapper.jar
       # against Gradle's published checksums before anything executes it.
@@ -204,10 +212,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: "21"
+          problem-matcher: true
 
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
@@ -236,6 +245,54 @@ jobs:
         with:
           name: french-lint-results
           path: app/build/reports/lint-results-*.html
+          if-no-files-found: warn
+          retention-days: 14
+
+  # Repeatable build: the UNSIGNED release APK built twice from clean on one runner must be
+  # byte for byte identical (scripts/verify-repeatable-build.sh, which also documents the
+  # expected-difference allowlist; it is empty). diffoscope explains a difference if one appears,
+  # and both APKs are uploaded. No secret, no signing key, nothing that ships.
+  repeatable:
+    name: repeatable
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-provider: basic
+
+      - name: Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+          test -d "$ANDROID_HOME/platforms/android-37.0"
+          test -d "$ANDROID_HOME/build-tools/37.0.0"
+
+      - name: diffoscope
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends diffoscope-minimal > /dev/null
+
+      - name: Build the unsigned release APK twice and compare
+        run: scripts/verify-repeatable-build.sh
+
+      - name: Upload both APKs and the diffoscope report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: repeatable-build
+          path: build/repeatable/
           if-no-files-found: warn
           retention-days: 14
 

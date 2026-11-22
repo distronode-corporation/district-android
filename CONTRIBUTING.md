@@ -164,6 +164,25 @@ until the Kotlin type has it. If you are changing a response type, the fixture c
 from the maintainers' server repository first. Do not hand-edit a fixture, and do not make the
 decoder lenient to get past a failure.
 
+## Style
+
+Kotlin follows detekt's default rules with the deviations in `config/detekt/detekt.yml`,
+including the ktlint formatting rules (`./gradlew detekt -PdetektAutoCorrect` fixes most of them) and a
+120-character line limit. detekt runs with `maxIssues: 0`, so one finding fails the build, and
+Android Lint runs with `abortOnError` and no baseline. `.editorconfig` sets indentation, line
+endings and the final newline. Every user-visible string comes from a catalog in `l10n/` (see
+[Strings](#strings)), and `zizmor` checks the workflows. CI runs all of it, and a pull
+request that fails it does not merge.
+
+## Tests
+
+A pull request that adds or changes functionality adds tests for it to the automated suite, and
+a bug fix adds a test that fails without the fix. Tests run on the JVM (JUnit, MockWebServer,
+Robolectric with the Compose test rule), never against the real service, with response shapes
+from `contracts/` (see [The inner loop](#the-inner-loop)). Aggregate line and branch coverage are
+held to the floors in `build.gradle.kts`, which only go up, and CI fails a run that produced no
+test results at all. The pull request template asks for the commands you ran.
+
 ## Commits and pull requests
 
 Conventional Commits are not required. What is required is that the message says **why**,

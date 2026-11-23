@@ -359,6 +359,10 @@
       "en": "This workspace has used today's auditions. You can audition again tomorrow.",
       "fr": "Cet espace de travail a utilisé toutes ses auditions pour aujourd'hui. Vous pourrez faire de nouvelles auditions demain."
     },
+    "pin_conflict": {
+      "en": "Another change to the phone PIN was saved at the same moment. Check the PIN and try again.",
+      "fr": "Une autre modification du NIP téléphonique a été enregistrée au même moment. Vérifiez le NIP et réessayez."
+    },
     "audition_unavailable": {
       "en": "The audition can't start right now. Please try again in a moment.",
       "fr": "L'audition ne peut pas commencer pour le moment. Réessayez dans un instant."
@@ -797,6 +801,10 @@
     "auto_dial_contact_opted_out": {
       "en": "This contact has opted out of calls from this workspace (DNC).",
       "fr": "Ce contact a choisi de ne plus recevoir d'appels de cet espace de travail (liste d'exclusion)."
+    },
+    "campaign_daily_dial_cap_reached": {
+      "en": "This workspace has reached today's limit of campaign calls, so the rest of the list was not called. The limit resets at midnight UTC.",
+      "fr": "Cet espace de travail a atteint sa limite quotidienne d'appels de campagne; le reste de la liste n'a donc pas été appelé. La limite est remise à zéro à minuit UTC."
     },
     "member_phone_invalid": {
       "en": "Enter a mobile number with its country code, for example +1 416 555 0123.",

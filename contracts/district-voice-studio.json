@@ -750,34 +750,39 @@
       "name": "Bilingual EN/FR",
       "description": "Answers in English or French, and switches when the caller does.",
       "isDefault": false,
-      "channel": "preview",
-      "channelLabel": "Preview",
-      "note": "Preview: processed globally by Google",
+      "channel": "latest",
+      "channelLabel": "Latest",
+      "note": null,
       "bilingual": true,
       "residency": {
-        "processedIn": "Global (Google)",
-        "inRegion": false,
-        "text": "Leaves your region: global (Google)",
-        "vendorsOutOfRegion": [
-          "Google Cloud Platform (Google LLC)"
-        ]
+        "processedIn": "US",
+        "inRegion": true,
+        "text": "Processed in the United States",
+        "vendorsOutOfRegion": []
       },
       "timeToFirstWord": {
-        "ms": null,
+        "ms": 850,
         "atLeast": true,
-        "text": "Not measured yet",
-        "note": null,
+        "text": "At least 850 ms",
+        "note": "Some steps are not measured yet, so the real time is longer.",
         "stages": [
           {
             "stage": "eou",
             "label": "End of turn",
-            "ms": null,
-            "samples": null,
-            "text": "Not measured yet"
+            "ms": 400,
+            "samples": 200,
+            "text": "Median 400 ms over 200 calls"
           },
           {
-            "stage": "realtime_ttft",
-            "label": "Model, first sound",
+            "stage": "llm_ttft",
+            "label": "Brain, first word",
+            "ms": 450,
+            "samples": 300,
+            "text": "Median 450 ms over 300 calls"
+          },
+          {
+            "stage": "tts_ttfb",
+            "label": "Voice, first sound",
             "ms": null,
             "samples": null,
             "text": "Not measured yet"
@@ -785,43 +790,136 @@
         ]
       },
       "chain": {
-        "kind": "realtime",
-        "engineMix": null,
-        "realtimeModelId": "gemini-3.8-live",
-        "voice": "Puck",
+        "kind": "chained",
+        "engineMix": {
+          "v": 1,
+          "stt": {
+            "provider": "deepgram",
+            "model": "nova-3-general",
+            "language": null,
+            "location": null
+          },
+          "llm": {
+            "model": "gemini-3.5-flash",
+            "location": "auto",
+            "thinking": "minimal",
+            "temperature": null
+          },
+          "tts": {
+            "provider": "elevenlabs",
+            "model": "eleven_v4_turbo",
+            "voice": "EXAVITQu4vr4xnSDxMaL",
+            "speed": null,
+            "location": null
+          },
+          "turn": {
+            "minDelay": null,
+            "maxDelay": null,
+            "eotThreshold": null
+          },
+          "preemptiveTts": false
+        },
+        "realtimeModelId": null,
+        "voice": "EXAVITQu4vr4xnSDxMaL",
         "blocks": [
           {
-            "leg": "realtime",
-            "title": "All-in-one",
-            "role": "Listens, takes turns, thinks and speaks",
-            "model": "Gemini 3.8 Live",
-            "channel": "preview",
-            "channelLabel": "Preview",
-            "where": "Leaves your region: global (Google)",
-            "inRegion": false,
-            "note": "Preview: processed globally by Google",
+            "leg": "stt",
+            "title": "Ear",
+            "role": "Speech recognition",
+            "model": "Deepgram Nova-3",
+            "channel": "stable",
+            "channelLabel": "Stable",
+            "where": "Processed in the United States",
+            "inRegion": true,
+            "note": null,
+            "latency": null
+          },
+          {
+            "leg": "turn",
+            "title": "Turn-taking",
+            "role": "When to reply",
+            "model": "Turn detector",
+            "channel": "stable",
+            "channelLabel": "Stable",
+            "where": "Decided by the voice agent, not a vendor",
+            "inRegion": null,
+            "note": null,
             "latency": {
-              "source": "lab",
-              "ms": 350,
-              "samples": null,
-              "text": "Lab: 350 ms"
+              "source": "measured",
+              "ms": 400,
+              "samples": 200,
+              "text": "Median 400 ms over 200 calls"
             }
+          },
+          {
+            "leg": "llm",
+            "title": "Brain",
+            "role": "Reasoning",
+            "model": "Gemini 3.5 Flash",
+            "channel": "stable",
+            "channelLabel": "Stable",
+            "where": "Processed in the United States",
+            "inRegion": true,
+            "note": null,
+            "latency": {
+              "source": "measured",
+              "ms": 450,
+              "samples": 300,
+              "text": "Median 450 ms over 300 calls"
+            }
+          },
+          {
+            "leg": "tts",
+            "title": "Voice",
+            "role": "Speech synthesis",
+            "model": "ElevenLabs v4 Turbo",
+            "channel": "latest",
+            "channelLabel": "Latest",
+            "where": "Processed in the United States",
+            "inRegion": true,
+            "note": null,
+            "latency": null
           }
         ],
         "residency": {
-          "inRegion": false,
-          "text": "Part of this call leaves your region.",
-          "legsOut": [
-            "Reasoning: global (Google) (Google Cloud Platform (Google LLC))"
-          ]
+          "inRegion": true,
+          "text": "Every part of this call stays in the United States.",
+          "legsOut": []
         }
       },
       "save": {
-        "modelId": "gemini-3.8-live",
-        "voice": "Puck",
-        "engineMix": null,
-        "preemptiveTts": null,
-        "temperature": 0.7,
+        "modelId": "custom-pipeline",
+        "voice": "EXAVITQu4vr4xnSDxMaL",
+        "engineMix": {
+          "v": 1,
+          "stt": {
+            "provider": "deepgram",
+            "model": "nova-3-general",
+            "language": null,
+            "location": null
+          },
+          "llm": {
+            "model": "gemini-3.5-flash",
+            "location": "auto",
+            "thinking": "minimal",
+            "temperature": null
+          },
+          "tts": {
+            "provider": "elevenlabs",
+            "model": "eleven_v4_turbo",
+            "voice": "EXAVITQu4vr4xnSDxMaL",
+            "speed": null,
+            "location": null
+          },
+          "turn": {
+            "minDelay": null,
+            "maxDelay": null,
+            "eotThreshold": null
+          },
+          "preemptiveTts": false
+        },
+        "preemptiveTts": false,
+        "temperature": null,
         "bilingual": true,
         "voiceStyle": null
       }
@@ -1491,9 +1589,9 @@
             "temperature": null
           },
           "tts": {
-            "provider": "cartesia",
-            "model": "sonic-3.6",
-            "voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+            "provider": "elevenlabs",
+            "model": "eleven_v4_turbo",
+            "voice": "EXAVITQu4vr4xnSDxMaL",
             "speed": null,
             "location": null
           },
@@ -1505,7 +1603,7 @@
           "preemptiveTts": false
         },
         "realtimeModelId": null,
-        "voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+        "voice": "EXAVITQu4vr4xnSDxMaL",
         "blocks": [
           {
             "leg": "stt",
@@ -1552,7 +1650,7 @@
             "leg": "tts",
             "title": "Voice",
             "role": "Speech synthesis",
-            "model": "Cartesia Sonic 3.6",
+            "model": "ElevenLabs v4 Turbo",
             "channel": "latest",
             "channelLabel": "Latest",
             "where": "Processed in the United States",
@@ -1571,7 +1669,7 @@
       },
       "save": {
         "modelId": "custom-pipeline",
-        "voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+        "voice": "EXAVITQu4vr4xnSDxMaL",
         "engineMix": {
           "v": 1,
           "stt": {
@@ -1587,9 +1685,9 @@
             "temperature": null
           },
           "tts": {
-            "provider": "cartesia",
-            "model": "sonic-3.6",
-            "voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+            "provider": "elevenlabs",
+            "model": "eleven_v4_turbo",
+            "voice": "EXAVITQu4vr4xnSDxMaL",
             "speed": null,
             "location": null
           },
@@ -1612,9 +1710,9 @@
       "name": "Bilingual EN/FR",
       "description": "Answers in English or French, and switches when the caller does.",
       "isDefault": false,
-      "channel": "preview",
-      "channelLabel": "Preview",
-      "note": "Preview: processed globally by Google",
+      "channel": "latest",
+      "channelLabel": "Latest",
+      "note": null,
       "bilingual": true,
       "residency": {
         "processedIn": "Global (Google)",
@@ -1625,21 +1723,28 @@
         ]
       },
       "timeToFirstWord": {
-        "ms": null,
+        "ms": 400,
         "atLeast": true,
-        "text": "Not measured yet",
-        "note": null,
+        "text": "At least 400 ms",
+        "note": "Some steps are not measured yet, so the real time is longer.",
         "stages": [
           {
             "stage": "eou",
             "label": "End of turn",
+            "ms": 400,
+            "samples": 200,
+            "text": "Median 400 ms over 200 calls"
+          },
+          {
+            "stage": "llm_ttft",
+            "label": "Brain, first word",
             "ms": null,
             "samples": null,
             "text": "Not measured yet"
           },
           {
-            "stage": "realtime_ttft",
-            "label": "Model, first sound",
+            "stage": "tts_ttfb",
+            "label": "Voice, first sound",
             "ms": null,
             "samples": null,
             "text": "Not measured yet"
@@ -1647,27 +1752,90 @@
         ]
       },
       "chain": {
-        "kind": "realtime",
-        "engineMix": null,
-        "realtimeModelId": "gemini-3.8-live",
-        "voice": "Puck",
+        "kind": "chained",
+        "engineMix": {
+          "v": 1,
+          "stt": {
+            "provider": "deepgram",
+            "model": "flux-general-multi",
+            "language": null,
+            "location": null
+          },
+          "llm": {
+            "model": "gemini-3.8-flash",
+            "location": "global",
+            "thinking": "low",
+            "temperature": null
+          },
+          "tts": {
+            "provider": "elevenlabs",
+            "model": "eleven_v4_turbo",
+            "voice": "EXAVITQu4vr4xnSDxMaL",
+            "speed": null,
+            "location": null
+          },
+          "turn": {
+            "minDelay": null,
+            "maxDelay": null,
+            "eotThreshold": null
+          },
+          "preemptiveTts": false
+        },
+        "realtimeModelId": null,
+        "voice": "EXAVITQu4vr4xnSDxMaL",
         "blocks": [
           {
-            "leg": "realtime",
-            "title": "All-in-one",
-            "role": "Listens, takes turns, thinks and speaks",
-            "model": "Gemini 3.8 Live",
-            "channel": "preview",
-            "channelLabel": "Preview",
+            "leg": "stt",
+            "title": "Ear",
+            "role": "Speech recognition",
+            "model": "Deepgram Flux (multilingual)",
+            "channel": "latest",
+            "channelLabel": "Latest",
+            "where": "Processed in the United States",
+            "inRegion": true,
+            "note": null,
+            "latency": null
+          },
+          {
+            "leg": "turn",
+            "title": "Turn-taking",
+            "role": "When to reply",
+            "model": "Flux end of turn",
+            "channel": "latest",
+            "channelLabel": "Latest",
+            "where": "Processed in the United States",
+            "inRegion": true,
+            "note": null,
+            "latency": {
+              "source": "measured",
+              "ms": 400,
+              "samples": 200,
+              "text": "Median 400 ms over 200 calls"
+            }
+          },
+          {
+            "leg": "llm",
+            "title": "Brain",
+            "role": "Reasoning",
+            "model": "Gemini 3.8 Flash",
+            "channel": "latest",
+            "channelLabel": "Latest",
             "where": "Leaves your region: global (Google)",
             "inRegion": false,
-            "note": "Preview: processed globally by Google",
-            "latency": {
-              "source": "lab",
-              "ms": 350,
-              "samples": null,
-              "text": "Lab: 350 ms"
-            }
+            "note": null,
+            "latency": null
+          },
+          {
+            "leg": "tts",
+            "title": "Voice",
+            "role": "Speech synthesis",
+            "model": "ElevenLabs v4 Turbo",
+            "channel": "latest",
+            "channelLabel": "Latest",
+            "where": "Processed in the United States",
+            "inRegion": true,
+            "note": null,
+            "latency": null
           }
         ],
         "residency": {
@@ -1679,11 +1847,38 @@
         }
       },
       "save": {
-        "modelId": "gemini-3.8-live",
-        "voice": "Puck",
-        "engineMix": null,
-        "preemptiveTts": null,
-        "temperature": 0.7,
+        "modelId": "custom-pipeline",
+        "voice": "EXAVITQu4vr4xnSDxMaL",
+        "engineMix": {
+          "v": 1,
+          "stt": {
+            "provider": "deepgram",
+            "model": "flux-general-multi",
+            "language": null,
+            "location": null
+          },
+          "llm": {
+            "model": "gemini-3.8-flash",
+            "location": "global",
+            "thinking": "low",
+            "temperature": null
+          },
+          "tts": {
+            "provider": "elevenlabs",
+            "model": "eleven_v4_turbo",
+            "voice": "EXAVITQu4vr4xnSDxMaL",
+            "speed": null,
+            "location": null
+          },
+          "turn": {
+            "minDelay": null,
+            "maxDelay": null,
+            "eotThreshold": null
+          },
+          "preemptiveTts": false
+        },
+        "preemptiveTts": false,
+        "temperature": null,
         "bilingual": true,
         "voiceStyle": null
       }
@@ -1985,7 +2180,7 @@
           },
           "tts": {
             "provider": "elevenlabs",
-            "model": "eleven_flash_v2_5",
+            "model": "eleven_v4_turbo",
             "voice": "pNInz6obpgDQGcFmaJgB",
             "speed": null,
             "location": null
@@ -2047,7 +2242,7 @@
           },
           "tts": {
             "provider": "elevenlabs",
-            "model": "eleven_flash_v2_5",
+            "model": "eleven_v4_turbo",
             "voice": "pNInz6obpgDQGcFmaJgB",
             "speed": null,
             "location": null
@@ -2625,94 +2820,6 @@
         "latency": null
       },
       {
-        "provider": "elevenlabs",
-        "providerLabel": "ElevenLabs",
-        "model": "eleven_flash_v2_5",
-        "label": "Flash v2.5",
-        "channel": "stable",
-        "channelLabel": "Stable",
-        "available": false,
-        "offered": false,
-        "forLanguage": true,
-        "forBilingual": false,
-        "defaultVoice": "EXAVITQu4vr4xnSDxMaL",
-        "defaultLocation": null,
-        "locations": [],
-        "residency": {
-          "processedIn": "US",
-          "inRegion": true,
-          "text": "Processed in the United States",
-          "vendorsOutOfRegion": []
-        },
-        "latency": null
-      },
-      {
-        "provider": "elevenlabs",
-        "providerLabel": "ElevenLabs",
-        "model": "eleven_multilingual_v2",
-        "label": "Multilingual v2",
-        "channel": "legacy",
-        "channelLabel": "Legacy",
-        "available": false,
-        "offered": false,
-        "forLanguage": true,
-        "forBilingual": true,
-        "defaultVoice": "EXAVITQu4vr4xnSDxMaL",
-        "defaultLocation": null,
-        "locations": [],
-        "residency": {
-          "processedIn": "US",
-          "inRegion": true,
-          "text": "Processed in the United States",
-          "vendorsOutOfRegion": []
-        },
-        "latency": null
-      },
-      {
-        "provider": "elevenlabs",
-        "providerLabel": "ElevenLabs",
-        "model": "eleven_v4",
-        "label": "v4",
-        "channel": "latest",
-        "channelLabel": "Latest",
-        "available": false,
-        "offered": false,
-        "forLanguage": true,
-        "forBilingual": true,
-        "defaultVoice": "EXAVITQu4vr4xnSDxMaL",
-        "defaultLocation": null,
-        "locations": [],
-        "residency": {
-          "processedIn": "US",
-          "inRegion": true,
-          "text": "Processed in the United States",
-          "vendorsOutOfRegion": []
-        },
-        "latency": null
-      },
-      {
-        "provider": "elevenlabs",
-        "providerLabel": "ElevenLabs",
-        "model": "eleven_v4_turbo",
-        "label": "v4 Turbo",
-        "channel": "latest",
-        "channelLabel": "Latest",
-        "available": false,
-        "offered": false,
-        "forLanguage": true,
-        "forBilingual": true,
-        "defaultVoice": "EXAVITQu4vr4xnSDxMaL",
-        "defaultLocation": null,
-        "locations": [],
-        "residency": {
-          "processedIn": "US",
-          "inRegion": true,
-          "text": "Processed in the United States",
-          "vendorsOutOfRegion": []
-        },
-        "latency": null
-      },
-      {
         "provider": "cartesia",
         "providerLabel": "Cartesia",
         "model": "sonic-3",
@@ -2910,6 +3017,50 @@
             }
           }
         ],
+        "residency": {
+          "processedIn": "US",
+          "inRegion": true,
+          "text": "Processed in the United States",
+          "vendorsOutOfRegion": []
+        },
+        "latency": null
+      },
+      {
+        "provider": "elevenlabs",
+        "providerLabel": "ElevenLabs",
+        "model": "eleven_v4_turbo",
+        "label": "v4 Turbo",
+        "channel": "latest",
+        "channelLabel": "Latest",
+        "available": true,
+        "offered": true,
+        "forLanguage": true,
+        "forBilingual": true,
+        "defaultVoice": "EXAVITQu4vr4xnSDxMaL",
+        "defaultLocation": null,
+        "locations": [],
+        "residency": {
+          "processedIn": "US",
+          "inRegion": true,
+          "text": "Processed in the United States",
+          "vendorsOutOfRegion": []
+        },
+        "latency": null
+      },
+      {
+        "provider": "elevenlabs",
+        "providerLabel": "ElevenLabs",
+        "model": "eleven_v4",
+        "label": "v4",
+        "channel": "latest",
+        "channelLabel": "Latest",
+        "available": true,
+        "offered": true,
+        "forLanguage": true,
+        "forBilingual": true,
+        "defaultVoice": "EXAVITQu4vr4xnSDxMaL",
+        "defaultLocation": null,
+        "locations": [],
         "residency": {
           "processedIn": "US",
           "inRegion": true,
@@ -3440,598 +3591,6 @@
             {
               "value": "flux-wes-en",
               "label": "Wes",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "kind": "tts",
-      "provider": "elevenlabs",
-      "model": "eleven_flash_v2_5",
-      "groups": [
-        {
-          "label": "Feminine Voices",
-          "options": [
-            {
-              "value": "EXAVITQu4vr4xnSDxMaL",
-              "label": "Sarah - Mature, Reassuring, Confident",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "hpp4J3VqNfWAUOO0d1Us",
-              "label": "Bella - Professional, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "Xb7hH8MSUJpSbSDYk0k2",
-              "label": "Alice - Clear, Engaging Educator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "XrExE9yKIg1WjnnlVkGX",
-              "label": "Matilda - Knowledgable, Professional",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cgSgspJ2msm6clMCkdW9",
-              "label": "Jessica - Playful, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pFZP5JQG7iQjIQuC4Bku",
-              "label": "Lily - Velvety Actress",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "FGY2WhTYpPnrIDTdsKH5",
-              "label": "Laura - Enthusiast, Quirky Attitude",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Masculine Voices",
-          "options": [
-            {
-              "value": "pNInz6obpgDQGcFmaJgB",
-              "label": "Adam - Dominant, Firm (Default)",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "IKne3meq5aSn9XLyUdCD",
-              "label": "Charlie - Deep, Confident, Energetic",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "JBFqnCBsd6RMkjVDRZzb",
-              "label": "George - Warm, Captivating Storyteller",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "N2lVS1w4EtoT3dr4eOWO",
-              "label": "Callum - Husky Trickster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "SOYHLrjzK2X1ezoPC6cr",
-              "label": "Harry - Fierce Warrior",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "TX3LPaxmHKxFdv7VOQHJ",
-              "label": "Liam - Energetic Creator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "bIHbv24MWmeRgasZH58o",
-              "label": "Will - Relaxed Optimist",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cjVigY5qzO86Huf0OWal",
-              "label": "Eric - Smooth, Trustworthy",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "iP95p4xoKVk53GoZ742B",
-              "label": "Chris - Charming, Down-to-Earth",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "nPczCjzI2devNBz1zQrb",
-              "label": "Brian - Deep, Resonant and Comforting",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "onwK4e9ZLuTAKqWW03F9",
-              "label": "Daniel - Steady Broadcaster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pqHfZKP75CvOlQylNhV4",
-              "label": "Bill - Wise, Mature, Balanced",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "CwhRBWXzGAHq8TQ4Fs17",
-              "label": "Roger - Laid-Back, Casual, Resonant",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Neutral Voices",
-          "options": [
-            {
-              "value": "SAz9YHcvj6GT2YYXdXww",
-              "label": "River - Relaxed, Neutral, Informative",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "kind": "tts",
-      "provider": "elevenlabs",
-      "model": "eleven_multilingual_v2",
-      "groups": [
-        {
-          "label": "Feminine Voices",
-          "options": [
-            {
-              "value": "EXAVITQu4vr4xnSDxMaL",
-              "label": "Sarah - Mature, Reassuring, Confident",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "hpp4J3VqNfWAUOO0d1Us",
-              "label": "Bella - Professional, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "Xb7hH8MSUJpSbSDYk0k2",
-              "label": "Alice - Clear, Engaging Educator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "XrExE9yKIg1WjnnlVkGX",
-              "label": "Matilda - Knowledgable, Professional",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cgSgspJ2msm6clMCkdW9",
-              "label": "Jessica - Playful, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pFZP5JQG7iQjIQuC4Bku",
-              "label": "Lily - Velvety Actress",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "FGY2WhTYpPnrIDTdsKH5",
-              "label": "Laura - Enthusiast, Quirky Attitude",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Masculine Voices",
-          "options": [
-            {
-              "value": "pNInz6obpgDQGcFmaJgB",
-              "label": "Adam - Dominant, Firm (Default)",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "IKne3meq5aSn9XLyUdCD",
-              "label": "Charlie - Deep, Confident, Energetic",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "JBFqnCBsd6RMkjVDRZzb",
-              "label": "George - Warm, Captivating Storyteller",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "N2lVS1w4EtoT3dr4eOWO",
-              "label": "Callum - Husky Trickster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "SOYHLrjzK2X1ezoPC6cr",
-              "label": "Harry - Fierce Warrior",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "TX3LPaxmHKxFdv7VOQHJ",
-              "label": "Liam - Energetic Creator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "bIHbv24MWmeRgasZH58o",
-              "label": "Will - Relaxed Optimist",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cjVigY5qzO86Huf0OWal",
-              "label": "Eric - Smooth, Trustworthy",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "iP95p4xoKVk53GoZ742B",
-              "label": "Chris - Charming, Down-to-Earth",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "nPczCjzI2devNBz1zQrb",
-              "label": "Brian - Deep, Resonant and Comforting",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "onwK4e9ZLuTAKqWW03F9",
-              "label": "Daniel - Steady Broadcaster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pqHfZKP75CvOlQylNhV4",
-              "label": "Bill - Wise, Mature, Balanced",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "CwhRBWXzGAHq8TQ4Fs17",
-              "label": "Roger - Laid-Back, Casual, Resonant",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Neutral Voices",
-          "options": [
-            {
-              "value": "SAz9YHcvj6GT2YYXdXww",
-              "label": "River - Relaxed, Neutral, Informative",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "kind": "tts",
-      "provider": "elevenlabs",
-      "model": "eleven_v4",
-      "groups": [
-        {
-          "label": "Feminine Voices",
-          "options": [
-            {
-              "value": "EXAVITQu4vr4xnSDxMaL",
-              "label": "Sarah - Mature, Reassuring, Confident",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "hpp4J3VqNfWAUOO0d1Us",
-              "label": "Bella - Professional, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "Xb7hH8MSUJpSbSDYk0k2",
-              "label": "Alice - Clear, Engaging Educator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "XrExE9yKIg1WjnnlVkGX",
-              "label": "Matilda - Knowledgable, Professional",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cgSgspJ2msm6clMCkdW9",
-              "label": "Jessica - Playful, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pFZP5JQG7iQjIQuC4Bku",
-              "label": "Lily - Velvety Actress",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "FGY2WhTYpPnrIDTdsKH5",
-              "label": "Laura - Enthusiast, Quirky Attitude",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Masculine Voices",
-          "options": [
-            {
-              "value": "pNInz6obpgDQGcFmaJgB",
-              "label": "Adam - Dominant, Firm (Default)",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "IKne3meq5aSn9XLyUdCD",
-              "label": "Charlie - Deep, Confident, Energetic",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "JBFqnCBsd6RMkjVDRZzb",
-              "label": "George - Warm, Captivating Storyteller",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "N2lVS1w4EtoT3dr4eOWO",
-              "label": "Callum - Husky Trickster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "SOYHLrjzK2X1ezoPC6cr",
-              "label": "Harry - Fierce Warrior",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "TX3LPaxmHKxFdv7VOQHJ",
-              "label": "Liam - Energetic Creator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "bIHbv24MWmeRgasZH58o",
-              "label": "Will - Relaxed Optimist",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cjVigY5qzO86Huf0OWal",
-              "label": "Eric - Smooth, Trustworthy",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "iP95p4xoKVk53GoZ742B",
-              "label": "Chris - Charming, Down-to-Earth",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "nPczCjzI2devNBz1zQrb",
-              "label": "Brian - Deep, Resonant and Comforting",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "onwK4e9ZLuTAKqWW03F9",
-              "label": "Daniel - Steady Broadcaster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pqHfZKP75CvOlQylNhV4",
-              "label": "Bill - Wise, Mature, Balanced",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "CwhRBWXzGAHq8TQ4Fs17",
-              "label": "Roger - Laid-Back, Casual, Resonant",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Neutral Voices",
-          "options": [
-            {
-              "value": "SAz9YHcvj6GT2YYXdXww",
-              "label": "River - Relaxed, Neutral, Informative",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "kind": "tts",
-      "provider": "elevenlabs",
-      "model": "eleven_v4_turbo",
-      "groups": [
-        {
-          "label": "Feminine Voices",
-          "options": [
-            {
-              "value": "EXAVITQu4vr4xnSDxMaL",
-              "label": "Sarah - Mature, Reassuring, Confident",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "hpp4J3VqNfWAUOO0d1Us",
-              "label": "Bella - Professional, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "Xb7hH8MSUJpSbSDYk0k2",
-              "label": "Alice - Clear, Engaging Educator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "XrExE9yKIg1WjnnlVkGX",
-              "label": "Matilda - Knowledgable, Professional",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cgSgspJ2msm6clMCkdW9",
-              "label": "Jessica - Playful, Bright, Warm",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pFZP5JQG7iQjIQuC4Bku",
-              "label": "Lily - Velvety Actress",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "FGY2WhTYpPnrIDTdsKH5",
-              "label": "Laura - Enthusiast, Quirky Attitude",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Masculine Voices",
-          "options": [
-            {
-              "value": "pNInz6obpgDQGcFmaJgB",
-              "label": "Adam - Dominant, Firm (Default)",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "IKne3meq5aSn9XLyUdCD",
-              "label": "Charlie - Deep, Confident, Energetic",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "JBFqnCBsd6RMkjVDRZzb",
-              "label": "George - Warm, Captivating Storyteller",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "N2lVS1w4EtoT3dr4eOWO",
-              "label": "Callum - Husky Trickster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "SOYHLrjzK2X1ezoPC6cr",
-              "label": "Harry - Fierce Warrior",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "TX3LPaxmHKxFdv7VOQHJ",
-              "label": "Liam - Energetic Creator",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "bIHbv24MWmeRgasZH58o",
-              "label": "Will - Relaxed Optimist",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "cjVigY5qzO86Huf0OWal",
-              "label": "Eric - Smooth, Trustworthy",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "iP95p4xoKVk53GoZ742B",
-              "label": "Chris - Charming, Down-to-Earth",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "nPczCjzI2devNBz1zQrb",
-              "label": "Brian - Deep, Resonant and Comforting",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "onwK4e9ZLuTAKqWW03F9",
-              "label": "Daniel - Steady Broadcaster",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "pqHfZKP75CvOlQylNhV4",
-              "label": "Bill - Wise, Mature, Balanced",
-              "clip": null,
-              "p50": null
-            },
-            {
-              "value": "CwhRBWXzGAHq8TQ4Fs17",
-              "label": "Roger - Laid-Back, Casual, Resonant",
-              "clip": null,
-              "p50": null
-            }
-          ]
-        },
-        {
-          "label": "Neutral Voices",
-          "options": [
-            {
-              "value": "SAz9YHcvj6GT2YYXdXww",
-              "label": "River - Relaxed, Neutral, Informative",
               "clip": null,
               "p50": null
             }
@@ -4986,6 +4545,302 @@
       ]
     },
     {
+      "kind": "tts",
+      "provider": "elevenlabs",
+      "model": "eleven_v4_turbo",
+      "groups": [
+        {
+          "label": "Feminine Voices",
+          "options": [
+            {
+              "value": "EXAVITQu4vr4xnSDxMaL",
+              "label": "Sarah - Mature, Reassuring, Confident",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "hpp4J3VqNfWAUOO0d1Us",
+              "label": "Bella - Professional, Bright, Warm",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "Xb7hH8MSUJpSbSDYk0k2",
+              "label": "Alice - Clear, Engaging Educator",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "XrExE9yKIg1WjnnlVkGX",
+              "label": "Matilda - Knowledgable, Professional",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "cgSgspJ2msm6clMCkdW9",
+              "label": "Jessica - Playful, Bright, Warm",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "pFZP5JQG7iQjIQuC4Bku",
+              "label": "Lily - Velvety Actress",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "FGY2WhTYpPnrIDTdsKH5",
+              "label": "Laura - Enthusiast, Quirky Attitude",
+              "clip": null,
+              "p50": null
+            }
+          ]
+        },
+        {
+          "label": "Masculine Voices",
+          "options": [
+            {
+              "value": "pNInz6obpgDQGcFmaJgB",
+              "label": "Adam - Dominant, Firm (Default)",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "IKne3meq5aSn9XLyUdCD",
+              "label": "Charlie - Deep, Confident, Energetic",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "JBFqnCBsd6RMkjVDRZzb",
+              "label": "George - Warm, Captivating Storyteller",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "N2lVS1w4EtoT3dr4eOWO",
+              "label": "Callum - Husky Trickster",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "SOYHLrjzK2X1ezoPC6cr",
+              "label": "Harry - Fierce Warrior",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "TX3LPaxmHKxFdv7VOQHJ",
+              "label": "Liam - Energetic Creator",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "bIHbv24MWmeRgasZH58o",
+              "label": "Will - Relaxed Optimist",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "cjVigY5qzO86Huf0OWal",
+              "label": "Eric - Smooth, Trustworthy",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "iP95p4xoKVk53GoZ742B",
+              "label": "Chris - Charming, Down-to-Earth",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "nPczCjzI2devNBz1zQrb",
+              "label": "Brian - Deep, Resonant and Comforting",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "onwK4e9ZLuTAKqWW03F9",
+              "label": "Daniel - Steady Broadcaster",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "pqHfZKP75CvOlQylNhV4",
+              "label": "Bill - Wise, Mature, Balanced",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "CwhRBWXzGAHq8TQ4Fs17",
+              "label": "Roger - Laid-Back, Casual, Resonant",
+              "clip": null,
+              "p50": null
+            }
+          ]
+        },
+        {
+          "label": "Neutral Voices",
+          "options": [
+            {
+              "value": "SAz9YHcvj6GT2YYXdXww",
+              "label": "River - Relaxed, Neutral, Informative",
+              "clip": null,
+              "p50": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "tts",
+      "provider": "elevenlabs",
+      "model": "eleven_v4",
+      "groups": [
+        {
+          "label": "Feminine Voices",
+          "options": [
+            {
+              "value": "EXAVITQu4vr4xnSDxMaL",
+              "label": "Sarah - Mature, Reassuring, Confident",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "hpp4J3VqNfWAUOO0d1Us",
+              "label": "Bella - Professional, Bright, Warm",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "Xb7hH8MSUJpSbSDYk0k2",
+              "label": "Alice - Clear, Engaging Educator",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "XrExE9yKIg1WjnnlVkGX",
+              "label": "Matilda - Knowledgable, Professional",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "cgSgspJ2msm6clMCkdW9",
+              "label": "Jessica - Playful, Bright, Warm",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "pFZP5JQG7iQjIQuC4Bku",
+              "label": "Lily - Velvety Actress",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "FGY2WhTYpPnrIDTdsKH5",
+              "label": "Laura - Enthusiast, Quirky Attitude",
+              "clip": null,
+              "p50": null
+            }
+          ]
+        },
+        {
+          "label": "Masculine Voices",
+          "options": [
+            {
+              "value": "pNInz6obpgDQGcFmaJgB",
+              "label": "Adam - Dominant, Firm (Default)",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "IKne3meq5aSn9XLyUdCD",
+              "label": "Charlie - Deep, Confident, Energetic",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "JBFqnCBsd6RMkjVDRZzb",
+              "label": "George - Warm, Captivating Storyteller",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "N2lVS1w4EtoT3dr4eOWO",
+              "label": "Callum - Husky Trickster",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "SOYHLrjzK2X1ezoPC6cr",
+              "label": "Harry - Fierce Warrior",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "TX3LPaxmHKxFdv7VOQHJ",
+              "label": "Liam - Energetic Creator",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "bIHbv24MWmeRgasZH58o",
+              "label": "Will - Relaxed Optimist",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "cjVigY5qzO86Huf0OWal",
+              "label": "Eric - Smooth, Trustworthy",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "iP95p4xoKVk53GoZ742B",
+              "label": "Chris - Charming, Down-to-Earth",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "nPczCjzI2devNBz1zQrb",
+              "label": "Brian - Deep, Resonant and Comforting",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "onwK4e9ZLuTAKqWW03F9",
+              "label": "Daniel - Steady Broadcaster",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "pqHfZKP75CvOlQylNhV4",
+              "label": "Bill - Wise, Mature, Balanced",
+              "clip": null,
+              "p50": null
+            },
+            {
+              "value": "CwhRBWXzGAHq8TQ4Fs17",
+              "label": "Roger - Laid-Back, Casual, Resonant",
+              "clip": null,
+              "p50": null
+            }
+          ]
+        },
+        {
+          "label": "Neutral Voices",
+          "options": [
+            {
+              "value": "SAz9YHcvj6GT2YYXdXww",
+              "label": "River - Relaxed, Neutral, Informative",
+              "clip": null,
+              "p50": null
+            }
+          ]
+        }
+      ]
+    },
+    {
       "kind": "realtime",
       "provider": "",
       "model": "gemini-3.8-live",
@@ -5560,15 +5415,7 @@
       "honouredBy": [
         {
           "provider": "elevenlabs",
-          "model": "eleven_flash_v2_5",
-          "min": 0,
-          "max": 1,
-          "default": 0.5,
-          "useDefaultLabel": "Use the default (0.50)"
-        },
-        {
-          "provider": "elevenlabs",
-          "model": "eleven_multilingual_v2",
+          "model": "eleven_v4_turbo",
           "min": 0,
           "max": 1,
           "default": 0.5,
@@ -5577,14 +5424,6 @@
         {
           "provider": "elevenlabs",
           "model": "eleven_v4",
-          "min": 0,
-          "max": 1,
-          "default": 0.5,
-          "useDefaultLabel": "Use the default (0.50)"
-        },
-        {
-          "provider": "elevenlabs",
-          "model": "eleven_v4_turbo",
           "min": 0,
           "max": 1,
           "default": 0.5,
@@ -5609,24 +5448,7 @@
       "options": null,
       "maxCount": null,
       "maxLength": null,
-      "honouredBy": [
-        {
-          "provider": "elevenlabs",
-          "model": "eleven_flash_v2_5",
-          "min": 0,
-          "max": 1,
-          "default": 0,
-          "useDefaultLabel": "Use the default (0.00)"
-        },
-        {
-          "provider": "elevenlabs",
-          "model": "eleven_multilingual_v2",
-          "min": 0,
-          "max": 1,
-          "default": 0,
-          "useDefaultLabel": "Use the default (0.00)"
-        }
-      ]
+      "honouredBy": []
     },
     {
       "key": "temperature",

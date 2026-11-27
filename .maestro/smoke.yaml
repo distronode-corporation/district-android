@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # District AI, Android smoke flow.
 #
 # Drives the SHIPPED debug APK on an emulator against the app-store demo account and

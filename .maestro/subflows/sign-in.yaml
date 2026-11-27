@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # The browser leg of the PKCE sign-in, driven end to end.
 #
 # ⛔ THIS IS THE FRAGILE HALF OF THE SMOKE FLOW, AND IT IS FRAGILE BY CONSTRUCTION

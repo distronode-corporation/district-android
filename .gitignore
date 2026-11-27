@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Gradle and Kotlin build output, at any depth (build-logic has its own).
 build/
 .gradle/

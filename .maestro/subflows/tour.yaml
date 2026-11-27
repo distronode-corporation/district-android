@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # The signed-in tour: console home → contacts → a contact's dossier → billing →
 # settings → sign out.
 #

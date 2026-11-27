@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # R8 rules for the release build.
 #
 # ⛔ A GREEN `assembleDebug` IS NO EVIDENCE THAT ANY OF THIS IS CORRECT. Debug builds do not

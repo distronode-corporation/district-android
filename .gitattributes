@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Every text file is stored and checked out with LF, on every platform. The contract fixtures
 # and the parity snapshot are compared with what another repository generated, so a checkout
 # must not rewrite their line endings.

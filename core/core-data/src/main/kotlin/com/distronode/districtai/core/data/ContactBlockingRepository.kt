@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package com.distronode.districtai.core.data
 
 import com.distronode.districtai.core.model.BlockedContact

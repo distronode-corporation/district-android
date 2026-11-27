@@ -140,3 +140,11 @@ extractor turns any failure into a bare "no access token" with no clue why.
 
 ⚠️ Seeded rows use a fixed `id` prefix and are removed by an `EXIT` trap, so an interrupted run
 still cleans up.
+
+## `coverage-figures.py`
+
+Prints the measured aggregate line and branch coverage, covered of total and as a percentage, from
+Kover's `unit` report (`build/reports/kover/reportUnit.xml`, written by `./gradlew
+:koverXmlReportUnit`). CI runs it right after `:koverVerifyUnit`, which holds the floors in
+`build.gradle.kts` but prints neither figure. It reads only the report-level counters, and fails
+rather than print a figure it cannot read.

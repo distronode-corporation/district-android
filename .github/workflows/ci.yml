@@ -167,9 +167,15 @@ jobs:
       # owns a rule-less koverVerifyUnit that passes trivially, so the unqualified name would run those
       # no-ops beside the one task that matters. koverLogUnit prints the aggregate number. Never the
       # unsuffixed koverVerify: under JaCoCo the `total` variant mixes release classes into the
-      # report and reads far below the truth (see build.gradle.kts).
+      # report and reads far below the truth (see build.gradle.kts). koverXmlReportUnit writes the
+      # same report as XML, from which the next step prints the line AND branch figures.
       - name: Coverage floors
-        run: ./gradlew :koverLogUnit :koverVerifyUnit --no-daemon
+        run: ./gradlew :koverLogUnit :koverXmlReportUnit :koverVerifyUnit --no-daemon
+
+      # The measured figures the floors above are held to, line and branch, in the log and the
+      # job summary: koverVerifyUnit prints neither, koverLogUnit the line figure only.
+      - name: Coverage figures
+        run: python3 scripts/coverage-figures.py build/reports/kover/reportUnit.xml
 
       # assembleDebug does not minify, so every R8 problem is invisible to the steps above. This
       # builds the release variant, UNSIGNED (no signing variables are set, which the build treats

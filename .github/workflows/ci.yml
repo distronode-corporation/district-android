@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: CI
 
 # Linux jobs. `verify` is most of what this repository's CI is for: prove that a commit

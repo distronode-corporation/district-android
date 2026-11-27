@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Root build file. Deliberately almost empty: plugins are applied per-module
 // through the convention plugins in build-logic/, not accumulated here.
 

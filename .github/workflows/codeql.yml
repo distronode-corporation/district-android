@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: CodeQL
 
 # Code scanning, as a committed workflow ("advanced setup") rather than GitHub's default setup.

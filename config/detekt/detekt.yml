@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # detekt configuration — layered ON TOP of detekt's shipped defaults
 # (buildUponDefaultConfig = true), so this file holds only deliberate deviations.
 # Everything not mentioned here keeps detekt's default behaviour, and a detekt upgrade

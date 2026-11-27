@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Convention for library modules (core-*, feature-*, telecom, push).
 //
 // It exists because the build has many library modules, and the alternative is one

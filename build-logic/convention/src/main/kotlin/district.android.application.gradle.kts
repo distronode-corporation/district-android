@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Convention for the single application module.
 //
 // ⛔ NO `org.jetbrains.kotlin.android` HERE. AGP 9 compiles Kotlin itself; applying

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 plugins {
     id("district.android.library")
     // ⛔ COMPOSE HERE, NOT ONLY IN `:app`, BECAUSE ONE COMPOSABLE HAS TO LIVE BESIDE THE SDK.

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // ⚠️ FILE-SCOPED, because `@EncodeDefault` is opted into by four separate properties below and a
 // per-declaration annotation would be four chances to forget one — where forgetting means the
 // action silently stops reaching the wire. See the ⛔ on the header comment.

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Is French in this build? Checks an .aab or .apk for the app's OWN strings in French, and for
 # French in the locale list Android shows in the per-app language setting.

@@ -5,6 +5,8 @@ Questions, ideas and "how do I…" go to
 Issues are for reproducible bugs in this app's code, and security reports go through
 [SECURITY.md](SECURITY.md).
 
+New here? Issues labelled [good first issue](https://github.com/distronode-corporation/district-android/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22) are small, well scoped and need no access beyond this repository.
+
 ## Layout
 
 ```

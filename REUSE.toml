@@ -1,0 +1,73 @@
+# REUSE metadata (https://reuse.software) for files that cannot carry a comment header,
+# files that must stay byte for byte as they are, and third-party files. Every other file
+# carries its own SPDX header, and `reuse lint` in CI fails when one is missing.
+version = 1
+
+# Data, documentation, images, lockfiles and release notes; contracts/ (fixtures the
+# server's test suite generates) and tools/l10n/ (vendored, pinned by its SHA256SUMS);
+# the l10n catalogs, which l10n.py requires in canonical form; and the copy of another
+# repository's EndpointID.swift that parity/ compares.
+[[annotations]]
+path = [
+  "**/*.json",
+  "**/*.md",
+  "**/*.png",
+  "**/*.txt",
+  "**/gradle.lockfile",
+  "settings-gradle.lockfile",
+  "NOTICE",
+  "contracts/**",
+  "tools/l10n/**",
+  "l10n/**",
+  "parity/EndpointID.swift",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Distronode Corporation"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Written by scripts/l10n-contracts.py and l10n.py gen, whose --check compares them byte
+# for byte.
+[[annotations]]
+path = [
+  "app/src/l10n-fr/res/values-fr-rCA/api_errors.xml",
+  "app/src/l10n-fr/res/values-fr-rCA/numbers.xml",
+  "app/src/l10n-fr/res/values-fr-rCA/scheduling.xml",
+  "app/src/l10n-fr/res/values-fr-rCA/strings.xml",
+  "app/src/l10n-fr/res/values-fr-rCA/wire_labels.xml",
+  "app/src/main/kotlin/com/distronode/districtai/l10n/ApiErrorCatalog.kt",
+  "app/src/main/kotlin/com/distronode/districtai/l10n/WireCategory.kt",
+  "app/src/main/res/values/api_errors.xml",
+  "app/src/main/res/values/numbers.xml",
+  "app/src/main/res/values/scheduling.xml",
+  "app/src/main/res/values/strings.xml",
+  "app/src/main/res/values/wire_labels.xml",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Distronode Corporation"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Path data of thirteen Material Icons, as NOTICE says. The rest of the file is ours and
+# carries its own header.
+[[annotations]]
+path = "core/core-designsystem/src/main/kotlin/com/distronode/districtai/core/designsystem/DistrictIcons.kt"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Google LLC"
+SPDX-License-Identifier = "Apache-2.0"
+
+# The Gradle Wrapper, copied unchanged.
+[[annotations]]
+path = ["gradlew", "gradlew.bat", "gradle/wrapper/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2015 the original authors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# The Geist typeface and its licence text, copied unchanged.
+[[annotations]]
+path = [
+  "third_party/geist/**",
+  "core/core-designsystem/src/main/res/font/geist_*.ttf",
+  "core/core-designsystem/src/main/res/raw/license_geist.txt",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2024 The Geist Project Authors"
+SPDX-License-Identifier = "OFL-1.1"

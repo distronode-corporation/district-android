@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Validate the overview fixtures against a REAL, DATABASE-BACKED response.
 #
 # ⛔ WHY THIS EXISTS ON TOP OF THE CONTRACT SUITE. The committed fixtures are generated with the

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Validate the calls surfaces against a REAL, DATABASE-BACKED server.
 #
 # ⛔ THE HEADLINE CHECK IS THE DUPLICATE-ROW WINDOW. CallsPagingSource deduplicates because offset

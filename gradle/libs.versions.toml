@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Version catalog — the single source of truth for every dependency version.
 #
 # ⛔ EXACT VERSIONS ONLY. No ranges, no `+`, no `latest.release`. A range makes the

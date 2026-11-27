@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Build the signed release bundle in release.yml, with the upload key and the Sentry values
 # borrowed from Google Secret Manager for this one run.

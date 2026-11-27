@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 plugins {
     id("district.android.library")
     // Needed for ApiErrorEnvelope, which is @Serializable and lives HERE rather than in

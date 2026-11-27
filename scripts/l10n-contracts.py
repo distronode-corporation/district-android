@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Generate the error-code and wire-label catalogs (and their Kotlin lookup tables) from contracts/i18n.
 
     python3 scripts/l10n-contracts.py           write l10n/{api_errors,wire_labels}.toml and the Kotlin tables

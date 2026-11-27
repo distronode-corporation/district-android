@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Publish the GitHub Release for a tag whose build has just been submitted for Google Play review,
 # for release.yml's `submit` path and submit.yml. One copy of the release's wording, so every

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Tests for the release scripts (release-version.sh, release-notes.sh, gsm-secret.sh,
 # play-publish.sh, github-release.sh, release-build.sh, french-guard.sh), run by CI on every pull

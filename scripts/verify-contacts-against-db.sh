@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Validate the contacts surfaces against a REAL, DATABASE-BACKED server.
 #
 # ⛔ THE HEADLINE CHECK IS THE createdAt TIE-BREAK. `contacts/bulk-create` inserts an entire import in

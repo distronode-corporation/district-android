@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Boot the emulator, install the APK, run the Maestro smoke flow, tear the emulator down.
 #
 # Usage, from anywhere in the repository:

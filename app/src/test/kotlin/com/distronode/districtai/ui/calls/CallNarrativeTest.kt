@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package com.distronode.districtai.ui.calls
 
 import com.distronode.districtai.l10n.WIRE_PLACEHOLDERS

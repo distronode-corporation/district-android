@@ -1,4 +1,10 @@
 <!--
+SPDX-FileCopyrightText: Distronode Corporation
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<!--
   The status-bar icon for every notification this app posts.
 
   ⛔ A DEDICATED, FLAT-WHITE, OPAQUE-ALPHA-ONLY VECTOR RATHER THAN `ic_launcher_foreground`.

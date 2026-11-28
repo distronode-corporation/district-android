@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--
+SPDX-FileCopyrightText: Distronode Corporation
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <!--
     Keeps the Geist licence text in a release build. No code reads license_geist.txt, so the
     resource shrinker (isShrinkResources, on for release) would otherwise empty it, and the OFL

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: Submit to Google Play production
 description: >-
   Writes the tag's release notes for every language (CHANGELOG section for en-US,

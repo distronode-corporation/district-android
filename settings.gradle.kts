@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // District AI — native Android client.
 //
 // ⛔ THIS BUILD IS SELF-CONTAINED. The API contract fixtures under contracts/ are

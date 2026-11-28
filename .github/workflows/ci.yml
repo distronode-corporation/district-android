@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: CI
 
 # Linux jobs. `verify` is most of what this repository's CI is for: prove that a commit
@@ -159,13 +163,22 @@ jobs:
           fi
           if [ "$empty" -ne 0 ]; then exit 1; fi
 
+      # The measured figures the floors below are held to, line and branch, in the log and the job
+      # summary: koverVerifyUnit prints neither, koverLogUnit the line figure only. Before the floors,
+      # so a run under a floor still prints them. koverXmlReportUnit writes the same `unit` report as
+      # XML, which scripts/coverage-figures.py reads.
+      - name: Coverage figures
+        run: |
+          ./gradlew :koverLogUnit :koverXmlReportUnit --no-daemon
+          python3 scripts/coverage-figures.py build/reports/kover/reportUnit.xml
+
       # The aggregate line and branch floors in build.gradle.kts. Root-qualified: each module also
       # owns a rule-less koverVerifyUnit that passes trivially, so the unqualified name would run those
-      # no-ops beside the one task that matters. koverLogUnit prints the aggregate number. Never the
-      # unsuffixed koverVerify: under JaCoCo the `total` variant mixes release classes into the
-      # report and reads far below the truth (see build.gradle.kts).
+      # no-ops beside the one task that matters. Never the unsuffixed koverVerify: under JaCoCo the
+      # `total` variant mixes release classes into the report and reads far below the truth (see
+      # build.gradle.kts).
       - name: Coverage floors
-        run: ./gradlew :koverLogUnit :koverVerifyUnit --no-daemon
+        run: ./gradlew :koverVerifyUnit --no-daemon
 
       # assembleDebug does not minify, so every R8 problem is invisible to the steps above. This
       # builds the release variant, UNSIGNED (no signing variables are set, which the build treats

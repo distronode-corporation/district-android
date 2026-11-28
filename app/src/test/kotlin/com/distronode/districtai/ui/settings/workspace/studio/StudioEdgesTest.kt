@@ -74,8 +74,9 @@ class StudioEdgesTest {
 
         val ear = StudioLegEdits.earVendor(mix, "deepgram", bilingual = true, studio = studio)
         assertEquals("nova-3-general", ear.stt.model)
+        // ElevenLabs' first bilingual mouth, v4 Turbo, is offered now; the edit follows it.
         val mouth = StudioLegEdits.voiceVendor(mix, "elevenlabs", bilingual = true, studio = studio)
-        assertEquals("eleven_multilingual_v2", mouth.tts.model)
+        assertEquals("eleven_v4_turbo", mouth.tts.model)
     }
 
     @Test

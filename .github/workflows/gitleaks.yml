@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: Secret scan
 
 # gitleaks over the whole git history, with .gitleaks.toml: the default rules plus allowlists for

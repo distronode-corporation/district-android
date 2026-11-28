@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # gitleaks configuration: the default rules, plus allowlists for the values in this repository
 # that look like secrets and are not. SECURITY.md explains each one.
 #

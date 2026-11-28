@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Root build file. Deliberately almost empty: plugins are applied per-module
 // through the convention plugins in build-logic/, not accumulated here.
 
@@ -288,7 +292,7 @@ kover {
                 // text in an unrelated line and report a wrong number.
                 format = "ANDROID AGGREGATE line coverage: <value>%"
                 // ⚠️ FALSE: the number appears only when koverLogUnit is named explicitly,
-                // which is exactly what CI does (`./gradlew :koverLogUnit :koverVerifyUnit`).
+                // which is exactly what CI does (`./gradlew :koverLogUnit :koverXmlReportUnit`).
                 // Left false deliberately: naming it in CI is deterministic, whereas relying
                 // on a `check` hook would put the number in the log only for whichever
                 // invocations happen to include one.

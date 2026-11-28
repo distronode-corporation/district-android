@@ -29,6 +29,7 @@
     <string name="api_error_caller_id_not_confirmed">The carrier has not confirmed your number yet. Answer the verification call and key in the code, then check again.</string>
     <string name="api_error_caller_id_request_too_soon">A verification call went out less than 10 minutes ago. Wait before asking for another.</string>
     <string name="api_error_caller_id_unavailable">Using your own mobile as caller ID is not available yet.</string>
+    <string name="api_error_campaign_daily_dial_cap_reached">This workspace has reached today\'s limit of campaign calls, so the rest of the list was not called. The limit resets at midnight UTC.</string>
     <string name="api_error_carrier_error">The carrier could not complete that. Please try again or contact support.</string>
     <string name="api_error_carrier_funding">The carrier account could not fund that purchase. Contact support.</string>
     <string name="api_error_carrier_rejected">The carrier refused this registration. Fix the items listed and submit again.</string>
@@ -150,6 +151,7 @@
     <string name="api_error_payload_too_large">That request is too large.</string>
     <string name="api_error_phone_number_limit_reached">This workspace already holds every phone number its plan includes. Upgrade the plan to add more.</string>
     <string name="api_error_phone_number_not_found">That phone number is not one of this workspace\'s numbers.</string>
+    <string name="api_error_pin_conflict">Another change to the phone PIN was saved at the same moment. Check the PIN and try again.</string>
     <string name="api_error_plan_upgrade_required">That feature is not included in this workspace\'s plan.</string>
     <string name="api_error_proposal_already_handled">That proposed change was already handled.</string>
     <string name="api_error_proposal_expired">That proposed change can no longer be confirmed, so nothing was applied. Ask again to propose it afresh.</string>

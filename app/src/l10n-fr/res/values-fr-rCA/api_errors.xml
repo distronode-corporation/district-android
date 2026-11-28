@@ -29,6 +29,7 @@
     <string name="api_error_caller_id_not_confirmed">Le transporteur n\'a pas encore confirmé votre numéro. Répondez à l\'appel de vérification, entrez le code, puis vérifiez de nouveau.</string>
     <string name="api_error_caller_id_request_too_soon">Un appel de vérification a été fait il y a moins de 10 minutes. Attendez avant d\'en demander un autre.</string>
     <string name="api_error_caller_id_unavailable">L\'utilisation de votre cellulaire comme afficheur n\'est pas encore offerte.</string>
+    <string name="api_error_campaign_daily_dial_cap_reached">Cet espace de travail a atteint sa limite quotidienne d\'appels de campagne; le reste de la liste n\'a donc pas été appelé. La limite est remise à zéro à minuit UTC.</string>
     <string name="api_error_carrier_error">Le transporteur n\'a pas pu effectuer cette opération. Réessayez ou communiquez avec notre équipe de soutien.</string>
     <string name="api_error_carrier_funding">Le compte auprès du transporteur n\'a pas pu financer cet achat. Communiquez avec notre équipe de soutien.</string>
     <string name="api_error_carrier_rejected">Le transporteur a refusé cette inscription. Corrigez les éléments indiqués, puis soumettez de nouveau.</string>
@@ -150,6 +151,7 @@
     <string name="api_error_payload_too_large">Cette requête est trop volumineuse.</string>
     <string name="api_error_phone_number_limit_reached">Cet espace de travail détient déjà tous les numéros de téléphone inclus dans son forfait. Passez à un forfait supérieur pour en ajouter.</string>
     <string name="api_error_phone_number_not_found">Ce numéro de téléphone ne fait pas partie des numéros de cet espace de travail.</string>
+    <string name="api_error_pin_conflict">Une autre modification du NIP téléphonique a été enregistrée au même moment. Vérifiez le NIP et réessayez.</string>
     <string name="api_error_plan_upgrade_required">Cette fonction n\'est pas incluse dans le forfait de cet espace de travail.</string>
     <string name="api_error_proposal_already_handled">Ce changement proposé a déjà été traité.</string>
     <string name="api_error_proposal_expired">Ce changement proposé ne peut plus être confirmé, donc rien n\'a été appliqué. Redemandez-le pour qu\'il soit proposé de nouveau.</string>

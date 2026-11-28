@@ -46,14 +46,15 @@ class StudioLegsTest {
 
     @Test
     fun `a model that is not offered stays listed while it is the one held`() {
-        val held = mix.copy(tts = mix.tts.copy(provider = "elevenlabs", model = "eleven_v4"))
+        // ElevenLabs' mouth models are offered now; Inworld's are not, so the held premise moves there.
+        val held = mix.copy(tts = mix.tts.copy(provider = "inworld", model = "inworld-tts-2"))
 
-        assertTrue("eleven_v4" in StudioPickers.voiceModels(held, false, studio).map { it.value })
-        assertTrue("elevenlabs" in StudioPickers.voiceVendors(held, false, studio).map { it.value })
-        assertFalse("elevenlabs" in StudioPickers.voiceVendors(mix, false, studio).map { it.value })
+        assertTrue("inworld-tts-2" in StudioPickers.voiceModels(held, false, studio).map { it.value })
+        assertTrue("inworld" in StudioPickers.voiceVendors(held, false, studio).map { it.value })
+        assertFalse("inworld" in StudioPickers.voiceVendors(mix, false, studio).map { it.value })
         assertTrue(
             "a bilingual mouth list still keeps the held model",
-            "eleven_v4" in StudioPickers.voiceModels(held, true, studio).map { it.value },
+            "inworld-tts-2" in StudioPickers.voiceModels(held, true, studio).map { it.value },
         )
     }
 
@@ -122,10 +123,11 @@ class StudioLegsTest {
 
     @Test
     fun `a vendor whose only fitting model is not offered still moves, to that model`() {
-        val next = StudioLegEdits.voiceVendor(mix, "elevenlabs", false, studio)
+        // Inworld's mouth models are the unoffered ones now; the edit still moves, to the first.
+        val next = StudioLegEdits.voiceVendor(mix, "inworld", false, studio)
 
-        assertEquals("eleven_flash_v2_5", next.tts.model)
-        assertEquals("EXAVITQu4vr4xnSDxMaL", next.tts.voice)
+        assertEquals("inworld-tts-2", next.tts.model)
+        assertEquals("Ashley", next.tts.voice)
     }
 
     @Test

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: Submit for review
 
 # Submits a release that release.yml has already built and uploaded, for Google Play review, with

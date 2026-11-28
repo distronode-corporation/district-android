@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Tests for l10n-contracts.py: python3 -m unittest discover -s scripts -p 'test_*.py'
 
 The generator rewrites l10n/api_errors.toml and l10n/wire_labels.toml from contracts/i18n; these hold it

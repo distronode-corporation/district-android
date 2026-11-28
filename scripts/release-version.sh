@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Print the versionCode and versionName a release build of this checkout carries, as
 # `version_code=<n>` and `version_name=<name>` lines (the shape $GITHUB_OUTPUT takes), and refuse

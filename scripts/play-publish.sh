@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Google Play Developer API (androidpublisher v3) for release.yml and submit.yml.
 #

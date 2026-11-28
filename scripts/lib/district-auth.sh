@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # shellcheck shell=bash
 # Shared by the verify-*-against-db.sh scripts: result helpers, route warm-up, and a real bearer
 # token minted through the native PKCE flow. Sourced, never executed.

@@ -1,4 +1,9 @@
 #!/usr/bin/env sh
+
+# SPDX-FileCopyrightText: Distronode Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Verify that the MINIFIED release artifact is actually usable.
 #

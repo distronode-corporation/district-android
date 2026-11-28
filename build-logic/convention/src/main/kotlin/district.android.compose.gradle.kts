@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Compose wiring, applied on top of district.android.application or
 // district.android.library by any module with UI.
 

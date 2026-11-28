@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Settings shared by EVERY Android module in this project, application or library.
 //
 // Applied by district.android.application and district.android.library rather than

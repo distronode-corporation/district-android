@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Included build providing this project's convention plugins.
 //
 // It is a SEPARATE build with its own settings so it can compile Kotlin against

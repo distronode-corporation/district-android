@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--
+SPDX-FileCopyrightText: Distronode Corporation
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <!--
   The home-screen widget (HomeWidgetProvider). RemoteViews admit only a fixed set of views, so
   this is LinearLayouts and TextViews only.

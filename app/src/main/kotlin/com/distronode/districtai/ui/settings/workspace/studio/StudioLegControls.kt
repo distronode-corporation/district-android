@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package com.distronode.districtai.ui.settings.workspace.studio
 
 /** One picker as the leg editor draws it: what it offers, what is held, and what a choice does. */

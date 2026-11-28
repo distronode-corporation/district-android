@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package com.distronode.districtai.ui.dialer
 
 /** [DialerCountryMemory] in memory, keyed like the real one, so a test can read what was kept. */

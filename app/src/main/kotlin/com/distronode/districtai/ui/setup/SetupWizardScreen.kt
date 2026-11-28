@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Distronode Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
 @file:Suppress("TooManyFunctions")
 
 package com.distronode.districtai.ui.setup
